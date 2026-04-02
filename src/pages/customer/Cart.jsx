@@ -1,0 +1,224 @@
+﻿import { useMemo } from "react";
+import { Link as RouterLink, useParams } from "react-router-dom";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import AppButton from "../../components/common/buttons/AppButton.jsx";
+import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
+import AppDataTable from "../../components/common/tables/AppDataTable.jsx";
+import EmptyState from "../../components/common/feedback/EmptyState.jsx";
+import QuantityStepper from "../../components/common/inputs/QuantityStepper.jsx";
+import CartItem from "../../components/cart/CartItem.jsx";
+import CartSummary from "../../components/cart/CartSummary.jsx";
+import useCart from "../../hooks/cart/useCart.js";
+import useRemoveCartItem from "../../hooks/cart/useRemoveCartItem.js";
+import useUpdateCartItem from "../../hooks/cart/useUpdateCartItem.js";
+import useClearCart from "../../hooks/cart/useClearCart.js";
+import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useAuth from "../../hooks/auth/useAuth.js";
+import { normalizeEntityResponse } from "../../utils/collections.js";
+import { formatCurrency } from "../../utils/formatCurrency.js";
+import { normalizeCartResponse } from "../../utils/storefront.js";
+import extractApiError from "../../utils/extractApiError.js";
+import useStoreBranding from "../../theme/useStoreBranding.js";
+import "./Cart.css";
+
+export default function Cart() {
+  const { slug } = useParams();
+  const { isAuthenticated } = useAuth();
+
+  const storeQuery = useStoreBySlug(slug);
+  const store = useMemo(() => normalizeEntityResponse(storeQuery.data), [storeQuery.data]);
+
+  useStoreBranding(store);
+
+  const cartQuery = useCart(store?.id, {
+    enabled: Boolean(store?.id) && isAuthenticated,
+  });
+  const updateCartItemMutation = useUpdateCartItem(store?.id);
+  const removeCartItemMutation = useRemoveCartItem(store?.id);
+  const clearCartMutation = useClearCart(store?.id);
+
+  if (storeQuery.isLoading) {
+    return (
+      <Box className="storefront-page page-cart">
+        <EmptyState title="جاري تحميل السلة..." />
+      </Box>
+    );
+  }
+
+  if (storeQuery.error || !store) {
+    return (
+      <Box className="storefront-page page-cart">
+        <EmptyState
+          title="تعذر فتح السلة"
+          description="لم نتمكن من العثور على المتجر المرتبط بهذه السلة."
+          action={
+            <AppButton component={RouterLink} to="/market" variant="contained">
+              العودة إلى السوق
+            </AppButton>
+          }
+        />
+      </Box>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <Box className="storefront-page page-cart">
+        <EmptyState
+          title="تسجيل الدخول مطلوب"
+          description="السلة على هذا النظام تعمل فقط للمستخدمين المسجلين."
+          action={
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center">
+              <AppButton component={RouterLink} to="/auth/login" variant="contained">
+                تسجيل الدخول
+              </AppButton>
+              <AppButton component={RouterLink} to={`/market/${slug}`} variant="outlined">
+                متابعة التسوق
+              </AppButton>
+            </Stack>
+          }
+        />
+      </Box>
+    );
+  }
+
+  const cart = normalizeCartResponse(cartQuery.data);
+
+  return (
+    <Box className="storefront-page page-cart">
+      {updateCartItemMutation.isError ? (
+        <Alert severity="error">
+          {extractApiError(updateCartItemMutation.error, "تعذر تحديث كمية العنصر.")}
+        </Alert>
+      ) : null}
+
+      {removeCartItemMutation.isError ? (
+        <Alert severity="error">
+          {extractApiError(removeCartItemMutation.error, "تعذر حذف العنصر من السلة.")}
+        </Alert>
+      ) : null}
+
+      {clearCartMutation.isError ? (
+        <Alert severity="error">
+          {extractApiError(clearCartMutation.error, "تعذر تفريغ السلة.")}
+        </Alert>
+      ) : null}
+
+      {clearCartMutation.isSuccess ? (
+        <Alert severity="success">
+          {clearCartMutation.data?.message || "تم تفريغ السلة بنجاح."}
+        </Alert>
+      ) : null}
+
+      <SurfaceCard className="page-cart__hero">
+        <Box className="storefront-section__head">
+          <Box className="storefront-section__copy">
+            <span className="storefront-eyebrow">Cart</span>
+            <Typography variant="h2">سلة {store.name}</Typography>
+            <Typography variant="body1" className="storefront-subtitle">
+              الكميات والأسعار المعروضة هنا تأتي من الخادم مباشرة.
+            </Typography>
+          </Box>
+
+          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+            <AppButton component={RouterLink} to={`/market/${slug}`} variant="outlined">
+              متابعة التسوق
+            </AppButton>
+            <AppButton
+              variant="text"
+              appearance="ghost"
+              onClick={() => clearCartMutation.mutate()}
+              disabled={clearCartMutation.isPending || !cart.items.length}
+            >
+              تفريغ السلة
+            </AppButton>
+          </Stack>
+        </Box>
+      </SurfaceCard>
+
+      {cartQuery.isLoading ? (
+        <EmptyState title="جاري تحميل عناصر السلة..." />
+      ) : !cart.items.length ? (
+        <EmptyState
+          title="السلة فارغة"
+          description="ابدأ من صفحة المتجر وأضف المنتجات التي تريدها ثم عد هنا للمراجعة."
+          action={
+            <AppButton component={RouterLink} to={`/market/${slug}`} variant="contained">
+              العودة إلى المتجر
+            </AppButton>
+          }
+        />
+      ) : (
+        <Box className="storefront-grid">
+          <Box className="storefront-grid__span-8">
+            <SurfaceCard className="page-cart__table-card">
+              <AppDataTable
+                zebra
+                rows={cart.items}
+                columns={[
+                  {
+                    key: "product",
+                    title: "المنتج",
+                    render: (row) => <CartItem item={row} storeSlug={slug} />,
+                  },
+                  {
+                    key: "price",
+                    title: "السعر",
+                    render: (row) => formatCurrency(row.unitPrice),
+                  },
+                  {
+                    key: "quantity",
+                    title: "الكمية",
+                    render: (row) => (
+                      <QuantityStepper
+                        value={row.quantity}
+                        min={1}
+                        max={row.availableStock || undefined}
+                        onChange={(nextValue) =>
+                          updateCartItemMutation.mutate({
+                            cartItemId: row.id,
+                            payload: { quantity: nextValue },
+                          })
+                        }
+                      />
+                    ),
+                  },
+                  {
+                    key: "total",
+                    title: "الإجمالي",
+                    render: (row) => formatCurrency(row.totalPrice),
+                  },
+                  {
+                    key: "actions",
+                    title: "إجراء",
+                    render: (row) => (
+                      <AppButton
+                        variant="text"
+                        appearance="ghost"
+                        onClick={() => removeCartItemMutation.mutate(row.id)}
+                      >
+                        حذف
+                      </AppButton>
+                    ),
+                  },
+                ]}
+              />
+            </SurfaceCard>
+          </Box>
+
+          <Box className="storefront-grid__span-4">
+            <CartSummary
+              subtotal={cart.subtotal}
+              totalAmount={cart.totalAmount}
+              itemCount={cart.itemCount}
+              checkoutPath={`/market/${slug}/checkout`}
+            />
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+}

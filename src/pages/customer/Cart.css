@@ -1,0 +1,4 @@
+.page-cart__hero,
+.page-cart__table-card {
+  padding: var(--panel-padding);
+}

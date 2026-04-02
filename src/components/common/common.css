@@ -1,0 +1,232 @@
+.app-button.MuiButton-root {
+  position: relative;
+  min-height: 46px;
+  border-radius: var(--radius-sm);
+  padding-inline: 18px;
+  font-weight: 700;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.app-button.MuiButton-root.Mui-disabled {
+  opacity: 0.58;
+}
+
+.app-button--primary.MuiButton-root {
+  color: var(--button-text);
+  background: var(--primary);
+  border: 1px solid transparent;
+  box-shadow: none;
+}
+
+.app-button--primary.MuiButton-root:hover {
+  background: color-mix(in srgb, var(--primary) 92%, var(--surface-elevated));
+  box-shadow: none;
+}
+
+.app-button--secondary.MuiButton-root {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+  border: 1px solid var(--border-subtle);
+}
+
+.app-button--secondary.MuiButton-root:hover {
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface-elevated));
+  border-color: var(--border-strong);
+}
+
+.app-button--ghost.MuiButton-root {
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.app-button--ghost.MuiButton-root:hover {
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.app-button--destructive.MuiButton-root {
+  color: color-mix(in srgb, var(--status-error) 82%, var(--text-primary));
+  background: color-mix(in srgb, var(--status-error) 9%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--status-error) 28%, var(--border-subtle));
+}
+
+.app-button--destructive.MuiButton-root:hover {
+  background: color-mix(in srgb, var(--status-error) 14%, var(--surface));
+  border-color: color-mix(in srgb, var(--status-error) 46%, var(--border-subtle));
+}
+
+.app-button__spinner {
+  display: inline-flex;
+  align-items: center;
+}
+
+.app-surface-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-elevated);
+  box-shadow: none;
+}
+
+.app-surface-card--subtle {
+  background: var(--surface-alt);
+}
+
+.app-surface-card--contrast {
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+  background: var(--surface-alt);
+  box-shadow: none;
+}
+
+.app-surface-card--hero {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-surface-card--glass {
+  background: var(--surface-elevated);
+}
+
+.app-surface-card--interactive {
+  transition:
+    border-color var(--transition-base),
+    background-color var(--transition-base);
+}
+
+.app-surface-card--interactive:hover {
+  border-color: var(--border-strong);
+}
+
+.app-input .MuiInputBase-root {
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+}
+
+.app-input .MuiInputBase-root:hover {
+  background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
+}
+
+.app-input .MuiInputBase-root.Mui-focused {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.app-input .MuiOutlinedInput-notchedOutline {
+  border-color: var(--border-subtle);
+}
+
+.app-input .MuiInputLabel-root {
+  color: var(--text-secondary);
+}
+
+.app-input .MuiInputAdornment-root,
+.app-input .MuiSvgIcon-root {
+  color: var(--primary);
+}
+
+.app-quantity {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: var(--surface-elevated);
+}
+
+.app-quantity__button {
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.app-quantity__button:hover:not(:disabled) {
+  background: var(--interactive-hover);
+  transform: translateY(-1px);
+}
+
+.app-quantity__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.app-quantity__value {
+  min-width: 32px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.app-modal__paper {
+  width: min(92vw, 640px);
+  padding: var(--panel-padding);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-elevated);
+  box-shadow: none;
+}
+
+.app-data-table {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+}
+
+.app-data-table__container {
+  background: transparent;
+}
+
+.app-data-table .MuiTable-root {
+  min-width: 720px;
+}
+
+.app-data-table__head-cell {
+  white-space: nowrap;
+}
+
+.app-data-table__cell {
+  vertical-align: top;
+}
+
+.app-data-table__row:last-child .app-data-table__cell {
+  border-bottom: none;
+}
+
+.app-data-table--zebra .MuiTableBody-root .MuiTableRow-root:nth-of-type(even) {
+  background: color-mix(in srgb, var(--surface-muted) 70%, transparent);
+}
+
+.app-empty-state,
+.app-loading-state {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  gap: var(--space-4);
+  text-align: center;
+  padding: var(--panel-padding);
+}
+
+.app-empty-state__body,
+.app-loading-state__body {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: center;
+}
+
+.app-empty-state__description {
+  max-width: 540px;
+}

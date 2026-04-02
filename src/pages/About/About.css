@@ -1,0 +1,81 @@
+.page-about {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.page-about__hero,
+.page-about__card,
+.page-about__story {
+  border-radius: 32px;
+  border: 1px solid var(--border-subtle);
+  background:
+    radial-gradient(circle at top right, var(--surface-panel-spotlight), transparent 34%),
+    var(--gradient-panel);
+  box-shadow: var(--shadow-soft);
+}
+
+.page-about__hero,
+.page-about__story {
+  padding: clamp(1.5rem, 3vw, 2.3rem);
+}
+
+.page-about__eyebrow {
+  color: var(--text-secondary);
+  letter-spacing: 0.16em;
+}
+
+.page-about__title,
+.page-about__story-title,
+.page-about__card-title {
+  font-family: var(--font-heading);
+}
+
+.page-about__title {
+  max-width: 12ch;
+  line-height: 1.06 !important;
+}
+
+.page-about__lead {
+  max-width: 60ch;
+  line-height: 1.9;
+}
+
+.page-about__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.page-about__card {
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.page-about__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  background: var(--gradient-soft-icon);
+}
+
+@media (max-width: 899px) {
+  .page-about__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .page-about__title {
+    max-width: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .page-about__hero,
+  .page-about__card,
+  .page-about__story {
+    border-radius: 24px;
+  }
+}

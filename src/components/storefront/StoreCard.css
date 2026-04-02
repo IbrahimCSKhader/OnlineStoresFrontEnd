@@ -1,0 +1,185 @@
+.store-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: inherit;
+}
+
+.store-card--disabled {
+  opacity: 0.82;
+}
+
+.store-card__media {
+  position: relative;
+  min-height: 142px;
+  padding: 0;
+  background: var(--surface-contrast);
+}
+
+.store-card__cover {
+  width: 100%;
+  height: 100%;
+  min-height: 142px;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.store-card__cover--empty {
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  font-size: 2rem;
+}
+
+.store-card__media::after {
+  display: none;
+}
+
+.store-card__status {
+  position: absolute !important;
+  top: 12px;
+  inset-inline-start: 12px;
+  border: 1px solid var(--border-subtle) !important;
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent) !important;
+  z-index: 1;
+}
+
+.store-card__status--active {
+  color: var(--status-success) !important;
+}
+
+.store-card__logo-wrap {
+  position: absolute;
+  inset-inline-end: 10px;
+  bottom: -18px;
+  z-index: 1;
+}
+
+.store-card__logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid var(--surface-elevated);
+  background: var(--surface-elevated);
+  box-shadow: none;
+}
+
+.store-card__logo--empty {
+  display: grid;
+  place-items: center;
+  font-family: var(--font-heading);
+  color: var(--button-text);
+  background: var(--primary);
+}
+
+.store-card__content {
+  display: grid;
+  gap: 10px;
+  padding: 24px 12px 12px;
+}
+
+.store-card__copy {
+  display: grid;
+  gap: 6px;
+}
+
+.store-card__eyebrow {
+  color: var(--text-secondary);
+  font-size: 0.68rem !important;
+}
+
+.store-card__title {
+  font-size: 0.92rem !important;
+  line-height: 1.28 !important;
+}
+
+.store-card__description {
+  min-height: auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  line-height: 1.5 !important;
+  font-size: 0.82rem !important;
+}
+
+.store-card__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.store-card__meta .MuiChip-root {
+  max-width: 100%;
+}
+
+.store-card__meta .MuiChip-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-card__views,
+.store-card__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.store-card__views {
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.store-card__action {
+  width: fit-content;
+  padding: 0;
+  border-radius: 0;
+  color: var(--primary);
+  font-size: 0.82rem;
+  background: transparent;
+  font-weight: 700;
+}
+
+@media (max-width: 899px) {
+  .store-card__media {
+    min-height: 128px;
+  }
+
+  .store-card__cover {
+    min-height: 128px;
+  }
+
+  .store-card__description {
+    display: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .store-card__media {
+    min-height: 118px;
+  }
+
+  .store-card__cover {
+    min-height: 118px;
+  }
+
+  .store-card__content {
+    padding: 22px 10px 10px;
+  }
+
+  .store-card__logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+
+  .store-card__meta {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}

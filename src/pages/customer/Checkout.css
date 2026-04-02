@@ -1,0 +1,4 @@
+.page-checkout__hero,
+.page-checkout__form-card {
+  padding: var(--panel-padding);
+}

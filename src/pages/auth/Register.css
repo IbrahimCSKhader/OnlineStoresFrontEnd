@@ -1,0 +1,137 @@
+.page-register {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) 0 var(--space-8);
+  overflow: hidden;
+}
+
+.page-register__glow {
+  display: none;
+}
+
+.page-register__glow--one {
+  width: 320px;
+  height: 320px;
+  inset-inline-start: -100px;
+  bottom: 10px;
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+}
+
+.page-register__glow--two {
+  width: 300px;
+  height: 300px;
+  inset-inline-end: -90px;
+  top: 30px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.page-register__shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.02fr);
+  gap: var(--gap);
+}
+
+.page-register__panel {
+  border-radius: var(--radius-xxl);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-elevated);
+  box-shadow: none;
+}
+
+.page-register__panel--info,
+.page-register__panel--form {
+  padding: clamp(24px, 3.4vw, 40px);
+}
+
+.page-register__panel--form .MuiOutlinedInput-root {
+  border-radius: 16px;
+}
+
+.page-register__panel--form .MuiInputAdornment-root {
+  color: var(--primary);
+}
+
+.page-register__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  font-weight: 700;
+}
+
+.page-register__eyebrow {
+  color: var(--text-secondary);
+  letter-spacing: 0.12em;
+}
+
+.page-register__title,
+.page-register__form-title {
+  font-family: var(--font-heading);
+  line-height: 1.08 !important;
+}
+
+.page-register__title {
+  max-width: 11ch;
+}
+
+.page-register__lead {
+  max-width: 48ch;
+  line-height: 1.9;
+}
+
+.page-register__benefits {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.page-register__benefit {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--surface-muted) 84%, var(--surface-elevated));
+}
+
+.page-register__benefit-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.page-register__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 999px) {
+  .page-register__shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .page-register__title {
+    max-width: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .page-register__panel {
+    border-radius: var(--radius-xl);
+  }
+
+  .page-register__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

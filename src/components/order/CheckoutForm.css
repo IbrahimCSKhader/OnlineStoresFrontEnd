@@ -1,0 +1,64 @@
+.checkout-form {
+  display: grid;
+  gap: var(--gap);
+}
+
+.checkout-form__steps {
+  padding-top: var(--space-2);
+}
+
+.checkout-form__body {
+  display: grid;
+  gap: var(--gap);
+}
+
+.checkout-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.checkout-form__review {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.checkout-form__review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.checkout-form__review-grid div {
+  display: grid;
+  gap: 4px;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background:
+    linear-gradient(180deg, var(--hero-sheen), transparent),
+    var(--surface-muted);
+}
+
+.checkout-form__review-grid span {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.checkout-form__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 639px) {
+  .checkout-form__grid,
+  .checkout-form__review-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .checkout-form__actions > * {
+    width: 100%;
+  }
+}
