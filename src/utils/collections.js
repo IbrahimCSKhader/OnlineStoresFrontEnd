@@ -7,6 +7,9 @@ const LIST_RESPONSE_KEYS = [
   "categories",
   "sections",
   "coupons",
+  "customers",
+  "customerStores",
+  "users",
   "orders",
   "reviews",
 ];
@@ -20,6 +23,9 @@ const ENTITY_RESPONSE_KEYS = [
   "category",
   "section",
   "coupon",
+  "customer",
+  "customerStore",
+  "user",
   "order",
   "review",
 ];

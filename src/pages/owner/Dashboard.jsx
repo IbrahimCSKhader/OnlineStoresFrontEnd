@@ -14,6 +14,7 @@ import ConfirmationNumberRoundedIcon from "@mui/icons-material/ConfirmationNumbe
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
+import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import RateReviewRoundedIcon from "@mui/icons-material/RateReviewRounded";
 import SellRoundedIcon from "@mui/icons-material/SellRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
@@ -25,6 +26,7 @@ import LoadingState from "../../components/common/loaders/LoadingState.jsx";
 import AppDataTable from "../../components/common/tables/AppDataTable.jsx";
 import CategoryForm from "../../components/dashboard/CategoryForm.jsx";
 import CouponForm from "../../components/dashboard/CouponForm.jsx";
+import CustomerStoreForm from "../../components/dashboard/CustomerStoreForm.jsx";
 import ProductForm from "../../components/dashboard/ProductForm.jsx";
 import SectionForm from "../../components/dashboard/SectionForm.jsx";
 import StatCard from "../../components/dashboard/StatCard.jsx";
@@ -38,6 +40,11 @@ import useCreateCoupon from "../../hooks/coupons/useCreateCoupon.js";
 import useCoupons from "../../hooks/coupons/useCoupons.js";
 import useDeleteCoupon from "../../hooks/coupons/useDeleteCoupon.js";
 import useUpdateCoupon from "../../hooks/coupons/useUpdateCoupon.js";
+import useAvailableCustomers from "../../hooks/customerStores/useAvailableCustomers.js";
+import useCreateCustomerStore from "../../hooks/customerStores/useCreateCustomerStore.js";
+import useDeleteCustomerStore from "../../hooks/customerStores/useDeleteCustomerStore.js";
+import useStoreCustomers from "../../hooks/customerStores/useStoreCustomers.js";
+import useUpdateCustomerStore from "../../hooks/customerStores/useUpdateCustomerStore.js";
 import productApi from "../../API/product.api.js";
 import useStoreOrders from "../../hooks/orders/useStoreOrders.js";
 import useUpdateOrderStatus from "../../hooks/orders/useUpdateOrderStatus.js";
@@ -106,6 +113,13 @@ const TAB_CONFIG = [
     route: "/owner/coupons",
     description: "بناء العروض السريعة",
     icon: <ConfirmationNumberRoundedIcon fontSize="small" />,
+  },
+  {
+    key: "customers",
+    label: "زبائن المتجر",
+    route: "/owner/customers",
+    description: "تحديد من يشاهد سعر الجملة داخل المتجر",
+    icon: <PeopleAltRoundedIcon fontSize="small" />,
   },
   {
     key: "reviews",
@@ -219,6 +233,109 @@ function buildCouponForm() {
   };
 }
 
+function buildCustomerStoreForm() {
+  return {
+    mode: "create",
+    id: "",
+    customerId: "",
+    discountPercentage: "0",
+    isActive: true,
+  };
+}
+
+function firstDefined(...values) {
+  return values.find((value) => value !== undefined && value !== null && value !== "");
+}
+
+function toNumber(value, fallback = 0) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : fallback;
+}
+
+function toBoolean(value, fallback = false) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+
+    if (["true", "1", "yes"].includes(normalized)) {
+      return true;
+    }
+
+    if (["false", "0", "no"].includes(normalized)) {
+      return false;
+    }
+  }
+
+  return Boolean(value);
+}
+
+function formatDiscountPercentage(value) {
+  return `${toNumber(value, 0).toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}%`;
+}
+
+function normalizeCustomerOption(entity) {
+  const source = entity?.customer || entity?.user || entity;
+  const id = firstDefined(
+    entity?.customerId,
+    entity?.userId,
+    source?.id,
+    source?.userId,
+    source?.customerId,
+  );
+
+  return {
+    id: id ? String(id) : "",
+    name: firstDefined(
+      entity?.customerName,
+      entity?.name,
+      source?.fullName,
+      source?.name,
+      source?.userName,
+    ),
+    email: firstDefined(entity?.customerEmail, entity?.email, source?.email),
+    raw: entity,
+  };
+}
+
+function normalizeStoreCustomer(item) {
+  const customer = normalizeCustomerOption(item);
+  const id = firstDefined(item?.id, item?.customerStoreId, customer.id);
+
+  return {
+    id: id ? String(id) : "",
+    customerId: customer.id,
+    name: customer.name || "مستخدم",
+    email: customer.email || "-",
+    discountPercentage: toNumber(
+      firstDefined(item?.discountPercentage, item?.discount, item?.discountValue, 0),
+      0,
+    ),
+    isActive: toBoolean(item?.isActive, true),
+    raw: item,
+  };
+}
+
+function dedupeCustomers(customers) {
+  const seen = new Set();
+
+  return customers.filter((customer) => {
+    const key = normalizeText(customer?.id);
+
+    if (!key || seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
+
 function flattenCategories(categories) {
   const byParent = new Map();
 
@@ -315,6 +432,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const shouldLoadSections =
     isOverviewTab || activeTab === "sections" || activeTab === "products";
   const shouldLoadCoupons = isOverviewTab || activeTab === "coupons";
+  const shouldLoadCustomerStores =
+    isOverviewTab || activeTab === "customers";
   const shouldLoadOrders = isOverviewTab || activeTab === "orders";
   const shouldLoadReviews = isOverviewTab || activeTab === "reviews";
 
@@ -333,6 +452,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const couponsQuery = useCoupons(storeId, {
     enabled: Boolean(storeId) && shouldLoadCoupons,
     staleTime: 30000,
+  });
+  const storeCustomersQuery = useStoreCustomers(storeId, {
+    enabled: Boolean(storeId) && shouldLoadCustomerStores,
+    staleTime: 30000,
+  });
+  const availableCustomersQuery = useAvailableCustomers(storeId, {
+    enabled: Boolean(storeId) && shouldLoadCustomerStores,
+    staleTime: 30000,
+    retry: false,
   });
   const ordersQuery = useStoreOrders(storeId, {
     enabled: Boolean(storeId) && shouldLoadOrders,
@@ -360,6 +488,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const createCouponMutation = useCreateCoupon(storeId);
   const updateCouponMutation = useUpdateCoupon(storeId);
   const deleteCouponMutation = useDeleteCoupon(storeId);
+  const createCustomerStoreMutation = useCreateCustomerStore(storeId);
+  const updateCustomerStoreMutation = useUpdateCustomerStore(storeId);
+  const deleteCustomerStoreMutation = useDeleteCustomerStore(storeId);
 
   const updateOrderStatusMutation = useUpdateOrderStatus(storeId);
   const updateReviewApprovalMutation = useUpdateReviewApproval(storeId);
@@ -368,6 +499,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const categoriesRaw = normalizeListResponse(categoriesQuery.data);
   const sectionsRaw = normalizeListResponse(sectionsQuery.data);
   const couponsRaw = normalizeListResponse(couponsQuery.data);
+  const storeCustomersRaw = normalizeListResponse(storeCustomersQuery.data);
+  const availableCustomersRaw = normalizeListResponse(availableCustomersQuery.data);
   const ordersRaw = normalizeListResponse(ordersQuery.data);
   const reviewsRaw = normalizeListResponse(reviewsQuery.data);
 
@@ -389,6 +522,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const [categoryForm, setCategoryForm] = useState(() => buildCategoryForm());
   const [sectionForm, setSectionForm] = useState(() => buildSectionForm());
   const [couponForm, setCouponForm] = useState(() => buildCouponForm());
+  const [customerStoreForm, setCustomerStoreForm] = useState(() =>
+    buildCustomerStoreForm(),
+  );
   const [editingProductId, setEditingProductId] = useState("");
 
   const newImagePreviews = useMemo(
@@ -474,6 +610,70 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       ),
     [couponsRaw, deferredSearchText],
   );
+  const storeCustomersAll = useMemo(
+    () =>
+      dedupeCustomers(
+        storeCustomersRaw
+          .map((item) => normalizeStoreCustomer(item))
+          .filter((item) => item.id && item.customerId),
+      ),
+    [storeCustomersRaw],
+  );
+  const assignedCustomerIds = useMemo(
+    () =>
+      new Set(
+        storeCustomersAll
+          .map((item) => normalizeText(item.customerId))
+          .filter(Boolean),
+      ),
+    [storeCustomersAll],
+  );
+  const availableCustomersAll = useMemo(
+    () =>
+      dedupeCustomers(
+        availableCustomersRaw
+          .map((item) => normalizeCustomerOption(item))
+          .filter(
+            (item) =>
+              item.id &&
+              !assignedCustomerIds.has(normalizeText(item.id)),
+          ),
+      ),
+    [assignedCustomerIds, availableCustomersRaw],
+  );
+  const customerOptions = useMemo(
+    () =>
+      dedupeCustomers([
+        ...storeCustomersAll.map((item) => ({
+          id: item.customerId,
+          name: item.name,
+          email: item.email,
+          raw: item.raw,
+        })),
+        ...availableCustomersAll,
+      ]),
+    [availableCustomersAll, storeCustomersAll],
+  );
+  const selectedCustomer = useMemo(
+    () =>
+      customerOptions.find((item) => item.id === customerStoreForm.customerId) ||
+      null,
+    [customerOptions, customerStoreForm.customerId],
+  );
+  const customers = useMemo(
+    () =>
+      storeCustomersAll.filter((item) =>
+        matchesText(item, deferredSearchText, ["name", "email", "customerId"]),
+      ),
+    [deferredSearchText, storeCustomersAll],
+  );
+  const availableCustomers = useMemo(
+    () =>
+      availableCustomersAll.filter((item) =>
+        matchesText(item, deferredSearchText, ["name", "email", "id"]),
+      ),
+    [availableCustomersAll, deferredSearchText],
+  );
   const orders = useMemo(
     () =>
       ordersRaw.filter((item) =>
@@ -544,6 +744,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       case "coupons":
         count = couponsQuery.isSuccess ? couponsRaw.length : undefined;
         break;
+      case "customers":
+        count = storeCustomersQuery.isSuccess ? storeCustomersAll.length : undefined;
+        break;
       case "reviews":
         count = reviewsQuery.isSuccess ? pendingReviewsCount : undefined;
         break;
@@ -572,6 +775,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     createCouponMutation.error,
     updateCouponMutation.error,
     deleteCouponMutation.error,
+    createCustomerStoreMutation.error,
+    updateCustomerStoreMutation.error,
+    deleteCustomerStoreMutation.error,
     updateOrderStatusMutation.error,
     updateReviewApprovalMutation.error,
   ];
@@ -582,6 +788,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const resetCategoryForm = () => setCategoryForm(buildCategoryForm());
   const resetSectionForm = () => setSectionForm(buildSectionForm());
   const resetCouponForm = () => setCouponForm(buildCouponForm());
+  const resetCustomerStoreForm = () =>
+    setCustomerStoreForm(buildCustomerStoreForm());
 
   const buildEditProductForm = (product) => ({
     mode: "edit",
@@ -888,6 +1096,45 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
       await createCouponMutation.mutateAsync(payload);
       resetCouponForm();
+    } catch {
+      // Error is surfaced through the shared error alert.
+    }
+  };
+
+  const handleSelectAvailableCustomer = (customer) => {
+    setCustomerStoreForm({
+      mode: "create",
+      id: "",
+      customerId: customer?.id || "",
+      discountPercentage: "0",
+      isActive: true,
+    });
+  };
+
+  const handleSubmitCustomerStore = async (event) => {
+    event.preventDefault();
+    if (!storeId || !customerStoreForm.customerId) return;
+
+    try {
+      if (customerStoreForm.mode === "edit" && customerStoreForm.id) {
+        await updateCustomerStoreMutation.mutateAsync({
+          id: customerStoreForm.id,
+          payload: {
+            discountPercentage: toNumber(customerStoreForm.discountPercentage, 0),
+            isActive: customerStoreForm.isActive,
+          },
+        });
+        resetCustomerStoreForm();
+        return;
+      }
+
+      await createCustomerStoreMutation.mutateAsync({
+        storeId,
+        customerId: customerStoreForm.customerId,
+        discountPercentage: toNumber(customerStoreForm.discountPercentage, 0),
+        isActive: customerStoreForm.isActive,
+      });
+      resetCustomerStoreForm();
     } catch {
       // Error is surfaced through the shared error alert.
     }
@@ -1489,6 +1736,220 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 }
               />
             )}
+          </Paper>
+        ) : null}
+
+        {activeTab === "customers" ? (
+          <Paper className="owner-panel" elevation={0}>
+            <SectionHeader
+              title="زبائن المتجر وسعر الجملة"
+              description="اختر من المستخدمين المسجلين من يحصل على تسعير خاص داخل متجرك، ثم عدل نسبة الخصم أو أوقفها متى احتجت."
+              onRefresh={() => {
+                storeCustomersQuery.refetch();
+                availableCustomersQuery.refetch();
+              }}
+              isRefreshing={
+                storeCustomersQuery.isFetching || availableCustomersQuery.isFetching
+              }
+            />
+
+            <Alert severity="info" className="owner-inline-alert">
+              خصم زبون المتجر لا يؤثر على شاشة الإدارة فقط، بل يغيّر السعر الظاهر للعميل
+              بعد تسجيل الدخول ويُثبت داخل السلة ثم ينتقل إلى الطلب.
+            </Alert>
+
+            <CustomerStoreForm
+              form={customerStoreForm}
+              isEdit={customerStoreForm.mode === "edit"}
+              loading={
+                createCustomerStoreMutation.isPending ||
+                updateCustomerStoreMutation.isPending
+              }
+              customers={customerOptions}
+              selectedCustomer={selectedCustomer}
+              onChange={(key, value) =>
+                setCustomerStoreForm((prev) => ({ ...prev, [key]: value }))
+              }
+              onReset={resetCustomerStoreForm}
+              onSubmit={handleSubmitCustomerStore}
+            />
+
+            <Divider />
+
+            <Box className="owner-subsection">
+              <Box>
+                <Typography variant="h6" className="owner-subsection__title">
+                  زبائن المتجر الحاليون
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  هؤلاء هم المستخدمون الذين يشاهدون تسعيرًا خاصًا داخل هذا المتجر.
+                </Typography>
+              </Box>
+
+              {storeCustomersQuery.isLoading ? (
+                <LoadingState />
+              ) : storeCustomersQuery.error ? (
+                <Alert severity="error">
+                  {getErrorMessage(storeCustomersQuery.error)}
+                </Alert>
+              ) : (
+                <AppDataTable
+                  rows={customers}
+                  columns={[
+                    {
+                      key: "name",
+                      title: "العميل",
+                      render: (row) => (
+                        <Stack spacing={0.3}>
+                          <Typography variant="body2" fontWeight={700}>
+                            {row.name}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {row.email}
+                          </Typography>
+                        </Stack>
+                      ),
+                    },
+                    {
+                      key: "discountPercentage",
+                      title: "خصم الجملة",
+                      render: (row) => formatDiscountPercentage(row.discountPercentage),
+                    },
+                    {
+                      key: "isActive",
+                      title: "الحالة",
+                      render: (row) => (
+                        <Chip
+                          size="small"
+                          label={row.isActive ? "مفعل" : "متوقف"}
+                          color={row.isActive ? "primary" : "default"}
+                          variant={row.isActive ? "filled" : "outlined"}
+                        />
+                      ),
+                    },
+                    {
+                      key: "actions",
+                      title: "إجراءات",
+                      render: (row) => (
+                        <Stack direction="row" spacing={1}>
+                          <AppButton
+                            size="small"
+                            variant="outlined"
+                            onClick={() =>
+                              setCustomerStoreForm({
+                                mode: "edit",
+                                id: row.id,
+                                customerId: row.customerId,
+                                discountPercentage: String(
+                                  row.discountPercentage ?? 0,
+                                ),
+                                isActive: Boolean(row.isActive),
+                              })
+                            }
+                          >
+                            تعديل
+                          </AppButton>
+                          <AppButton
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            loading={
+                              deleteCustomerStoreMutation.isPending &&
+                              deleteCustomerStoreMutation.variables === row.id
+                            }
+                            onClick={() =>
+                              confirmDelete(
+                                `العميل ${row.name}`,
+                                deleteCustomerStoreMutation,
+                                row.id,
+                              )
+                            }
+                          >
+                            حذف
+                          </AppButton>
+                        </Stack>
+                      ),
+                    },
+                  ]}
+                  emptyState={
+                    <EmptyState
+                      title="لا يوجد زبائن متجر بعد"
+                      description="اختر مستخدمًا مسجلًا من القائمة بالأسفل وحدد له نسبة خصم ليبدأ برؤية سعر الجملة."
+                    />
+                  }
+                />
+              )}
+            </Box>
+
+            <Divider />
+
+            <Box className="owner-subsection">
+              <Box>
+                <Typography variant="h6" className="owner-subsection__title">
+                  المستخدمون المتاحون للإضافة
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  اختر أي مستخدم مسجل ليصبح من زبائن المتجر ويشاهد السعر الخاص بعد
+                  تسجيل الدخول.
+                </Typography>
+              </Box>
+
+              {availableCustomersQuery.isLoading ? (
+                <LoadingState />
+              ) : availableCustomersQuery.error ? (
+                <Alert severity="warning">
+                  {getErrorMessage(availableCustomersQuery.error)}
+                </Alert>
+              ) : (
+                <AppDataTable
+                  rows={availableCustomers}
+                  columns={[
+                    {
+                      key: "name",
+                      title: "المستخدم",
+                      render: (row) => (
+                        <Stack spacing={0.3}>
+                          <Typography variant="body2" fontWeight={700}>
+                            {row.name || "مستخدم مسجل"}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {row.email || row.id}
+                          </Typography>
+                        </Stack>
+                      ),
+                    },
+                    {
+                      key: "id",
+                      title: "المعرف",
+                      render: (row) => (
+                        <Typography variant="caption" color="text.secondary">
+                          {row.id}
+                        </Typography>
+                      ),
+                    },
+                    {
+                      key: "actions",
+                      title: "إجراء",
+                      render: (row) => (
+                        <AppButton
+                          size="small"
+                          variant="outlined"
+                          onClick={() => handleSelectAvailableCustomer(row)}
+                        >
+                          تحديد خصم
+                        </AppButton>
+                      ),
+                    },
+                  ]}
+                  emptyState={
+                    <EmptyState
+                      title="لا يوجد مستخدمون متاحون"
+                      description="إما أن جميع المستخدمين أضيفوا بالفعل كزبائن للمتجر أو أن قائمة المستخدمين المسجلين فارغة."
+                    />
+                  }
+                />
+              )}
+            </Box>
           </Paper>
         ) : null}
 

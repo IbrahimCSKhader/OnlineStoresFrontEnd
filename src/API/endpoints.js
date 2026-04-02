@@ -67,6 +67,12 @@ export const endpoints = {
     byStore: (storeId) => withPrefix(`/Coupon/store/${storeId}`),
     detail: (id) => withPrefix(`/Coupon/${id}`),
   },
+  customerStores: {
+    create: withPrefix("/CustomerStore"),
+    byStore: (storeId) => withPrefix(`/CustomerStore/store/${storeId}`),
+    detail: (id) => withPrefix(`/CustomerStore/${id}`),
+    availableCustomers: withPrefix("/CustomerStore/customers"),
+  },
   orders: {
     create: withPrefix("/Order"),
     mine: withPrefix("/Order/my-orders"),

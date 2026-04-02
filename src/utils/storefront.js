@@ -5,7 +5,20 @@ export function getProductDisplayPrice(product) {
 }
 
 export function getProductComparePrice(product) {
-  return Number(product?.compareAtPrice ?? 0);
+  const compareAtPrice = Number(product?.compareAtPrice ?? 0);
+
+  if (Number.isFinite(compareAtPrice) && compareAtPrice > 0) {
+    return compareAtPrice;
+  }
+
+  const finalPrice = Number(product?.finalPrice);
+  const originalPrice = Number(product?.originalPrice ?? product?.price ?? 0);
+
+  if (Number.isFinite(finalPrice) && Number.isFinite(originalPrice) && originalPrice > finalPrice) {
+    return originalPrice;
+  }
+
+  return 0;
 }
 
 export function getProductImage(product) {

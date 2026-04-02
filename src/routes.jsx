@@ -25,6 +25,7 @@ const OwnerOrders = lazy(() => import("./pages/owner/OrdersManagement.jsx"));
 const OwnerCategories = lazy(() => import("./pages/owner/CategoriesManagement.jsx"));
 const OwnerSections = lazy(() => import("./pages/owner/SectionsManagement.jsx"));
 const OwnerCoupons = lazy(() => import("./pages/owner/CouponsManagement.jsx"));
+const OwnerCustomers = lazy(() => import("./pages/owner/CustomersManagement.jsx"));
 const OwnerReviews = lazy(() => import("./pages/owner/ReviewsManagement.jsx"));
 
 function withRouteSuspense(page) {
@@ -75,6 +76,7 @@ const router = createBrowserRouter([
       },
       { path: "owner/sections", element: withRouteSuspense(<OwnerSections />) },
       { path: "owner/coupons", element: withRouteSuspense(<OwnerCoupons />) },
+      { path: "owner/customers", element: withRouteSuspense(<OwnerCustomers />) },
       { path: "owner/reviews", element: withRouteSuspense(<OwnerReviews />) },
       { path: "*", element: withRouteSuspense(<NotFound />) },
     ],

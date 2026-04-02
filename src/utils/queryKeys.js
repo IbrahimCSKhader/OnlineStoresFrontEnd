@@ -32,6 +32,16 @@ export const queryKeys = {
     byStore: (storeId) => ["coupons", "store", storeId],
     detail: (id) => ["coupons", id],
   },
+  customerStores: {
+    byStore: (storeId) => ["customer-stores", "store", storeId],
+    availableCustomers: (storeId) => [
+      "customer-stores",
+      "store",
+      storeId,
+      "available-customers",
+    ],
+    detail: (id) => ["customer-stores", id],
+  },
   orders: {
     mine: ["orders", "mine"],
     myDetail: (orderId) => ["orders", "mine", orderId],

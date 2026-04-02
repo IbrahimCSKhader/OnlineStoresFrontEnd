@@ -31,8 +31,8 @@
 }
 
 .page-about__title {
-  max-width: 12ch;
-  line-height: 1.06 !important;
+  max-width: 13ch;
+  line-height: 1.08 !important;
 }
 
 .page-about__lead {
@@ -62,13 +62,38 @@
   background: var(--gradient-soft-icon);
 }
 
+.page-about__story {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.page-about__founder-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 28px;
+  border: 1px solid var(--border-subtle);
+}
+
+.page-about__story-copy {
+  min-width: 0;
+}
+
 @media (max-width: 899px) {
-  .page-about__grid {
+  .page-about__grid,
+  .page-about__story {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .page-about__title {
     max-width: none;
+  }
+
+  .page-about__founder-image {
+    max-width: 320px;
+    justify-self: center;
   }
 }
 

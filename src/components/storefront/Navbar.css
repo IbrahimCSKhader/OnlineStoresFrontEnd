@@ -147,6 +147,12 @@
   font-size: 1.2rem;
 }
 
+.store-navbar__cart-button .MuiBadge-badge {
+  font-size: 0.66rem;
+  min-width: 18px;
+  height: 18px;
+}
+
 .store-navbar__theme-menu {
   margin-top: 10px;
   border: 1px solid var(--border-subtle);

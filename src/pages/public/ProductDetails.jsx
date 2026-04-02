@@ -28,6 +28,10 @@ import {
   normalizeListResponse,
 } from "../../utils/collections.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import {
+  getProductComparePrice,
+  getProductDisplayPrice,
+} from "../../utils/storefront.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./ProductDetails.css";
 
@@ -94,9 +98,13 @@ export default function ProductDetails() {
       : variants[0]?.id || "";
   const selectedVariant =
     variants.find((item) => item.id === selectedVariantId) || null;
-  const displayPrice =
-    selectedVariant?.priceOverride ?? product?.finalPrice ?? product?.price ?? 0;
-  const comparePrice = Number(product?.compareAtPrice ?? 0);
+  const productDisplayPrice = getProductDisplayPrice(product);
+  const displayPrice = selectedVariant?.priceOverride ?? productDisplayPrice;
+  const comparePrice =
+    selectedVariant?.priceOverride === undefined ||
+    selectedVariant?.priceOverride === null
+      ? getProductComparePrice(product)
+      : 0;
   const hasComparePrice = comparePrice > Number(displayPrice);
   const attributes = product?.attributeValues || [];
   const storeMismatch =

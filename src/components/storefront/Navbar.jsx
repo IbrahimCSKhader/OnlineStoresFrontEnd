@@ -6,6 +6,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
+import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
@@ -22,10 +23,12 @@ import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
+import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import AppButton from "../common/buttons/AppButton.jsx";
 import { useAppThemeVariant } from "../../theme/AppThemeProvider.jsx";
 import useAuth from "../../hooks/auth/useAuth.js";
+import useCart from "../../hooks/cart/useCart.js";
 import useLogout from "../../hooks/auth/useLogout.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
@@ -35,6 +38,7 @@ import {
   isOwnerRole,
   isSuperAdminRole,
 } from "../../utils/roles.js";
+import { normalizeCartResponse } from "../../utils/storefront.js";
 import "./Navbar.css";
 
 const navItems = [
@@ -179,6 +183,18 @@ export default function Navbar() {
   const brandHref = activeStoreSlug ? `/market/${activeStoreSlug}` : "/";
   const brandEyebrow = activeStore ? "واجهة المتجر" : "Premium storefront";
   const brandName = activeStore?.name || "Online Storefront";
+  const shouldShowCartAction =
+    isAuthenticated &&
+    !isOwnerRole(role) &&
+    !isSuperAdminRole(role) &&
+    Boolean(activeStoreSlug);
+  const cartQuery = useCart(activeStore?.id, {
+    enabled: shouldShowCartAction && Boolean(activeStore?.id),
+    staleTime: 30000,
+  });
+  const cart = useMemo(() => normalizeCartResponse(cartQuery.data), [cartQuery.data]);
+  const cartItemCount = cart.itemCount || 0;
+  const cartPath = activeStoreSlug ? `/market/${activeStoreSlug}/cart` : "/market";
 
   const dashboardPath = getLandingPath(role);
   const dashboardLabel = isSuperAdminRole(role)
@@ -272,6 +288,47 @@ export default function Navbar() {
       </>
     );
 
+  const renderCartButton = (drawer = false) => {
+    if (!shouldShowCartAction) return null;
+
+    const cartIcon = (
+      <Badge
+        badgeContent={cartItemCount}
+        color="primary"
+        overlap="circular"
+        invisible={!cartItemCount}
+      >
+        <ShoppingCartRoundedIcon fontSize="small" />
+      </Badge>
+    );
+
+    if (drawer) {
+      return (
+        <AppButton
+          component={NavLink}
+          to={cartPath}
+          onClick={() => setDrawerOpen(false)}
+          variant="outlined"
+          startIcon={cartIcon}
+          fullWidth
+        >
+          السلة
+        </AppButton>
+      );
+    }
+
+    return (
+      <IconButton
+        component={NavLink}
+        to={cartPath}
+        className="store-navbar__icon-button store-navbar__cart-button"
+        aria-label="السلة"
+      >
+        {cartIcon}
+      </IconButton>
+    );
+  };
+
   return (
     <AppBar position="sticky" component="header" className="store-navbar">
       <Toolbar className="store-navbar__toolbar" disableGutters>
@@ -298,6 +355,7 @@ export default function Navbar() {
 
         <Box className="store-navbar__actions">
           <ThemeToggleButton variant={variant} onSelect={setVariant} />
+          {renderCartButton()}
 
           {!isMobile ? (
             <Stack direction="row" spacing={1} className="store-navbar__auth-wrap">
@@ -348,12 +406,21 @@ export default function Navbar() {
           <Typography variant="overline" className="storefront-eyebrow">
             التنقل
           </Typography>
-          <Box className="store-navbar__drawer-links">
-            <NavLinks drawer onNavigate={() => setDrawerOpen(false)} />
+            <Box className="store-navbar__drawer-links">
+              <NavLinks drawer onNavigate={() => setDrawerOpen(false)} />
+            </Box>
           </Box>
-        </Box>
 
-        <Box className="store-navbar__drawer-section">
+          {shouldShowCartAction ? (
+            <Box className="store-navbar__drawer-section">
+              <Typography variant="overline" className="storefront-eyebrow">
+                السلة
+              </Typography>
+              <Stack spacing={1.25}>{renderCartButton(true)}</Stack>
+            </Box>
+          ) : null}
+
+          <Box className="store-navbar__drawer-section">
           <Typography variant="overline" className="storefront-eyebrow">
             الحساب
           </Typography>

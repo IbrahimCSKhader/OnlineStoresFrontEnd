@@ -251,6 +251,26 @@
   grid-column: 1 / -1;
 }
 
+.owner-customer-preview {
+  min-height: 56px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 0.95rem;
+  display: grid;
+  align-content: center;
+  gap: 0.2rem;
+  background: color-mix(in srgb, var(--surface-muted) 82%, var(--surface-elevated));
+}
+
+.owner-subsection {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.owner-subsection__title {
+  margin-bottom: 0.15rem !important;
+}
+
 .owner-gallery__title {
   margin-bottom: 0.65rem !important;
 }
