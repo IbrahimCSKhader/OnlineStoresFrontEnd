@@ -15,6 +15,14 @@ const NotFound = lazyWithRetry(() => import("./pages/NotFound/NotFound.jsx"), "n
 const Login = lazyWithRetry(() => import("./pages/auth/Login.jsx"), "login");
 const Register = lazyWithRetry(() => import("./pages/auth/Register.jsx"), "register");
 const VerifyEmail = lazyWithRetry(() => import("./pages/auth/VerifyEmail.jsx"), "verify-email");
+const GoogleSuccessCallback = lazyWithRetry(
+  () => import("./pages/auth/GoogleSuccessCallback.jsx"),
+  "google-success-callback",
+);
+const GoogleFailureCallback = lazyWithRetry(
+  () => import("./pages/auth/GoogleFailureCallback.jsx"),
+  "google-failure-callback",
+);
 const AdminLogin = lazyWithRetry(() => import("./pages/admin/AdminLogin.jsx"), "admin-login");
 const SuperAdminLayout = lazyWithRetry(
   () => import("./layout/SuperAdminLayout.jsx"),
@@ -139,6 +147,8 @@ const router = createBrowserRouter([
       { path: "auth/login", element: withRouteSuspense(<Login />) },
       { path: "auth/register", element: withRouteSuspense(<Register />) },
       { path: "auth/verify-email", element: withRouteSuspense(<VerifyEmail />) },
+      { path: "auth/google/success", element: withRouteSuspense(<GoogleSuccessCallback />) },
+      { path: "auth/google/failure", element: withRouteSuspense(<GoogleFailureCallback />) },
       { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
       { path: "owner/products", element: withRouteSuspense(<OwnerProducts />) },
       { path: "owner/orders", element: withRouteSuspense(<OwnerOrders />) },

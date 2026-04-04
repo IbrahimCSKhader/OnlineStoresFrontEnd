@@ -1,5 +1,6 @@
-﻿import { useMemo, useState } from "react";
-import { Link as RouterLink, useParams } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link as RouterLink, Navigate, useParams, useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -8,8 +9,10 @@ import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import CheckoutForm from "../../components/order/CheckoutForm.jsx";
+import useAuth from "../../hooks/auth/useAuth.js";
 import useCart from "../../hooks/cart/useCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import cartApi from "../../API/cart.api.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
@@ -122,6 +125,8 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
 
 export default function Checkout() {
   const { slug } = useParams();
+  const navigate = useNavigate();
+  const { isStoreCustomer } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(initialForm);
   const [submitError, setSubmitError] = useState("");
@@ -140,6 +145,35 @@ export default function Checkout() {
     enabled: Boolean(store?.id),
   });
   const cart = normalizeCartResponse(cartQuery.data);
+
+  // Clear cart mutation
+  const clearCartMutation = useMutation({
+    mutationFn: () => cartApi.clearCart(store?.id),
+    onError: (error) => {
+      console.error("[Checkout] Failed to clear cart:", error);
+    },
+  });
+
+  // Protection: Redirect non-authenticated store customers to login
+  if (!isStoreCustomer) {
+    return (
+      <Box className="storefront-page page-checkout">
+        <EmptyState
+          title="يجب تسجيل الدخول أولاً"
+          description="لا يمكن إكمال الطلب بدون تسجيل دخول. يرجى تسجيل الدخول أو إنشاء حساب جديد للمتابعة."
+          action={
+            <AppButton
+              component={RouterLink}
+              to={`/market/${slug}/login`}
+              variant="contained"
+            >
+              الذهاب لصفحة تسجيل الدخول
+            </AppButton>
+          }
+        />
+      </Box>
+    );
+  }
 
   if (storeQuery.isLoading) {
     return (
@@ -213,14 +247,33 @@ export default function Checkout() {
     const message = buildWhatsAppOrderMessage({ store, cart, form });
     const whatsappUrl = buildWhatsAppUrl(waNumber, message);
     // Debug: print the generated WhatsApp URL to browser console.
-    console.log("[Checkout] WhatsApp URL:", whatsappUrl);
+    if (import.meta.env.DEV) {
+      console.log("[Checkout] WhatsApp URL:", whatsappUrl);
+    }
 
     setLastWhatsAppUrl(whatsappUrl);
-    window.location.href = whatsappUrl;
 
-    setSubmitSuccess(
-      `تم تجهيز الطلب وفتح واتساب لإرساله إلى صاحب المتجر (الرقم: ${waNumber}).`,
-    );
+    // Clear the cart after successful order submission
+    try {
+      await clearCartMutation.mutateAsync();
+      setSubmitSuccess(
+        `تم تجهيز الطلب بنجاح وتم مسح السلة. الآن سيتم فتح واتساب لإرسال الطلب إلى صاحب المتجر (الرقم: ${waNumber}).`,
+      );
+      
+      // Redirect to WhatsApp after a brief delay to show success message
+      setTimeout(() => {
+        window.location.href = whatsappUrl;
+      }, 1500);
+    } catch (error) {
+      console.error("[Checkout] Error clearing cart:", error);
+      setSubmitSuccess(
+        `تم تجهيز الطلب. سيتم فتح واتساب لإرساله إلى صاحب المتجر (الرقم: ${waNumber}).`,
+      );
+      // Still redirect even if cart clear fails
+      setTimeout(() => {
+        window.location.href = whatsappUrl;
+      }, 1500);
+    }
   };
 
   return (
@@ -237,7 +290,7 @@ export default function Checkout() {
             </Typography>
             <Typography variant="body1" className="storefront-subtitle">
               في هذا الفلو لن يتم إنشاء Order على السيرفر، فقط تجهيز الطلب
-              وإرساله عبر رابط واتساب.
+              وإرساله عبر رابط واتساب. سيتم مسح السلة تلقائيًا عند نجاح الطلب.
             </Typography>
           </Box>
 
@@ -267,7 +320,7 @@ export default function Checkout() {
             <CheckoutForm
               step={step}
               form={form}
-              isSubmitting={false}
+              isSubmitting={clearCartMutation.isPending}
               submitLabel="إرسال الطلب عبر واتساب"
               onChange={(key, value) =>
                 setForm((previous) => ({
@@ -295,5 +348,3 @@ export default function Checkout() {
     </Box>
   );
 }
-
-

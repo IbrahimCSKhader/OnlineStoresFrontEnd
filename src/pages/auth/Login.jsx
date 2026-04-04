@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Link as RouterLink,
   Navigate,
@@ -183,6 +183,7 @@ export default function Login() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [localError, setLocalError] = useState("");
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
 
   const defaultValues = useMemo(
     () => ({
@@ -226,6 +227,23 @@ export default function Login() {
     resetAlerts();
     resetMutations();
     setFlow(nextFlow);
+  }
+
+  function handleGoogleLogin() {
+    try {
+      setIsLoadingGoogle(true);
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net";
+      const frontendBaseUrl = window.location.origin;
+      const successCallback = `${frontendBaseUrl}/auth/google/success`;
+      const failureCallback = `${frontendBaseUrl}/auth/google/failure`;
+      
+      const googleAuthUrl = `${apiBaseUrl}/api/Auth/google?successRedirect=${encodeURIComponent(successCallback)}&failureRedirect=${encodeURIComponent(failureCallback)}`;
+      window.location.href = googleAuthUrl;
+    } catch (error) {
+      console.error("[GoogleLogin] Error:", error.message);
+      setLocalError("فشل الاتصال بخادم Google. حاول مرة أخرى.");
+      setIsLoadingGoogle(false);
+    }
   }
 
   function saveSessionFromAuthResponse(data) {
@@ -555,7 +573,7 @@ export default function Login() {
                   helperText={errors.password?.message}
                 />
 
-                <Button type="submit" variant="contained" size="large" disabled={isBusy}>
+                <Button type="submit" variant="contained" size="large" disabled={isBusy || isLoadingGoogle}>
                   {loginMutation.isPending || storeCustomerLoginMutation.isPending
                     ? "جارٍ تسجيل الدخول..."
                     : isStoreCustomerMode
@@ -567,9 +585,21 @@ export default function Login() {
                   type="button"
                   variant="text"
                   onClick={() => moveTo(FLOW.FORGOT_PASSWORD)}
-                  disabled={isBusy}
+                  disabled={isBusy || isLoadingGoogle}
                 >
                   نسيت أو أريد تغيير كلمة السر
+                </Button>
+
+                <Divider />
+
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  size="large"
+                  onClick={handleGoogleLogin}
+                  disabled={isBusy || isLoadingGoogle}
+                >
+                  {isLoadingGoogle ? "جارٍ الاتصال بـ Google..." : "الدخول عبر Google"}
                 </Button>
 
                 <Divider />
@@ -813,4 +843,3 @@ export default function Login() {
     </Box>
   );
 }
-
