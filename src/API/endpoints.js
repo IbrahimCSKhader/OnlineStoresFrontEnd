@@ -14,6 +14,13 @@ export const endpoints = {
     google: withPrefix("/Auth/google"),
     googleCallback: withPrefix("/Auth/google-callback"),
     createOwner: withPrefix("/Auth/create-owner"),
+    adminChangePassword: withPrefix("/Auth/admin/change-password"),
+  },
+  storeCustomerAuth: {
+    register: withPrefix("/store-customer-auth/register"),
+    login: withPrefix("/store-customer-auth/login"),
+    verifyEmail: withPrefix("/store-customer-auth/verify-email"),
+    resendVerificationCode: withPrefix("/store-customer-auth/resend-verification-code"),
   },
   stores: {
     list: withPrefix("/Store"),
@@ -80,6 +87,16 @@ export const endpoints = {
     byStore: (storeId) => withPrefix(`/Order/store/${storeId}`),
     storeDetail: (storeId, orderId) => withPrefix(`/Order/store/${storeId}/${orderId}`),
     updateStatus: (orderId) => withPrefix(`/Order/${orderId}/status`),
+  },
+  superAdminDashboard: {
+    summary: withPrefix("/super-admin-dashboard/summary"),
+    owners: withPrefix("/super-admin-dashboard/owners"),
+    ownerDetail: (ownerId) => withPrefix(`/super-admin-dashboard/owners/${ownerId}`),
+    ownerStatus: (ownerId) => withPrefix(`/super-admin-dashboard/owners/${ownerId}/status`),
+    stores: withPrefix("/super-admin-dashboard/stores"),
+    storeDetail: (storeId) => withPrefix(`/super-admin-dashboard/stores/${storeId}`),
+    storeStatus: (storeId) => withPrefix(`/super-admin-dashboard/stores/${storeId}/status`),
+    storeCustomers: (storeId) => withPrefix(`/super-admin-dashboard/stores/${storeId}/customers`),
   },
 };
 

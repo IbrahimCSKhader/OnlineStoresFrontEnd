@@ -53,4 +53,13 @@ export const queryKeys = {
     byProduct: (productId) => ["reviews", "product", productId],
     myProductReview: (productId) => ["reviews", "product", productId, "mine"],
   },
+  superAdmin: {
+    root: ["super-admin"],
+    summary: ["super-admin", "summary"],
+    owners: ["super-admin", "owners"],
+    ownerDetail: (ownerId) => ["super-admin", "owners", ownerId],
+    stores: ["super-admin", "stores"],
+    storeDetail: (storeId) => ["super-admin", "stores", storeId],
+    storeCustomers: (storeId) => ["super-admin", "stores", storeId, "customers"],
+  },
 };

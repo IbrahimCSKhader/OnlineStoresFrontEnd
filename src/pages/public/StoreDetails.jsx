@@ -22,6 +22,7 @@ import {
   normalizeEntityResponse,
   normalizeListResponse,
 } from "../../utils/collections.js";
+import { buildProductSnapshot } from "../../utils/guestCart.js";
 import { buildCategorySummary } from "../../utils/storefront.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./StoreDetails.css";
@@ -49,7 +50,7 @@ export default function StoreDetails() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-details">
-        <EmptyState title="جارٍ تحميل المتجر..." />
+        <EmptyState title="جاري تحميل المتجر..." />
       </Box>
     );
   }
@@ -60,11 +61,6 @@ export default function StoreDetails() {
         <EmptyState
           title="تعذر العثور على المتجر"
           description="قد يكون الرابط غير صحيح أو أن المتجر لم يعد متاحًا."
-          action={
-            <AppButton component={RouterLink} to="/market" variant="contained">
-              العودة إلى دليل المتاجر
-            </AppButton>
-          }
         />
       </Box>
     );
@@ -102,6 +98,7 @@ export default function StoreDetails() {
       quantity: 1,
       storeId: store.id,
       variantId: null,
+      productSnapshot: buildProductSnapshot(product),
     });
   };
 
@@ -154,7 +151,8 @@ export default function StoreDetails() {
                   {store.name}
                 </Typography>
                 <Typography variant="body1" className="storefront-subtitle">
-                  {store.description || "تصفح منتجات هذا المتجر بسهولة واعثر على ما يناسبك بسرعة."}
+                  {store.description ||
+                    "تصفح منتجات هذا المتجر بسهولة واعثر على ما يناسبك بسرعة."}
                 </Typography>
               </Box>
             </Box>
@@ -221,7 +219,8 @@ export default function StoreDetails() {
               >
                 <Typography variant="h6">{category.name}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {category.description || "استعرض المنتجات المرتبطة بهذا التصنيف داخل المتجر."}
+                  {category.description ||
+                    "استعرض المنتجات المرتبطة بهذا التصنيف داخل المتجر."}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {category.count} منتج
@@ -278,7 +277,7 @@ export default function StoreDetails() {
 
         <Box className="page-store-details__catalog-body">
           {productsQuery.isLoading ? (
-            <EmptyState title="جارٍ تحميل المنتجات..." />
+            <EmptyState title="جاري تحميل المنتجات..." />
           ) : filteredProducts.length ? (
             <ProductGrid
               products={filteredProducts}

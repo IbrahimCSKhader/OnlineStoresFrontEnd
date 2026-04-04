@@ -12,7 +12,7 @@ export default function useLogin(options = {}) {
     ...options,
     onSuccess: (data, variables, context) => {
       const token = extractToken(data);
-      const user = extractUser(data);
+      const user = extractUser(data, token);
       const role = extractRole(data, token, user);
 
       if (token) {

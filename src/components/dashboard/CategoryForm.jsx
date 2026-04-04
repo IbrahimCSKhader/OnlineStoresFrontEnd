@@ -12,6 +12,7 @@ export default function CategoryForm({
   isEdit,
   categories,
   loading,
+  slugPreview,
   onChange,
   onReset,
   onSubmit,
@@ -19,8 +20,7 @@ export default function CategoryForm({
   return (
     <Box className="owner-form-card">
       <Alert severity="info" className="owner-inline-alert">
-        استخدم التصنيفات الرئيسية للعناوين الكبيرة، ثم أضف تصنيفات فرعية عند
-        الحاجة لعرض المنتجات بشكل أوضح.
+        يتم تعبئة رابط التصنيف تلقائيًا من الاسم، ويمكنك تعديله قبل أول حفظ فقط.
       </Alert>
 
       <Box component="form" className="owner-form" onSubmit={onSubmit}>
@@ -38,7 +38,7 @@ export default function CategoryForm({
           size="small"
           required
           disabled={isEdit}
-          helperText={isEdit ? "الرابط يثبت بعد أول حفظ." : ""}
+          helperText={`الرابط الحالي: /${slugPreview || "category"}`}
           onChange={(event) => onChange("slug", event.target.value)}
         />
 

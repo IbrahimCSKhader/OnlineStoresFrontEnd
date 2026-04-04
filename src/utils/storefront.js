@@ -118,6 +118,7 @@ export function normalizeCartResponse(data) {
   return {
     id: firstString(entity?.id, entity?.cartId),
     userId: firstString(entity?.userId),
+    storeCustomerId: firstString(entity?.storeCustomerId, entity?.userId),
     storeId: firstString(entity?.storeId),
     items: normalizedItems,
     itemCount:

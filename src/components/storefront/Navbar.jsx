@@ -1,16 +1,15 @@
 import { useMemo, useState } from "react";
-import {
-  NavLink,
-  matchPath,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import { NavLink, matchPath, useLocation, useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
+import Avatar from "@mui/material/Avatar";
 import Badge from "@mui/material/Badge";
 import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
 import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -19,10 +18,12 @@ import { useTheme } from "@mui/material/styles";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
+import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import AppButton from "../common/buttons/AppButton.jsx";
@@ -33,20 +34,27 @@ import useLogout from "../../hooks/auth/useLogout.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
-import {
-  getLandingPath,
-  isOwnerRole,
-  isSuperAdminRole,
-} from "../../utils/roles.js";
+import { getLandingPath, isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
+import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import "./Navbar.css";
 
-const navItems = [
-  { to: "/", label: "الرئيسية" },
-  { to: "/market", label: "المتاجر" },
-  { to: "/about", label: "عن المنصة" },
-  { to: "/contact", label: "تواصل معنا" },
-];
+function buildNavItems(activeStoreSlug) {
+  if (activeStoreSlug) {
+    return [
+      { to: `/market/${activeStoreSlug}`, label: "الرئيسية" },
+      { to: `/market/${activeStoreSlug}/about`, label: "About Us" },
+      { to: `/market/${activeStoreSlug}/contact`, label: "Contact Us" },
+    ];
+  }
+
+  return [
+    { to: "/", label: "الرئيسية" },
+    { to: "/market", label: "المتاجر" },
+    { to: "/about", label: "عن المنصة" },
+    { to: "/contact", label: "تواصل معنا" },
+  ];
+}
 
 const themeOptions = [
   {
@@ -65,6 +73,15 @@ const themeOptions = [
     icon: <ParkRoundedIcon />,
   },
 ];
+
+function getCustomerInitials(user) {
+  return [user?.firstName, user?.lastName]
+    .filter(Boolean)
+    .map((value) => String(value).trim()[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
 function ThemeToggleButton({ variant, onSelect, className }) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -123,10 +140,10 @@ function ThemeToggleButton({ variant, onSelect, className }) {
   );
 }
 
-function NavLinks({ onNavigate, drawer = false }) {
+function NavLinks({ items, onNavigate, drawer = false }) {
   const location = useLocation();
 
-  return navItems.map((item) => {
+  return items.map((item) => {
     const isActive =
       location.pathname === item.to ||
       (item.to !== "/" && location.pathname.startsWith(`${item.to}/`));
@@ -154,15 +171,12 @@ export default function Navbar() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const { variant, setVariant } = useAppThemeVariant();
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, isStoreCustomer, role, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const logoutMutation = useLogout({
-    onSettled: () => {
-      navigate("/market", { replace: true });
-    },
-  });
+  const profileMenuOpen = Boolean(profileAnchorEl);
 
   const storeRouteMatch = useMemo(
     () =>
@@ -181,27 +195,62 @@ export default function Navbar() {
   );
   const activeStoreLogo = resolveAssetUrl(activeStore?.logoUrl);
   const brandHref = activeStoreSlug ? `/market/${activeStoreSlug}` : "/";
-  const brandEyebrow = activeStore ? "واجهة المتجر" : "Premium storefront";
+  const brandEyebrow = activeStore ? "متجر مستقل" : "Premium storefront";
   const brandName = activeStore?.name || "Online Storefront";
-  const shouldShowCartAction =
-    isAuthenticated &&
-    !isOwnerRole(role) &&
-    !isSuperAdminRole(role) &&
-    Boolean(activeStoreSlug);
+  const navItems = useMemo(() => buildNavItems(activeStoreSlug), [activeStoreSlug]);
+  const loginPath = activeStoreSlug ? `/market/${activeStoreSlug}/login` : "/auth/login";
+  const registerPath = activeStoreSlug ? `/market/${activeStoreSlug}/register` : "/auth/register";
+  const cartPath = activeStoreSlug ? `/market/${activeStoreSlug}/cart` : "/market";
+
+  const isStoreCustomerSignedIn = Boolean(activeStoreSlug) && isAuthenticated && isStoreCustomer;
+  const isPlatformAuthenticated =
+    isAuthenticated && !isStoreCustomer && (isOwnerRole(role) || isSuperAdminRole(role));
+
+  const logoutMutation = useLogout({
+    onSettled: () => {
+      navigate(activeStoreSlug ? `/market/${activeStoreSlug}` : "/market", { replace: true });
+    },
+  });
+
   const cartQuery = useCart(activeStore?.id, {
-    enabled: shouldShowCartAction && Boolean(activeStore?.id),
+    enabled: isStoreCustomerSignedIn && Boolean(activeStore?.id),
     staleTime: 30000,
   });
   const cart = useMemo(() => normalizeCartResponse(cartQuery.data), [cartQuery.data]);
   const cartItemCount = cart.itemCount || 0;
-  const cartPath = activeStoreSlug ? `/market/${activeStoreSlug}/cart` : "/market";
+
+  const storeCustomerAuthState =
+    activeStore?.id && activeStoreSlug
+      ? buildStoreCustomerAuthState({
+          storeId: activeStore.id,
+          storeSlug: activeStoreSlug,
+          storeName: activeStore.name,
+          redirectTo: location.pathname,
+        })
+      : undefined;
 
   const dashboardPath = getLandingPath(role);
   const dashboardLabel = isSuperAdminRole(role)
     ? "لوحة الإدارة"
     : isOwnerRole(role)
       ? "إدارة المتجر"
-      : "مساحتي";
+      : "داخل المتجر";
+
+  const customerDisplayName =
+    user?.fullName?.trim() ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
+    "الزبون";
+  const customerEmail = user?.email || "";
+  const customerStoreLabel = activeStore?.name || storeCustomerAuthState?.storeName || "";
+  const customerInitials = getCustomerInitials(user);
+
+  const closeProfileMenu = () => setProfileAnchorEl(null);
+
+  const handleLogout = () => {
+    closeProfileMenu();
+    setDrawerOpen(false);
+    logoutMutation.mutate();
+  };
 
   const renderBrandVisual = (drawer = false) => {
     if (activeStoreLogo) {
@@ -234,62 +283,8 @@ export default function Navbar() {
     );
   };
 
-  const renderAuthButtons = (drawer = false) =>
-    isAuthenticated ? (
-      <>
-        <AppButton
-          component={NavLink}
-          to={dashboardPath}
-          onClick={drawer ? () => setDrawerOpen(false) : undefined}
-          variant="contained"
-          startIcon={<DashboardRoundedIcon fontSize="small" />}
-          fullWidth={drawer}
-        >
-          {dashboardLabel}
-        </AppButton>
-        <AppButton
-          variant={drawer ? "outlined" : "text"}
-          appearance={drawer ? "secondary" : "ghost"}
-          startIcon={<LogoutRoundedIcon fontSize="small" />}
-          onClick={() => {
-            if (drawer) {
-              setDrawerOpen(false);
-            }
-            logoutMutation.mutate();
-          }}
-          loading={logoutMutation.isPending}
-          loadingLabel="جارٍ تسجيل الخروج..."
-          fullWidth={drawer}
-        >
-          تسجيل الخروج
-        </AppButton>
-      </>
-    ) : (
-      <>
-        <AppButton
-          component={NavLink}
-          to="/auth/login"
-          onClick={drawer ? () => setDrawerOpen(false) : undefined}
-          variant={drawer ? "outlined" : "text"}
-          appearance={drawer ? "secondary" : "ghost"}
-          fullWidth={drawer}
-        >
-          تسجيل الدخول
-        </AppButton>
-        <AppButton
-          component={NavLink}
-          to="/auth/register"
-          onClick={drawer ? () => setDrawerOpen(false) : undefined}
-          variant="contained"
-          fullWidth={drawer}
-        >
-          إنشاء حساب
-        </AppButton>
-      </>
-    );
-
   const renderCartButton = (drawer = false) => {
-    if (!shouldShowCartAction) return null;
+    if (!isStoreCustomerSignedIn) return null;
 
     const cartIcon = (
       <Badge
@@ -329,6 +324,265 @@ export default function Navbar() {
     );
   };
 
+  const renderStoreCustomerProfileMenu = () => {
+    if (!isStoreCustomerSignedIn) {
+      return null;
+    }
+
+    return (
+      <>
+        <IconButton
+          className="store-navbar__profile-trigger"
+          aria-label="بيانات الحساب"
+          aria-controls={profileMenuOpen ? "store-customer-profile-menu" : undefined}
+          aria-expanded={profileMenuOpen ? "true" : undefined}
+          aria-haspopup="menu"
+          onClick={(event) => setProfileAnchorEl(event.currentTarget)}
+        >
+          <Avatar className="store-navbar__profile-avatar">
+            {customerInitials || <PersonRoundedIcon fontSize="small" />}
+          </Avatar>
+        </IconButton>
+
+        <Menu
+          id="store-customer-profile-menu"
+          anchorEl={profileAnchorEl}
+          open={profileMenuOpen}
+          onClose={closeProfileMenu}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+          PaperProps={{ className: "store-navbar__profile-menu" }}
+          MenuListProps={{
+            className: "store-navbar__profile-menu-list",
+            "aria-label": "بيانات حساب الزبون",
+          }}
+        >
+          <Box className="store-navbar__profile-menu-head">
+            <Avatar className="store-navbar__profile-avatar store-navbar__profile-avatar--large">
+              {customerInitials || <PersonRoundedIcon fontSize="small" />}
+            </Avatar>
+            <Box className="store-navbar__profile-copy">
+              <Typography variant="subtitle2" className="store-navbar__profile-name">
+                {customerDisplayName}
+              </Typography>
+              {customerEmail ? (
+                <Typography variant="caption" color="text.secondary">
+                  {customerEmail}
+                </Typography>
+              ) : null}
+            </Box>
+          </Box>
+
+          {(customerStoreLabel || user?.storeCustomerId) ? <Divider /> : null}
+
+          {customerStoreLabel ? (
+            <Box className="store-navbar__profile-info">
+              <StorefrontRoundedIcon fontSize="small" />
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  المتجر الحالي
+                </Typography>
+                <Typography variant="body2">{customerStoreLabel}</Typography>
+              </Box>
+            </Box>
+          ) : null}
+
+          {customerEmail ? (
+            <Box className="store-navbar__profile-info">
+              <EmailRoundedIcon fontSize="small" />
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  البريد الإلكتروني
+                </Typography>
+                <Typography variant="body2">{customerEmail}</Typography>
+              </Box>
+            </Box>
+          ) : null}
+
+          {user?.storeCustomerId ? (
+            <Box className="store-navbar__profile-info">
+              <PersonRoundedIcon fontSize="small" />
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  رقم الحساب
+                </Typography>
+                <Typography variant="body2" className="store-navbar__profile-id">
+                  {String(user.storeCustomerId).slice(0, 8)}
+                </Typography>
+              </Box>
+            </Box>
+          ) : null}
+
+          <Divider />
+
+          <MenuItem
+            component={NavLink}
+            to={cartPath}
+            onClick={closeProfileMenu}
+            className="store-navbar__profile-item"
+          >
+            <ListItemIcon>
+              <ShoppingCartRoundedIcon fontSize="small" />
+            </ListItemIcon>
+            السلة
+          </MenuItem>
+
+          <MenuItem
+            component={NavLink}
+            to={brandHref}
+            onClick={closeProfileMenu}
+            className="store-navbar__profile-item"
+          >
+            <ListItemIcon>
+              <StorefrontRoundedIcon fontSize="small" />
+            </ListItemIcon>
+            واجهة المتجر
+          </MenuItem>
+
+          <MenuItem onClick={handleLogout} className="store-navbar__profile-item">
+            <ListItemIcon>
+              <LogoutRoundedIcon fontSize="small" />
+            </ListItemIcon>
+            تسجيل الخروج
+          </MenuItem>
+        </Menu>
+      </>
+    );
+  };
+
+  const renderStoreCustomerDrawerPanel = () => {
+    if (!isStoreCustomerSignedIn) {
+      return null;
+    }
+
+    return (
+      <Box className="store-navbar__profile-panel">
+        <Box className="store-navbar__profile-panel-head">
+          <Avatar className="store-navbar__profile-avatar store-navbar__profile-avatar--large">
+            {customerInitials || <PersonRoundedIcon fontSize="small" />}
+          </Avatar>
+          <Box className="store-navbar__profile-copy">
+            <Typography variant="subtitle2" className="store-navbar__profile-name">
+              {customerDisplayName}
+            </Typography>
+            {customerEmail ? (
+              <Typography variant="caption" color="text.secondary">
+                {customerEmail}
+              </Typography>
+            ) : null}
+          </Box>
+        </Box>
+
+        {customerStoreLabel ? (
+          <Typography variant="body2" color="text.secondary">
+            {customerStoreLabel}
+          </Typography>
+        ) : null}
+
+        <Stack spacing={1}>
+          {renderCartButton(true)}
+          <AppButton
+            component={NavLink}
+            to={brandHref}
+            onClick={() => setDrawerOpen(false)}
+            variant="outlined"
+            startIcon={<StorefrontRoundedIcon fontSize="small" />}
+            fullWidth
+          >
+            واجهة المتجر
+          </AppButton>
+          <AppButton
+            variant="text"
+            appearance="ghost"
+            startIcon={<LogoutRoundedIcon fontSize="small" />}
+            onClick={handleLogout}
+            loading={logoutMutation.isPending}
+            loadingLabel="جارٍ تسجيل الخروج..."
+            fullWidth
+          >
+            تسجيل الخروج
+          </AppButton>
+        </Stack>
+      </Box>
+    );
+  };
+
+  const renderGuestButtons = (drawer = false) => (
+    <>
+      <AppButton
+        component={NavLink}
+        to={loginPath}
+        state={storeCustomerAuthState}
+        onClick={drawer ? () => setDrawerOpen(false) : undefined}
+        variant={drawer ? "outlined" : "text"}
+        appearance={drawer ? "secondary" : "ghost"}
+        fullWidth={drawer}
+      >
+        تسجيل الدخول
+      </AppButton>
+      <AppButton
+        component={NavLink}
+        to={registerPath}
+        state={storeCustomerAuthState}
+        onClick={drawer ? () => setDrawerOpen(false) : undefined}
+        variant="contained"
+        fullWidth={drawer}
+      >
+        إنشاء حساب
+      </AppButton>
+    </>
+  );
+
+  const renderPlatformButtons = (drawer = false) => (
+    <>
+      <AppButton
+        component={NavLink}
+        to={dashboardPath}
+        onClick={drawer ? () => setDrawerOpen(false) : undefined}
+        variant="contained"
+        startIcon={<DashboardRoundedIcon fontSize="small" />}
+        fullWidth={drawer}
+      >
+        {dashboardLabel}
+      </AppButton>
+      <AppButton
+        variant={drawer ? "outlined" : "text"}
+        appearance={drawer ? "secondary" : "ghost"}
+        startIcon={<LogoutRoundedIcon fontSize="small" />}
+        onClick={handleLogout}
+        loading={logoutMutation.isPending}
+        loadingLabel="جارٍ تسجيل الخروج..."
+        fullWidth={drawer}
+      >
+        تسجيل الخروج
+      </AppButton>
+    </>
+  );
+
+  const renderDesktopActions = () => {
+    if (isStoreCustomerSignedIn) {
+      return renderStoreCustomerProfileMenu();
+    }
+
+    if (isPlatformAuthenticated) {
+      return renderPlatformButtons();
+    }
+
+    return renderGuestButtons();
+  };
+
+  const renderDrawerAccountSection = () => {
+    if (isStoreCustomerSignedIn) {
+      return renderStoreCustomerDrawerPanel();
+    }
+
+    if (isPlatformAuthenticated) {
+      return renderPlatformButtons(true);
+    }
+
+    return renderGuestButtons(true);
+  };
+
   return (
     <AppBar position="sticky" component="header" className="store-navbar">
       <Toolbar className="store-navbar__toolbar" disableGutters>
@@ -347,7 +601,7 @@ export default function Navbar() {
 
         {!isMobile ? (
           <Box component="nav" className="store-navbar__nav" aria-label="التنقل الرئيسي">
-            <NavLinks />
+            <NavLinks items={navItems} />
           </Box>
         ) : (
           <Box className="store-navbar__spacer" />
@@ -355,11 +609,11 @@ export default function Navbar() {
 
         <Box className="store-navbar__actions">
           <ThemeToggleButton variant={variant} onSelect={setVariant} />
-          {renderCartButton()}
+          {isStoreCustomerSignedIn ? renderCartButton() : null}
 
           {!isMobile ? (
             <Stack direction="row" spacing={1} className="store-navbar__auth-wrap">
-              {renderAuthButtons()}
+              {renderDesktopActions()}
             </Stack>
           ) : (
             <IconButton
@@ -406,25 +660,16 @@ export default function Navbar() {
           <Typography variant="overline" className="storefront-eyebrow">
             التنقل
           </Typography>
-            <Box className="store-navbar__drawer-links">
-              <NavLinks drawer onNavigate={() => setDrawerOpen(false)} />
-            </Box>
+          <Box className="store-navbar__drawer-links">
+            <NavLinks items={navItems} drawer onNavigate={() => setDrawerOpen(false)} />
           </Box>
+        </Box>
 
-          {shouldShowCartAction ? (
-            <Box className="store-navbar__drawer-section">
-              <Typography variant="overline" className="storefront-eyebrow">
-                السلة
-              </Typography>
-              <Stack spacing={1.25}>{renderCartButton(true)}</Stack>
-            </Box>
-          ) : null}
-
-          <Box className="store-navbar__drawer-section">
+        <Box className="store-navbar__drawer-section">
           <Typography variant="overline" className="storefront-eyebrow">
             الحساب
           </Typography>
-          <Stack spacing={1.25}>{renderAuthButtons(true)}</Stack>
+          <Stack spacing={1.25}>{renderDrawerAccountSection()}</Stack>
         </Box>
       </Drawer>
     </AppBar>

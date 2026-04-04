@@ -1,0 +1,45 @@
+.page-store-about__hero,
+.page-store-about__story-card,
+.page-store-about__info-card {
+  padding: var(--panel-padding);
+}
+
+.page-store-about__title {
+  max-width: 12ch;
+}
+
+.page-store-about__section-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--space-4);
+}
+
+.page-store-about__story-card,
+.page-store-about__info-card {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.page-store-about__story {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.page-store-about__story .MuiTypography-root {
+  line-height: 1.95;
+}
+
+.page-store-about__info-list {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.page-store-about__info-item {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}

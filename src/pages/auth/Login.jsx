@@ -1,5 +1,11 @@
 ﻿import { useMemo, useState } from "react";
-import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
+import {
+  Link as RouterLink,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -17,15 +23,24 @@ import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useLogin from "../../hooks/auth/useLogin.js";
+import useStoreCustomerLogin from "../../hooks/auth/useStoreCustomerLogin.js";
 import useVerifyEmail from "../../hooks/auth/useVerifyEmail.js";
 import useResendVerificationCode from "../../hooks/auth/useResendVerificationCode.js";
 import useForgotPassword from "../../hooks/auth/useForgotPassword.js";
 import useResetPassword from "../../hooks/auth/useResetPassword.js";
+import useMergeGuestCart from "../../hooks/cart/useMergeGuestCart.js";
+import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useAuthStore from "../../store/authStore.js";
 import { extractRole, extractToken, extractUser } from "../../utils/authSession.js";
+import { normalizeEntityResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
+import {
+  buildStoreCustomerAuthState,
+  getStoreCustomerRedirectPath,
+  hasStoreCustomerAuthContext,
+} from "../../utils/storeCustomerAuth.js";
 import { setAuthToken, setStoredAuthRole, setStoredAuthUser } from "../../utils/token.js";
 import "./Login.css";
 
@@ -92,10 +107,59 @@ function getFlowHeading(flow) {
 
 export default function Login() {
   const navigate = useNavigate();
-  const { isAuthenticated, role } = useAuth();
+  const { slug: routeStoreSlug = "" } = useParams();
+  const location = useLocation();
+  const { isStoreCustomer, isPlatformUser, role } = useAuth();
   const setSession = useAuthStore((state) => state.setSession);
+  const mergeGuestCart = useMergeGuestCart();
+  const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
+    enabled: Boolean(routeStoreSlug),
+    staleTime: 60000,
+  });
+  const routeStore = useMemo(
+    () => normalizeEntityResponse(routeStoreQuery.data),
+    [routeStoreQuery.data],
+  );
+  const stateStoreCustomerAuth = hasStoreCustomerAuthContext(location.state)
+    ? location.state
+    : null;
+  const routeStoreCustomerAuthState = routeStoreSlug
+    ? buildStoreCustomerAuthState({
+        storeId: routeStore?.id || "",
+        storeSlug: routeStoreSlug,
+        storeName: routeStore?.name || routeStoreSlug,
+        redirectTo: location.state?.redirectTo || `/market/${routeStoreSlug}`,
+      })
+    : null;
+  const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
+  const isStoreCustomerMode = Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
+  const redirectTo = isStoreCustomerMode
+    ? getStoreCustomerRedirectPath(storeCustomerAuthState)
+    : location.state?.redirectTo || "";
+  const redirectState = isStoreCustomerMode
+    ? storeCustomerAuthState
+    : redirectTo
+      ? { redirectTo }
+      : undefined;
+  const storeLabel =
+    storeCustomerAuthState?.storeName ||
+    storeCustomerAuthState?.storeSlug ||
+    "هذا المتجر";
+  const storeHomePath =
+    storeCustomerAuthState?.storeSlug
+      ? `/market/${storeCustomerAuthState.storeSlug}`
+      : "/market";
+  const storeRegisterPath =
+    storeCustomerAuthState?.storeSlug
+      ? `/market/${storeCustomerAuthState.storeSlug}/register`
+      : "/auth/register";
+  const storeVerifyEmailPath =
+    storeCustomerAuthState?.storeSlug
+      ? `/market/${storeCustomerAuthState.storeSlug}/verify-email`
+      : "/auth/verify-email";
 
   const loginMutation = useLogin();
+  const storeCustomerLoginMutation = useStoreCustomerLogin();
   const verifyEmailMutation = useVerifyEmail();
   const resendVerificationCodeMutation = useResendVerificationCode();
   const forgotPasswordMutation = useForgotPassword();
@@ -126,8 +190,8 @@ export default function Login() {
     formState: { errors },
   } = useForm({ defaultValues });
 
-  if (isAuthenticated) {
-    return <Navigate to={getLandingPath(role)} replace />;
+  if (isStoreCustomerMode ? isStoreCustomer : isPlatformUser) {
+    return <Navigate to={redirectTo || getLandingPath(role)} replace />;
   }
 
   function resetAlerts() {
@@ -137,6 +201,7 @@ export default function Login() {
 
   function resetMutations() {
     loginMutation.reset();
+    storeCustomerLoginMutation.reset();
     verifyEmailMutation.reset();
     resendVerificationCodeMutation.reset();
     forgotPasswordMutation.reset();
@@ -151,7 +216,7 @@ export default function Login() {
 
   function saveSessionFromAuthResponse(data) {
     const token = extractToken(data);
-    const user = extractUser(data);
+    const user = extractUser(data, token);
     const resolvedRole = extractRole(data, token, user);
 
     if (token) {
@@ -177,18 +242,59 @@ export default function Login() {
     resetAlerts();
 
     const email = values.email.trim();
-    const payload = {
-      email,
-      password: values.password,
-    };
 
     try {
-      const data = await loginMutation.mutateAsync(payload);
+      if (isStoreCustomerMode) {
+        if (!storeCustomerAuthState?.storeId) {
+          setLocalError("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.");
+          return;
+        }
+
+        await storeCustomerLoginMutation.mutateAsync({
+          storeId: storeCustomerAuthState.storeId,
+          email,
+          password: values.password,
+        });
+        await mergeGuestCart();
+        navigate(redirectTo, { replace: true });
+        return;
+      }
+
+      const data = await loginMutation.mutateAsync({
+        email,
+        password: values.password,
+      });
       const token = extractToken(data);
-      const user = extractUser(data);
+      const user = extractUser(data, token);
       const sessionRole = extractRole(data, token, user);
-      navigate(getLandingPath(sessionRole), { replace: true });
+      navigate(redirectTo || getLandingPath(sessionRole), { replace: true });
     } catch (error) {
+      if (isStoreCustomerMode) {
+        const responseData = error?.response?.data;
+        const needsVerification =
+          error?.response?.status === 401 && responseData?.requiresEmailVerification === true;
+
+        if (needsVerification) {
+          const verificationEmail = responseData?.email || email;
+          setPendingVerificationEmail(verificationEmail);
+          navigate(storeVerifyEmailPath, {
+            replace: true,
+            state: {
+              ...storeCustomerAuthState,
+              email: verificationEmail,
+              redirectTo,
+              message:
+                responseData?.message ||
+                "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+            },
+          });
+          return;
+        }
+
+        setLocalError(getErrorMessage(error));
+        return;
+      }
+
       const responseData = error?.response?.data;
       const needsVerification =
         error?.response?.status === 401 && responseData?.requiresEmailVerification === true;
@@ -201,6 +307,7 @@ export default function Login() {
             message:
               responseData?.message ||
               "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+            redirectTo,
           },
         });
         return;
@@ -219,7 +326,8 @@ export default function Login() {
     try {
       const data = await verifyEmailMutation.mutateAsync({ email, code });
       const sessionRole = saveSessionFromAuthResponse(data);
-      navigate(getLandingPath(sessionRole), { replace: true });
+      await mergeGuestCart();
+      navigate(redirectTo || getLandingPath(sessionRole), { replace: true });
     } catch (error) {
       setLocalError(getErrorMessage(error));
     }
@@ -312,12 +420,20 @@ export default function Login() {
 
   const isBusy =
     loginMutation.isPending ||
+    storeCustomerLoginMutation.isPending ||
     verifyEmailMutation.isPending ||
     resendVerificationCodeMutation.isPending ||
     forgotPasswordMutation.isPending ||
     resetPasswordMutation.isPending;
 
-  const heading = getFlowHeading(flow);
+  const heading = isStoreCustomerMode
+    ? {
+        overline: "دخول العميل",
+        title: `سجل دخولك إلى ${storeLabel}`,
+        description:
+          "استخدم البريد الإلكتروني وكلمة المرور الخاصة بحسابك داخل هذا المتجر فقط.",
+      }
+    : getFlowHeading(flow);
 
   return (
     <Box className="page-login">
@@ -329,19 +445,22 @@ export default function Login() {
           <Stack spacing={3}>
             <Box className="page-login__badge">
               <StorefrontRoundedIcon fontSize="small" />
-              <span>مساحة الإدارة</span>
+              <span>{isStoreCustomerMode ? "عميل المتجر" : "مساحة الإدارة"}</span>
             </Box>
 
             <Stack spacing={1.25}>
               <Typography variant="overline" className="page-login__eyebrow">
-                دخول مرتب
+                {isStoreCustomerMode ? "وصول سريع" : "دخول مرتب"}
               </Typography>
               <Typography variant="h2" component="h1" className="page-login__title">
-                كل ما تحتاجه لإدارة متجرك من مكان واحد
+                {isStoreCustomerMode
+                  ? `ادخل إلى ${storeLabel} وأكمل التسوق بسهولة`
+                  : "كل ما تحتاجه لإدارة متجرك من مكان واحد"}
               </Typography>
               <Typography variant="body1" color="text.secondary" className="page-login__lead">
-                واجهة هادئة تساعدك على متابعة ما يهمك بسرعة: المنتجات، الطلبات، والعروض اليومية
-                بدون تعقيد.
+                {isStoreCustomerMode
+                  ? "الدخول هنا خاص بعميل هذا المتجر، وبعده ستبقى السلة مرتبطة بحسابك داخل نفس المتجر فقط."
+                  : "واجهة هادئة تساعدك على متابعة ما يهمك بسرعة: المنتجات، الطلبات، والعروض اليومية بدون تعقيد."}
               </Typography>
             </Stack>
 
@@ -431,27 +550,44 @@ export default function Login() {
                 />
 
                 <Button type="submit" variant="contained" size="large" disabled={isBusy}>
-                  {loginMutation.isPending ? "جارٍ تسجيل الدخول..." : "الدخول إلى حسابي"}
+                  {loginMutation.isPending || storeCustomerLoginMutation.isPending
+                    ? "جارٍ تسجيل الدخول..."
+                    : isStoreCustomerMode
+                      ? "الدخول إلى المتجر"
+                      : "الدخول إلى حسابي"}
                 </Button>
 
-                <Button
-                  type="button"
-                  variant="text"
-                  onClick={() => moveTo(FLOW.FORGOT_PASSWORD)}
-                  disabled={isBusy}
-                >
-                  نسيت أو أريد تغيير كلمة السر
-                </Button>
+                {!isStoreCustomerMode ? (
+                  <Button
+                    type="button"
+                    variant="text"
+                    onClick={() => moveTo(FLOW.FORGOT_PASSWORD)}
+                    disabled={isBusy}
+                  >
+                    نسيت أو أريد تغيير كلمة السر
+                  </Button>
+                ) : null}
 
                 <Divider />
 
                 <Stack direction="row" spacing={1} flexWrap="wrap">
-                  <Button component={RouterLink} to="/market" variant="outlined">
-                    العودة إلى السوق
+                  <Button
+                    component={RouterLink}
+                    to={isStoreCustomerMode ? storeHomePath : "/market"}
+                    variant="outlined"
+                  >
+                    {isStoreCustomerMode ? "العودة إلى المتجر" : "العودة إلى السوق"}
                   </Button>
-                  <Button component={RouterLink} to="/auth/register" variant="text">
-                    إنشاء حساب جديد
-                  </Button>
+                  {isStoreCustomerMode ? (
+                    <Button
+                      component={RouterLink}
+                      to={storeRegisterPath}
+                      state={redirectState}
+                      variant="text"
+                    >
+                      إنشاء حساب جديد
+                    </Button>
+                  ) : null}
                 </Stack>
               </Stack>
             ) : null}
@@ -673,3 +809,4 @@ export default function Login() {
     </Box>
   );
 }
+

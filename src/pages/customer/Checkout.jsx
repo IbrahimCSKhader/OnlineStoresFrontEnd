@@ -14,47 +14,17 @@ import useAuth from "../../hooks/auth/useAuth.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
+import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./Checkout.css";
 
 const initialForm = {
   fullName: "",
-  phone: "",
-  email: "",
-  city: "",
   address: "",
-  addressLine2: "",
-  paymentMethod: "الدفع عند الاستلام",
   couponCode: "",
   notes: "",
 };
-
-function normalizeWhatsAppNumber(rawNumber) {
-  const digits = String(rawNumber || "").replace(/\D/g, "");
-
-  if (!digits) return "";
-
-  // International prefix format: 00XXXXXXXX
-  if (digits.startsWith("00")) {
-    return digits.slice(2);
-  }
-
-  // Palestine local formats often start with 0 (e.g. 059, 056).
-  // Convert to international format expected by wa.me (970xxxxxxxxx).
-  if (digits.startsWith("0")) {
-    return `970${digits.slice(1)}`;
-  }
-
-  // If it already looks local without leading zero (9 digits), assume Palestine mobile.
-  if (
-    digits.length === 9 &&
-    (digits.startsWith("59") || digits.startsWith("56"))
-  ) {
-    return `970${digits}`;
-  }
-
-  return digits;
-}
 
 function findStoreWhatsAppNumber(store) {
   if (!store || typeof store !== "object") return "";
@@ -114,10 +84,6 @@ function buildWhatsAppUrl(phoneNumber, message) {
 }
 
 function buildWhatsAppOrderMessage({ store, cart, form }) {
-  const deliveryAddress = [form.address, form.addressLine2]
-    .filter(Boolean)
-    .join(" - ")
-    .trim();
   const orderItems = cart.items.map((item, index) => {
     const productName =
       item.name ||
@@ -141,10 +107,7 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
     "",
     "بيانات العميل:",
     `• الاسم: ${form.fullName || "-"}`,
-    `• الهاتف: ${form.phone || "-"}`,
-    `• البريد الإلكتروني: ${form.email || "-"}`,
-    `• المدينة: ${form.city || "-"}`,
-    `• العنوان: ${deliveryAddress || "-"}`,
+    `• العنوان: ${form.address || "-"}`,
     "",
     "تفاصيل الطلب:",
     ...orderItems,
@@ -152,7 +115,6 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
     "الملخص:",
     `• إجمالي العناصر: ${cart.itemCount}`,
     `• الإجمالي النهائي: ${formatCurrency(cart.totalAmount)}`,
-    `• طريقة الدفع: ${form.paymentMethod || "-"}`,
     `• كود الخصم: ${form.couponCode || "-"}`,
     `• ملاحظات: ${form.notes || "-"}`,
   ];
@@ -162,7 +124,7 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
 
 export default function Checkout() {
   const { slug } = useParams();
-  const { isAuthenticated } = useAuth();
+  const { isStoreCustomer } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(initialForm);
   const [submitError, setSubmitError] = useState("");
@@ -178,8 +140,17 @@ export default function Checkout() {
   useStoreBranding(store);
 
   const cartQuery = useCart(store?.id, {
-    enabled: Boolean(store?.id) && isAuthenticated,
+    enabled: Boolean(store?.id),
   });
+  const cart = normalizeCartResponse(cartQuery.data);
+  const storeCustomerAuthState = store?.id
+    ? buildStoreCustomerAuthState({
+        storeId: store.id,
+        storeSlug: slug,
+        storeName: store.name,
+        redirectTo: `/market/${slug}/checkout`,
+      })
+    : undefined;
 
   if (storeQuery.isLoading) {
     return (
@@ -195,37 +166,11 @@ export default function Checkout() {
         <EmptyState
           title="تعذر فتح صفحة الدفع"
           description="تعذر العثور على المتجر المطلوب."
-          action={
-            <AppButton component={RouterLink} to="/market" variant="contained">
-              العودة إلى السوق
-            </AppButton>
-          }
+          
         />
       </Box>
     );
   }
-
-  if (!isAuthenticated) {
-    return (
-      <Box className="storefront-page page-checkout">
-        <EmptyState
-          title="تسجيل الدخول مطلوب"
-          description="إرسال الطلب عبر واتساب يتطلب تسجيل دخول أولًا."
-          action={
-            <AppButton
-              component={RouterLink}
-              to="/auth/login"
-              variant="contained"
-            >
-              تسجيل الدخول
-            </AppButton>
-          }
-        />
-      </Box>
-    );
-  }
-
-  const cart = normalizeCartResponse(cartQuery.data);
 
   if (!cart.items.length && !cartQuery.isLoading) {
     return (
@@ -247,12 +192,53 @@ export default function Checkout() {
     );
   }
 
+  if (!isStoreCustomer) {
+    return (
+      <Box className="storefront-page page-checkout">
+        <EmptyState
+          title="سجل كعميل متجر لإرسال الطلب"
+          description="السلة محفوظة لك. بعد تسجيل الدخول أو إنشاء حساب داخل هذا المتجر سنربطها بحسابك ونكمل الطلب مباشرة."
+          action={
+            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "center" }}>
+              <AppButton
+                component={RouterLink}
+                to={`/market/${slug}/login`}
+                state={storeCustomerAuthState}
+                variant="contained"
+              >
+                تسجيل الدخول
+              </AppButton>
+              <AppButton
+                component={RouterLink}
+                to={`/market/${slug}/register`}
+                state={storeCustomerAuthState}
+                variant="outlined"
+              >
+                إنشاء حساب
+              </AppButton>
+            </Box>
+          }
+        />
+      </Box>
+    );
+  }
+
   const handleSubmitOrder = async () => {
     setSubmitError("");
     setSubmitSuccess("");
 
+    if (!String(form.fullName || "").trim()) {
+      setSubmitError("يرجى إدخال الاسم الكامل قبل إرسال الطلب.");
+      return;
+    }
+
+    if (!String(form.address || "").trim()) {
+      setSubmitError("يرجى إدخال العنوان قبل إرسال الطلب.");
+      return;
+    }
+
     const rawWhatsAppNumber = findStoreWhatsAppNumber(store);
-    const waNumber = normalizeWhatsAppNumber(rawWhatsAppNumber);
+    const waNumber = normalizeWhatsAppIdentifier(rawWhatsAppNumber);
 
     if (!waNumber) {
       setSubmitError(
@@ -331,7 +317,7 @@ export default function Checkout() {
                   [key]: value,
                 }))
               }
-              onNext={() => setStep((previous) => Math.min(previous + 1, 2))}
+              onNext={() => setStep((previous) => Math.min(previous + 1, 1))}
               onBack={() => setStep((previous) => Math.max(previous - 1, 0))}
               onSubmit={handleSubmitOrder}
             />
@@ -351,3 +337,5 @@ export default function Checkout() {
     </Box>
   );
 }
+
+

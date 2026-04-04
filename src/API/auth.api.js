@@ -11,6 +11,8 @@ export const authApi = {
   resetPassword: (payload) => axiosInstance.post(endpoints.auth.resetPassword, payload),
   logout: () => axiosInstance.post(endpoints.auth.logout),
   createOwner: (payload) => axiosInstance.post(endpoints.auth.createOwner, payload),
+  adminChangePassword: (payload) =>
+    axiosInstance.put(endpoints.auth.adminChangePassword, payload),
   getGoogleAuthUrl: () => endpoints.auth.google,
   getGoogleCallbackUrl: () => endpoints.auth.googleCallback,
 };

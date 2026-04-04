@@ -26,7 +26,7 @@ import "./Cart.css";
 
 export default function Cart() {
   const { slug } = useParams();
-  const { isAuthenticated } = useAuth();
+  const { isStoreCustomer } = useAuth();
 
   const storeQuery = useStoreBySlug(slug);
   const store = useMemo(() => normalizeEntityResponse(storeQuery.data), [storeQuery.data]);
@@ -34,7 +34,7 @@ export default function Cart() {
   useStoreBranding(store);
 
   const cartQuery = useCart(store?.id, {
-    enabled: Boolean(store?.id) && isAuthenticated,
+    enabled: Boolean(store?.id),
   });
   const updateCartItemMutation = useUpdateCartItem(store?.id);
   const removeCartItemMutation = useRemoveCartItem(store?.id);
@@ -54,32 +54,7 @@ export default function Cart() {
         <EmptyState
           title="تعذر فتح السلة"
           description="لم نتمكن من العثور على المتجر المرتبط بهذه السلة."
-          action={
-            <AppButton component={RouterLink} to="/market" variant="contained">
-              العودة إلى السوق
-            </AppButton>
-          }
-        />
-      </Box>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <Box className="storefront-page page-cart">
-        <EmptyState
-          title="تسجيل الدخول مطلوب"
-          description="السلة على هذا النظام تعمل فقط للمستخدمين المسجلين."
-          action={
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center">
-              <AppButton component={RouterLink} to="/auth/login" variant="contained">
-                تسجيل الدخول
-              </AppButton>
-              <AppButton component={RouterLink} to={`/market/${slug}`} variant="outlined">
-                متابعة التسوق
-              </AppButton>
-            </Stack>
-          }
+          
         />
       </Box>
     );
@@ -119,7 +94,9 @@ export default function Cart() {
             <span className="storefront-eyebrow">Cart</span>
             <Typography variant="h2">سلة {store.name}</Typography>
             <Typography variant="body1" className="storefront-subtitle">
-              الكميات والأسعار المعروضة هنا تأتي من الخادم مباشرة.
+              {isStoreCustomer
+                ? "الكميات والأسعار المعروضة هنا مرتبطة بحسابك الحالي."
+                : "يمكنك التسوق كضيف، وسيُطلب منك تسجيل الدخول فقط عند إتمام الطلب."}
             </Typography>
           </Box>
 
@@ -222,3 +199,4 @@ export default function Cart() {
     </Box>
   );
 }
+

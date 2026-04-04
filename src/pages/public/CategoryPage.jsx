@@ -18,6 +18,7 @@ import {
   normalizeEntityResponse,
   normalizeListResponse,
 } from "../../utils/collections.js";
+import { buildProductSnapshot } from "../../utils/guestCart.js";
 import { buildCategorySummary, sortProducts } from "../../utils/storefront.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./CategoryPage.css";
@@ -49,7 +50,7 @@ export default function CategoryPage() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-category">
-        <EmptyState title="جارٍ تحميل الصفحة..." />
+        <EmptyState title="جاري تحميل الصفحة..." />
       </Box>
     );
   }
@@ -60,11 +61,6 @@ export default function CategoryPage() {
         <EmptyState
           title="تعذر فتح هذا التصنيف"
           description="تعذر العثور على المتجر أو التصنيف المطلوب."
-          action={
-            <AppButton component={RouterLink} to="/market" variant="contained">
-              العودة إلى السوق
-            </AppButton>
-          }
         />
       </Box>
     );
@@ -123,6 +119,7 @@ export default function CategoryPage() {
       quantity: 1,
       storeId: store.id,
       variantId: null,
+      productSnapshot: buildProductSnapshot(product),
     });
   };
 
@@ -131,9 +128,7 @@ export default function CategoryPage() {
       <SurfaceCard variant="hero" className="page-category__hero">
         <Box className="storefront-section__copy">
           <span className="storefront-eyebrow">Category page</span>
-          <Typography variant="h2">
-            {activeCategory?.name || "التصنيف"}
-          </Typography>
+          <Typography variant="h2">{activeCategory?.name || "التصنيف"}</Typography>
           <Typography variant="body1" className="storefront-subtitle">
             {activeCategory?.description ||
               "صفحة تصفح مركزة تساعد الزائر على تضييق النطاق بسرعة داخل المتجر."}

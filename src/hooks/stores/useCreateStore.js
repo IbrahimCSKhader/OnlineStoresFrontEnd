@@ -10,6 +10,8 @@ export default function useCreateStore(options = {}) {
     ...options,
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.superAdmin.summary });
+      queryClient.invalidateQueries({ queryKey: queryKeys.superAdmin.stores });
       options.onSuccess?.(data, variables, context);
     },
   });

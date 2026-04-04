@@ -1,5 +1,11 @@
-﻿import { useMemo, useState } from "react";
-import { Link as RouterLink, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import {
+  Link as RouterLink,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -14,9 +20,14 @@ import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import useVerifyEmail from "../../hooks/auth/useVerifyEmail.js";
 import useResendVerificationCode from "../../hooks/auth/useResendVerificationCode.js";
+import useStoreCustomerVerifyEmail from "../../hooks/auth/useStoreCustomerVerifyEmail.js";
+import useStoreCustomerResendVerificationCode from "../../hooks/auth/useStoreCustomerResendVerificationCode.js";
 import useAuth from "../../hooks/auth/useAuth.js";
+import useMergeGuestCart from "../../hooks/cart/useMergeGuestCart.js";
+import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useAuthStore from "../../store/authStore.js";
 import { extractRole, extractToken, extractUser } from "../../utils/authSession.js";
+import { normalizeEntityResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
 import {
   clearPendingVerificationEmail,
@@ -24,18 +35,68 @@ import {
   setPendingVerificationEmail,
 } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
+import {
+  buildStoreCustomerAuthState,
+  getStoreCustomerRedirectPath,
+  hasStoreCustomerAuthContext,
+} from "../../utils/storeCustomerAuth.js";
 import { setAuthToken, setStoredAuthRole, setStoredAuthUser } from "../../utils/token.js";
 import "./Login.css";
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, role } = useAuth();
+  const { slug: routeStoreSlug = "" } = useParams();
+  const { isPlatformUser, isStoreCustomer, role } = useAuth();
   const setSession = useAuthStore((state) => state.setSession);
+  const mergeGuestCart = useMergeGuestCart();
+  const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
+    enabled: Boolean(routeStoreSlug),
+    staleTime: 60000,
+  });
+  const routeStore = useMemo(
+    () => normalizeEntityResponse(routeStoreQuery.data),
+    [routeStoreQuery.data],
+  );
+  const stateStoreCustomerAuth = hasStoreCustomerAuthContext(location.state)
+    ? location.state
+    : null;
+  const routeStoreCustomerAuthState = routeStoreSlug
+    ? buildStoreCustomerAuthState({
+        storeId: routeStore?.id || location.state?.storeId || "",
+        storeSlug: routeStoreSlug,
+        storeName: routeStore?.name || location.state?.storeName || routeStoreSlug,
+        redirectTo: location.state?.redirectTo || `/market/${routeStoreSlug}`,
+      })
+    : null;
+  const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
+  const isStoreCustomerMode = Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
+  const redirectTo = isStoreCustomerMode
+    ? getStoreCustomerRedirectPath(storeCustomerAuthState)
+    : location.state?.redirectTo || "";
+  const loginPath = isStoreCustomerMode
+    ? storeCustomerAuthState?.storeSlug
+      ? `/market/${storeCustomerAuthState.storeSlug}/login`
+      : "/auth/login"
+    : "/auth/login";
+  const registerPath = isStoreCustomerMode
+    ? storeCustomerAuthState?.storeSlug
+      ? `/market/${storeCustomerAuthState.storeSlug}/register`
+      : "/auth/register"
+    : "/auth/register";
 
-  const verifyEmailMutation = useVerifyEmail();
-  const resendVerificationCodeMutation = useResendVerificationCode();
+  const platformVerifyEmailMutation = useVerifyEmail();
+  const platformResendVerificationCodeMutation = useResendVerificationCode();
+  const storeCustomerVerifyEmailMutation = useStoreCustomerVerifyEmail();
+  const storeCustomerResendVerificationCodeMutation = useStoreCustomerResendVerificationCode();
   const [localError, setLocalError] = useState("");
+
+  const verifyEmailMutation = isStoreCustomerMode
+    ? storeCustomerVerifyEmailMutation
+    : platformVerifyEmailMutation;
+  const resendVerificationCodeMutation = isStoreCustomerMode
+    ? storeCustomerResendVerificationCodeMutation
+    : platformResendVerificationCodeMutation;
 
   const defaultValues = useMemo(
     () => ({
@@ -52,29 +113,55 @@ export default function VerifyEmail() {
     formState: { errors },
   } = useForm({ defaultValues });
 
-  if (isAuthenticated) {
-    return <Navigate to={getLandingPath(role)} replace />;
+  if (isStoreCustomerMode && routeStoreSlug && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
+    return (
+      <Box className="page-login">
+        <Box className="page-login__shell" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+          <Paper className="page-login__panel page-login__panel--form" elevation={0}>
+            <Typography variant="body1">جاري تجهيز بيانات التحقق...</Typography>
+          </Paper>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (isStoreCustomerMode ? isStoreCustomer : isPlatformUser) {
+    return <Navigate to={redirectTo || getLandingPath(role)} replace />;
   }
 
   const onSubmit = handleSubmit(async (values) => {
     setLocalError("");
 
-    const payload = {
-      email: values.email.trim(),
-      code: values.code.trim(),
-    };
+    const email = values.email.trim();
+    const code = values.code.trim();
 
-    if (!payload.email) {
+    if (!email) {
       setLocalError("أدخل البريد الإلكتروني أولًا.");
       return;
     }
 
-    setPendingVerificationEmail(payload.email);
+    if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
+      setLocalError("تعذر تحديد المتجر المرتبط بعملية التحقق.");
+      return;
+    }
+
+    setPendingVerificationEmail(email);
+
+    const payload = isStoreCustomerMode
+      ? {
+          storeId: storeCustomerAuthState.storeId,
+          email,
+          code,
+        }
+      : {
+          email,
+          code,
+        };
 
     const data = await verifyEmailMutation.mutateAsync(payload);
 
     const token = extractToken(data);
-    const user = extractUser(data);
+    const user = extractUser(data, token);
     const resolvedRole = extractRole(data, token, user);
 
     if (token) {
@@ -94,7 +181,8 @@ export default function VerifyEmail() {
     }
 
     clearPendingVerificationEmail();
-    navigate(getLandingPath(resolvedRole), { replace: true });
+    await mergeGuestCart();
+    navigate(redirectTo || getLandingPath(resolvedRole), { replace: true });
   });
 
   const onResendCode = async () => {
@@ -107,9 +195,30 @@ export default function VerifyEmail() {
       return;
     }
 
+    if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
+      resendVerificationCodeMutation.reset();
+      setLocalError("تعذر تحديد المتجر المرتبط بعملية التحقق.");
+      return;
+    }
+
     setPendingVerificationEmail(email);
-    await resendVerificationCodeMutation.mutateAsync({ email });
+
+    const payload = isStoreCustomerMode
+      ? {
+          storeId: storeCustomerAuthState.storeId,
+          email,
+        }
+      : {
+          email,
+        };
+
+    await resendVerificationCodeMutation.mutateAsync(payload);
   };
+
+  const description = isStoreCustomerMode
+    ? location.state?.message ||
+      "أدخل الكود الذي وصلك على البريد الإلكتروني لتفعيل حسابك داخل هذا المتجر."
+    : location.state?.message || "أدخل الكود الذي وصلك على البريد الإلكتروني.";
 
   return (
     <Box className="page-login">
@@ -124,13 +233,13 @@ export default function VerifyEmail() {
                 أدخل كود التحقق لإكمال العملية
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {location.state?.message || "أدخل الكود الذي وصلك على البريد الإلكتروني."}
+                {description}
               </Typography>
             </Box>
 
             {verifyEmailMutation.isError ? (
               <Alert severity="error">
-                {extractApiError(verifyEmailMutation.error, "تعذّر التحقق من البريد.")}
+                {extractApiError(verifyEmailMutation.error, "تعذر التحقق من البريد.")}
               </Alert>
             ) : null}
 
@@ -144,7 +253,7 @@ export default function VerifyEmail() {
 
             {resendVerificationCodeMutation.isError ? (
               <Alert severity="error">
-                {extractApiError(resendVerificationCodeMutation.error, "تعذّر إرسال كود جديد.")}
+                {extractApiError(resendVerificationCodeMutation.error, "تعذر إرسال كود جديد.")}
               </Alert>
             ) : null}
 
@@ -214,16 +323,18 @@ export default function VerifyEmail() {
                 onClick={onResendCode}
                 disabled={verifyEmailMutation.isPending || resendVerificationCodeMutation.isPending}
               >
-                {resendVerificationCodeMutation.isPending ? "جارٍ الإرسال..." : "إعادة إرسال الكود"}
+                {resendVerificationCodeMutation.isPending
+                  ? "جارٍ الإرسال..."
+                  : "إعادة إرسال الكود"}
               </Button>
-              <Button component={RouterLink} to="/auth/login" variant="text">
+              <Button component={RouterLink} to={loginPath} state={location.state} variant="text">
                 رجوع لتسجيل الدخول
               </Button>
             </Stack>
 
             <Divider />
 
-            <Button component={RouterLink} to="/auth/register" variant="text">
+            <Button component={RouterLink} to={registerPath} state={location.state} variant="text">
               إنشاء حساب جديد
             </Button>
           </Stack>

@@ -15,6 +15,11 @@ export function isOwnerRole(role) {
   return normalizedRole === "owner" || normalizedRole === "storeowner";
 }
 
+export function isStoreCustomerRole(role) {
+  const normalizedRole = normalizeRoleKey(role);
+  return normalizedRole === "storecustomer";
+}
+
 export function getRoleLabel(role) {
   const normalizedRole = normalizeRoleKey(role);
 
@@ -22,9 +27,12 @@ export function getRoleLabel(role) {
     case "superadmin":
       return "سوبر أدمن";
     case "owner":
+    case "storeowner":
       return "صاحب متجر";
     case "customer":
       return "زبون";
+    case "storecustomer":
+      return "عميل متجر";
     case "guest":
       return "ضيف";
     default:

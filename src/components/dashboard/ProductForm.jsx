@@ -54,13 +54,12 @@ export default function ProductForm({
 
       {isEdit ? (
         <Alert severity="info" className="owner-inline-alert">
-          عدّل بيانات المنتج وصوره من هنا. الرابط الحالي يظهر للمراجعة فقط لأنه
-          يثبت بعد أول حفظ.
+          يمكنك تعديل المنتج من هنا. رابط المنتج الحالي يظهر للمراجعة فقط لأن تغييره يتوقف بعد
+          أول حفظ.
         </Alert>
       ) : (
         <Alert severity="info" className="owner-inline-alert">
-          يمكنك حفظ المنتج أولًا ثم إظهاره مباشرة للزوار إذا فعّلت خيار النشر
-          الفوري.
+          سيتم تعبئة الرابط تلقائيًا من الاسم، ويمكنك تعديله قبل الحفظ إذا أردت.
         </Alert>
       )}
 
@@ -79,7 +78,7 @@ export default function ProductForm({
           size="small"
           required
           disabled={isEdit}
-          helperText={`الرابط النهائي: ${slugPreview}`}
+          helperText={`الرابط الحالي: /${slugPreview}`}
           onChange={(event) => onChange("slug", event.target.value)}
         />
 
@@ -180,7 +179,7 @@ export default function ProductForm({
           <TextField
             select
             size="small"
-            label="الظهور"
+            label="الحالة"
             value={form.status}
             onChange={(event) => onChange("status", event.target.value)}
           >
@@ -192,7 +191,7 @@ export default function ProductForm({
           </TextField>
         ) : (
           <Box className="owner-form__switch">
-            <Typography variant="body2">إظهاره مباشرة</Typography>
+            <Typography variant="body2">نشر مباشر</Typography>
             <Switch
               checked={form.publishNow}
               onChange={(event) => onChange("publishNow", event.target.checked)}
@@ -215,7 +214,7 @@ export default function ProductForm({
               label={
                 isEdit
                   ? "يمكنك إضافة صور جديدة أو حذف الصور الحالية"
-                  : "أول صورة تصبح الصورة الرئيسية تلقائيًا"
+                  : "أول صورة ستصبح الصورة الرئيسية تلقائيًا"
               }
             />
             {categoryHint ? <Chip color="secondary" label={categoryHint} /> : null}

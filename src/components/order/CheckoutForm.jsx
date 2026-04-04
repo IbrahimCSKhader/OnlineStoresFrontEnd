@@ -7,7 +7,7 @@ import AppButton from "../common/buttons/AppButton.jsx";
 import AppTextField from "../common/inputs/AppTextField.jsx";
 import "./CheckoutForm.css";
 
-const checkoutSteps = ["بيانات العميل", "الشحن والملاحظات", "المراجعة"];
+const checkoutSteps = ["بيانات الطلب", "المراجعة"];
 
 export default function CheckoutForm({
   step,
@@ -40,40 +40,11 @@ export default function CheckoutForm({
               onChange={(event) => onChange("fullName", event.target.value)}
             />
             <AppTextField
-              label="رقم الهاتف"
-              value={form.phone}
-              onChange={(event) => onChange("phone", event.target.value)}
-            />
-            <AppTextField
-              label="البريد الإلكتروني"
-              type="email"
-              value={form.email}
-              onChange={(event) => onChange("email", event.target.value)}
-            />
-            <AppTextField
-              label="المدينة"
-              value={form.city}
-              onChange={(event) => onChange("city", event.target.value)}
-            />
-          </Box>
-        ) : null}
-
-        {step === 1 ? (
-          <Box className="checkout-form__grid">
-            <AppTextField
               label="العنوان"
               value={form.address}
               onChange={(event) => onChange("address", event.target.value)}
-            />
-            <AppTextField
-              label="العنوان الإضافي"
-              value={form.addressLine2}
-              onChange={(event) => onChange("addressLine2", event.target.value)}
-            />
-            <AppTextField
-              label="طريقة الدفع المفضلة"
-              value={form.paymentMethod}
-              onChange={(event) => onChange("paymentMethod", event.target.value)}
+              multiline
+              minRows={3}
             />
             <AppTextField
               label="كود الخصم (اختياري)"
@@ -90,25 +61,13 @@ export default function CheckoutForm({
           </Box>
         ) : null}
 
-        {step === 2 ? (
+        {step === 1 ? (
           <Box className="checkout-form__review">
             <Typography variant="h6">مراجعة البيانات</Typography>
             <Box className="checkout-form__review-grid">
               <div>
                 <span>الاسم</span>
                 <strong>{form.fullName || "-"}</strong>
-              </div>
-              <div>
-                <span>الهاتف</span>
-                <strong>{form.phone || "-"}</strong>
-              </div>
-              <div>
-                <span>البريد</span>
-                <strong>{form.email || "-"}</strong>
-              </div>
-              <div>
-                <span>المدينة</span>
-                <strong>{form.city || "-"}</strong>
               </div>
               <div>
                 <span>العنوان</span>
@@ -119,8 +78,8 @@ export default function CheckoutForm({
                 <strong>{form.couponCode || "-"}</strong>
               </div>
               <div>
-                <span>الدفع</span>
-                <strong>{form.paymentMethod || "-"}</strong>
+                <span>الملاحظات</span>
+                <strong>{form.notes || "-"}</strong>
               </div>
             </Box>
             <Typography variant="body2" color="text.secondary">

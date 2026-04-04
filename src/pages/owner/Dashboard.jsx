@@ -40,8 +40,6 @@ import useCreateCoupon from "../../hooks/coupons/useCreateCoupon.js";
 import useCoupons from "../../hooks/coupons/useCoupons.js";
 import useDeleteCoupon from "../../hooks/coupons/useDeleteCoupon.js";
 import useUpdateCoupon from "../../hooks/coupons/useUpdateCoupon.js";
-import useAvailableCustomers from "../../hooks/customerStores/useAvailableCustomers.js";
-import useCreateCustomerStore from "../../hooks/customerStores/useCreateCustomerStore.js";
 import useDeleteCustomerStore from "../../hooks/customerStores/useDeleteCustomerStore.js";
 import useStoreCustomers from "../../hooks/customerStores/useStoreCustomers.js";
 import useUpdateCustomerStore from "../../hooks/customerStores/useUpdateCustomerStore.js";
@@ -181,6 +179,7 @@ function buildProductForm(defaultCategoryId = "", defaultSectionId = "") {
     id: "",
     name: "",
     slug: "",
+    slugManuallyEdited: false,
     shortDescription: "",
     description: "",
     price: "",
@@ -203,6 +202,7 @@ function buildCategoryForm() {
     id: "",
     name: "",
     slug: "",
+    slugManuallyEdited: false,
     description: "",
     displayOrder: "1",
     parentCategoryId: "",
@@ -216,6 +216,7 @@ function buildSectionForm() {
     id: "",
     name: "",
     slug: "",
+    slugManuallyEdited: false,
     description: "",
     displayOrder: "0",
     isActive: true,
@@ -235,9 +236,11 @@ function buildCouponForm() {
 
 function buildCustomerStoreForm() {
   return {
-    mode: "create",
+    mode: "edit",
     id: "",
-    customerId: "",
+    fullName: "",
+    email: "",
+    phone: "",
     discountPercentage: "0",
     isActive: true,
   };
@@ -279,7 +282,7 @@ function formatDiscountPercentage(value) {
   })}%`;
 }
 
-function normalizeCustomerOption(entity) {
+function _normalizeCustomerOption(entity) {
   const source = entity?.customer || entity?.user || entity;
   const id = firstDefined(
     entity?.customerId,
@@ -304,24 +307,34 @@ function normalizeCustomerOption(entity) {
 }
 
 function normalizeStoreCustomer(item) {
-  const customer = normalizeCustomerOption(item);
+  const customer = item;
   const id = firstDefined(item?.id, item?.customerStoreId, customer.id);
 
   return {
     id: id ? String(id) : "",
-    customerId: customer.id,
+    storeId: item?.storeId ? String(item.storeId) : "",
+    firstName: firstDefined(item?.firstName, ""),
+    lastName: firstDefined(item?.lastName, ""),
+    fullName: firstDefined(
+      item?.fullName,
+      `${item?.firstName || ""} ${item?.lastName || ""}`.trim(),
+      "عميل المتجر",
+    ),
     name: customer.name || "مستخدم",
     email: customer.email || "-",
+    phone: firstDefined(item?.phone, "-"),
     discountPercentage: toNumber(
       firstDefined(item?.discountPercentage, item?.discount, item?.discountValue, 0),
       0,
     ),
     isActive: toBoolean(item?.isActive, true),
+    createdAt: item?.createdAt || "",
+    updatedAt: item?.updatedAt || "",
     raw: item,
   };
 }
 
-function dedupeCustomers(customers) {
+function _dedupeCustomers(customers) {
   const seen = new Set();
 
   return customers.filter((customer) => {
@@ -334,6 +347,47 @@ function dedupeCustomers(customers) {
     seen.add(key);
     return true;
   });
+}
+
+function getOrderStatusLabel(value) {
+  return ORDER_STATUS_OPTIONS.find((option) => option.value === Number(value))?.label || "غير محددة";
+}
+
+function formatDateTimeLabel(value) {
+  if (!value) return "-";
+
+  const parsedValue = new Date(value);
+  if (Number.isNaN(parsedValue.getTime())) {
+    return "-";
+  }
+
+  return parsedValue.toLocaleString("ar", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function normalizeOrderSummary(item) {
+  return {
+    ...item,
+    orderNumber: firstDefined(item?.orderNumber, item?.id, "-"),
+    statusLabel: getOrderStatusLabel(item?.status),
+    createdAtLabel: formatDateTimeLabel(item?.createdAt),
+    totalAmount: toNumber(item?.totalAmount, 0),
+    itemsCount: toNumber(item?.itemsCount, 0),
+  };
+}
+
+function normalizeReviewItem(item) {
+  return {
+    ...item,
+    storeCustomerFullName: firstDefined(item?.storeCustomerFullName, "عميل المتجر"),
+    productId: item?.productId ? String(item.productId) : "-",
+    createdAtLabel: formatDateTimeLabel(item?.createdAt),
+  };
 }
 
 function flattenCategories(categories) {
@@ -457,11 +511,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     enabled: Boolean(storeId) && shouldLoadCustomerStores,
     staleTime: 30000,
   });
-  const availableCustomersQuery = useAvailableCustomers(storeId, {
-    enabled: Boolean(storeId) && shouldLoadCustomerStores,
-    staleTime: 30000,
-    retry: false,
-  });
   const ordersQuery = useStoreOrders(storeId, {
     enabled: Boolean(storeId) && shouldLoadOrders,
     staleTime: 30000,
@@ -488,7 +537,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const createCouponMutation = useCreateCoupon(storeId);
   const updateCouponMutation = useUpdateCoupon(storeId);
   const deleteCouponMutation = useDeleteCoupon(storeId);
-  const createCustomerStoreMutation = useCreateCustomerStore(storeId);
   const updateCustomerStoreMutation = useUpdateCustomerStore(storeId);
   const deleteCustomerStoreMutation = useDeleteCustomerStore(storeId);
 
@@ -500,7 +548,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const sectionsRaw = normalizeListResponse(sectionsQuery.data);
   const couponsRaw = normalizeListResponse(couponsQuery.data);
   const storeCustomersRaw = normalizeListResponse(storeCustomersQuery.data);
-  const availableCustomersRaw = normalizeListResponse(availableCustomersQuery.data);
   const ordersRaw = normalizeListResponse(ordersQuery.data);
   const reviewsRaw = normalizeListResponse(reviewsQuery.data);
 
@@ -612,85 +659,50 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   );
   const storeCustomersAll = useMemo(
     () =>
-      dedupeCustomers(
-        storeCustomersRaw
-          .map((item) => normalizeStoreCustomer(item))
-          .filter((item) => item.id && item.customerId),
-      ),
+      storeCustomersRaw
+        .map((item) => normalizeStoreCustomer(item))
+        .filter((item) => item.id),
     [storeCustomersRaw],
-  );
-  const assignedCustomerIds = useMemo(
-    () =>
-      new Set(
-        storeCustomersAll
-          .map((item) => normalizeText(item.customerId))
-          .filter(Boolean),
-      ),
-    [storeCustomersAll],
-  );
-  const availableCustomersAll = useMemo(
-    () =>
-      dedupeCustomers(
-        availableCustomersRaw
-          .map((item) => normalizeCustomerOption(item))
-          .filter(
-            (item) =>
-              item.id &&
-              !assignedCustomerIds.has(normalizeText(item.id)),
-          ),
-      ),
-    [assignedCustomerIds, availableCustomersRaw],
-  );
-  const customerOptions = useMemo(
-    () =>
-      dedupeCustomers([
-        ...storeCustomersAll.map((item) => ({
-          id: item.customerId,
-          name: item.name,
-          email: item.email,
-          raw: item.raw,
-        })),
-        ...availableCustomersAll,
-      ]),
-    [availableCustomersAll, storeCustomersAll],
-  );
-  const selectedCustomer = useMemo(
-    () =>
-      customerOptions.find((item) => item.id === customerStoreForm.customerId) ||
-      null,
-    [customerOptions, customerStoreForm.customerId],
   );
   const customers = useMemo(
     () =>
       storeCustomersAll.filter((item) =>
-        matchesText(item, deferredSearchText, ["name", "email", "customerId"]),
+        matchesText(item, deferredSearchText, ["fullName", "email", "phone"]),
       ),
     [deferredSearchText, storeCustomersAll],
   );
-  const availableCustomers = useMemo(
-    () =>
-      availableCustomersAll.filter((item) =>
-        matchesText(item, deferredSearchText, ["name", "email", "id"]),
-      ),
-    [availableCustomersAll, deferredSearchText],
+  const availableCustomers = [];
+  const availableCustomersQuery = {
+    isLoading: false,
+    error: null,
+    isFetching: false,
+    refetch: () => {},
+  };
+  const ordersAll = useMemo(
+    () => ordersRaw.map((item) => normalizeOrderSummary(item)),
+    [ordersRaw],
   );
   const orders = useMemo(
     () =>
-      ordersRaw.filter((item) =>
-        matchesText(item, deferredSearchText, ["id", "statusText", "customerName"]),
+      ordersAll.filter((item) =>
+        matchesText(item, deferredSearchText, ["orderNumber", "statusLabel", "createdAtLabel"]),
       ),
-    [deferredSearchText, ordersRaw],
+    [deferredSearchText, ordersAll],
+  );
+  const reviewsAll = useMemo(
+    () => reviewsRaw.map((item) => normalizeReviewItem(item)),
+    [reviewsRaw],
   );
   const reviews = useMemo(
     () =>
-      reviewsRaw.filter((item) =>
-        matchesText(item, deferredSearchText, ["productName", "comment"]),
+      reviewsAll.filter((item) =>
+        matchesText(item, deferredSearchText, ["storeCustomerFullName", "comment", "productId"]),
       ),
-    [deferredSearchText, reviewsRaw],
+    [deferredSearchText, reviewsAll],
   );
 
-  const pendingReviewsCount = reviewsRaw.filter((item) => !item.isApproved).length;
-  const pendingOrdersCount = ordersRaw.filter(
+  const pendingReviewsCount = reviewsAll.filter((item) => !item.isApproved).length;
+  const pendingOrdersCount = ordersAll.filter(
     (item) => Number(item.status) === 0,
   ).length;
 
@@ -775,7 +787,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     createCouponMutation.error,
     updateCouponMutation.error,
     deleteCouponMutation.error,
-    createCustomerStoreMutation.error,
     updateCustomerStoreMutation.error,
     deleteCustomerStoreMutation.error,
     updateOrderStatusMutation.error,
@@ -796,6 +807,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     id: product?.id || "",
     name: product?.name || "",
     slug: product?.slug || "",
+    slugManuallyEdited: true,
     shortDescription: product?.shortDescription || "",
     description: product?.description || "",
     price: String(product?.originalPrice ?? product?.price ?? ""),
@@ -866,6 +878,93 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     const nextTab = TAB_CONFIG.find((item) => item.key === key);
     if (!nextTab) return;
     navigate(nextTab.route);
+  };
+
+  const handleProductFormChange = (key, value) => {
+    setProductForm((previous) => {
+      if (key === "slug") {
+        return {
+          ...previous,
+          slug: slugify(value),
+          slugManuallyEdited: true,
+        };
+      }
+
+      if (key === "name") {
+        const nextState = { ...previous, name: value };
+        const previousAutoSlug = slugify(previous.name);
+
+        if (
+          previous.mode === "create" &&
+          (!previous.slugManuallyEdited || !previous.slug || previous.slug === previousAutoSlug)
+        ) {
+          nextState.slug = slugify(value);
+          nextState.slugManuallyEdited = false;
+        }
+
+        return nextState;
+      }
+
+      return { ...previous, [key]: value };
+    });
+  };
+
+  const handleCategoryFormChange = (key, value) => {
+    setCategoryForm((previous) => {
+      if (key === "slug") {
+        return {
+          ...previous,
+          slug: slugify(value),
+          slugManuallyEdited: true,
+        };
+      }
+
+      if (key === "name") {
+        const nextState = { ...previous, name: value };
+        const previousAutoSlug = slugify(previous.name);
+
+        if (
+          previous.mode === "create" &&
+          (!previous.slugManuallyEdited || !previous.slug || previous.slug === previousAutoSlug)
+        ) {
+          nextState.slug = slugify(value);
+          nextState.slugManuallyEdited = false;
+        }
+
+        return nextState;
+      }
+
+      return { ...previous, [key]: value };
+    });
+  };
+
+  const handleSectionFormChange = (key, value) => {
+    setSectionForm((previous) => {
+      if (key === "slug") {
+        return {
+          ...previous,
+          slug: slugify(value),
+          slugManuallyEdited: true,
+        };
+      }
+
+      if (key === "name") {
+        const nextState = { ...previous, name: value };
+        const previousAutoSlug = slugify(previous.name);
+
+        if (
+          previous.mode === "create" &&
+          (!previous.slugManuallyEdited || !previous.slug || previous.slug === previousAutoSlug)
+        ) {
+          nextState.slug = slugify(value);
+          nextState.slugManuallyEdited = false;
+        }
+
+        return nextState;
+      }
+
+      return { ...previous, [key]: value };
+    });
   };
 
   const handleAppendImages = (files) => {
@@ -963,9 +1062,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         Images: productForm.newImages.length ? productForm.newImages : undefined,
       });
 
-      if (createdProduct?.id) {
+      const createdProductEntity = normalizeEntityResponse(createdProduct) || createdProduct;
+      const createdProductId = createdProductEntity?.id || createdProduct?.id;
+
+      if (createdProductId) {
         await updateProductMutation.mutateAsync({
-          productId: createdProduct.id,
+          productId: createdProductId,
           payload: {
             Status: productForm.publishNow ? 1 : 0,
             IsFeatured: Boolean(productForm.isFeatured),
@@ -1101,44 +1203,214 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     }
   };
 
-  const handleSelectAvailableCustomer = (customer) => {
-    setCustomerStoreForm({
-      mode: "create",
-      id: "",
-      customerId: customer?.id || "",
-      discountPercentage: "0",
-      isActive: true,
-    });
-  };
-
   const handleSubmitCustomerStore = async (event) => {
     event.preventDefault();
-    if (!storeId || !customerStoreForm.customerId) return;
+    if (!storeId) return;
+    if (!customerStoreForm.id) return;
 
     try {
-      if (customerStoreForm.mode === "edit" && customerStoreForm.id) {
-        await updateCustomerStoreMutation.mutateAsync({
-          id: customerStoreForm.id,
-          payload: {
-            discountPercentage: toNumber(customerStoreForm.discountPercentage, 0),
-            isActive: customerStoreForm.isActive,
-          },
-        });
-        resetCustomerStoreForm();
-        return;
-      }
-
-      await createCustomerStoreMutation.mutateAsync({
-        storeId,
-        customerId: customerStoreForm.customerId,
-        discountPercentage: toNumber(customerStoreForm.discountPercentage, 0),
-        isActive: customerStoreForm.isActive,
+      await updateCustomerStoreMutation.mutateAsync({
+        id: customerStoreForm.id,
+        payload: {
+          discountPercentage: toNumber(customerStoreForm.discountPercentage, 0),
+          isActive: customerStoreForm.isActive,
+        },
       });
       resetCustomerStoreForm();
     } catch {
       // Error is surfaced through the shared error alert.
     }
   };
+
+  const openCustomerStoreEditor = (row) => {
+    setCustomerStoreForm({
+      mode: "edit",
+      id: row.id,
+      fullName: row.fullName || row.name || "",
+      email: row.email || "",
+      phone: row.phone === "-" ? "" : row.phone || "",
+      discountPercentage: String(row.discountPercentage ?? 0),
+      isActive: Boolean(row.isActive),
+    });
+  };
+  const handleSelectAvailableCustomer = () => {};
+  const customerColumns = [
+    {
+      key: "fullName",
+      title: "العميل",
+      render: (row) => (
+        <Stack spacing={0.3}>
+          <Typography variant="body2" fontWeight={700}>
+            {row.fullName}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {row.email}
+          </Typography>
+        </Stack>
+      ),
+    },
+    {
+      key: "phone",
+      title: "الهاتف",
+      render: (row) => row.phone || "-",
+    },
+    {
+      key: "discountPercentage",
+      title: "خصم الجملة",
+      render: (row) => formatDiscountPercentage(row.discountPercentage),
+    },
+    {
+      key: "isActive",
+      title: "الحالة",
+      render: (row) => (
+        <Chip
+          size="small"
+          label={row.isActive ? "مفعل" : "متوقف"}
+          color={row.isActive ? "primary" : "default"}
+          variant={row.isActive ? "filled" : "outlined"}
+        />
+      ),
+    },
+    {
+      key: "actions",
+      title: "إجراءات",
+      render: (row) => (
+        <Stack direction="row" spacing={1}>
+          <AppButton
+            size="small"
+            variant="outlined"
+            onClick={() => openCustomerStoreEditor(row)}
+          >
+            تعديل
+          </AppButton>
+          <AppButton
+            size="small"
+            variant="outlined"
+            color="error"
+            loading={
+              deleteCustomerStoreMutation.isPending &&
+              deleteCustomerStoreMutation.variables === row.id
+            }
+            onClick={() =>
+              confirmDelete(
+                `العميل ${row.fullName}`,
+                deleteCustomerStoreMutation,
+                row.id,
+              )
+            }
+          >
+            حذف
+          </AppButton>
+        </Stack>
+      ),
+    },
+  ];
+  const orderColumns = [
+    { key: "orderNumber", title: "رقم الطلب" },
+    {
+      key: "itemsCount",
+      title: "العناصر",
+      render: (row) => row.itemsCount ?? 0,
+    },
+    {
+      key: "totalAmount",
+      title: "الإجمالي",
+      render: (row) => formatCurrency(row.totalAmount),
+    },
+    {
+      key: "statusLabel",
+      title: "الحالة الحالية",
+      render: (row) => row.statusLabel || "غير محددة",
+    },
+    {
+      key: "createdAtLabel",
+      title: "تاريخ الإنشاء",
+      render: (row) => row.createdAtLabel,
+    },
+    {
+      key: "actions",
+      title: "تحديث الحالة",
+      render: (row) => (
+        <TextField
+          select
+          size="small"
+          value={String(row.status ?? 0)}
+          onChange={(event) =>
+            updateOrderStatusMutation.mutate({
+              orderId: row.id,
+              payload: { status: Number(event.target.value) },
+            })
+          }
+          sx={{ minWidth: 180 }}
+        >
+          {ORDER_STATUS_OPTIONS.map((option) => (
+            <MenuItem key={option.value} value={String(option.value)}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      ),
+    },
+  ];
+  const reviewColumns = [
+    {
+      key: "storeCustomerFullName",
+      title: "العميل",
+      render: (row) => row.storeCustomerFullName || "عميل المتجر",
+    },
+    {
+      key: "productId",
+      title: "معرف المنتج",
+      render: (row) => row.productId,
+    },
+    { key: "rating", title: "التقييم" },
+    { key: "comment", title: "التعليق" },
+    {
+      key: "isApproved",
+      title: "الحالة",
+      render: (row) => (
+        <Chip
+          size="small"
+          label={row.isApproved ? "معتمد" : "بانتظار الاعتماد"}
+          color={row.isApproved ? "primary" : "default"}
+          variant={row.isApproved ? "filled" : "outlined"}
+        />
+      ),
+    },
+    {
+      key: "actions",
+      title: "إجراءات",
+      render: (row) => (
+        <Stack direction="row" spacing={1}>
+          <AppButton
+            size="small"
+            variant="outlined"
+            onClick={() =>
+              updateReviewApprovalMutation.mutate({
+                reviewId: row.id,
+                payload: { isApproved: true },
+              })
+            }
+          >
+            اعتماد
+          </AppButton>
+          <AppButton
+            size="small"
+            variant="outlined"
+            color="warning"
+            onClick={() =>
+              updateReviewApprovalMutation.mutate({
+                reviewId: row.id,
+                payload: { isApproved: false },
+              })
+            }
+          >
+            رفض
+          </AppButton>
+        </Stack>
+      ),
+    },
+  ];
 
   return (
     <DashboardLayout
@@ -1256,9 +1528,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               newImagePreviews={newImagePreviews}
               defaultCategoryId={defaultCategoryId}
               defaultSectionId={defaultSectionId}
-              onChange={(key, value) =>
-                setProductForm((prev) => ({ ...prev, [key]: value }))
-              }
+              onChange={handleProductFormChange}
               onAppendImages={handleAppendImages}
               onRemoveNewImage={handleRemoveNewImage}
               onDeleteExistingImage={handleDeleteExistingImage}
@@ -1300,7 +1570,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         </Box>
                         <Box>
                           <Typography variant="body2" fontWeight={700}>
-                            {row.name}
+                            {row.fullName}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
                             {row.shortDescription || row.slug}
@@ -1423,9 +1693,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               loading={
                 createCategoryMutation.isPending || updateCategoryMutation.isPending
               }
-              onChange={(key, value) =>
-                setCategoryForm((prev) => ({ ...prev, [key]: value }))
-              }
+              slugPreview={categoryForm.slug || categoryForm.name || "category"}
+              onChange={handleCategoryFormChange}
               onReset={resetCategoryForm}
               onSubmit={handleSubmitCategory}
             />
@@ -1484,6 +1753,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               id: row.id,
                               name: row.name || "",
                               slug: row.slug || "",
+                              slugManuallyEdited: true,
                               description: row.description || "",
                               displayOrder: String(row.displayOrder ?? 0),
                               parentCategoryId: row.parentCategoryId || "",
@@ -1541,9 +1811,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               loading={
                 createSectionMutation.isPending || updateSectionMutation.isPending
               }
-              onChange={(key, value) =>
-                setSectionForm((prev) => ({ ...prev, [key]: value }))
-              }
+              slugPreview={sectionForm.slug || sectionForm.name || "section"}
+              onChange={handleSectionFormChange}
               onReset={resetSectionForm}
               onSubmit={handleSubmitSection}
             />
@@ -1585,6 +1854,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               id: row.id,
                               name: row.name || "",
                               slug: row.slug || "",
+                              slugManuallyEdited: true,
                               description: row.description || "",
                               displayOrder: String(row.displayOrder ?? 0),
                               isActive: Boolean(row.isActive),
@@ -1746,11 +2016,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               description="اختر من المستخدمين المسجلين من يحصل على تسعير خاص داخل متجرك، ثم عدل نسبة الخصم أو أوقفها متى احتجت."
               onRefresh={() => {
                 storeCustomersQuery.refetch();
-                availableCustomersQuery.refetch();
               }}
-              isRefreshing={
-                storeCustomersQuery.isFetching || availableCustomersQuery.isFetching
-              }
+              isRefreshing={storeCustomersQuery.isFetching}
             />
 
             <Alert severity="info" className="owner-inline-alert">
@@ -1758,21 +2025,22 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               بعد تسجيل الدخول ويُثبت داخل السلة ثم ينتقل إلى الطلب.
             </Alert>
 
-            <CustomerStoreForm
-              form={customerStoreForm}
-              isEdit={customerStoreForm.mode === "edit"}
-              loading={
-                createCustomerStoreMutation.isPending ||
-                updateCustomerStoreMutation.isPending
-              }
-              customers={customerOptions}
-              selectedCustomer={selectedCustomer}
-              onChange={(key, value) =>
-                setCustomerStoreForm((prev) => ({ ...prev, [key]: value }))
-              }
-              onReset={resetCustomerStoreForm}
-              onSubmit={handleSubmitCustomerStore}
-            />
+            {customerStoreForm.id ? (
+              <CustomerStoreForm
+                form={customerStoreForm}
+                loading={updateCustomerStoreMutation.isPending}
+                onChange={(key, value) =>
+                  setCustomerStoreForm((prev) => ({ ...prev, [key]: value }))
+                }
+                onReset={resetCustomerStoreForm}
+                onSubmit={handleSubmitCustomerStore}
+              />
+            ) : (
+              <Alert severity="info" className="owner-inline-alert">
+                اختر عميلًا من الجدول بالأسفل لتعديل الخصم أو حالة الحساب. إنشاء عميل جديد لم
+                يعد جزءًا من هذه الشاشة.
+              </Alert>
+            )}
 
             <Divider />
 
@@ -1835,17 +2103,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           <AppButton
                             size="small"
                             variant="outlined"
-                            onClick={() =>
-                              setCustomerStoreForm({
-                                mode: "edit",
-                                id: row.id,
-                                customerId: row.customerId,
-                                discountPercentage: String(
-                                  row.discountPercentage ?? 0,
-                                ),
-                                isActive: Boolean(row.isActive),
-                              })
-                            }
+                            onClick={() => openCustomerStoreEditor(row)}
                           >
                             تعديل
                           </AppButton>
@@ -1859,7 +2117,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             }
                             onClick={() =>
                               confirmDelete(
-                                `العميل ${row.name}`,
+                                `العميل ${row.fullName}`,
                                 deleteCustomerStoreMutation,
                                 row.id,
                               )
@@ -1871,6 +2129,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       ),
                     },
                   ]}
+                  columns={customerColumns}
                   emptyState={
                     <EmptyState
                       title="لا يوجد زبائن متجر بعد"
@@ -2009,6 +2268,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     ),
                   },
                 ]}
+                columns={orderColumns}
                 emptyState={
                   <EmptyState
                     title="لا توجد طلبات"
@@ -2084,6 +2344,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     ),
                   },
                 ]}
+                columns={reviewColumns}
                 emptyState={
                   <EmptyState
                     title="لا توجد تقييمات"

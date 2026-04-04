@@ -2,6 +2,10 @@
   const data = error?.response?.data;
 
   if (!data) {
+    if (typeof error?.message === "string" && error.message.trim()) {
+      return error.message;
+    }
+
     return "Network error";
   }
 

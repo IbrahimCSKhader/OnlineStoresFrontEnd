@@ -135,6 +135,96 @@
   flex-wrap: wrap;
 }
 
+.store-navbar__profile-trigger {
+  width: 42px;
+  height: 42px;
+  padding: 0 !important;
+  border: 1px solid var(--border-subtle) !important;
+  background: var(--surface) !important;
+}
+
+.store-navbar__profile-avatar {
+  width: 100%;
+  height: 100%;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--button-text);
+  background: var(--primary);
+}
+
+.store-navbar__profile-avatar--large {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+}
+
+.store-navbar__profile-menu {
+  margin-top: 10px;
+  min-width: 260px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-medium) !important;
+}
+
+.store-navbar__profile-menu-list {
+  padding: 0 !important;
+}
+
+.store-navbar__profile-menu-head,
+.store-navbar__profile-panel-head,
+.store-navbar__profile-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.store-navbar__profile-menu-head {
+  padding: 14px;
+}
+
+.store-navbar__profile-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.store-navbar__profile-name,
+.store-navbar__profile-copy .MuiTypography-caption-root,
+.store-navbar__profile-info .MuiTypography-body2-root {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-navbar__profile-info {
+  padding: 12px 14px 0;
+  color: var(--text-secondary);
+}
+
+.store-navbar__profile-info:last-of-type {
+  padding-bottom: 12px;
+}
+
+.store-navbar__profile-id {
+  font-family: var(--font-body);
+  letter-spacing: 0.06em;
+}
+
+.store-navbar__profile-item {
+  min-height: 46px !important;
+  gap: 4px;
+}
+
+.store-navbar__profile-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-elevated) 80%, var(--surface));
+}
+
 .store-navbar__icon-button {
   width: 38px;
   height: 38px;
@@ -274,6 +364,11 @@
 
   .store-navbar__brand-mark,
   .store-navbar__brand-logo {
+    width: 38px;
+    height: 38px;
+  }
+
+  .store-navbar__profile-trigger {
     width: 38px;
     height: 38px;
   }

@@ -28,6 +28,7 @@ import {
   normalizeListResponse,
 } from "../../utils/collections.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import { buildProductSnapshot } from "../../utils/guestCart.js";
 import {
   getProductComparePrice,
   getProductDisplayPrice,
@@ -158,13 +159,14 @@ export default function ProductDetails() {
       quantity,
       storeId: effectiveStoreId,
       variantId: selectedVariantId || null,
+      productSnapshot: buildProductSnapshot(product, { variant: selectedVariant }),
     });
   };
 
   if (storeQuery.isLoading || productQuery.isLoading) {
     return (
       <Box className="storefront-page page-product-details">
-        <EmptyState title="جارٍ تجهيز صفحة المنتج..." />
+        <EmptyState title="جاري تجهيز صفحة المنتج..." />
       </Box>
     );
   }
@@ -183,9 +185,6 @@ export default function ProductDetails() {
                 variant="contained"
               >
                 العودة إلى المتجر
-              </AppButton>
-              <AppButton component={RouterLink} to="/market" variant="outlined">
-                تصفح المتاجر
               </AppButton>
             </Stack>
           }
@@ -208,13 +207,13 @@ export default function ProductDetails() {
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">Product details</span>
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" className="page-product-details__crumbs">
-              <AppButton component={RouterLink} to="/market" variant="text">
-                السوق
-              </AppButton>
-              <Typography variant="body2" color="text.secondary">
-                /
-              </Typography>
+            <Stack
+              direction="row"
+              spacing={1}
+              useFlexGap
+              flexWrap="wrap"
+              className="page-product-details__crumbs"
+            >
               <AppButton component={RouterLink} to={`/market/${slug}`} variant="text">
                 {store.name}
               </AppButton>
@@ -270,7 +269,11 @@ export default function ProductDetails() {
                 <Typography variant="h2" className="page-product-details__title">
                   {product.name}
                 </Typography>
-                <Typography variant="body1" color="text.secondary" className="page-product-details__lead">
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  className="page-product-details__lead"
+                >
                   {product.shortDescription ||
                     product.description ||
                     "لا يوجد وصف لهذا المنتج بعد."}
@@ -296,7 +299,11 @@ export default function ProductDetails() {
                   {formatCurrency(displayPrice)}
                 </Typography>
                 {hasComparePrice ? (
-                  <Typography variant="body1" color="text.secondary" className="page-product-details__compare">
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    className="page-product-details__compare"
+                  >
                     {formatCurrency(comparePrice)}
                   </Typography>
                 ) : null}
@@ -417,6 +424,7 @@ export default function ProductDetails() {
                 quantity: 1,
                 storeId: effectiveStoreId,
                 variantId: null,
+                productSnapshot: buildProductSnapshot(relatedProduct),
               })
             }
             addingProductId={addToCartMutation.variables?.productId}
