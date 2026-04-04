@@ -26,6 +26,8 @@ import useVerifyEmail from "../../hooks/auth/useVerifyEmail.js";
 import useResendVerificationCode from "../../hooks/auth/useResendVerificationCode.js";
 import useForgotPassword from "../../hooks/auth/useForgotPassword.js";
 import useResetPassword from "../../hooks/auth/useResetPassword.js";
+import useStoreCustomerForgotPassword from "../../hooks/auth/useStoreCustomerForgotPassword.js";
+import useStoreCustomerResetPassword from "../../hooks/auth/useStoreCustomerResetPassword.js";
 import useMergeGuestCart from "../../hooks/cart/useMergeGuestCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useAuthStore from "../../store/authStore.js";
@@ -81,6 +83,30 @@ function getFlowHeading(flow) {
   return {
     overline: "تسجيل الدخول",
     title: "تسجيل الدخول",
+    description: "",
+  };
+}
+
+function getStoreFlowHeading(flow, storeLabel) {
+  if (flow === FLOW.FORGOT_PASSWORD) {
+    return {
+      overline: "استعادة الحساب",
+      title: `استعادة كلمة المرور في ${storeLabel}`,
+      description: "",
+    };
+  }
+
+  if (flow === FLOW.RESET_PASSWORD) {
+    return {
+      overline: "كلمة مرور جديدة",
+      title: `تغيير كلمة المرور في ${storeLabel}`,
+      description: "",
+    };
+  }
+
+  return {
+    overline: "تسجيل الدخول",
+    title: `الدخول إلى ${storeLabel}`,
     description: "",
   };
 }
@@ -142,8 +168,16 @@ export default function Login() {
   const storeCustomerLoginMutation = useStoreCustomerLogin();
   const verifyEmailMutation = useVerifyEmail();
   const resendVerificationCodeMutation = useResendVerificationCode();
-  const forgotPasswordMutation = useForgotPassword();
-  const resetPasswordMutation = useResetPassword();
+  const platformForgotPasswordMutation = useForgotPassword();
+  const platformResetPasswordMutation = useResetPassword();
+  const storeCustomerForgotPasswordMutation = useStoreCustomerForgotPassword();
+  const storeCustomerResetPasswordMutation = useStoreCustomerResetPassword();
+  const forgotPasswordMutation = isStoreCustomerMode
+    ? storeCustomerForgotPasswordMutation
+    : platformForgotPasswordMutation;
+  const resetPasswordMutation = isStoreCustomerMode
+    ? storeCustomerResetPasswordMutation
+    : platformResetPasswordMutation;
 
   const [flow, setFlow] = useState(FLOW.LOGIN);
   const [pendingEmail, setPendingEmail] = useState("");
@@ -337,7 +371,19 @@ export default function Login() {
     const email = values.email.trim();
 
     try {
-      const data = await forgotPasswordMutation.mutateAsync({ email });
+      if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
+        setLocalError("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.");
+        return;
+      }
+
+      const data = await forgotPasswordMutation.mutateAsync(
+        isStoreCustomerMode
+          ? {
+              storeId: storeCustomerAuthState.storeId,
+              email,
+            }
+          : { email },
+      );
       setPendingEmail(email);
       setValue("resetCode", "");
       setValue("newPassword", "");
@@ -362,7 +408,19 @@ export default function Login() {
     }
 
     try {
-      const data = await forgotPasswordMutation.mutateAsync({ email });
+      if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
+        setLocalError("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.");
+        return;
+      }
+
+      const data = await forgotPasswordMutation.mutateAsync(
+        isStoreCustomerMode
+          ? {
+              storeId: storeCustomerAuthState.storeId,
+              email,
+            }
+          : { email },
+      );
       setSuccessMessage(
         data?.message || "إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور.",
       );
@@ -378,11 +436,25 @@ export default function Login() {
     const code = values.resetCode.trim();
 
     try {
-      const data = await resetPasswordMutation.mutateAsync({
-        email,
-        code,
-        newPassword: values.newPassword,
-      });
+      if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
+        setLocalError("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.");
+        return;
+      }
+
+      const data = await resetPasswordMutation.mutateAsync(
+        isStoreCustomerMode
+          ? {
+              storeId: storeCustomerAuthState.storeId,
+              email,
+              code,
+              newPassword: values.newPassword,
+            }
+          : {
+              email,
+              code,
+              newPassword: values.newPassword,
+            },
+      );
 
       setValue("password", "");
       setValue("resetCode", "");
@@ -407,11 +479,7 @@ export default function Login() {
     resetPasswordMutation.isPending;
 
   const heading = isStoreCustomerMode
-    ? {
-        overline: "تسجيل الدخول",
-        title: `الدخول إلى ${storeLabel}`,
-        description: "",
-      }
+    ? getStoreFlowHeading(flow, storeLabel)
     : getFlowHeading(flow);
 
   return (
@@ -495,16 +563,14 @@ export default function Login() {
                       : "الدخول إلى حسابي"}
                 </Button>
 
-                {!isStoreCustomerMode ? (
-                  <Button
-                    type="button"
-                    variant="text"
-                    onClick={() => moveTo(FLOW.FORGOT_PASSWORD)}
-                    disabled={isBusy}
-                  >
-                    نسيت أو أريد تغيير كلمة السر
-                  </Button>
-                ) : null}
+                <Button
+                  type="button"
+                  variant="text"
+                  onClick={() => moveTo(FLOW.FORGOT_PASSWORD)}
+                  disabled={isBusy}
+                >
+                  نسيت أو أريد تغيير كلمة السر
+                </Button>
 
                 <Divider />
 

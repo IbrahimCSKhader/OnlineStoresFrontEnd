@@ -13,6 +13,8 @@ const publicAuthPaths = [
   "/api/store-customer-auth/login",
   "/api/store-customer-auth/register",
   "/api/store-customer-auth/guest",
+  "/api/store-customer-auth/forgot-password",
+  "/api/store-customer-auth/reset-password",
 ];
 
 function getRequestUrl(config) {
