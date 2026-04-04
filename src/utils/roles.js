@@ -20,6 +20,11 @@ export function isStoreCustomerRole(role) {
   return normalizedRole === "storecustomer";
 }
 
+export function isGuestRole(role) {
+  const normalizedRole = normalizeRoleKey(role);
+  return normalizedRole === "guest";
+}
+
 export function getRoleLabel(role) {
   const normalizedRole = normalizeRoleKey(role);
 

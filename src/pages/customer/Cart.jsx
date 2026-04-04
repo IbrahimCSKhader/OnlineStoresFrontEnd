@@ -1,9 +1,12 @@
-﻿import { useMemo } from "react";
+import { useMemo } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import AppDataTable from "../../components/common/tables/AppDataTable.jsx";
@@ -16,7 +19,6 @@ import useRemoveCartItem from "../../hooks/cart/useRemoveCartItem.js";
 import useUpdateCartItem from "../../hooks/cart/useUpdateCartItem.js";
 import useClearCart from "../../hooks/cart/useClearCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
-import useAuth from "../../hooks/auth/useAuth.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
@@ -26,7 +28,8 @@ import "./Cart.css";
 
 export default function Cart() {
   const { slug } = useParams();
-  const { isStoreCustomer } = useAuth();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const storeQuery = useStoreBySlug(slug);
   const store = useMemo(() => normalizeEntityResponse(storeQuery.data), [storeQuery.data]);
@@ -54,7 +57,6 @@ export default function Cart() {
         <EmptyState
           title="تعذر فتح السلة"
           description="لم نتمكن من العثور على المتجر المرتبط بهذه السلة."
-          
         />
       </Box>
     );
@@ -93,11 +95,6 @@ export default function Cart() {
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">Cart</span>
             <Typography variant="h2">سلة {store.name}</Typography>
-            <Typography variant="body1" className="storefront-subtitle">
-              {isStoreCustomer
-                ? "الكميات والأسعار المعروضة هنا مرتبطة بحسابك الحالي."
-                : "يمكنك التسوق كضيف، وسيُطلب منك تسجيل الدخول فقط عند إتمام الطلب."}
-            </Typography>
           </Box>
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -132,57 +129,102 @@ export default function Cart() {
         <Box className="storefront-grid">
           <Box className="storefront-grid__span-8">
             <SurfaceCard className="page-cart__table-card">
-              <AppDataTable
-                zebra
-                rows={cart.items}
-                columns={[
-                  {
-                    key: "product",
-                    title: "المنتج",
-                    render: (row) => <CartItem item={row} storeSlug={slug} />,
-                  },
-                  {
-                    key: "price",
-                    title: "السعر",
-                    render: (row) => formatCurrency(row.unitPrice),
-                  },
-                  {
-                    key: "quantity",
-                    title: "الكمية",
-                    render: (row) => (
-                      <QuantityStepper
-                        value={row.quantity}
-                        min={1}
-                        max={row.availableStock || undefined}
-                        onChange={(nextValue) =>
-                          updateCartItemMutation.mutate({
-                            cartItemId: row.id,
-                            payload: { quantity: nextValue },
-                          })
-                        }
-                      />
-                    ),
-                  },
-                  {
-                    key: "total",
-                    title: "الإجمالي",
-                    render: (row) => formatCurrency(row.totalPrice),
-                  },
-                  {
-                    key: "actions",
-                    title: "إجراء",
-                    render: (row) => (
-                      <AppButton
-                        variant="text"
-                        appearance="ghost"
-                        onClick={() => removeCartItemMutation.mutate(row.id)}
-                      >
-                        حذف
-                      </AppButton>
-                    ),
-                  },
-                ]}
-              />
+              {isMobile ? (
+                <Box className="page-cart__items">
+                  {cart.items.map((row) => (
+                    <SurfaceCard key={row.id} className="page-cart__item-card">
+                      <CartItem item={row} storeSlug={slug} />
+
+                      <Box className="page-cart__item-meta">
+                        <Box className="page-cart__item-stat">
+                          <span>السعر</span>
+                          <strong>{formatCurrency(row.unitPrice)}</strong>
+                        </Box>
+                        <Box className="page-cart__item-stat">
+                          <span>الإجمالي</span>
+                          <strong>{formatCurrency(row.totalPrice)}</strong>
+                        </Box>
+                      </Box>
+
+                      <Divider />
+
+                      <Box className="page-cart__item-actions">
+                        <QuantityStepper
+                          value={row.quantity}
+                          min={1}
+                          max={row.availableStock || undefined}
+                          onChange={(nextValue) =>
+                            updateCartItemMutation.mutate({
+                              cartItemId: row.id,
+                              payload: { quantity: nextValue },
+                            })
+                          }
+                        />
+
+                        <AppButton
+                          variant="text"
+                          appearance="ghost"
+                          onClick={() => removeCartItemMutation.mutate(row.id)}
+                        >
+                          حذف
+                        </AppButton>
+                      </Box>
+                    </SurfaceCard>
+                  ))}
+                </Box>
+              ) : (
+                <AppDataTable
+                  zebra
+                  rows={cart.items}
+                  columns={[
+                    {
+                      key: "product",
+                      title: "المنتج",
+                      render: (row) => <CartItem item={row} storeSlug={slug} />,
+                    },
+                    {
+                      key: "price",
+                      title: "السعر",
+                      render: (row) => formatCurrency(row.unitPrice),
+                    },
+                    {
+                      key: "quantity",
+                      title: "الكمية",
+                      render: (row) => (
+                        <QuantityStepper
+                          value={row.quantity}
+                          min={1}
+                          max={row.availableStock || undefined}
+                          onChange={(nextValue) =>
+                            updateCartItemMutation.mutate({
+                              cartItemId: row.id,
+                              payload: { quantity: nextValue },
+                            })
+                          }
+                        />
+                      ),
+                    },
+                    {
+                      key: "total",
+                      title: "الإجمالي",
+                      render: (row) => formatCurrency(row.totalPrice),
+                    },
+                    {
+                      key: "actions",
+                      title: "إجراء",
+                      render: (row) => (
+                        <AppButton
+                          variant="text"
+                          appearance="ghost"
+                          onClick={() => removeCartItemMutation.mutate(row.id)}
+                        >
+                          حذف
+                        </AppButton>
+                      ),
+                    },
+                  ]}
+                />
+              )}
             </SurfaceCard>
           </Box>
 
@@ -199,4 +241,3 @@ export default function Cart() {
     </Box>
   );
 }
-

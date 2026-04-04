@@ -10,11 +10,9 @@ import CartSummary from "../../components/cart/CartSummary.jsx";
 import CheckoutForm from "../../components/order/CheckoutForm.jsx";
 import useCart from "../../hooks/cart/useCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
-import useAuth from "../../hooks/auth/useAuth.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
-import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./Checkout.css";
@@ -124,7 +122,6 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
 
 export default function Checkout() {
   const { slug } = useParams();
-  const { isStoreCustomer } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(initialForm);
   const [submitError, setSubmitError] = useState("");
@@ -143,14 +140,6 @@ export default function Checkout() {
     enabled: Boolean(store?.id),
   });
   const cart = normalizeCartResponse(cartQuery.data);
-  const storeCustomerAuthState = store?.id
-    ? buildStoreCustomerAuthState({
-        storeId: store.id,
-        storeSlug: slug,
-        storeName: store.name,
-        redirectTo: `/market/${slug}/checkout`,
-      })
-    : undefined;
 
   if (storeQuery.isLoading) {
     return (
@@ -186,37 +175,6 @@ export default function Checkout() {
             >
               العودة إلى المتجر
             </AppButton>
-          }
-        />
-      </Box>
-    );
-  }
-
-  if (!isStoreCustomer) {
-    return (
-      <Box className="storefront-page page-checkout">
-        <EmptyState
-          title="سجل كعميل متجر لإرسال الطلب"
-          description="السلة محفوظة لك. بعد تسجيل الدخول أو إنشاء حساب داخل هذا المتجر سنربطها بحسابك ونكمل الطلب مباشرة."
-          action={
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", justifyContent: "center" }}>
-              <AppButton
-                component={RouterLink}
-                to={`/market/${slug}/login`}
-                state={storeCustomerAuthState}
-                variant="contained"
-              >
-                تسجيل الدخول
-              </AppButton>
-              <AppButton
-                component={RouterLink}
-                to={`/market/${slug}/register`}
-                state={storeCustomerAuthState}
-                variant="outlined"
-              >
-                إنشاء حساب
-              </AppButton>
-            </Box>
           }
         />
       </Box>

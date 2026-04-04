@@ -44,7 +44,21 @@
 }
 
 @media (max-width: 639px) {
+  .page-category__hero,
+  .page-category__sidebar,
+  .page-category__results {
+    padding: 14px;
+  }
+
+  .page-category__sidebar {
+    gap: 12px;
+  }
+
   .page-category__price-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .page-category__results .storefront-section__head {
+    gap: 10px;
   }
 }

@@ -12,6 +12,7 @@ const publicAuthPaths = [
   "/api/Auth/google-callback",
   "/api/store-customer-auth/login",
   "/api/store-customer-auth/register",
+  "/api/store-customer-auth/guest",
 ];
 
 function getRequestUrl(config) {

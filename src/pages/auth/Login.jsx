@@ -18,8 +18,6 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
-import SecurityRoundedIcon from "@mui/icons-material/SecurityRounded";
-import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useLogin from "../../hooks/auth/useLogin.js";
@@ -44,24 +42,6 @@ import {
 import { setAuthToken, setStoredAuthRole, setStoredAuthUser } from "../../utils/token.js";
 import "./Login.css";
 
-const highlights = [
-  {
-    icon: <StorefrontRoundedIcon fontSize="small" />,
-    title: "مساحة واحدة للمتجر",
-    description: "تابع المنتجات والطلبات والعروض من واجهة مرتبة وسريعة.",
-  },
-  {
-    icon: <VerifiedRoundedIcon fontSize="small" />,
-    title: "وصول واضح",
-    description: "كل حساب يصل مباشرة إلى المساحة المناسبة له بدون خطوات مربكة.",
-  },
-  {
-    icon: <SecurityRoundedIcon fontSize="small" />,
-    title: "دخول مريح وآمن",
-    description: "ابدأ يومك بسرعة مع تجربة هادئة ونصوص واضحة وسهلة.",
-  },
-];
-
 const FLOW = {
   LOGIN: "login",
   VERIFY_EMAIL: "verify-email",
@@ -77,31 +57,31 @@ function getFlowHeading(flow) {
   if (flow === FLOW.VERIFY_EMAIL) {
     return {
       overline: "تحقق البريد",
-      title: "أدخل كود التفعيل لإكمال تسجيل الدخول",
-      description: "أرسلنا لك كودًا على البريد الإلكتروني. أدخله لتفعيل الحساب وإكمال الدخول.",
+      title: "أدخل كود التفعيل",
+      description: "",
     };
   }
 
   if (flow === FLOW.FORGOT_PASSWORD) {
     return {
       overline: "استعادة الحساب",
-      title: "أرسل كود تغيير كلمة السر",
-      description: "اكتب البريد الإلكتروني وسنرسل كودًا لإعادة تعيين كلمة المرور.",
+      title: "إرسال كود التغيير",
+      description: "",
     };
   }
 
   if (flow === FLOW.RESET_PASSWORD) {
     return {
       overline: "تأكيد التغيير",
-      title: "أدخل الكود وكلمة السر الجديدة",
-      description: "بعد إدخال الكود الصحيح سيتم تغيير كلمة المرور مباشرة.",
+      title: "كلمة مرور جديدة",
+      description: "",
     };
   }
 
   return {
-    overline: "أهلًا بعودتك",
-    title: "سجل دخولك وابدأ يومك بسهولة",
-    description: "استخدم البريد الإلكتروني، ثم أكمل بكلمة المرور.",
+    overline: "تسجيل الدخول",
+    title: "تسجيل الدخول",
+    description: "",
   };
 }
 
@@ -428,10 +408,9 @@ export default function Login() {
 
   const heading = isStoreCustomerMode
     ? {
-        overline: "دخول العميل",
-        title: `سجل دخولك إلى ${storeLabel}`,
-        description:
-          "استخدم البريد الإلكتروني وكلمة المرور الخاصة بحسابك داخل هذا المتجر فقط.",
+        overline: "تسجيل الدخول",
+        title: `الدخول إلى ${storeLabel}`,
+        description: "",
       }
     : getFlowHeading(flow);
 
@@ -441,49 +420,6 @@ export default function Login() {
       <Box className="page-login__glow page-login__glow--two" aria-hidden />
 
       <Box className="page-login__shell">
-        <Paper className="page-login__panel page-login__panel--info" elevation={0}>
-          <Stack spacing={3}>
-            <Box className="page-login__badge">
-              <StorefrontRoundedIcon fontSize="small" />
-              <span>{isStoreCustomerMode ? "عميل المتجر" : "مساحة الإدارة"}</span>
-            </Box>
-
-            <Stack spacing={1.25}>
-              <Typography variant="overline" className="page-login__eyebrow">
-                {isStoreCustomerMode ? "وصول سريع" : "دخول مرتب"}
-              </Typography>
-              <Typography variant="h2" component="h1" className="page-login__title">
-                {isStoreCustomerMode
-                  ? `ادخل إلى ${storeLabel} وأكمل التسوق بسهولة`
-                  : "كل ما تحتاجه لإدارة متجرك من مكان واحد"}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" className="page-login__lead">
-                {isStoreCustomerMode
-                  ? "الدخول هنا خاص بعميل هذا المتجر، وبعده ستبقى السلة مرتبطة بحسابك داخل نفس المتجر فقط."
-                  : "واجهة هادئة تساعدك على متابعة ما يهمك بسرعة: المنتجات، الطلبات، والعروض اليومية بدون تعقيد."}
-              </Typography>
-            </Stack>
-
-            <Box className="page-login__highlights">
-              {highlights.map((item) => (
-                <Box key={item.title} className="page-login__highlight">
-                  <Box className="page-login__highlight-icon" aria-hidden>
-                    {item.icon}
-                  </Box>
-                  <Box>
-                    <Typography variant="subtitle1" className="page-login__highlight-title">
-                      {item.title}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {item.description}
-                    </Typography>
-                  </Box>
-                </Box>
-              ))}
-            </Box>
-          </Stack>
-        </Paper>
-
         <Paper className="page-login__panel page-login__panel--form" elevation={0}>
           <Stack spacing={2.25}>
             <Box>
@@ -493,9 +429,11 @@ export default function Login() {
               <Typography variant="h4" className="page-login__form-title">
                 {heading.title}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {heading.description}
-              </Typography>
+              {heading.description ? (
+                <Typography variant="body2" color="text.secondary">
+                  {heading.description}
+                </Typography>
+              ) : null}
             </Box>
 
             {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}

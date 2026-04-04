@@ -30,8 +30,7 @@ export default function StoreGrid({ stores, loading, error, onRetry }) {
   if (!stores.length) {
     return (
       <EmptyState
-        title="لا توجد متاجر متاحة الآن"
-        description="عند تفعيل أول متجر سيظهر هنا مباشرة ضمن دليل السوق."
+        title="لا توجد متاجر"
       />
     );
   }

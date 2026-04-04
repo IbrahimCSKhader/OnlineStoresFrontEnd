@@ -23,6 +23,7 @@ import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useProductDetails from "../../hooks/products/useProductDetails.js";
 import useProducts from "../../hooks/products/useProducts.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import {
   normalizeEntityResponse,
   normalizeListResponse,
@@ -87,6 +88,8 @@ export default function ProductDetails() {
 
   const effectiveStoreId = store?.id || product?.storeId;
   const addToCartMutation = useAddToCart(effectiveStoreId);
+  const addToCartUi = useTransientBusyState();
+  const relatedAddToCartUi = useTransientBusyState();
 
   const images = useMemo(() => getProductImages(product), [product]);
   const variants = product?.variants || [];
@@ -154,6 +157,7 @@ export default function ProductDetails() {
   const handleAddToCart = () => {
     if (!effectiveStoreId || !product?.id) return;
 
+    addToCartUi.markBusy("main");
     addToCartMutation.mutate({
       productId: product.id,
       quantity,
@@ -163,10 +167,23 @@ export default function ProductDetails() {
     });
   };
 
+  const handleRelatedAddToCart = (relatedProduct) => {
+    if (!effectiveStoreId || !relatedProduct?.id) return;
+
+    relatedAddToCartUi.markBusy(relatedProduct.id);
+    addToCartMutation.mutate({
+      productId: relatedProduct.id,
+      quantity: 1,
+      storeId: effectiveStoreId,
+      variantId: null,
+      productSnapshot: buildProductSnapshot(relatedProduct),
+    });
+  };
+
   if (storeQuery.isLoading || productQuery.isLoading) {
     return (
       <Box className="storefront-page page-product-details">
-        <EmptyState title="جاري تجهيز صفحة المنتج..." />
+        <EmptyState title="جاري التحميل..." />
       </Box>
     );
   }
@@ -206,7 +223,7 @@ export default function ProductDetails() {
       <SurfaceCard variant="hero" className="page-product-details__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Product details</span>
+            <span className="storefront-eyebrow">المنتج</span>
             <Stack
               direction="row"
               spacing={1}
@@ -276,7 +293,7 @@ export default function ProductDetails() {
                 >
                   {product.shortDescription ||
                     product.description ||
-                    "لا يوجد وصف لهذا المنتج بعد."}
+                    ""}
                 </Typography>
               </Box>
 
@@ -345,7 +362,8 @@ export default function ProductDetails() {
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                   <AppButton
                     variant="contained"
-                    loading={addToCartMutation.isPending}
+                    loading={addToCartUi.activeKey === "main"}
+                    loadingLabel="جاري الإضافة"
                     onClick={handleAddToCart}
                     startIcon={<LocalMallRoundedIcon fontSize="small" />}
                     sx={{ minWidth: { xs: "100%", sm: 220 } }}
@@ -409,8 +427,8 @@ export default function ProductDetails() {
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Related products</span>
-            <Typography variant="h3">قد يعجبك أيضًا</Typography>
+            <span className="storefront-eyebrow">منتجات</span>
+            <Typography variant="h3">منتجات مشابهة</Typography>
           </Box>
         </Box>
 
@@ -418,21 +436,12 @@ export default function ProductDetails() {
           <ProductGrid
             products={relatedProducts}
             storeSlug={store.slug}
-            onAddToCart={(relatedProduct) =>
-              addToCartMutation.mutate({
-                productId: relatedProduct.id,
-                quantity: 1,
-                storeId: effectiveStoreId,
-                variantId: null,
-                productSnapshot: buildProductSnapshot(relatedProduct),
-              })
-            }
-            addingProductId={addToCartMutation.variables?.productId}
+            onAddToCart={handleRelatedAddToCart}
+            addingProductId={relatedAddToCartUi.activeKey}
           />
         ) : (
           <EmptyState
-            title="لا توجد منتجات مرتبطة حاليًا"
-            description="عند توفر منتجات إضافية في المتجر ستظهر هنا تلقائيًا."
+            title="لا توجد منتجات"
           />
         )}
       </Box>

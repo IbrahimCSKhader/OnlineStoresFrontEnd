@@ -14,6 +14,7 @@ import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
 import useProducts from "../../hooks/products/useProducts.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import {
   normalizeEntityResponse,
   normalizeListResponse,
@@ -46,6 +47,7 @@ export default function CategoryPage() {
     enabled: Boolean(store?.id),
   });
   const addToCartMutation = useAddToCart(store?.id);
+  const addToCartUi = useTransientBusyState();
 
   if (storeQuery.isLoading) {
     return (
@@ -114,6 +116,7 @@ export default function CategoryPage() {
   const handleAddToCart = (product) => {
     if (!store?.id || !product?.id) return;
 
+    addToCartUi.markBusy(product.id);
     addToCartMutation.mutate({
       productId: product.id,
       quantity: 1,
@@ -127,12 +130,13 @@ export default function CategoryPage() {
     <Box className="storefront-page page-category">
       <SurfaceCard variant="hero" className="page-category__hero">
         <Box className="storefront-section__copy">
-          <span className="storefront-eyebrow">Category page</span>
+          <span className="storefront-eyebrow">التصنيف</span>
           <Typography variant="h2">{activeCategory?.name || "التصنيف"}</Typography>
-          <Typography variant="body1" className="storefront-subtitle">
-            {activeCategory?.description ||
-              "صفحة تصفح مركزة تساعد الزائر على تضييق النطاق بسرعة داخل المتجر."}
-          </Typography>
+          {activeCategory?.description ? (
+            <Typography variant="body1" className="storefront-subtitle">
+              {activeCategory.description}
+            </Typography>
+          ) : null}
         </Box>
       </SurfaceCard>
 
@@ -140,8 +144,8 @@ export default function CategoryPage() {
         <Box className="storefront-grid__span-4">
           <SurfaceCard className="page-category__sidebar">
             <Box className="storefront-section__copy">
-              <span className="storefront-eyebrow">Filters</span>
-              <Typography variant="h5">تضييق النتائج</Typography>
+              <span className="storefront-eyebrow">فلترة</span>
+              <Typography variant="h5">الخيارات</Typography>
             </Box>
 
             <SearchInput
@@ -218,7 +222,7 @@ export default function CategoryPage() {
           <SurfaceCard className="page-category__results">
             <Box className="storefront-section__head">
               <Box className="storefront-section__copy">
-                <span className="storefront-eyebrow">Results</span>
+                <span className="storefront-eyebrow">النتائج</span>
                 <Typography variant="h5">
                   {filteredProducts.length} نتيجة داخل {activeCategory?.name || "هذا التصنيف"}
                 </Typography>
@@ -234,7 +238,7 @@ export default function CategoryPage() {
                 products={filteredProducts}
                 storeSlug={store.slug}
                 onAddToCart={handleAddToCart}
-                addingProductId={addToCartMutation.variables?.productId}
+                addingProductId={addToCartUi.activeKey}
               />
             ) : (
               <EmptyState

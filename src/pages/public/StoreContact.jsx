@@ -58,7 +58,7 @@ export default function StoreContact() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-contact">
-        <EmptyState title="جاري تجهيز صفحة التواصل..." />
+        <EmptyState title="جاري التحميل..." />
       </Box>
     );
   }
@@ -67,8 +67,7 @@ export default function StoreContact() {
     return (
       <Box className="storefront-page page-store-contact">
         <EmptyState
-          title="تعذر فتح صفحة التواصل"
-          description="لم نتمكن من تحميل بيانات حسابات التواصل الخاصة بهذا المتجر."
+          title="تعذر فتح الصفحة"
         />
       </Box>
     );
@@ -80,12 +79,9 @@ export default function StoreContact() {
     <Box className="storefront-page page-store-contact">
       <SurfaceCard variant="hero" className="page-store-contact__hero">
         <Box className="storefront-section__copy">
-          <span className="storefront-eyebrow">Contact Us</span>
+          <span className="storefront-eyebrow">تواصل</span>
           <Typography variant="h1" className="storefront-title page-store-contact__title">
             تواصل مع {store.name}
-          </Typography>
-          <Typography variant="body1" className="storefront-subtitle">
-            الروابط هنا تُبنى من بيانات الباك الحالية فقط: `Platform + Username`، ومع واتساب نولّد الرابط من الرقم المخزن بدل حفظ رابط كامل في قاعدة البيانات.
           </Typography>
 
           <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
@@ -93,7 +89,7 @@ export default function StoreContact() {
               العودة لواجهة المتجر
             </AppButton>
             <AppButton component={RouterLink} to={`/market/${slug}/about`} variant="outlined">
-              قراءة about us
+              من نحن
             </AppButton>
           </Stack>
         </Box>
@@ -141,8 +137,7 @@ export default function StoreContact() {
         </Box>
       ) : (
         <EmptyState
-          title="لا توجد حسابات تواصل مضافة بعد"
-          description="بمجرد وصول `ContactAccounts` أو `WhatsAppNumber` من الباك ستظهر هنا بشكل روابط جاهزة للفتح."
+          title="لا توجد وسائل تواصل"
         />
       )}
     </Box>

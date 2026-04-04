@@ -2,3 +2,58 @@
 .page-cart__table-card {
   padding: var(--panel-padding);
 }
+
+.page-cart__items {
+  display: grid;
+  gap: 12px;
+}
+
+.page-cart__item-card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.page-cart__item-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.page-cart__item-stat {
+  display: grid;
+  gap: 4px;
+}
+
+.page-cart__item-stat span {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.page-cart__item-stat strong {
+  font-size: 0.92rem;
+}
+
+.page-cart__item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 639px) {
+  .page-cart__hero,
+  .page-cart__table-card {
+    padding: 14px;
+  }
+
+  .page-cart__item-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .page-cart__item-actions {
+    align-items: stretch;
+  }
+}

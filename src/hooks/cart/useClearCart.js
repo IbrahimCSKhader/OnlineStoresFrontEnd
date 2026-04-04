@@ -1,22 +1,34 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import cartApi from "../../API/cart.api.js";
-import useAuth from "../auth/useAuth.js";
 import { clearGuestCart } from "../../utils/guestCart.js";
 import { queryKeys } from "../../utils/queryKeys.js";
+import useStorefrontSession from "../auth/useStorefrontSession.js";
 
 export default function useClearCart(storeId, options = {}) {
   const queryClient = useQueryClient();
-  const { isStoreCustomer } = useAuth();
+  const { useLocalGuestCart, hasScopedStorefrontSession, ensureStorefrontSession } =
+    useStorefrontSession(storeId);
 
   return useMutation({
-    mutationFn: () => (isStoreCustomer ? cartApi.clearCart(storeId) : clearGuestCart(storeId)),
+    mutationFn: async () => {
+      if (useLocalGuestCart) {
+        return clearGuestCart(storeId);
+      }
+
+      if (!hasScopedStorefrontSession) {
+        await ensureStorefrontSession();
+      }
+
+      return cartApi.clearCart(storeId);
+    },
     ...options,
     onSuccess: (data, variables, context) => {
       if (storeId) {
         queryClient.setQueryData(
           queryKeys.cart.byStore(storeId),
-          isStoreCustomer
-            ? {
+          useLocalGuestCart
+            ? data
+            : {
                 id: "",
                 storeCustomerId: "",
                 storeId,
@@ -25,8 +37,7 @@ export default function useClearCart(storeId, options = {}) {
                 totalAmount: 0,
                 itemCount: 0,
                 totalItems: 0,
-              }
-            : data,
+              },
         );
       }
 

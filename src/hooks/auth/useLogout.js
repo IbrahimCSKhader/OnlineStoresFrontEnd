@@ -8,10 +8,11 @@ import { queryKeys } from "../../utils/queryKeys.js";
 export default function useLogout(options = {}) {
   const queryClient = useQueryClient();
   const clearSession = useAuthStore((state) => state.clearSession);
-  const { isStoreCustomer } = useAuth();
+  const { hasStorefrontCustomerSession } = useAuth();
 
   return useMutation({
-    mutationFn: () => (isStoreCustomer ? Promise.resolve({ success: true }) : authApi.logout()),
+    mutationFn: () =>
+      hasStorefrontCustomerSession ? Promise.resolve({ success: true }) : authApi.logout(),
     ...options,
     onSuccess: (data, variables, context) => {
       clearAuthSession();

@@ -32,6 +32,7 @@ import useAuth from "../../hooks/auth/useAuth.js";
 import useCart from "../../hooks/cart/useCart.js";
 import useLogout from "../../hooks/auth/useLogout.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import { getLandingPath, isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
@@ -42,17 +43,17 @@ import "./Navbar.css";
 function buildNavItems(activeStoreSlug) {
   if (activeStoreSlug) {
     return [
-      { to: `/market/${activeStoreSlug}`, label: "الرئيسية" },
-      { to: `/market/${activeStoreSlug}/about`, label: "About Us" },
-      { to: `/market/${activeStoreSlug}/contact`, label: "Contact Us" },
+      { to: `/market/${activeStoreSlug}`, label: "الرئيسية", exact: true },
+      { to: `/market/${activeStoreSlug}/about`, label: "من نحن" },
+      { to: `/market/${activeStoreSlug}/contact`, label: "تواصل" },
     ];
   }
 
   return [
-    { to: "/", label: "الرئيسية" },
+    { to: "/", label: "الرئيسية", exact: true },
     { to: "/market", label: "المتاجر" },
-    { to: "/about", label: "عن المنصة" },
-    { to: "/contact", label: "تواصل معنا" },
+    { to: "/about", label: "من نحن" },
+    { to: "/contact", label: "تواصل" },
   ];
 }
 
@@ -146,7 +147,7 @@ function NavLinks({ items, onNavigate, drawer = false }) {
   return items.map((item) => {
     const isActive =
       location.pathname === item.to ||
-      (item.to !== "/" && location.pathname.startsWith(`${item.to}/`));
+      (!item.exact && item.to !== "/" && location.pathname.startsWith(`${item.to}/`));
 
     return (
       <NavLink
@@ -195,14 +196,17 @@ export default function Navbar() {
   );
   const activeStoreLogo = resolveAssetUrl(activeStore?.logoUrl);
   const brandHref = activeStoreSlug ? `/market/${activeStoreSlug}` : "/";
-  const brandEyebrow = activeStore ? "متجر مستقل" : "Premium storefront";
-  const brandName = activeStore?.name || "Online Storefront";
+  const brandEyebrow = "";
+  const brandName = activeStore?.name || "السوق";
   const navItems = useMemo(() => buildNavItems(activeStoreSlug), [activeStoreSlug]);
   const loginPath = activeStoreSlug ? `/market/${activeStoreSlug}/login` : "/auth/login";
   const registerPath = activeStoreSlug ? `/market/${activeStoreSlug}/register` : "/auth/register";
   const cartPath = activeStoreSlug ? `/market/${activeStoreSlug}/cart` : "/market";
+  const { hasScopedStorefrontSession, useLocalGuestCart } = useStorefrontSession(activeStore?.id);
 
-  const isStoreCustomerSignedIn = Boolean(activeStoreSlug) && isAuthenticated && isStoreCustomer;
+  const isStoreCustomerSignedIn =
+    Boolean(activeStoreSlug) && isAuthenticated && isStoreCustomer && hasScopedStorefrontSession;
+  const canAccessStoreCart = Boolean(activeStoreSlug);
   const isPlatformAuthenticated =
     isAuthenticated && !isStoreCustomer && (isOwnerRole(role) || isSuperAdminRole(role));
 
@@ -213,11 +217,13 @@ export default function Navbar() {
   });
 
   const cartQuery = useCart(activeStore?.id, {
-    enabled: isStoreCustomerSignedIn && Boolean(activeStore?.id),
+    enabled: canAccessStoreCart && Boolean(activeStore?.id),
+    autoCreateSession: false,
     staleTime: 30000,
   });
   const cart = useMemo(() => normalizeCartResponse(cartQuery.data), [cartQuery.data]);
-  const cartItemCount = cart.itemCount || 0;
+  const cartItemCount =
+    hasScopedStorefrontSession || useLocalGuestCart ? cart.itemCount || 0 : 0;
 
   const storeCustomerAuthState =
     activeStore?.id && activeStoreSlug
@@ -284,7 +290,7 @@ export default function Navbar() {
   };
 
   const renderCartButton = (drawer = false) => {
-    if (!isStoreCustomerSignedIn) return null;
+    if (!canAccessStoreCart) return null;
 
     const cartIcon = (
       <Badge
@@ -509,6 +515,7 @@ export default function Navbar() {
 
   const renderGuestButtons = (drawer = false) => (
     <>
+      {drawer ? renderCartButton(true) : null}
       <AppButton
         component={NavLink}
         to={loginPath}
@@ -590,9 +597,11 @@ export default function Navbar() {
           {renderBrandVisual()}
 
           <Box className="store-navbar__brand-text">
-            <Typography variant="overline" className="store-navbar__eyebrow">
-              {brandEyebrow}
-            </Typography>
+            {brandEyebrow ? (
+              <Typography variant="overline" className="store-navbar__eyebrow">
+                {brandEyebrow}
+              </Typography>
+            ) : null}
             <Typography component="span" className="store-navbar__brand-name">
               {brandName}
             </Typography>
@@ -609,7 +618,7 @@ export default function Navbar() {
 
         <Box className="store-navbar__actions">
           <ThemeToggleButton variant={variant} onSelect={setVariant} />
-          {isStoreCustomerSignedIn ? renderCartButton() : null}
+          {renderCartButton()}
 
           {!isMobile ? (
             <Stack direction="row" spacing={1} className="store-navbar__auth-wrap">
@@ -638,9 +647,6 @@ export default function Navbar() {
             {renderBrandVisual(true)}
             <Box>
               <Typography variant="subtitle2">{brandName}</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {activeStore ? "التنقل داخل المتجر" : "تجربة تسوق أنيقة وسريعة"}
-              </Typography>
             </Box>
           </Box>
 

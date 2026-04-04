@@ -458,6 +458,14 @@ select {
 }
 
 @media (max-width: 639px) {
+  :root {
+    --section-padding: 36px;
+    --section-padding-compact: 24px;
+    --hero-padding: 20px;
+    --panel-padding: 14px;
+    --gap: 14px;
+  }
+
   .storefront-section__head {
     align-items: start;
   }
@@ -482,21 +490,30 @@ select {
   }
 
   .storefront-products-grid {
-    gap: 12px;
+    gap: 10px;
     width: min(100%, 432px);
   }
 
   .storefront-products-grid > * {
-    flex-basis: calc((100% - 12px) / 2);
-    max-width: calc((100% - 12px) / 2);
+    flex-basis: calc((100% - 10px) / 2);
+    max-width: calc((100% - 10px) / 2);
   }
 
   .storefront-cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
   }
 
   .storefront-hero__metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .storefront-metric {
+    min-height: 96px;
+    padding: 14px;
+  }
+
+  .storefront-metric__label {
+    font-size: 0.74rem;
   }
 }

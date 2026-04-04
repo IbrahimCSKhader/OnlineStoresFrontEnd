@@ -17,6 +17,7 @@ import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useProducts from "../../hooks/products/useProducts.js";
 import useCategories from "../../hooks/categories/useCategories.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import { resolveAssetUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
 import {
   normalizeEntityResponse,
@@ -46,6 +47,7 @@ export default function StoreDetails() {
     enabled: Boolean(store?.id),
   });
   const addToCartMutation = useAddToCart(store?.id);
+  const addToCartUi = useTransientBusyState();
 
   if (storeQuery.isLoading) {
     return (
@@ -93,6 +95,7 @@ export default function StoreDetails() {
   const handleAddToCart = (product) => {
     if (!store?.id || !product?.id) return;
 
+    addToCartUi.markBusy(product.id);
     addToCartMutation.mutate({
       productId: product.id,
       quantity: 1,
@@ -151,8 +154,7 @@ export default function StoreDetails() {
                   {store.name}
                 </Typography>
                 <Typography variant="body1" className="storefront-subtitle">
-                  {store.description ||
-                    "تصفح منتجات هذا المتجر بسهولة واعثر على ما يناسبك بسرعة."}
+                  {store.description || ""}
                 </Typography>
               </Box>
             </Box>
@@ -219,8 +221,7 @@ export default function StoreDetails() {
               >
                 <Typography variant="h6">{category.name}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {category.description ||
-                    "استعرض المنتجات المرتبطة بهذا التصنيف داخل المتجر."}
+                  {category.description || ""}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {category.count} منتج
@@ -239,8 +240,8 @@ export default function StoreDetails() {
       <Box className="storefront-section page-store-details__featured">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Featured</span>
-            <Typography variant="h3">منتجات بارزة</Typography>
+            <span className="storefront-eyebrow">منتجات</span>
+            <Typography variant="h3">منتجات مختارة</Typography>
           </Box>
         </Box>
 
@@ -249,12 +250,11 @@ export default function StoreDetails() {
             products={featuredProducts}
             storeSlug={store.slug}
             onAddToCart={handleAddToCart}
-            addingProductId={addToCartMutation.variables?.productId}
+            addingProductId={addToCartUi.activeKey}
           />
         ) : (
           <EmptyState
-            title="لا توجد منتجات بارزة بعد"
-            description="أضف منتجات للمخزون ليظهر هذا القسم بصورة أفضل داخل واجهة المتجر."
+            title="لا توجد منتجات"
           />
         )}
       </Box>
@@ -262,7 +262,7 @@ export default function StoreDetails() {
       <Box className="storefront-section page-store-details__catalog" id="store-catalog">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Catalog</span>
+            <span className="storefront-eyebrow">المنتجات</span>
             <Typography variant="h3">جميع المنتجات</Typography>
           </Box>
 
@@ -283,7 +283,7 @@ export default function StoreDetails() {
               products={filteredProducts}
               storeSlug={store.slug}
               onAddToCart={handleAddToCart}
-              addingProductId={addToCartMutation.variables?.productId}
+              addingProductId={addToCartUi.activeKey}
             />
           ) : (
             <EmptyState

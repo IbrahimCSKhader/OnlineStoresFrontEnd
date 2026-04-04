@@ -27,8 +27,7 @@ function buildStoryParagraphs(store) {
   const description = String(store?.description || "").trim();
 
   return [
-    description ||
-      "لم تتم إضافة قصة مفصلة لهذا المتجر بعد، لكن هذه الصفحة أصبحت جاهزة لعرض `StoreStory` مباشرة من بيانات المتجر.",
+    description || "لا توجد نبذة حالياً.",
   ];
 }
 
@@ -45,7 +44,7 @@ export default function StoreAbout() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-about">
-        <EmptyState title="جاري تجهيز صفحة about us..." />
+        <EmptyState title="جاري التحميل..." />
       </Box>
     );
   }
@@ -54,8 +53,7 @@ export default function StoreAbout() {
     return (
       <Box className="storefront-page page-store-about">
         <EmptyState
-          title="تعذر فتح نبذة المتجر"
-          description="لم نتمكن من تحميل بيانات المتجر اللازمة لعرض الـ Store Story."
+          title="تعذر فتح الصفحة"
         />
       </Box>
     );
@@ -67,12 +65,9 @@ export default function StoreAbout() {
     <Box className="storefront-page page-store-about">
       <SurfaceCard variant="hero" className="page-store-about__hero">
         <Box className="storefront-section__copy">
-          <span className="storefront-eyebrow">About Us</span>
+          <span className="storefront-eyebrow">من نحن</span>
           <Typography variant="h1" className="storefront-title page-store-about__title">
-            من نحن داخل {store.name}
-          </Typography>
-          <Typography variant="body1" className="storefront-subtitle">
-            هذه الصفحة تعرض `StoreStory` الخاصة بالمتجر نفسه، لذلك تبقى التجربة محلية داخل المتجر بدل الرجوع للمنصة العامة.
+            {store.name}
           </Typography>
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -96,7 +91,7 @@ export default function StoreAbout() {
           <SurfaceCard className="page-store-about__story-card">
             <Box className="page-store-about__section-head">
               <AutoStoriesRoundedIcon fontSize="small" />
-              <Typography variant="h4">Store Story</Typography>
+              <Typography variant="h4">نبذة</Typography>
             </Box>
 
             <Box className="page-store-about__story">
@@ -113,7 +108,7 @@ export default function StoreAbout() {
           <SurfaceCard className="page-store-about__info-card">
             <Box className="page-store-about__section-head">
               <StorefrontRoundedIcon fontSize="small" />
-              <Typography variant="h5">عن المتجر بسرعة</Typography>
+              <Typography variant="h5">معلومات</Typography>
             </Box>
 
             <Box className="page-store-about__info-list">

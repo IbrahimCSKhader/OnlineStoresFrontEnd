@@ -10,7 +10,7 @@ export default function AppButton({
   appearance,
   color,
   className,
-  loadingLabel = "جارٍ التنفيذ...",
+  loadingLabel = "جاري...",
   variant = "contained",
   ...props
 }) {

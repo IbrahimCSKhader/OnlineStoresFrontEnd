@@ -1,22 +1,118 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import cartApi from "../../API/cart.api.js";
-import useAuth from "../auth/useAuth.js";
 import { addGuestCartItem } from "../../utils/guestCart.js";
 import { queryKeys } from "../../utils/queryKeys.js";
+import { normalizeCartResponse } from "../../utils/storefront.js";
+import useStorefrontSession from "../auth/useStorefrontSession.js";
+
+function toNumber(value, fallback = 0) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : fallback;
+}
+
+function buildOptimisticCart(currentCart, payload, storeId) {
+  if (!payload?.productId || !storeId) {
+    return currentCart;
+  }
+
+  const normalizedCart = normalizeCartResponse(currentCart);
+  const variantId = payload.variantId ? String(payload.variantId) : "";
+  const itemId = `${String(payload.productId)}::${variantId || "default"}`;
+  const existingItem = normalizedCart.items.find((item) => item.id === itemId);
+  const quantity = Math.max(1, toNumber(existingItem?.quantity, 0) + toNumber(payload.quantity, 1));
+  const snapshot = payload.productSnapshot || {};
+  const unitPrice = toNumber(snapshot.unitPrice, toNumber(existingItem?.unitPrice));
+
+  const nextItem = {
+    ...existingItem,
+    id: itemId,
+    productId: String(payload.productId),
+    variantId,
+    variantName: snapshot.variantName || existingItem?.variantName || "",
+    name: snapshot.name || existingItem?.name || "منتج",
+    slug: snapshot.slug || existingItem?.slug || "",
+    imageUrl: snapshot.imageUrl || existingItem?.imageUrl || "",
+    availableStock: toNumber(snapshot.availableStock, toNumber(existingItem?.availableStock)),
+    unitPrice,
+    quantity,
+    totalPrice: unitPrice * quantity,
+  };
+
+  const items = existingItem
+    ? normalizedCart.items.map((item) => (item.id === itemId ? nextItem : item))
+    : [...normalizedCart.items, nextItem];
+  const subtotal = items.reduce(
+    (sum, item) => sum + toNumber(item.totalPrice, toNumber(item.unitPrice) * toNumber(item.quantity, 1)),
+    0,
+  );
+  const itemCount = items.reduce((sum, item) => sum + toNumber(item.quantity, 1), 0);
+
+  return {
+    ...normalizedCart,
+    storeId: String(storeId),
+    items,
+    subtotal,
+    totalAmount: subtotal,
+    itemCount,
+    totalItems: itemCount,
+  };
+}
 
 export default function useAddToCart(storeId, options = {}) {
   const queryClient = useQueryClient();
-  const { isStoreCustomer } = useAuth();
+  const { useLocalGuestCart, hasScopedStorefrontSession, ensureStorefrontSession } =
+    useStorefrontSession(storeId);
+  const cartQueryKey = queryKeys.cart.byStore(storeId);
 
   return useMutation({
-    mutationFn: (payload) => (isStoreCustomer ? cartApi.addToCart(payload) : addGuestCartItem(payload)),
-    ...options,
-    onSuccess: (data, variables, context) => {
-      if (storeId) {
-        queryClient.setQueryData(queryKeys.cart.byStore(storeId), data);
+    mutationFn: async (payload) => {
+      if (useLocalGuestCart) {
+        return addGuestCartItem(payload);
       }
 
-      options.onSuccess?.(data, variables, context);
+      if (!hasScopedStorefrontSession) {
+        await ensureStorefrontSession();
+      }
+
+      return cartApi.addToCart(payload);
+    },
+    ...options,
+    onMutate: async (variables) => {
+      if (storeId) {
+        await queryClient.cancelQueries({ queryKey: cartQueryKey });
+      }
+
+      const previousCart = storeId ? queryClient.getQueryData(cartQueryKey) : undefined;
+
+      if (storeId) {
+        queryClient.setQueryData(cartQueryKey, (currentCart) =>
+          buildOptimisticCart(currentCart, variables, storeId),
+        );
+      }
+
+      const userContext = await options.onMutate?.(variables);
+
+      return {
+        previousCart,
+        userContext,
+      };
+    },
+    onError: (error, variables, context) => {
+      if (storeId && context?.previousCart !== undefined) {
+        queryClient.setQueryData(cartQueryKey, context.previousCart);
+      }
+
+      options.onError?.(error, variables, context?.userContext ?? context);
+    },
+    onSuccess: (data, variables, context) => {
+      if (storeId) {
+        queryClient.setQueryData(cartQueryKey, data);
+      }
+
+      options.onSuccess?.(data, variables, context?.userContext ?? context);
+    },
+    onSettled: (data, error, variables, context) => {
+      options.onSettled?.(data, error, variables, context?.userContext ?? context);
     },
   });
 }

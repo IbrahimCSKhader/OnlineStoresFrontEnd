@@ -61,14 +61,11 @@ export default function StoreCard({ store }) {
 
       <Box className="store-card__content">
         <Box className="store-card__copy">
-          <Typography variant="overline" className="store-card__eyebrow">
-            واجهة متجر
-          </Typography>
           <Typography variant="h6" className="store-card__title">
             {store.name}
           </Typography>
           <Typography variant="body2" color="text.secondary" className="store-card__description">
-            {store.description || "استعرض متجرًا واضحًا ومنظمًا بواجهة سريعة وسهلة التصفح."}
+            {store.description || store.businessType || ""}
           </Typography>
         </Box>
 
@@ -85,7 +82,7 @@ export default function StoreCard({ store }) {
         </Box>
 
         <Box className="store-card__action">
-          <span>عرض المتجر</span>
+          <span>دخول</span>
           <ArrowOutwardRoundedIcon fontSize="small" />
         </Box>
       </Box>

@@ -33,12 +33,6 @@ import {
 } from "../../utils/storeCustomerAuth.js";
 import "./Register.css";
 
-const benefits = [
-  "الحساب هنا يخص هذا المتجر فقط وليس المنصة كلها.",
-  "سيصلك كود تحقق على البريد قبل تفعيل الحساب والدخول.",
-  "يمكنك استخدام نفس البريد في متجر آخر بحساب منفصل إذا لزم.",
-];
-
 export default function Register() {
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
@@ -131,7 +125,7 @@ export default function Register() {
         redirectTo,
         message:
           data?.message ||
-          "تم إنشاء الحساب. أدخل كود التحقق الذي وصلك على البريد لتفعيل حسابك داخل المتجر.",
+          "تم إنشاء الحساب. أدخل كود التحقق.",
       },
     });
   });
@@ -142,56 +136,17 @@ export default function Register() {
       <Box className="page-register__glow page-register__glow--two" aria-hidden />
 
       <Box className="page-register__shell">
-        <Paper className="page-register__panel page-register__panel--info" elevation={0}>
-          <Stack spacing={3}>
-            <Box className="page-register__badge">
-              <StorefrontRoundedIcon fontSize="small" />
-              <span>عميل متجر</span>
-            </Box>
-
-            <Stack spacing={1.25}>
-              <Typography variant="overline" className="page-register__eyebrow">
-                حساب جديد
-              </Typography>
-              <Typography variant="h2" component="h1" className="page-register__title">
-                أنشئ حسابك داخل {storeLabel}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" className="page-register__lead">
-                هذا التسجيل مخصص لعميل المتجر، وبعده سنطلب منك تأكيد البريد الإلكتروني
-                بكود تحقق قبل تفعيل الحساب.
-              </Typography>
-            </Stack>
-
-            <Box className="page-register__benefits">
-              {benefits.map((item) => (
-                <Box key={item} className="page-register__benefit">
-                  <span className="page-register__benefit-dot" aria-hidden />
-                  <Typography variant="body2">{item}</Typography>
-                </Box>
-              ))}
-            </Box>
-          </Stack>
-        </Paper>
-
         <Paper className="page-register__panel page-register__panel--form" elevation={0}>
           {!storeCustomerAuthState?.storeId ? (
             <Stack spacing={2.1}>
               <Box>
                 <Typography variant="overline" className="page-register__eyebrow">
-                  اختر متجرًا أولًا
+                  إنشاء حساب
                 </Typography>
                 <Typography variant="h4" className="page-register__form-title">
-                  لا يمكن إنشاء عميل متجر بدون سياق متجر
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  افتح صفحة المتجر المطلوب أولًا، ثم ابدأ إنشاء الحساب من هناك حتى نربطه
-                  بالمتجر الصحيح.
+                  افتح المتجر أولاً
                 </Typography>
               </Box>
-
-              <Alert severity="info">
-                تسجيل عميل المتجر يعتمد على <code>StoreId</code> الخاص بالمتجر الحالي.
-              </Alert>
 
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <Button component={RouterLink} to={storeHomePath} variant="contained">
@@ -206,14 +161,10 @@ export default function Register() {
             <Stack spacing={2.1} component="form" onSubmit={onSubmit}>
               <Box>
                 <Typography variant="overline" className="page-register__eyebrow">
-                  فتح حساب
+                  إنشاء حساب
                 </Typography>
                 <Typography variant="h4" className="page-register__form-title">
-                  بيانات بسيطة لبداية مرتبة
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  أنشئ حسابك كعميل داخل {storeLabel} ثم أكمل التفعيل عبر كود التحقق الذي
-                  سيصلك على البريد.
+                  {storeLabel}
                 </Typography>
               </Box>
 

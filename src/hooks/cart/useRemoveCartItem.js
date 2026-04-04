@@ -1,16 +1,26 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import cartApi from "../../API/cart.api.js";
-import useAuth from "../auth/useAuth.js";
 import { removeGuestCartItem } from "../../utils/guestCart.js";
 import { queryKeys } from "../../utils/queryKeys.js";
+import useStorefrontSession from "../auth/useStorefrontSession.js";
 
 export default function useRemoveCartItem(storeId, options = {}) {
   const queryClient = useQueryClient();
-  const { isStoreCustomer } = useAuth();
+  const { useLocalGuestCart, hasScopedStorefrontSession, ensureStorefrontSession } =
+    useStorefrontSession(storeId);
 
   return useMutation({
-    mutationFn: (cartItemId) =>
-      isStoreCustomer ? cartApi.removeCartItem(cartItemId) : removeGuestCartItem(storeId, cartItemId),
+    mutationFn: async (cartItemId) => {
+      if (useLocalGuestCart) {
+        return removeGuestCartItem(storeId, cartItemId);
+      }
+
+      if (!hasScopedStorefrontSession) {
+        await ensureStorefrontSession();
+      }
+
+      return cartApi.removeCartItem(cartItemId);
+    },
     ...options,
     onSuccess: (data, variables, context) => {
       if (storeId) {

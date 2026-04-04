@@ -2,7 +2,6 @@ import { useMemo } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { useQueries } from "@tanstack/react-query";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
@@ -19,12 +18,6 @@ import useStores from "../../hooks/stores/useStores.js";
 import { normalizeListResponse } from "../../utils/collections.js";
 import { getLandingPath } from "../../utils/roles.js";
 import "./Home.css";
-
-const heroHighlights = [
-  "متاجر متنوعة",
-  "منتجات مختارة",
-  "تصفح سريع",
-];
 
 export default function Home() {
   const { isAuthenticated, role } = useAuth();
@@ -109,12 +102,9 @@ export default function Home() {
       <SurfaceCard variant="hero" className="storefront-hero page-home__hero">
         <Box className="page-home__hero-grid">
           <Box className="storefront-hero__copy">
-            <span className="storefront-eyebrow">تسوق بسهولة</span>
+            <span className="storefront-eyebrow">الرئيسية</span>
             <Typography variant="h1" className="storefront-title page-home__hero-title">
-              اكتشف متاجر ومنتجات تناسبك في مكان واحد
-            </Typography>
-            <Typography variant="body1" className="storefront-subtitle page-home__hero-subtitle">
-              من الهدايا والأزياء إلى المنتجات اليومية، تصفح متاجر متنوعة وابدأ الشراء من المكان الأقرب لذوقك.
+              المتاجر والمنتجات
             </Typography>
 
             <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
@@ -128,12 +118,6 @@ export default function Home() {
               <AppButton component={RouterLink} to="/market" variant="outlined">
                 عرض المتاجر
               </AppButton>
-            </Stack>
-
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-              {heroHighlights.map((highlight) => (
-                <Chip key={highlight} label={highlight} variant="outlined" />
-              ))}
             </Stack>
 
             <Box className="page-home__hero-stats">
@@ -155,8 +139,8 @@ export default function Home() {
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Featured products</span>
-            <Typography variant="h3">منتجات بارزة من متاجر مختلفة</Typography>
+            <span className="storefront-eyebrow">منتجات</span>
+            <Typography variant="h3">منتجات مختارة</Typography>
           </Box>
         </Box>
 
@@ -173,8 +157,8 @@ export default function Home() {
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Store categories</span>
-            <Typography variant="h3">تسوق حسب نوع المتجر</Typography>
+            <span className="storefront-eyebrow">أقسام</span>
+            <Typography variant="h3">حسب النوع</Typography>
           </Box>
         </Box>
 
@@ -194,8 +178,8 @@ export default function Home() {
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Store directory</span>
-            <Typography variant="h3">متاجر ننصحك بزيارتها</Typography>
+            <span className="storefront-eyebrow">متاجر</span>
+            <Typography variant="h3">المتاجر</Typography>
           </Box>
 
           <AppButton component={RouterLink} to="/market" variant="outlined">

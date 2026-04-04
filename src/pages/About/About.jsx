@@ -10,21 +10,18 @@ import "./About.css";
 const values = [
   {
     icon: <AccessTimeRoundedIcon fontSize="small" />,
-    title: "اشتراك مجاني لمدة شهر",
-    description:
-      "نوفر اشتراكًا مجانيًا لمدة شهر كامل للاختبار حتى تتعرف على المنصة وتبدأ بثقة.",
+    title: "سرعة",
+    description: "إدارة أسرع للمتجر.",
   },
   {
     icon: <ManageAccountsRoundedIcon fontSize="small" />,
-    title: "إدارة حديثة للبيع والشراء",
-    description:
-      "نوفر آلية حديثة لإدارة عملية البيع والشراء ومتابعة المنتجات والطلبات والعملاء بشكل واضح وسهل.",
+    title: "تنظيم",
+    description: "متابعة المنتجات والطلبات بوضوح.",
   },
   {
     icon: <SupportAgentRoundedIcon fontSize="small" />,
-    title: "دعم فني 24/7",
-    description:
-      "نوفر دعمًا فنيًا على مدار الساعة طوال أيام الأسبوع لمساعدتك في أي وقت تحتاج فيه للدعم.",
+    title: "دعم",
+    description: "مساعدة عند الحاجة.",
   },
 ];
 
@@ -34,18 +31,17 @@ export default function About() {
       <Paper className="page-about__hero" elevation={0}>
         <Stack spacing={1.25}>
           <Typography variant="overline" className="page-about__eyebrow">
-            عن المنصة
+            من نحن
           </Typography>
           <Typography variant="h2" component="h1" className="page-about__title">
-            منصة عملية لإدارة البيع والشراء بسهولة
+            من نحن
           </Typography>
           <Typography
             variant="body1"
             color="text.secondary"
             className="page-about__lead"
           >
-            نساعد أصحاب المتاجر على إدارة منتجاتهم وطلباتهم وعملائهم بطريقة واضحة
-            وعملية، مع اشتراك مجاني لمدة شهر للاختبار قبل البدء.
+            صفحة تعريف مختصرة.
           </Typography>
         </Stack>
       </Paper>
@@ -76,15 +72,10 @@ export default function About() {
 
         <Stack spacing={1.1} className="page-about__story-copy">
           <Typography variant="h5" className="page-about__story-title">
-            طورت بواسطة المهندس إبراهيم أبو هنية
+            نبذة
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            تم تطوير المنصة لتقديم حل حديث يساعد المتاجر على إدارة البيع والشراء
-            بشكل أسهل وأكثر تنظيمًا.
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            الهدف منها أن تمنح صاحب المتجر أدوات واضحة للعمل اليومي، مع تجربة سهلة
-            للعميل ودعم فني مستمر 24/7.
+            إدارة المتجر والطلبات والعملاء من مكان واحد.
           </Typography>
         </Stack>
       </Paper>

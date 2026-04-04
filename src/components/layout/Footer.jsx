@@ -7,14 +7,8 @@ import "./Footer.css";
 const quickLinks = [
   { to: "/", label: "الرئيسية" },
   { to: "/market", label: "المتاجر" },
-  { to: "/about", label: "عن المنصة" },
-  { to: "/contact", label: "تواصل معنا" },
-];
-
-const quickNotes = [
-  "متاجر متنوعة",
-  "تصفح سريع",
-  "منتجات مختارة",
+  { to: "/about", label: "من نحن" },
+  { to: "/contact", label: "تواصل" },
 ];
 
 export default function Footer() {
@@ -24,14 +18,8 @@ export default function Footer() {
     <Box component="footer" className="store-footer">
       <Box className="store-footer__grid">
         <Box className="store-footer__brand">
-          <Typography variant="overline" className="storefront-eyebrow">
-            تسوق براحة
-          </Typography>
           <Typography variant="h4" className="store-footer__title">
-            اكتشف متاجر جديدة ومنتجات تناسبك بسهولة
-          </Typography>
-          <Typography variant="body2" color="text.secondary" className="store-footer__lead">
-            تصفح المتاجر، قارن المنتجات، وانتقل بسرعة إلى ما تريد شراءه دون تعقيد.
+            المتاجر
           </Typography>
         </Box>
 
@@ -49,36 +37,19 @@ export default function Footer() {
         </Box>
 
         <Box className="store-footer__meta">
-          <Typography variant="subtitle1" className="store-footer__meta-title">
-            ابدأ من هنا
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            اختر المتاجر الأقرب لاهتمامك وابدأ التصفح من صفحة السوق أو من الصفحة الرئيسية.
-          </Typography>
           <Box className="store-footer__actions">
             <AppButton component={RouterLink} to="/market" variant="contained">
-              تصفح المتاجر
+              المتاجر
             </AppButton>
             <AppButton component={RouterLink} to="/" variant="text">
-              العودة للرئيسية
+              الرئيسية
             </AppButton>
           </Box>
         </Box>
       </Box>
 
-      <Box className="store-footer__notes">
-        {quickNotes.map((note) => (
-          <span key={note} className="store-footer__note-pill">
-            {note}
-          </span>
-        ))}
-      </Box>
-
       <Box className="store-footer__bottom">
-        <Typography variant="body2">© {year} Online Storefront</Typography>
-        <Typography variant="body2" color="text.secondary">
-          تجربة تسوق أوضح وأبسط على الهاتف والتابلت واللاب.
-        </Typography>
+        <Typography variant="body2">© {year}</Typography>
       </Box>
     </Box>
   );

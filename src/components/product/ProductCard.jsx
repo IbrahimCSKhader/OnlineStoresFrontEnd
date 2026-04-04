@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -15,7 +16,7 @@ import {
 } from "../../utils/storefront.js";
 import "./ProductCard.css";
 
-export default function ProductCard({
+function ProductCard({
   product,
   storeSlug,
   onAddToCart,
@@ -33,7 +34,7 @@ export default function ProductCard({
   const categoryLabel = product.categoryName || product.sectionName || "";
   const stockQuantity = Number(product.stockQuantity ?? 0);
   const availabilityLabel =
-    stockQuantity > 0 ? `متوفر ${stockQuantity}` : "نفد مؤقتًا";
+    stockQuantity > 0 ? `متوفر ${stockQuantity}` : "نفد مؤقتاً";
 
   return (
     <SurfaceCard interactive className="product-card">
@@ -136,6 +137,7 @@ export default function ProductCard({
             variant="contained"
             size="small"
             loading={adding}
+            loadingLabel="..."
             onClick={() => onAddToCart(product)}
             disabled={!product.id || stockQuantity <= 0}
             startIcon={<LocalMallRoundedIcon fontSize="small" />}
@@ -152,3 +154,9 @@ export default function ProductCard({
     </SurfaceCard>
   );
 }
+
+export default memo(ProductCard, (previousProps, nextProps) => (
+  previousProps.product === nextProps.product &&
+  previousProps.storeSlug === nextProps.storeSlug &&
+  previousProps.adding === nextProps.adding
+));

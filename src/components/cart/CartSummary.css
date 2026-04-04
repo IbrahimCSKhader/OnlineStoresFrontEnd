@@ -29,3 +29,14 @@
     position: static;
   }
 }
+
+@media (max-width: 639px) {
+  .cart-summary {
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .cart-summary__row {
+    font-size: 0.9rem;
+  }
+}

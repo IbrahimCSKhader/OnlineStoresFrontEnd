@@ -12,18 +12,18 @@ import "./Contact.css";
 const channels = [
   {
     icon: <ChatBubbleOutlineRoundedIcon fontSize="small" />,
-    title: "استفسارات المتاجر",
-    description: "إذا كنت ترتب متجرًا جديدًا أو تريد تحسين تجربتك الحالية فنحن هنا لمساعدتك.",
+    title: "استفسار",
+    description: "للأسئلة العامة.",
   },
   {
     icon: <HandshakeRoundedIcon fontSize="small" />,
-    title: "التعاون والشراكات",
-    description: "نرحب بالأفكار التي تضيف قيمة للتجربة وتوسع حضور المتاجر بطريقة أنيقة.",
+    title: "تعاون",
+    description: "للتعاون والشراكات.",
   },
   {
     icon: <LightbulbRoundedIcon fontSize="small" />,
-    title: "اقتراحات التطوير",
-    description: "كل ملاحظة واضحة تساعدنا على جعل التصفح والإدارة أكثر سلاسة وراحة.",
+    title: "اقتراح",
+    description: "للملاحظات والتطوير.",
   },
 ];
 
@@ -33,13 +33,10 @@ export default function Contact() {
       <Paper className="page-contact__hero" elevation={0}>
         <Stack spacing={1.2}>
           <Typography variant="overline" className="page-contact__eyebrow">
-            تواصل معنا
+            تواصل
           </Typography>
           <Typography variant="h2" component="h1" className="page-contact__title">
-            نحب الرسائل الواضحة والأفكار الجميلة
-          </Typography>
-          <Typography variant="body1" color="text.secondary" className="page-contact__lead">
-            إذا كان لديك سؤال، فكرة، أو رغبة في تحسين تجربة المتجر، يسعدنا أن نسمع منك.
+            تواصل معنا
           </Typography>
         </Stack>
 
@@ -48,7 +45,7 @@ export default function Contact() {
             استعرض المتاجر
           </Button>
           <Button component={RouterLink} to="/about" variant="outlined">
-            تعرّف علينا أكثر
+            من نحن
           </Button>
         </Stack>
       </Paper>

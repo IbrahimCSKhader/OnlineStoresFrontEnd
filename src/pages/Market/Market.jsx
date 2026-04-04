@@ -36,15 +36,9 @@ export default function Market() {
       <SurfaceCard variant="hero" className="storefront-hero page-market__hero">
         <Box className="page-market__hero-grid">
           <Box className="storefront-hero__copy page-market__hero-copy">
-            <span className="storefront-eyebrow">دليل المتاجر</span>
+            <span className="storefront-eyebrow">المتاجر</span>
             <Typography variant="h1" className="storefront-title page-market__title">
-              تجربة تسوق فريدة
-            </Typography>
-            <Typography variant="body1" className="storefront-subtitle">
-              في كل أنواع المتاجر
-            </Typography>
-            <Typography variant="body2" color="text.secondary" className="page-market__hero-note">
-              تصفح متاجر رقمية متعددة بسرعة، واختر النشاط الذي يناسبك داخل واجهة واضحة وسهلة التنقل.
+              جميع المتاجر
             </Typography>
 
             <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
@@ -66,7 +60,7 @@ export default function Market() {
       <Box className="storefront-section" id="market-directory">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Directory</span>
+            <span className="storefront-eyebrow">قائمة</span>
             <Typography variant="h3">جميع المتاجر</Typography>
           </Box>
 
