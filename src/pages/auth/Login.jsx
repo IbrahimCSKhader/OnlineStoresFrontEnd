@@ -232,15 +232,12 @@ export default function Login() {
   function handleGoogleLogin() {
     try {
       setIsLoadingGoogle(true);
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net";
-      const frontendBaseUrl = window.location.origin;
-      const successCallback = `${frontendBaseUrl}/auth/google/success`;
-      const failureCallback = `${frontendBaseUrl}/auth/google/failure`;
-      
-      const googleAuthUrl = `${apiBaseUrl}/api/Auth/google?successRedirect=${encodeURIComponent(successCallback)}&failureRedirect=${encodeURIComponent(failureCallback)}`;
-      window.location.href = googleAuthUrl;
-    } catch (error) {
-      console.error("[GoogleLogin] Error:", error.message);
+      const apiBaseUrl = (
+        import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
+      ).replace(/\/+$/, "");
+
+      window.location.href = `${apiBaseUrl}/api/auth/google`;
+    } catch {
       setLocalError("فشل الاتصال بخادم Google. حاول مرة أخرى.");
       setIsLoadingGoogle(false);
     }

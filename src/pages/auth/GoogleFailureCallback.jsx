@@ -1,4 +1,4 @@
-import { useSearchParams, Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useSearchParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -7,19 +7,38 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 const ERROR_MESSAGES = {
-  access_denied: "تم رفض الوصول. لم تعطِ Google الإذن الكافي.",
-  invalid_request: "حدث خطأ في الطلب. الرجاء المحاولة مرة أخرى.",
-  server_error: "حدث خطأ في الخادم. الرجاء محاولة الاتصال بنا لاحقًا.",
-  temporarily_unavailable: "الخدمة غير متاحة حاليًا. الرجاء المحاولة لاحقًا.",
-  default: "فشل تسجيل الدخول عبر Google. الرجاء محاولة طريقة أخرى.",
+  missing_token: "لم يصل رمز الجلسة من الخادم بعد العودة من Google. حاول تسجيل الدخول مرة أخرى.",
+  invalid_hash: "تعذر قراءة بيانات العودة من Google. حاول مرة أخرى.",
+  processing_failed: "حدث خطأ أثناء إكمال تسجيل الدخول عبر Google. حاول مرة أخرى.",
+  access_denied: "تم رفض الوصول من Google. امنح الصلاحيات المطلوبة ثم أعد المحاولة.",
+  invalid_request: "طلب تسجيل الدخول عبر Google غير صالح أو غير مكتمل.",
+  server_error: "حدث خطأ في الخادم أثناء معالجة تسجيل الدخول عبر Google.",
+  temporarily_unavailable: "خدمة تسجيل الدخول عبر Google غير متاحة حاليًا.",
+  default: "فشل تسجيل الدخول عبر Google. حاول مرة أخرى من صفحة تسجيل الدخول.",
 };
+
+function resolveFailureMessage(searchParams) {
+  const rawMessage = searchParams.get("message")?.trim();
+  const errorCode = searchParams.get("error")?.trim();
+
+  if (rawMessage && ERROR_MESSAGES[rawMessage]) {
+    return ERROR_MESSAGES[rawMessage];
+  }
+
+  if (rawMessage) {
+    return rawMessage;
+  }
+
+  if (errorCode && ERROR_MESSAGES[errorCode]) {
+    return ERROR_MESSAGES[errorCode];
+  }
+
+  return ERROR_MESSAGES.default;
+}
 
 export default function GoogleFailureCallback() {
   const [searchParams] = useSearchParams();
-  const errorCode = searchParams.get("error") || "default";
-  const errorMessage = searchParams.get("message");
-
-  const displayMessage = errorMessage || ERROR_MESSAGES[errorCode] || ERROR_MESSAGES.default;
+  const displayMessage = resolveFailureMessage(searchParams);
 
   return (
     <Box
@@ -32,58 +51,28 @@ export default function GoogleFailureCallback() {
         padding: 2,
       }}
     >
-      <Paper elevation={0} sx={{ maxWidth: 500, width: "100%" }}>
+      <Paper elevation={0} sx={{ maxWidth: 520, width: "100%" }}>
         <Stack spacing={3} sx={{ padding: 4 }}>
           <Box>
             <Typography variant="h5" gutterBottom sx={{ color: "error.main" }}>
-              فشل تسجيل الدخول عبر Google
+              تعذر إكمال تسجيل الدخول عبر Google
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              حدث خطأ أثناء محاولة تسجيل الدخول
+              لم يتم إنشاء جلسة دخول صالحة. يمكنك إعادة المحاولة من صفحة تسجيل الدخول.
             </Typography>
           </Box>
 
           <Alert severity="error">{displayMessage}</Alert>
 
-          <Typography variant="body2" color="text.secondary">
-            يمكنك محاولة إحدى الخيارات التالية:
-          </Typography>
-
-          <Stack spacing={1.5}>
-            <Button
-              component={RouterLink}
-              to="/auth/login"
-              variant="contained"
-              size="large"
-              fullWidth
-            >
-              محاولة تسجيل الدخول مجددًا
-            </Button>
-
-            <Button
-              component={RouterLink}
-              to="/auth/register"
-              variant="outlined"
-              size="large"
-              fullWidth
-            >
-              إنشاء حساب جديد
-            </Button>
-
-            <Button
-              component={RouterLink}
-              to="/market"
-              variant="text"
-              size="large"
-              fullWidth
-            >
-              العودة إلى السوق
-            </Button>
-          </Stack>
-
-          <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
-            إذا استمرت المشكلة، يرجى التواصل معنا للحصول على الدعم.
-          </Typography>
+          <Button
+            component={RouterLink}
+            to="/auth/login"
+            variant="contained"
+            size="large"
+            fullWidth
+          >
+            إعادة المحاولة
+          </Button>
         </Stack>
       </Paper>
     </Box>
