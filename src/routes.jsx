@@ -9,21 +9,37 @@ import lazyWithRetry from "./utils/lazyWithRetry.js";
 
 const Home = lazyWithRetry(() => import("./pages/Home/Home.jsx"), "home");
 const About = lazyWithRetry(() => import("./pages/About/About.jsx"), "about");
-const Market = lazyWithRetry(() => import("./pages/Market/Market.jsx"), "market");
-const Contact = lazyWithRetry(() => import("./pages/Contact/Contact.jsx"), "contact");
-const NotFound = lazyWithRetry(() => import("./pages/NotFound/NotFound.jsx"), "not-found");
+const Market = lazyWithRetry(
+  () => import("./pages/Market/Market.jsx"),
+  "market",
+);
+const Contact = lazyWithRetry(
+  () => import("./pages/Contact/Contact.jsx"),
+  "contact",
+);
+const NotFound = lazyWithRetry(
+  () => import("./pages/NotFound/NotFound.jsx"),
+  "not-found",
+);
+
 const Login = lazyWithRetry(() => import("./pages/auth/Login.jsx"), "login");
-const Register = lazyWithRetry(() => import("./pages/auth/Register.jsx"), "register");
-const VerifyEmail = lazyWithRetry(() => import("./pages/auth/VerifyEmail.jsx"), "verify-email");
-const GoogleSuccessCallback = lazyWithRetry(
-  () => import("./pages/auth/GoogleSuccessCallback.jsx"),
-  "google-success-callback",
+const Register = lazyWithRetry(
+  () => import("./pages/auth/Register.jsx"),
+  "register",
 );
-const GoogleFailureCallback = lazyWithRetry(
-  () => import("./pages/auth/GoogleFailureCallback.jsx"),
-  "google-failure-callback",
+const VerifyEmail = lazyWithRetry(
+  () => import("./pages/auth/VerifyEmail.jsx"),
+  "verify-email",
 );
-const AdminLogin = lazyWithRetry(() => import("./pages/admin/AdminLogin.jsx"), "admin-login");
+const GoogleCallbackPage = lazyWithRetry(
+  () => import("./pages/auth/GoogleCallbackPage.jsx"),
+  "google-callback",
+);
+
+const AdminLogin = lazyWithRetry(
+  () => import("./pages/admin/AdminLogin.jsx"),
+  "admin-login",
+);
 const SuperAdminLayout = lazyWithRetry(
   () => import("./layout/SuperAdminLayout.jsx"),
   "super-admin-layout",
@@ -44,8 +60,13 @@ const AdminStoreDetails = lazyWithRetry(
   () => import("./pages/admin/StoreDetails.jsx"),
   "admin-store-details",
 );
+
 const Cart = lazyWithRetry(() => import("./pages/customer/Cart.jsx"), "cart");
-const Checkout = lazyWithRetry(() => import("./pages/customer/Checkout.jsx"), "checkout");
+const Checkout = lazyWithRetry(
+  () => import("./pages/customer/Checkout.jsx"),
+  "checkout",
+);
+
 const CategoryPage = lazyWithRetry(
   () => import("./pages/public/CategoryPage.jsx"),
   "category-page",
@@ -66,6 +87,7 @@ const StoreContact = lazyWithRetry(
   () => import("./pages/public/StoreContact.jsx"),
   "store-contact",
 );
+
 const OwnerDashboard = lazyWithRetry(
   () => import("./pages/owner/Dashboard.jsx"),
   "owner-dashboard",
@@ -131,7 +153,10 @@ const router = createBrowserRouter([
       { index: true, element: withRouteSuspense(<SuperAdminOverview />) },
       { path: "owners", element: withRouteSuspense(<SuperAdminOwners />) },
       { path: "stores", element: withRouteSuspense(<SuperAdminStores />) },
-      { path: "stores/:storeId", element: withRouteSuspense(<AdminStoreDetails />) },
+      {
+        path: "stores/:storeId",
+        element: withRouteSuspense(<AdminStoreDetails />),
+      },
       { path: "*", element: <Navigate to="/dashboard" replace /> },
     ],
   },
@@ -144,11 +169,20 @@ const router = createBrowserRouter([
       { path: "about", element: withRouteSuspense(<About />) },
       { path: "market", element: withRouteSuspense(<Market />) },
       { path: "contact", element: withRouteSuspense(<Contact />) },
+
       { path: "auth/login", element: withRouteSuspense(<Login />) },
       { path: "auth/register", element: withRouteSuspense(<Register />) },
-      { path: "auth/verify-email", element: withRouteSuspense(<VerifyEmail />) },
-      { path: "auth/google/success", element: withRouteSuspense(<GoogleSuccessCallback />) },
-      { path: "auth/google/failure", element: withRouteSuspense(<GoogleFailureCallback />) },
+      {
+        path: "auth/verify-email",
+        element: withRouteSuspense(<VerifyEmail />),
+      },
+
+      // Google OAuth callback page
+      {
+        path: "auth/google-callback",
+        element: withRouteSuspense(<GoogleCallbackPage />),
+      },
+
       { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
       { path: "owner/products", element: withRouteSuspense(<OwnerProducts />) },
       { path: "owner/orders", element: withRouteSuspense(<OwnerOrders />) },
@@ -158,8 +192,12 @@ const router = createBrowserRouter([
       },
       { path: "owner/sections", element: withRouteSuspense(<OwnerSections />) },
       { path: "owner/coupons", element: withRouteSuspense(<OwnerCoupons />) },
-      { path: "owner/customers", element: withRouteSuspense(<OwnerCustomers />) },
+      {
+        path: "owner/customers",
+        element: withRouteSuspense(<OwnerCustomers />),
+      },
       { path: "owner/reviews", element: withRouteSuspense(<OwnerReviews />) },
+
       { path: "*", element: withRouteSuspense(<NotFound />) },
     ],
   },
