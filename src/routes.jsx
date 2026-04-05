@@ -100,6 +100,10 @@ const OwnerProducts = lazyWithRetry(
   () => import("./pages/owner/ProductsManagement.jsx"),
   "owner-products",
 );
+const OwnerSubscription = lazyWithRetry(
+  () => import("./pages/owner/StoreSubscription.jsx"),
+  "owner-subscription",
+);
 const OwnerOrders = lazyWithRetry(
   () => import("./pages/owner/OrdersManagement.jsx"),
   "owner-orders",
@@ -197,6 +201,10 @@ const router = createBrowserRouter([
 
       { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
       { path: "owner/products", element: withRouteSuspense(<OwnerProducts />) },
+      {
+        path: "owner/subscription",
+        element: withRouteSuspense(<OwnerSubscription />),
+      },
       { path: "owner/orders", element: withRouteSuspense(<OwnerOrders />) },
       {
         path: "owner/categories",

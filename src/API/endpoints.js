@@ -23,13 +23,16 @@ export const endpoints = {
     forgotPassword: withPrefix("/store-customer-auth/forgot-password"),
     resetPassword: withPrefix("/store-customer-auth/reset-password"),
     verifyEmail: withPrefix("/store-customer-auth/verify-email"),
-    resendVerificationCode: withPrefix("/store-customer-auth/resend-verification-code"),
+    resendVerificationCode: withPrefix(
+      "/store-customer-auth/resend-verification-code",
+    ),
   },
   stores: {
     list: withPrefix("/Store"),
     create: withPrefix("/Store"),
     detail: (id) => withPrefix(`/Store/${id}`),
     slug: (slug) => withPrefix(`/Store/slug/${slug}`),
+    subscription: (id) => withPrefix(`/Store/${id}/subscription`),
     visit: (id) => withPrefix(`/Store/${id}/visit`),
     visitCount: (id) => withPrefix(`/Store/${id}/visit-count`),
   },
@@ -62,7 +65,8 @@ export const endpoints = {
     create: withPrefix("/Review"),
     byStore: (storeId) => withPrefix(`/Review/store/${storeId}`),
     byProduct: (productId) => withPrefix(`/Review/product/${productId}`),
-    myProductReview: (productId) => withPrefix(`/Review/product/${productId}/my-review`),
+    myProductReview: (productId) =>
+      withPrefix(`/Review/product/${productId}/my-review`),
     detail: (reviewId) => withPrefix(`/Review/${reviewId}`),
     approval: (reviewId) => withPrefix(`/Review/${reviewId}/approval`),
   },
@@ -88,18 +92,24 @@ export const endpoints = {
     mine: withPrefix("/Order/my-orders"),
     myDetail: (orderId) => withPrefix(`/Order/my-orders/${orderId}`),
     byStore: (storeId) => withPrefix(`/Order/store/${storeId}`),
-    storeDetail: (storeId, orderId) => withPrefix(`/Order/store/${storeId}/${orderId}`),
+    storeDetail: (storeId, orderId) =>
+      withPrefix(`/Order/store/${storeId}/${orderId}`),
     updateStatus: (orderId) => withPrefix(`/Order/${orderId}/status`),
   },
   superAdminDashboard: {
     summary: withPrefix("/super-admin-dashboard/summary"),
     owners: withPrefix("/super-admin-dashboard/owners"),
-    ownerDetail: (ownerId) => withPrefix(`/super-admin-dashboard/owners/${ownerId}`),
-    ownerStatus: (ownerId) => withPrefix(`/super-admin-dashboard/owners/${ownerId}/status`),
+    ownerDetail: (ownerId) =>
+      withPrefix(`/super-admin-dashboard/owners/${ownerId}`),
+    ownerStatus: (ownerId) =>
+      withPrefix(`/super-admin-dashboard/owners/${ownerId}/status`),
     stores: withPrefix("/super-admin-dashboard/stores"),
-    storeDetail: (storeId) => withPrefix(`/super-admin-dashboard/stores/${storeId}`),
-    storeStatus: (storeId) => withPrefix(`/super-admin-dashboard/stores/${storeId}/status`),
-    storeCustomers: (storeId) => withPrefix(`/super-admin-dashboard/stores/${storeId}/customers`),
+    storeDetail: (storeId) =>
+      withPrefix(`/super-admin-dashboard/stores/${storeId}`),
+    storeStatus: (storeId) =>
+      withPrefix(`/super-admin-dashboard/stores/${storeId}/status`),
+    storeCustomers: (storeId) =>
+      withPrefix(`/super-admin-dashboard/stores/${storeId}/customers`),
   },
 };
 

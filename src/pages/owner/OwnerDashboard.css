@@ -271,6 +271,64 @@
   margin-bottom: 0.15rem !important;
 }
 
+.owner-subscription-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.owner-subscription-card {
+  padding: var(--space-5);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-elevated);
+  display: grid;
+  gap: var(--space-3);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.owner-subscription-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-soft);
+}
+
+.owner-subscription-card:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary) 40%, transparent);
+  outline-offset: 2px;
+}
+
+.owner-subscription-card--active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface-elevated));
+}
+
+.owner-subscription-card--selected {
+  border-color: var(--border-strong);
+}
+
+.owner-subscription-card__price {
+  margin-top: 0.15rem !important;
+}
+
+.owner-subscription-card__list {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.owner-subscription-confirm {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--surface-muted) 86%, var(--surface-elevated));
+  padding: var(--space-4);
+}
+
 .owner-gallery__title {
   margin-bottom: 0.65rem !important;
 }
@@ -339,11 +397,16 @@
   .owner-stats-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .owner-subscription-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
   .owner-form,
-  .owner-stats-grid {
+  .owner-stats-grid,
+  .owner-subscription-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 

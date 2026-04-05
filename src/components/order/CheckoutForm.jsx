@@ -83,7 +83,7 @@ export default function CheckoutForm({
               </div>
             </Box>
             <Typography variant="body2" color="text.secondary">
-              عند التأكيد سيتم تجهيز رسالة الطلب وإرسالها عبر واتساب لصاحب المتجر.
+              عند التأكيد سيتم إنشاء الطلب أولاً على النظام، ثم إرسال ملخصه عبر واتساب لصاحب المتجر.
             </Typography>
           </Box>
         ) : null}

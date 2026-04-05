@@ -9,6 +9,13 @@ export default function useUpdateCartItem(storeId, options = {}) {
   const { useLocalGuestCart, hasScopedStorefrontSession, ensureStorefrontSession } =
     useStorefrontSession(storeId);
 
+  const hasCartShape = (value) => {
+    if (!value || typeof value !== "object") return false;
+
+    const entity = value?.data && typeof value.data === "object" ? value.data : value;
+    return Array.isArray(entity?.items) || Array.isArray(entity?.cartItems);
+  };
+
   return useMutation({
     mutationFn: async ({ cartItemId, payload }) => {
       if (useLocalGuestCart) {
@@ -24,7 +31,11 @@ export default function useUpdateCartItem(storeId, options = {}) {
     ...options,
     onSuccess: (data, variables, context) => {
       if (storeId) {
-        queryClient.setQueryData(queryKeys.cart.byStore(storeId), data);
+        if (hasCartShape(data)) {
+          queryClient.setQueryData(queryKeys.cart.byStore(storeId), data);
+        } else {
+          queryClient.invalidateQueries({ queryKey: queryKeys.cart.byStore(storeId) });
+        }
       }
 
       options.onSuccess?.(data, variables, context);

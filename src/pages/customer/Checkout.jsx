@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link as RouterLink, Navigate, useParams, useNavigate } from "react-router-dom";
+import { Link as RouterLink, Navigate, useParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -12,6 +12,7 @@ import CheckoutForm from "../../components/order/CheckoutForm.jsx";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useCart from "../../hooks/cart/useCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useCreateOrder from "../../hooks/orders/useCreateOrder.js";
 import cartApi from "../../API/cart.api.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
@@ -125,7 +126,6 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
 
 export default function Checkout() {
   const { slug } = useParams();
-  const navigate = useNavigate();
   const { isStoreCustomer } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(initialForm);
@@ -144,6 +144,7 @@ export default function Checkout() {
   const cartQuery = useCart(store?.id, {
     enabled: Boolean(store?.id),
   });
+  const createOrderMutation = useCreateOrder(store?.id);
   const cart = normalizeCartResponse(cartQuery.data);
 
   // Clear cart mutation
@@ -253,6 +254,25 @@ export default function Checkout() {
 
     setLastWhatsAppUrl(whatsappUrl);
 
+    const payload = {
+      storeId: store?.id,
+      fullName: String(form.fullName || "").trim(),
+      customerName: String(form.fullName || "").trim(),
+      shippingAddress: String(form.address || "").trim(),
+      address: String(form.address || "").trim(),
+      notes: String(form.notes || "").trim(),
+      couponCode: String(form.couponCode || "").trim() || undefined,
+    };
+
+    try {
+      await createOrderMutation.mutateAsync(payload);
+    } catch {
+      setSubmitError(
+        "تعذر إنشاء الطلب على النظام. يرجى التحقق من كود الخصم أو البيانات ثم إعادة المحاولة.",
+      );
+      return;
+    }
+
     // Clear the cart after successful order submission
     try {
       await clearCartMutation.mutateAsync();
@@ -289,8 +309,9 @@ export default function Checkout() {
               إرسال الطلب عبر واتساب - {store.name}
             </Typography>
             <Typography variant="body1" className="storefront-subtitle">
-              في هذا الفلو لن يتم إنشاء Order على السيرفر، فقط تجهيز الطلب
-              وإرساله عبر رابط واتساب. سيتم مسح السلة تلقائيًا عند نجاح الطلب.
+              سيتم إنشاء الطلب على النظام أولاً (مع تطبيق كود الخصم إن وجد)، ثم
+              فتح واتساب لإرسال تفاصيله لصاحب المتجر. سيتم مسح السلة تلقائيًا
+              عند نجاح الطلب.
             </Typography>
           </Box>
 
@@ -320,7 +341,7 @@ export default function Checkout() {
             <CheckoutForm
               step={step}
               form={form}
-              isSubmitting={clearCartMutation.isPending}
+              isSubmitting={createOrderMutation.isPending || clearCartMutation.isPending}
               submitLabel="إرسال الطلب عبر واتساب"
               onChange={(key, value) =>
                 setForm((previous) => ({

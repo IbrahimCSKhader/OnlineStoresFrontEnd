@@ -19,6 +19,7 @@ import RateReviewRoundedIcon from "@mui/icons-material/RateReviewRounded";
 import SellRoundedIcon from "@mui/icons-material/SellRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
+import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
@@ -58,7 +59,9 @@ import useCreateSection from "../../hooks/sections/useCreateSection.js";
 import useDeleteSection from "../../hooks/sections/useDeleteSection.js";
 import useSections from "../../hooks/sections/useSections.js";
 import useUpdateSection from "../../hooks/sections/useUpdateSection.js";
+import useChangeStoreSubscription from "../../hooks/stores/useChangeStoreSubscription.js";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
+import useStoreSubscription from "../../hooks/stores/useStoreSubscription.js";
 import DashboardLayout from "../../layout/DashboardLayout.jsx";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import {
@@ -83,6 +86,13 @@ const TAB_CONFIG = [
     route: "/owner/products",
     description: "إضافة وتعديل ونشر المنتجات",
     icon: <Inventory2RoundedIcon fontSize="small" />,
+  },
+  {
+    key: "subscription",
+    label: "اشتراك المتجر",
+    route: "/owner/subscription",
+    description: "إدارة الباقة وحدود الاستخدام",
+    icon: <WorkspacePremiumRoundedIcon fontSize="small" />,
   },
   {
     key: "categories",
@@ -138,6 +148,34 @@ const ORDER_STATUS_OPTIONS = [
   { value: 6, label: "مسترجع" },
 ];
 
+const SUBSCRIPTION_PLANS = [
+  {
+    key: "free",
+    label: "Free",
+    nameAr: "مجانية",
+    priceLabel: "0 / شهر",
+    details: ["حتى 20 منتج", "حتى 100 طلب شهريًا", "دعم أساسي"],
+  },
+  {
+    key: "standard",
+    label: "Standard",
+    nameAr: "قياسية",
+    priceLabel: "29 / شهر",
+    details: ["حتى 500 منتج", "حتى 2,000 طلب شهريًا", "دعم أسرع وتقارير أفضل"],
+  },
+  {
+    key: "pro",
+    label: "Pro",
+    nameAr: "احترافية",
+    priceLabel: "99 / شهر",
+    details: [
+      "منتجات غير محدودة",
+      "طلبات غير محدودة",
+      "أولوية في الدعم والميزات",
+    ],
+  },
+];
+
 function getErrorMessage(error) {
   return (
     error?.response?.data?.message ||
@@ -148,7 +186,21 @@ function getErrorMessage(error) {
 }
 
 function normalizeText(value) {
-  return String(value ?? "").toLowerCase().trim();
+  return String(value ?? "")
+    .toLowerCase()
+    .trim();
+}
+
+function normalizePlanKey(value) {
+  const normalized = normalizeText(value);
+
+  if (!normalized) return "";
+  if (["free", "basic", "starter", "0"].includes(normalized)) return "free";
+  if (["standard", "pro-1", "business", "1"].includes(normalized))
+    return "standard";
+  if (["pro", "premium", "enterprise", "2"].includes(normalized)) return "pro";
+
+  return "";
 }
 
 function resolveNestedValue(item, path) {
@@ -247,7 +299,55 @@ function buildCustomerStoreForm() {
 }
 
 function firstDefined(...values) {
-  return values.find((value) => value !== undefined && value !== null && value !== "");
+  return values.find(
+    (value) => value !== undefined && value !== null && value !== "",
+  );
+}
+
+function normalizeStoreSubscription(data, store) {
+  const normalizedData = normalizeEntityResponse(data) || data || {};
+  const fromNested =
+    normalizedData.subscription || normalizedData.currentSubscription || {};
+
+  const currentPlan =
+    normalizePlanKey(
+      firstDefined(
+        fromNested.plan,
+        fromNested.planName,
+        fromNested.tier,
+        normalizedData.plan,
+        normalizedData.planName,
+        normalizedData.subscriptionPlan,
+        normalizedData.tier,
+        store?.plan,
+        store?.planName,
+        store?.subscriptionPlan,
+      ),
+    ) || "free";
+
+  return {
+    currentPlan,
+    startedAt: firstDefined(
+      fromNested.startedAt,
+      normalizedData.startedAt,
+      normalizedData.subscriptionStartDate,
+    ),
+    renewalAt: firstDefined(
+      fromNested.renewalAt,
+      normalizedData.renewalAt,
+      normalizedData.subscriptionRenewalDate,
+    ),
+  };
+}
+
+function buildSubscriptionPayload(planKey) {
+  return {
+    plan: planKey,
+    planKey,
+    planName: planKey,
+    subscriptionPlan: planKey,
+    tier: planKey,
+  };
 }
 
 function toNumber(value, fallback = 0) {
@@ -324,7 +424,12 @@ function normalizeStoreCustomer(item) {
     email: customer.email || "-",
     phone: firstDefined(item?.phone, "-"),
     discountPercentage: toNumber(
-      firstDefined(item?.discountPercentage, item?.discount, item?.discountValue, 0),
+      firstDefined(
+        item?.discountPercentage,
+        item?.discount,
+        item?.discountValue,
+        0,
+      ),
       0,
     ),
     isActive: toBoolean(item?.isActive, true),
@@ -350,7 +455,10 @@ function _dedupeCustomers(customers) {
 }
 
 function getOrderStatusLabel(value) {
-  return ORDER_STATUS_OPTIONS.find((option) => option.value === Number(value))?.label || "غير محددة";
+  return (
+    ORDER_STATUS_OPTIONS.find((option) => option.value === Number(value))
+      ?.label || "غير محددة"
+  );
 }
 
 function formatDateTimeLabel(value) {
@@ -384,7 +492,10 @@ function normalizeOrderSummary(item) {
 function normalizeReviewItem(item) {
   return {
     ...item,
-    storeCustomerFullName: firstDefined(item?.storeCustomerFullName, "عميل المتجر"),
+    storeCustomerFullName: firstDefined(
+      item?.storeCustomerFullName,
+      "عميل المتجر",
+    ),
     productId: item?.productId ? String(item.productId) : "-",
     createdAtLabel: formatDateTimeLabel(item?.createdAt),
   };
@@ -486,10 +597,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const shouldLoadSections =
     isOverviewTab || activeTab === "sections" || activeTab === "products";
   const shouldLoadCoupons = isOverviewTab || activeTab === "coupons";
-  const shouldLoadCustomerStores =
-    isOverviewTab || activeTab === "customers";
+  const shouldLoadCustomerStores = isOverviewTab || activeTab === "customers";
   const shouldLoadOrders = isOverviewTab || activeTab === "orders";
   const shouldLoadReviews = isOverviewTab || activeTab === "reviews";
+  const shouldLoadSubscription = activeTab === "subscription";
 
   const productsQuery = useProducts(storeId, undefined, {
     enabled: Boolean(storeId) && shouldLoadProducts,
@@ -519,6 +630,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     enabled: Boolean(storeId) && shouldLoadReviews,
     staleTime: 30000,
   });
+  const subscriptionQuery = useStoreSubscription(storeId, {
+    enabled: Boolean(storeId) && shouldLoadSubscription,
+    staleTime: 30000,
+  });
 
   const createProductMutation = useCreateProduct(storeId);
   const updateProductMutation = useUpdateProduct(storeId);
@@ -542,6 +657,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
   const updateOrderStatusMutation = useUpdateOrderStatus(storeId);
   const updateReviewApprovalMutation = useUpdateReviewApproval(storeId);
+  const [subscriptionSuccessMessage, setSubscriptionSuccessMessage] =
+    useState("");
+  const changeSubscriptionMutation = useChangeStoreSubscription(storeId, {
+    onSuccess: () => {
+      setSubscriptionSuccessMessage("تم تحديث باقة المتجر بنجاح.");
+    },
+  });
 
   const productsRaw = normalizeListResponse(productsQuery.data);
   const categoriesRaw = normalizeListResponse(categoriesQuery.data);
@@ -639,7 +761,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const categories = useMemo(
     () =>
       categoryOptions.filter((item) =>
-        matchesText(item, deferredSearchText, ["name", "pathLabel", "description"]),
+        matchesText(item, deferredSearchText, [
+          "name",
+          "pathLabel",
+          "description",
+        ]),
       ),
     [categoryOptions, deferredSearchText],
   );
@@ -685,7 +811,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const orders = useMemo(
     () =>
       ordersAll.filter((item) =>
-        matchesText(item, deferredSearchText, ["orderNumber", "statusLabel", "createdAtLabel"]),
+        matchesText(item, deferredSearchText, [
+          "orderNumber",
+          "statusLabel",
+          "createdAtLabel",
+        ]),
       ),
     [deferredSearchText, ordersAll],
   );
@@ -696,15 +826,31 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const reviews = useMemo(
     () =>
       reviewsAll.filter((item) =>
-        matchesText(item, deferredSearchText, ["storeCustomerFullName", "comment", "productId"]),
+        matchesText(item, deferredSearchText, [
+          "storeCustomerFullName",
+          "comment",
+          "productId",
+        ]),
       ),
     [deferredSearchText, reviewsAll],
   );
 
-  const pendingReviewsCount = reviewsAll.filter((item) => !item.isApproved).length;
+  const pendingReviewsCount = reviewsAll.filter(
+    (item) => !item.isApproved,
+  ).length;
   const pendingOrdersCount = ordersAll.filter(
     (item) => Number(item.status) === 0,
   ).length;
+  const subscription = useMemo(
+    () => normalizeStoreSubscription(subscriptionQuery.data, store),
+    [subscriptionQuery.data, store],
+  );
+  const [selectedPlanKey, setSelectedPlanKey] = useState("");
+
+  useEffect(() => {
+    if (!subscription.currentPlan) return;
+    setSelectedPlanKey(subscription.currentPlan);
+  }, [subscription.currentPlan]);
 
   const overviewStats = [
     {
@@ -757,7 +903,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         count = couponsQuery.isSuccess ? couponsRaw.length : undefined;
         break;
       case "customers":
-        count = storeCustomersQuery.isSuccess ? storeCustomersAll.length : undefined;
+        count = storeCustomersQuery.isSuccess
+          ? storeCustomersAll.length
+          : undefined;
         break;
       case "reviews":
         count = reviewsQuery.isSuccess ? pendingReviewsCount : undefined;
@@ -791,6 +939,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     deleteCustomerStoreMutation.error,
     updateOrderStatusMutation.error,
     updateReviewApprovalMutation.error,
+    changeSubscriptionMutation.error,
   ];
   const mutationError = allErrors.find(Boolean);
 
@@ -896,7 +1045,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
         if (
           previous.mode === "create" &&
-          (!previous.slugManuallyEdited || !previous.slug || previous.slug === previousAutoSlug)
+          (!previous.slugManuallyEdited ||
+            !previous.slug ||
+            previous.slug === previousAutoSlug)
         ) {
           nextState.slug = slugify(value);
           nextState.slugManuallyEdited = false;
@@ -907,6 +1058,23 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
       return { ...previous, [key]: value };
     });
+  };
+
+  const handleChangeSubscription = async (planKey) => {
+    if (!planKey || planKey === subscription.currentPlan) {
+      return;
+    }
+
+    setSubscriptionSuccessMessage("");
+
+    try {
+      await changeSubscriptionMutation.mutateAsync({
+        planKey,
+        payload: buildSubscriptionPayload(planKey),
+      });
+    } catch {
+      // Error is surfaced through the shared error alert.
+    }
   };
 
   const handleCategoryFormChange = (key, value) => {
@@ -925,7 +1093,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
         if (
           previous.mode === "create" &&
-          (!previous.slugManuallyEdited || !previous.slug || previous.slug === previousAutoSlug)
+          (!previous.slugManuallyEdited ||
+            !previous.slug ||
+            previous.slug === previousAutoSlug)
         ) {
           nextState.slug = slugify(value);
           nextState.slugManuallyEdited = false;
@@ -954,7 +1124,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
         if (
           previous.mode === "create" &&
-          (!previous.slugManuallyEdited || !previous.slug || previous.slug === previousAutoSlug)
+          (!previous.slugManuallyEdited ||
+            !previous.slug ||
+            previous.slug === previousAutoSlug)
         ) {
           nextState.slug = slugify(value);
           nextState.slugManuallyEdited = false;
@@ -979,7 +1151,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const handleRemoveNewImage = (index) => {
     setProductForm((prev) => ({
       ...prev,
-      newImages: prev.newImages.filter((_, currentIndex) => currentIndex !== index),
+      newImages: prev.newImages.filter(
+        (_, currentIndex) => currentIndex !== index,
+      ),
     }));
   };
 
@@ -995,7 +1169,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
       setProductForm((prev) => ({
         ...prev,
-        existingImages: prev.existingImages.filter((item) => item.id !== image.id),
+        existingImages: prev.existingImages.filter(
+          (item) => item.id !== image.id,
+        ),
       }));
     } catch {
       // Error is surfaced through the shared error alert.
@@ -1059,10 +1235,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
       const createdProduct = await createProductMutation.mutateAsync({
         ...payload,
-        Images: productForm.newImages.length ? productForm.newImages : undefined,
+        Images: productForm.newImages.length
+          ? productForm.newImages
+          : undefined,
       });
 
-      const createdProductEntity = normalizeEntityResponse(createdProduct) || createdProduct;
+      const createdProductEntity =
+        normalizeEntityResponse(createdProduct) || createdProduct;
       const createdProductId = createdProductEntity?.id || createdProduct?.id;
 
       if (createdProductId) {
@@ -1442,7 +1621,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 icon={<VisibilityRoundedIcon fontSize="small" />}
                 label={`${store.visitCount ?? 0} زيارة`}
               />
-              <Chip label={`${productsRaw.length} منتج منشور`} variant="outlined" />
+              <Chip
+                label={`${productsRaw.length} منتج منشور`}
+                variant="outlined"
+              />
               <Chip label={`${sectionsRaw.length} قسم`} variant="outlined" />
             </Stack>
           </Box>
@@ -1462,7 +1644,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               >
                 عرض المتجر كزائر
               </AppButton>
-              <AppButton component={RouterLink} to="/market" variant="contained">
+              <AppButton
+                component={RouterLink}
+                to="/market"
+                variant="contained"
+              >
                 السوق
               </AppButton>
             </Stack>
@@ -1485,8 +1671,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 </Box>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap">
-                  {store.slug ? <Chip label={`/${store.slug}`} variant="outlined" /> : null}
-                  {store.businessType ? <Chip label={store.businessType} /> : null}
+                  {store.slug ? (
+                    <Chip label={`/${store.slug}`} variant="outlined" />
+                  ) : null}
+                  {store.businessType ? (
+                    <Chip label={store.businessType} />
+                  ) : null}
                   <Chip
                     label={store.isActive ? "المتجر نشط" : "المتجر غير نشط"}
                     color={store.isActive ? "primary" : "default"}
@@ -1502,6 +1692,162 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               ))}
             </Box>
           </>
+        ) : null}
+
+        {activeTab === "subscription" ? (
+          <Paper className="owner-panel" elevation={0}>
+            <SectionHeader
+              title="اشتراك المتجر"
+              description="اختر الباقة الأنسب لمرحلة نمو متجرك، ويمكنك التبديل في أي وقت."
+              onRefresh={subscriptionQuery.refetch}
+              isRefreshing={subscriptionQuery.isFetching}
+            />
+
+            {subscriptionSuccessMessage ? (
+              <Alert severity="success">{subscriptionSuccessMessage}</Alert>
+            ) : null}
+
+            {subscriptionQuery.error ? (
+              <Alert severity="warning">
+                {getErrorMessage(subscriptionQuery.error)}
+              </Alert>
+            ) : null}
+
+            {subscriptionQuery.isLoading ? (
+              <LoadingState label="جارٍ تحميل معلومات الاشتراك..." />
+            ) : (
+              <>
+                <Alert severity="info" className="owner-inline-alert">
+                  الباقة النشطة حاليًا:{" "}
+                  {SUBSCRIPTION_PLANS.find(
+                    (item) => item.key === subscription.currentPlan,
+                  )?.label || "Free"}
+                  {subscription.renewalAt
+                    ? ` • تاريخ التجديد: ${formatDateTimeLabel(subscription.renewalAt)}`
+                    : ""}
+                </Alert>
+
+                <Box
+                  className="owner-subscription-grid"
+                  role="radiogroup"
+                  aria-label="خيارات باقات الاشتراك"
+                >
+                  {SUBSCRIPTION_PLANS.map((plan) => {
+                    const isActivePlan = plan.key === subscription.currentPlan;
+                    const isSelectedPlan = plan.key === selectedPlanKey;
+                    const isPendingPlan =
+                      changeSubscriptionMutation.isPending &&
+                      changeSubscriptionMutation.variables?.planKey ===
+                        plan.key;
+
+                    return (
+                      <Paper
+                        key={plan.key}
+                        elevation={0}
+                        className={`owner-subscription-card${
+                          isActivePlan ? " owner-subscription-card--active" : ""
+                        }${isSelectedPlan ? " owner-subscription-card--selected" : ""}`}
+                        role="radio"
+                        aria-checked={isSelectedPlan}
+                        tabIndex={0}
+                        onClick={() => setSelectedPlanKey(plan.key)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedPlanKey(plan.key);
+                          }
+                        }}
+                      >
+                        <Stack
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Typography variant="h6">{plan.label}</Typography>
+                          {isActivePlan ? (
+                            <Chip
+                              size="small"
+                              color="primary"
+                              label="الباقة الحالية"
+                            />
+                          ) : null}
+                        </Stack>
+
+                        <Typography variant="body2" color="text.secondary">
+                          {plan.nameAr}
+                        </Typography>
+
+                        <Typography
+                          variant="h5"
+                          className="owner-subscription-card__price"
+                        >
+                          {plan.priceLabel}
+                        </Typography>
+
+                        <Box
+                          component="ul"
+                          className="owner-subscription-card__list"
+                        >
+                          {plan.details.map((detail) => (
+                            <li key={detail}>
+                              <Typography variant="body2">{detail}</Typography>
+                            </li>
+                          ))}
+                        </Box>
+
+                        <AppButton
+                          fullWidth
+                          variant={isActivePlan ? "outlined" : "contained"}
+                          disabled={
+                            isActivePlan || changeSubscriptionMutation.isPending
+                          }
+                          loading={isPendingPlan}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleChangeSubscription(plan.key);
+                          }}
+                          aria-label={`تغيير الباقة إلى ${plan.label}`}
+                        >
+                          {isActivePlan
+                            ? "الباقة الحالية"
+                            : "تغيير إلى هذه الباقة"}
+                        </AppButton>
+                      </Paper>
+                    );
+                  })}
+                </Box>
+
+                {selectedPlanKey &&
+                selectedPlanKey !== subscription.currentPlan ? (
+                  <Paper className="owner-subscription-confirm" elevation={0}>
+                    <Stack
+                      direction={{ xs: "column", sm: "row" }}
+                      justifyContent="space-between"
+                      alignItems={{ xs: "flex-start", sm: "center" }}
+                      gap={2}
+                    >
+                      <Typography variant="body2" color="text.secondary">
+                        الباقة المحددة:{" "}
+                        {
+                          SUBSCRIPTION_PLANS.find(
+                            (item) => item.key === selectedPlanKey,
+                          )?.label
+                        }
+                      </Typography>
+                      <AppButton
+                        onClick={() =>
+                          handleChangeSubscription(selectedPlanKey)
+                        }
+                        loading={changeSubscriptionMutation.isPending}
+                      >
+                        تأكيد تغيير الباقة
+                      </AppButton>
+                    </Stack>
+                  </Paper>
+                ) : null}
+              </>
+            )}
+          </Paper>
         ) : null}
 
         {activeTab === "products" ? (
@@ -1621,8 +1967,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         <Chip
                           size="small"
                           label={formatProductStatus(row.status)}
-                          color={Number(row.status) === 1 ? "primary" : "default"}
-                          variant={Number(row.status) === 1 ? "filled" : "outlined"}
+                          color={
+                            Number(row.status) === 1 ? "primary" : "default"
+                          }
+                          variant={
+                            Number(row.status) === 1 ? "filled" : "outlined"
+                          }
                         />
                         <Typography variant="caption" color="text.secondary">
                           {row.images?.length ?? 0} صورة
@@ -1691,7 +2041,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               isEdit={categoryForm.mode === "edit"}
               categories={categoryOptions}
               loading={
-                createCategoryMutation.isPending || updateCategoryMutation.isPending
+                createCategoryMutation.isPending ||
+                updateCategoryMutation.isPending
               }
               slugPreview={categoryForm.slug || categoryForm.name || "category"}
               onChange={handleCategoryFormChange}
@@ -1809,7 +2160,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               form={sectionForm}
               isEdit={sectionForm.mode === "edit"}
               loading={
-                createSectionMutation.isPending || updateSectionMutation.isPending
+                createSectionMutation.isPending ||
+                updateSectionMutation.isPending
               }
               slugPreview={sectionForm.slug || sectionForm.name || "section"}
               onChange={handleSectionFormChange}
@@ -2021,8 +2373,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             />
 
             <Alert severity="info" className="owner-inline-alert">
-              خصم زبون المتجر لا يؤثر على شاشة الإدارة فقط، بل يغيّر السعر الظاهر للعميل
-              بعد تسجيل الدخول ويُثبت داخل السلة ثم ينتقل إلى الطلب.
+              خصم زبون المتجر لا يؤثر على شاشة الإدارة فقط، بل يغيّر السعر
+              الظاهر للعميل بعد تسجيل الدخول ويُثبت داخل السلة ثم ينتقل إلى
+              الطلب.
             </Alert>
 
             {customerStoreForm.id ? (
@@ -2037,8 +2390,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               />
             ) : (
               <Alert severity="info" className="owner-inline-alert">
-                اختر عميلًا من الجدول بالأسفل لتعديل الخصم أو حالة الحساب. إنشاء عميل جديد لم
-                يعد جزءًا من هذه الشاشة.
+                اختر عميلًا من الجدول بالأسفل لتعديل الخصم أو حالة الحساب. إنشاء
+                عميل جديد لم يعد جزءًا من هذه الشاشة.
               </Alert>
             )}
 
@@ -2050,7 +2403,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   زبائن المتجر الحاليون
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  هؤلاء هم المستخدمون الذين يشاهدون تسعيرًا خاصًا داخل هذا المتجر.
+                  هؤلاء هم المستخدمون الذين يشاهدون تسعيرًا خاصًا داخل هذا
+                  المتجر.
                 </Typography>
               </Box>
 
@@ -2081,7 +2435,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     {
                       key: "discountPercentage",
                       title: "خصم الجملة",
-                      render: (row) => formatDiscountPercentage(row.discountPercentage),
+                      render: (row) =>
+                        formatDiscountPercentage(row.discountPercentage),
                     },
                     {
                       key: "isActive",
@@ -2148,8 +2503,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   المستخدمون المتاحون للإضافة
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  اختر أي مستخدم مسجل ليصبح من زبائن المتجر ويشاهد السعر الخاص بعد
-                  تسجيل الدخول.
+                  اختر أي مستخدم مسجل ليصبح من زبائن المتجر ويشاهد السعر الخاص
+                  بعد تسجيل الدخول.
                 </Typography>
               </Box>
 
@@ -2260,7 +2615,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         sx={{ minWidth: 180 }}
                       >
                         {ORDER_STATUS_OPTIONS.map((option) => (
-                          <MenuItem key={option.value} value={String(option.value)}>
+                          <MenuItem
+                            key={option.value}
+                            value={String(option.value)}
+                          >
                             {option.label}
                           </MenuItem>
                         ))}

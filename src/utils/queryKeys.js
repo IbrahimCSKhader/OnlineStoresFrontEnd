@@ -6,6 +6,7 @@ export const queryKeys = {
     all: ["stores"],
     detail: (id) => ["stores", id],
     slug: (slug) => ["stores", "slug", slug],
+    subscription: (id) => ["stores", id, "subscription"],
     visitCount: (id) => ["stores", id, "visit-count"],
   },
   sections: {
@@ -60,6 +61,11 @@ export const queryKeys = {
     ownerDetail: (ownerId) => ["super-admin", "owners", ownerId],
     stores: ["super-admin", "stores"],
     storeDetail: (storeId) => ["super-admin", "stores", storeId],
-    storeCustomers: (storeId) => ["super-admin", "stores", storeId, "customers"],
+    storeCustomers: (storeId) => [
+      "super-admin",
+      "stores",
+      storeId,
+      "customers",
+    ],
   },
 };
