@@ -31,7 +31,11 @@ import useStoreCustomerResetPassword from "../../hooks/auth/useStoreCustomerRese
 import useMergeGuestCart from "../../hooks/cart/useMergeGuestCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useAuthStore from "../../store/authStore.js";
-import { extractRole, extractToken, extractUser } from "../../utils/authSession.js";
+import {
+  extractRole,
+  extractToken,
+  extractUser,
+} from "../../utils/authSession.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
@@ -41,7 +45,11 @@ import {
   getStoreCustomerRedirectPath,
   hasStoreCustomerAuthContext,
 } from "../../utils/storeCustomerAuth.js";
-import { setAuthToken, setStoredAuthRole, setStoredAuthUser } from "../../utils/token.js";
+import {
+  setAuthToken,
+  setStoredAuthRole,
+  setStoredAuthUser,
+} from "../../utils/token.js";
 import "./Login.css";
 
 const FLOW = {
@@ -52,7 +60,10 @@ const FLOW = {
 };
 
 function getErrorMessage(error) {
-  return extractApiError(error, "تعذر تنفيذ العملية. تحقق من البيانات ثم حاول مرة أخرى.");
+  return extractApiError(
+    error,
+    "تعذر تنفيذ العملية. تحقق من البيانات ثم حاول مرة أخرى.",
+  );
 }
 
 function getFlowHeading(flow) {
@@ -137,8 +148,10 @@ export default function Login() {
         redirectTo: location.state?.redirectTo || `/market/${routeStoreSlug}`,
       })
     : null;
-  const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
-  const isStoreCustomerMode = Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
+  const storeCustomerAuthState =
+    routeStoreCustomerAuthState || stateStoreCustomerAuth;
+  const isStoreCustomerMode =
+    Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
   const redirectTo = isStoreCustomerMode
     ? getStoreCustomerRedirectPath(storeCustomerAuthState)
     : location.state?.redirectTo || "";
@@ -151,18 +164,18 @@ export default function Login() {
     storeCustomerAuthState?.storeName ||
     storeCustomerAuthState?.storeSlug ||
     "هذا المتجر";
-  const storeHomePath =
-    storeCustomerAuthState?.storeSlug
-      ? `/market/${storeCustomerAuthState.storeSlug}`
-      : "/market";
-  const storeRegisterPath =
-    storeCustomerAuthState?.storeSlug
-      ? `/market/${storeCustomerAuthState.storeSlug}/register`
-      : "/auth/register";
-  const storeVerifyEmailPath =
-    storeCustomerAuthState?.storeSlug
-      ? `/market/${storeCustomerAuthState.storeSlug}/verify-email`
-      : "/auth/verify-email";
+  const storeHomePath = storeCustomerAuthState?.storeSlug
+    ? `/market/${storeCustomerAuthState.storeSlug}`
+    : "/market";
+  const storeRegisterPath = storeCustomerAuthState?.storeSlug
+    ? `/market/${storeCustomerAuthState.storeSlug}/register`
+    : "/auth/register";
+  const storeVerifyEmailPath = storeCustomerAuthState?.storeSlug
+    ? `/market/${storeCustomerAuthState.storeSlug}/verify-email`
+    : "/auth/verify-email";
+  const canStartStoreGoogleLogin = Boolean(
+    storeCustomerAuthState?.storeSlug || storeCustomerAuthState?.storeId,
+  );
 
   const loginMutation = useLogin();
   const storeCustomerLoginMutation = useStoreCustomerLogin();
@@ -230,13 +243,32 @@ export default function Login() {
   }
 
   function handleGoogleLogin() {
+    if (!isStoreCustomerMode) {
+      setLocalError("تسجيل الدخول عبر Google متاح فقط من صفحة متجر محدد.");
+      return;
+    }
+
+    if (!canStartStoreGoogleLogin) {
+      setLocalError(
+        "بيانات المتجر غير مكتملة. افتح صفحة المتجر ثم أعد المحاولة.",
+      );
+      return;
+    }
+
     try {
       setIsLoadingGoogle(true);
       const apiBaseUrl = (
         import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
       ).replace(/\/+$/, "");
+      const googleParams = new URLSearchParams();
 
-      window.location.href = `${apiBaseUrl}/api/auth/google`;
+      if (storeCustomerAuthState?.storeSlug) {
+        googleParams.set("storeSlug", storeCustomerAuthState.storeSlug);
+      } else if (storeCustomerAuthState?.storeId) {
+        googleParams.set("storeId", storeCustomerAuthState.storeId);
+      }
+
+      window.location.href = `${apiBaseUrl}/api/auth/google?${googleParams.toString()}`;
     } catch {
       setLocalError("فشل الاتصال بخادم Google. حاول مرة أخرى.");
       setIsLoadingGoogle(false);
@@ -275,7 +307,9 @@ export default function Login() {
     try {
       if (isStoreCustomerMode) {
         if (!storeCustomerAuthState?.storeId) {
-          setLocalError("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.");
+          setLocalError(
+            "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+          );
           return;
         }
 
@@ -301,7 +335,8 @@ export default function Login() {
       if (isStoreCustomerMode) {
         const responseData = error?.response?.data;
         const needsVerification =
-          error?.response?.status === 401 && responseData?.requiresEmailVerification === true;
+          error?.response?.status === 401 &&
+          responseData?.requiresEmailVerification === true;
 
         if (needsVerification) {
           const verificationEmail = responseData?.email || email;
@@ -326,7 +361,8 @@ export default function Login() {
 
       const responseData = error?.response?.data;
       const needsVerification =
-        error?.response?.status === 401 && responseData?.requiresEmailVerification === true;
+        error?.response?.status === 401 &&
+        responseData?.requiresEmailVerification === true;
 
       if (needsVerification) {
         setPendingVerificationEmail(responseData?.email || email);
@@ -387,7 +423,9 @@ export default function Login() {
 
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
-        setLocalError("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.");
+        setLocalError(
+          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+        );
         return;
       }
 
@@ -405,7 +443,8 @@ export default function Login() {
       setValue("confirmNewPassword", "");
       moveTo(FLOW.RESET_PASSWORD);
       setSuccessMessage(
-        data?.message || "إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور.",
+        data?.message ||
+          "إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور.",
       );
     } catch (error) {
       setLocalError(getErrorMessage(error));
@@ -424,7 +463,9 @@ export default function Login() {
 
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
-        setLocalError("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.");
+        setLocalError(
+          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+        );
         return;
       }
 
@@ -437,7 +478,8 @@ export default function Login() {
           : { email },
       );
       setSuccessMessage(
-        data?.message || "إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور.",
+        data?.message ||
+          "إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور.",
       );
     } catch (error) {
       setLocalError(getErrorMessage(error));
@@ -452,7 +494,9 @@ export default function Login() {
 
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
-        setLocalError("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.");
+        setLocalError(
+          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+        );
         return;
       }
 
@@ -478,7 +522,8 @@ export default function Login() {
       resetMutations();
       setFlow(FLOW.LOGIN);
       setSuccessMessage(
-        data?.message || "تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+        data?.message ||
+          "تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
       );
     } catch (error) {
       setLocalError(getErrorMessage(error));
@@ -503,7 +548,10 @@ export default function Login() {
       <Box className="page-login__glow page-login__glow--two" aria-hidden />
 
       <Box className="page-login__shell">
-        <Paper className="page-login__panel page-login__panel--form" elevation={0}>
+        <Paper
+          className="page-login__panel page-login__panel--form"
+          elevation={0}
+        >
           <Stack spacing={2.25}>
             <Box>
               <Typography variant="overline" className="page-login__eyebrow">
@@ -519,7 +567,9 @@ export default function Login() {
               ) : null}
             </Box>
 
-            {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
+            {successMessage ? (
+              <Alert severity="success">{successMessage}</Alert>
+            ) : null}
             {localError ? <Alert severity="error">{localError}</Alert> : null}
 
             {flow === FLOW.LOGIN ? (
@@ -570,8 +620,14 @@ export default function Login() {
                   helperText={errors.password?.message}
                 />
 
-                <Button type="submit" variant="contained" size="large" disabled={isBusy || isLoadingGoogle}>
-                  {loginMutation.isPending || storeCustomerLoginMutation.isPending
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isBusy || isLoadingGoogle}
+                >
+                  {loginMutation.isPending ||
+                  storeCustomerLoginMutation.isPending
                     ? "جارٍ تسجيل الدخول..."
                     : isStoreCustomerMode
                       ? "الدخول إلى المتجر"
@@ -594,9 +650,16 @@ export default function Login() {
                   variant="outlined"
                   size="large"
                   onClick={handleGoogleLogin}
-                  disabled={isBusy || isLoadingGoogle}
+                  disabled={
+                    isBusy ||
+                    isLoadingGoogle ||
+                    !isStoreCustomerMode ||
+                    !canStartStoreGoogleLogin
+                  }
                 >
-                  {isLoadingGoogle ? "جارٍ الاتصال بـ Google..." : "الدخول عبر Google"}
+                  {isLoadingGoogle
+                    ? "جارٍ الاتصال بـ Google..."
+                    : "الدخول عبر Google"}
                 </Button>
 
                 <Divider />
@@ -607,7 +670,9 @@ export default function Login() {
                     to={isStoreCustomerMode ? storeHomePath : "/market"}
                     variant="outlined"
                   >
-                    {isStoreCustomerMode ? "العودة إلى المتجر" : "العودة إلى السوق"}
+                    {isStoreCustomerMode
+                      ? "العودة إلى المتجر"
+                      : "العودة إلى السوق"}
                   </Button>
                   {isStoreCustomerMode ? (
                     <Button
@@ -624,7 +689,11 @@ export default function Login() {
             ) : null}
 
             {flow === FLOW.VERIFY_EMAIL ? (
-              <Stack spacing={1.5} component="form" onSubmit={onVerifyEmailSubmit}>
+              <Stack
+                spacing={1.5}
+                component="form"
+                onSubmit={onVerifyEmailSubmit}
+              >
                 <TextField
                   label="البريد الإلكتروني"
                   value={pendingEmail}
@@ -662,8 +731,15 @@ export default function Login() {
                   helperText={errors.verificationCode?.message}
                 />
 
-                <Button type="submit" variant="contained" size="large" disabled={isBusy}>
-                  {verifyEmailMutation.isPending ? "جارٍ التحقق..." : "تأكيد الكود وإكمال الدخول"}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isBusy}
+                >
+                  {verifyEmailMutation.isPending
+                    ? "جارٍ التحقق..."
+                    : "تأكيد الكود وإكمال الدخول"}
                 </Button>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -673,7 +749,9 @@ export default function Login() {
                     onClick={onResendVerificationCode}
                     disabled={isBusy}
                   >
-                    {resendVerificationCodeMutation.isPending ? "جارٍ الإرسال..." : "إعادة إرسال الكود"}
+                    {resendVerificationCodeMutation.isPending
+                      ? "جارٍ الإرسال..."
+                      : "إعادة إرسال الكود"}
                   </Button>
                   <Button
                     type="button"
@@ -688,7 +766,11 @@ export default function Login() {
             ) : null}
 
             {flow === FLOW.FORGOT_PASSWORD ? (
-              <Stack spacing={1.5} component="form" onSubmit={onForgotPasswordSubmit}>
+              <Stack
+                spacing={1.5}
+                component="form"
+                onSubmit={onForgotPasswordSubmit}
+              >
                 <TextField
                   label="البريد الإلكتروني"
                   placeholder="name@example.com"
@@ -712,8 +794,15 @@ export default function Login() {
                   helperText={errors.email?.message}
                 />
 
-                <Button type="submit" variant="contained" size="large" disabled={isBusy}>
-                  {forgotPasswordMutation.isPending ? "جارٍ إرسال الكود..." : "إرسال كود تغيير كلمة السر"}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isBusy}
+                >
+                  {forgotPasswordMutation.isPending
+                    ? "جارٍ إرسال الكود..."
+                    : "إرسال كود تغيير كلمة السر"}
                 </Button>
 
                 <Button
@@ -728,7 +817,11 @@ export default function Login() {
             ) : null}
 
             {flow === FLOW.RESET_PASSWORD ? (
-              <Stack spacing={1.5} component="form" onSubmit={onResetPasswordSubmit}>
+              <Stack
+                spacing={1.5}
+                component="form"
+                onSubmit={onResetPasswordSubmit}
+              >
                 <TextField
                   label="البريد الإلكتروني"
                   value={pendingEmail}
@@ -804,14 +897,22 @@ export default function Login() {
                   {...register("confirmNewPassword", {
                     required: "يرجى تأكيد كلمة المرور",
                     validate: (value) =>
-                      value === getValues("newPassword") || "كلمتا المرور غير متطابقتين",
+                      value === getValues("newPassword") ||
+                      "كلمتا المرور غير متطابقتين",
                   })}
                   error={Boolean(errors.confirmNewPassword)}
                   helperText={errors.confirmNewPassword?.message}
                 />
 
-                <Button type="submit" variant="contained" size="large" disabled={isBusy}>
-                  {resetPasswordMutation.isPending ? "جارٍ تغيير كلمة المرور..." : "تأكيد التغيير"}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isBusy}
+                >
+                  {resetPasswordMutation.isPending
+                    ? "جارٍ تغيير كلمة المرور..."
+                    : "تأكيد التغيير"}
                 </Button>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap">
