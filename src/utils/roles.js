@@ -17,7 +17,7 @@ export function isOwnerRole(role) {
 
 export function isStoreCustomerRole(role) {
   const normalizedRole = normalizeRoleKey(role);
-  return normalizedRole === "storecustomer";
+  return normalizedRole === "storecustomer" || normalizedRole === "customer";
 }
 
 export function isGuestRole(role) {
