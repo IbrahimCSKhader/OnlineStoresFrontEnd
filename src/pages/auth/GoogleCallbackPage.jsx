@@ -8,13 +8,16 @@ import useAuthStore from "../../store/authStore.js";
 import { extractRole, extractUser } from "../../utils/authSession.js";
 import {
   clearAuthSession,
+  getAuthToken,
+  getStoredAuthRole,
+  getStoredAuthUser,
   setAuthToken,
   setStoredAuthRole,
   setStoredAuthUser,
 } from "../../utils/token.js";
 
-const LOGIN_PATH = "/auth/login";
 const DEFAULT_REDIRECT_PATH = "/";
+const GOOGLE_FAILURE_PATH = "/auth/google/failure";
 
 function readHashParams(hash) {
   if (!hash) return new URLSearchParams();
@@ -53,9 +56,12 @@ function GoogleCallbackPage() {
 
     const searchParams = new URLSearchParams(location.search);
     const hashParams = readHashParams(location.hash);
-    const token = searchParams.get("token") || hashParams.get("token") || "";
-    const error = searchParams.get("error") || hashParams.get("error");
+    const token = hashParams.get("token") || searchParams.get("token") || "";
+    const error = hashParams.get("error") || searchParams.get("error");
     const redirectCandidate =
+      hashParams.get("redirectTo") ||
+      hashParams.get("redirect") ||
+      hashParams.get("returnUrl") ||
       searchParams.get("redirectTo") ||
       searchParams.get("redirect") ||
       searchParams.get("returnUrl") ||
@@ -66,14 +72,45 @@ function GoogleCallbackPage() {
       : DEFAULT_REDIRECT_PATH;
 
     if (error) {
-      navigate(LOGIN_PATH, { replace: true, state: { oauthError: "google" } });
+      navigate(`${GOOGLE_FAILURE_PATH}?message=${encodeURIComponent(error)}`, {
+        replace: true,
+      });
       return;
     }
 
     if (!token) {
-      navigate(LOGIN_PATH, {
+      // In React StrictMode, callback effects may execute more than once.
+      // Rehydrate from persisted auth session to keep Zustand/UI in sync.
+      const currentAuthState = useAuthStore.getState();
+      const persistedToken = currentAuthState?.token || getAuthToken();
+
+      if (persistedToken) {
+        const persistedUser =
+          currentAuthState?.user ||
+          getStoredAuthUser() ||
+          extractUser({}, persistedToken);
+        const persistedRole =
+          currentAuthState?.role ||
+          getStoredAuthRole() ||
+          extractRole({}, persistedToken, persistedUser);
+
+        setSession({
+          token: persistedToken,
+          user: persistedUser,
+          role: persistedRole,
+        });
+
+        window.history.replaceState(
+          window.history.state,
+          document.title,
+          location.pathname,
+        );
+        navigate(redirectPath, { replace: true });
+        return;
+      }
+
+      navigate(`${GOOGLE_FAILURE_PATH}?message=missing_token`, {
         replace: true,
-        state: { oauthError: "missing_token" },
       });
       return;
     }
@@ -96,9 +133,8 @@ function GoogleCallbackPage() {
     } catch {
       clearAuthSession();
       setSession({ token: "", user: null, role: "" });
-      navigate(LOGIN_PATH, {
+      navigate(`${GOOGLE_FAILURE_PATH}?message=invalid_token`, {
         replace: true,
-        state: { oauthError: "invalid_token" },
       });
       return;
     }
