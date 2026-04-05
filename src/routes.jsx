@@ -182,6 +182,10 @@ const router = createBrowserRouter([
         path: "auth/google-callback",
         element: withRouteSuspense(<GoogleCallbackPage />),
       },
+      {
+        path: "auth/google/success",
+        element: withRouteSuspense(<GoogleCallbackPage />),
+      },
 
       { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
       { path: "owner/products", element: withRouteSuspense(<OwnerProducts />) },
