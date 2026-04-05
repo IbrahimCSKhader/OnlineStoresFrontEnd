@@ -58,6 +58,7 @@ const FLOW = {
   FORGOT_PASSWORD: "forgot-password",
   RESET_PASSWORD: "reset-password",
 };
+const GOOGLE_REDIRECT_FALLBACK_KEY = "googleAuthRedirectFallback";
 
 function getErrorMessage(error) {
   return extractApiError(
@@ -261,6 +262,16 @@ export default function Login() {
         import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
       ).replace(/\/+$/, "");
       const googleParams = new URLSearchParams();
+      const fallbackRedirectPath = storeCustomerAuthState?.storeSlug
+        ? `/market/${storeCustomerAuthState.storeSlug}`
+        : "";
+
+      if (fallbackRedirectPath) {
+        window.sessionStorage.setItem(
+          GOOGLE_REDIRECT_FALLBACK_KEY,
+          fallbackRedirectPath,
+        );
+      }
 
       if (storeCustomerAuthState?.storeSlug) {
         googleParams.set("storeSlug", storeCustomerAuthState.storeSlug);

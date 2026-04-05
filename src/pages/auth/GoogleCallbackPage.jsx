@@ -18,6 +18,7 @@ import {
 
 const DEFAULT_REDIRECT_PATH = "/";
 const GOOGLE_FAILURE_PATH = "/auth/google/failure";
+const GOOGLE_REDIRECT_FALLBACK_KEY = "googleAuthRedirectFallback";
 
 function readHashParams(hash) {
   if (!hash) return new URLSearchParams();
@@ -41,6 +42,22 @@ function isSafeInternalRedirect(path) {
   );
 }
 
+function readPendingGoogleRedirectPath() {
+  try {
+    return window.sessionStorage.getItem(GOOGLE_REDIRECT_FALLBACK_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+function clearPendingGoogleRedirectPath() {
+  try {
+    window.sessionStorage.removeItem(GOOGLE_REDIRECT_FALLBACK_KEY);
+  } catch {
+    // ignore storage access errors
+  }
+}
+
 function GoogleCallbackPage() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -56,6 +73,12 @@ function GoogleCallbackPage() {
 
     const searchParams = new URLSearchParams(location.search);
     const hashParams = readHashParams(location.hash);
+    const pendingRedirect = readPendingGoogleRedirectPath();
+    const callbackStoreSlug =
+      hashParams.get("storeSlug") || searchParams.get("storeSlug") || "";
+    const callbackStoreRedirect = callbackStoreSlug
+      ? `/market/${callbackStoreSlug}`
+      : "";
     const token = hashParams.get("token") || searchParams.get("token") || "";
     const error = hashParams.get("error") || searchParams.get("error");
     const redirectCandidate =
@@ -65,6 +88,8 @@ function GoogleCallbackPage() {
       searchParams.get("redirectTo") ||
       searchParams.get("redirect") ||
       searchParams.get("returnUrl") ||
+      callbackStoreRedirect ||
+      pendingRedirect ||
       location.state?.redirectTo ||
       "";
     const redirectPath = isSafeInternalRedirect(redirectCandidate)
@@ -72,6 +97,7 @@ function GoogleCallbackPage() {
       : DEFAULT_REDIRECT_PATH;
 
     if (error) {
+      clearPendingGoogleRedirectPath();
       navigate(`${GOOGLE_FAILURE_PATH}?message=${encodeURIComponent(error)}`, {
         replace: true,
       });
@@ -99,6 +125,7 @@ function GoogleCallbackPage() {
           user: persistedUser,
           role: persistedRole,
         });
+        clearPendingGoogleRedirectPath();
 
         window.history.replaceState(
           window.history.state,
@@ -109,6 +136,7 @@ function GoogleCallbackPage() {
         return;
       }
 
+      clearPendingGoogleRedirectPath();
       navigate(`${GOOGLE_FAILURE_PATH}?message=missing_token`, {
         replace: true,
       });
@@ -133,11 +161,14 @@ function GoogleCallbackPage() {
     } catch {
       clearAuthSession();
       setSession({ token: "", user: null, role: "" });
+      clearPendingGoogleRedirectPath();
       navigate(`${GOOGLE_FAILURE_PATH}?message=invalid_token`, {
         replace: true,
       });
       return;
     }
+
+    clearPendingGoogleRedirectPath();
 
     window.history.replaceState(
       window.history.state,
