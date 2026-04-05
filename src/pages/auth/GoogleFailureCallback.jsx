@@ -7,11 +7,16 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 const ERROR_MESSAGES = {
-  missing_token: "لم يصل رمز الجلسة من الخادم بعد العودة من Google. حاول تسجيل الدخول مرة أخرى.",
+  missing_token:
+    "لم يصل رمز الجلسة من الخادم بعد العودة من Google. حاول تسجيل الدخول مرة أخرى.",
   invalid_hash: "تعذر قراءة بيانات العودة من Google. حاول مرة أخرى.",
-  processing_failed: "حدث خطأ أثناء إكمال تسجيل الدخول عبر Google. حاول مرة أخرى.",
-  access_denied: "تم رفض الوصول من Google. امنح الصلاحيات المطلوبة ثم أعد المحاولة.",
+  processing_failed:
+    "حدث خطأ أثناء إكمال تسجيل الدخول عبر Google. حاول مرة أخرى.",
+  access_denied:
+    "تم رفض الوصول من Google. امنح الصلاحيات المطلوبة ثم أعد المحاولة.",
   invalid_request: "طلب تسجيل الدخول عبر Google غير صالح أو غير مكتمل.",
+  store_context_required:
+    "يلزم فتح صفحة متجر محدد قبل تسجيل الدخول عبر Google. ارجع إلى المتجر وحاول مرة أخرى.",
   server_error: "حدث خطأ في الخادم أثناء معالجة تسجيل الدخول عبر Google.",
   temporarily_unavailable: "خدمة تسجيل الدخول عبر Google غير متاحة حاليًا.",
   default: "فشل تسجيل الدخول عبر Google. حاول مرة أخرى من صفحة تسجيل الدخول.",
@@ -58,7 +63,8 @@ export default function GoogleFailureCallback() {
               تعذر إكمال تسجيل الدخول عبر Google
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              لم يتم إنشاء جلسة دخول صالحة. يمكنك إعادة المحاولة من صفحة تسجيل الدخول.
+              لم يتم إنشاء جلسة دخول صالحة. يمكنك إعادة المحاولة من صفحة تسجيل
+              الدخول.
             </Typography>
           </Box>
 

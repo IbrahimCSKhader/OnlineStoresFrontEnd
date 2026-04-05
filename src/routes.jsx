@@ -35,6 +35,10 @@ const GoogleCallbackPage = lazyWithRetry(
   () => import("./pages/auth/GoogleCallbackPage.jsx"),
   "google-callback",
 );
+const GoogleFailureCallback = lazyWithRetry(
+  () => import("./pages/auth/GoogleFailureCallback.jsx"),
+  "google-failure",
+);
 
 const AdminLogin = lazyWithRetry(
   () => import("./pages/admin/AdminLogin.jsx"),
@@ -185,6 +189,10 @@ const router = createBrowserRouter([
       {
         path: "auth/google/success",
         element: withRouteSuspense(<GoogleCallbackPage />),
+      },
+      {
+        path: "auth/google/failure",
+        element: withRouteSuspense(<GoogleFailureCallback />),
       },
 
       { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
