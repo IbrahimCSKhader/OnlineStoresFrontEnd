@@ -135,6 +135,10 @@
   flex-wrap: wrap;
 }
 
+.store-navbar__support-button {
+  white-space: nowrap;
+}
+
 .store-navbar__profile-trigger {
   width: 42px;
   height: 42px;
@@ -344,6 +348,10 @@
 
   .store-navbar__nav {
     gap: var(--space-4);
+  }
+
+  .store-navbar__support-button {
+    padding-inline: 0.6rem;
   }
 }
 

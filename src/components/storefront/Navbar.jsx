@@ -27,6 +27,7 @@ import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import AppButton from "../common/buttons/AppButton.jsx";
+import ContactDeveloperButton from "../common/ContactDeveloperButton.jsx";
 import { useAppThemeVariant } from "../../theme/AppThemeProvider.jsx";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useCart from "../../hooks/cart/useCart.js";
@@ -35,7 +36,11 @@ import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
-import { getLandingPath, isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
+import {
+  getLandingPath,
+  isOwnerRole,
+  isSuperAdminRole,
+} from "../../utils/roles.js";
 import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import "./Navbar.css";
@@ -87,12 +92,15 @@ function getCustomerInitials(user) {
 function ThemeToggleButton({ variant, onSelect, className }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
-  const activeTheme = themeOptions.find((option) => option.value === variant) ?? themeOptions[0];
+  const activeTheme =
+    themeOptions.find((option) => option.value === variant) ?? themeOptions[0];
 
   return (
     <>
       <IconButton
-        className={["store-navbar__icon-button", className || ""].filter(Boolean).join(" ")}
+        className={["store-navbar__icon-button", className || ""]
+          .filter(Boolean)
+          .join(" ")}
         aria-label="الثيمات"
         aria-controls={menuOpen ? "theme-picker-menu" : undefined}
         aria-expanded={menuOpen ? "true" : undefined}
@@ -121,7 +129,9 @@ function ThemeToggleButton({ variant, onSelect, className }) {
               key={option.value}
               className={[
                 "store-navbar__theme-option",
-                option.value === variant ? "store-navbar__theme-option--active" : "",
+                option.value === variant
+                  ? "store-navbar__theme-option--active"
+                  : "",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -147,7 +157,9 @@ function NavLinks({ items, onNavigate, drawer = false }) {
   return items.map((item) => {
     const isActive =
       location.pathname === item.to ||
-      (!item.exact && item.to !== "/" && location.pathname.startsWith(`${item.to}/`));
+      (!item.exact &&
+        item.to !== "/" &&
+        location.pathname.startsWith(`${item.to}/`));
 
     return (
       <NavLink
@@ -198,21 +210,38 @@ export default function Navbar() {
   const brandHref = activeStoreSlug ? `/market/${activeStoreSlug}` : "/";
   const brandEyebrow = "";
   const brandName = activeStore?.name || "السوق";
-  const navItems = useMemo(() => buildNavItems(activeStoreSlug), [activeStoreSlug]);
-  const loginPath = activeStoreSlug ? `/market/${activeStoreSlug}/login` : "/auth/login";
-  const registerPath = activeStoreSlug ? `/market/${activeStoreSlug}/register` : "/auth/register";
-  const cartPath = activeStoreSlug ? `/market/${activeStoreSlug}/cart` : "/market";
-  const { hasScopedStorefrontSession, useLocalGuestCart } = useStorefrontSession(activeStore?.id);
+  const navItems = useMemo(
+    () => buildNavItems(activeStoreSlug),
+    [activeStoreSlug],
+  );
+  const loginPath = activeStoreSlug
+    ? `/market/${activeStoreSlug}/login`
+    : "/auth/login";
+  const registerPath = activeStoreSlug
+    ? `/market/${activeStoreSlug}/register`
+    : "/auth/register";
+  const cartPath = activeStoreSlug
+    ? `/market/${activeStoreSlug}/cart`
+    : "/market";
+  const { hasScopedStorefrontSession, useLocalGuestCart } =
+    useStorefrontSession(activeStore?.id);
 
   const isStoreCustomerSignedIn =
-    Boolean(activeStoreSlug) && isAuthenticated && isStoreCustomer && hasScopedStorefrontSession;
+    Boolean(activeStoreSlug) &&
+    isAuthenticated &&
+    isStoreCustomer &&
+    hasScopedStorefrontSession;
   const canAccessStoreCart = Boolean(activeStoreSlug);
   const isPlatformAuthenticated =
-    isAuthenticated && !isStoreCustomer && (isOwnerRole(role) || isSuperAdminRole(role));
+    isAuthenticated &&
+    !isStoreCustomer &&
+    (isOwnerRole(role) || isSuperAdminRole(role));
 
   const logoutMutation = useLogout({
     onSettled: () => {
-      navigate(activeStoreSlug ? `/market/${activeStoreSlug}` : "/market", { replace: true });
+      navigate(activeStoreSlug ? `/market/${activeStoreSlug}` : "/market", {
+        replace: true,
+      });
     },
   });
 
@@ -221,7 +250,10 @@ export default function Navbar() {
     autoCreateSession: false,
     staleTime: 30000,
   });
-  const cart = useMemo(() => normalizeCartResponse(cartQuery.data), [cartQuery.data]);
+  const cart = useMemo(
+    () => normalizeCartResponse(cartQuery.data),
+    [cartQuery.data],
+  );
   const cartItemCount =
     hasScopedStorefrontSession || useLocalGuestCart ? cart.itemCount || 0 : 0;
 
@@ -247,7 +279,8 @@ export default function Navbar() {
     [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
     "الزبون";
   const customerEmail = user?.email || "";
-  const customerStoreLabel = activeStore?.name || storeCustomerAuthState?.storeName || "";
+  const customerStoreLabel =
+    activeStore?.name || storeCustomerAuthState?.storeName || "";
   const customerInitials = getCustomerInitials(user);
 
   const closeProfileMenu = () => setProfileAnchorEl(null);
@@ -340,7 +373,9 @@ export default function Navbar() {
         <IconButton
           className="store-navbar__profile-trigger"
           aria-label="بيانات الحساب"
-          aria-controls={profileMenuOpen ? "store-customer-profile-menu" : undefined}
+          aria-controls={
+            profileMenuOpen ? "store-customer-profile-menu" : undefined
+          }
           aria-expanded={profileMenuOpen ? "true" : undefined}
           aria-haspopup="menu"
           onClick={(event) => setProfileAnchorEl(event.currentTarget)}
@@ -368,7 +403,10 @@ export default function Navbar() {
               {customerInitials || <PersonRoundedIcon fontSize="small" />}
             </Avatar>
             <Box className="store-navbar__profile-copy">
-              <Typography variant="subtitle2" className="store-navbar__profile-name">
+              <Typography
+                variant="subtitle2"
+                className="store-navbar__profile-name"
+              >
                 {customerDisplayName}
               </Typography>
               {customerEmail ? (
@@ -379,7 +417,7 @@ export default function Navbar() {
             </Box>
           </Box>
 
-          {(customerStoreLabel || user?.storeCustomerId) ? <Divider /> : null}
+          {customerStoreLabel || user?.storeCustomerId ? <Divider /> : null}
 
           {customerStoreLabel ? (
             <Box className="store-navbar__profile-info">
@@ -412,7 +450,10 @@ export default function Navbar() {
                 <Typography variant="caption" color="text.secondary">
                   رقم الحساب
                 </Typography>
-                <Typography variant="body2" className="store-navbar__profile-id">
+                <Typography
+                  variant="body2"
+                  className="store-navbar__profile-id"
+                >
                   {String(user.storeCustomerId).slice(0, 8)}
                 </Typography>
               </Box>
@@ -445,7 +486,10 @@ export default function Navbar() {
             واجهة المتجر
           </MenuItem>
 
-          <MenuItem onClick={handleLogout} className="store-navbar__profile-item">
+          <MenuItem
+            onClick={handleLogout}
+            className="store-navbar__profile-item"
+          >
             <ListItemIcon>
               <LogoutRoundedIcon fontSize="small" />
             </ListItemIcon>
@@ -468,7 +512,10 @@ export default function Navbar() {
             {customerInitials || <PersonRoundedIcon fontSize="small" />}
           </Avatar>
           <Box className="store-navbar__profile-copy">
-            <Typography variant="subtitle2" className="store-navbar__profile-name">
+            <Typography
+              variant="subtitle2"
+              className="store-navbar__profile-name"
+            >
               {customerDisplayName}
             </Typography>
             {customerEmail ? (
@@ -579,15 +626,39 @@ export default function Navbar() {
   };
 
   const renderDrawerAccountSection = () => {
+    const contactButton = (
+      <ContactDeveloperButton
+        label="الدعم"
+        variant="outlined"
+        fullWidth
+        onClick={() => setDrawerOpen(false)}
+      />
+    );
+
     if (isStoreCustomerSignedIn) {
-      return renderStoreCustomerDrawerPanel();
+      return (
+        <Stack spacing={1.25}>
+          {contactButton}
+          {renderStoreCustomerDrawerPanel()}
+        </Stack>
+      );
     }
 
     if (isPlatformAuthenticated) {
-      return renderPlatformButtons(true);
+      return (
+        <>
+          {contactButton}
+          {renderPlatformButtons(true)}
+        </>
+      );
     }
 
-    return renderGuestButtons(true);
+    return (
+      <>
+        {contactButton}
+        {renderGuestButtons(true)}
+      </>
+    );
   };
 
   return (
@@ -609,7 +680,11 @@ export default function Navbar() {
         </Box>
 
         {!isMobile ? (
-          <Box component="nav" className="store-navbar__nav" aria-label="التنقل الرئيسي">
+          <Box
+            component="nav"
+            className="store-navbar__nav"
+            aria-label="التنقل الرئيسي"
+          >
             <NavLinks items={navItems} />
           </Box>
         ) : (
@@ -619,9 +694,20 @@ export default function Navbar() {
         <Box className="store-navbar__actions">
           <ThemeToggleButton variant={variant} onSelect={setVariant} />
           {renderCartButton()}
+          {!isMobile ? (
+            <ContactDeveloperButton
+              label="تواصل مع المطور"
+              variant="text"
+              className="store-navbar__support-button"
+            />
+          ) : null}
 
           {!isMobile ? (
-            <Stack direction="row" spacing={1} className="store-navbar__auth-wrap">
+            <Stack
+              direction="row"
+              spacing={1}
+              className="store-navbar__auth-wrap"
+            >
               {renderDesktopActions()}
             </Stack>
           ) : (
@@ -667,7 +753,11 @@ export default function Navbar() {
             التنقل
           </Typography>
           <Box className="store-navbar__drawer-links">
-            <NavLinks items={navItems} drawer onNavigate={() => setDrawerOpen(false)} />
+            <NavLinks
+              items={navItems}
+              drawer
+              onNavigate={() => setDrawerOpen(false)}
+            />
           </Box>
         </Box>
 

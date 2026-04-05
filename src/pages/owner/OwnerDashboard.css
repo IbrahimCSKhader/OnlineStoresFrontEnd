@@ -17,6 +17,7 @@
 }
 
 .owner-sidebar,
+.owner-topbar,
 .owner-hero,
 .owner-panel,
 .owner-store-banner,
@@ -154,6 +155,14 @@
   padding: var(--space-5);
   display: grid;
   gap: var(--space-3);
+}
+
+.owner-topbar {
+  padding: var(--space-4) var(--space-5);
+}
+
+.owner-plan-badge {
+  font-weight: 700;
 }
 
 .owner-stat--warm {

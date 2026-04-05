@@ -25,13 +25,19 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import LoadingState from "../../components/common/loaders/LoadingState.jsx";
 import AppDataTable from "../../components/common/tables/AppDataTable.jsx";
+import ContactDeveloperButton from "../../components/common/ContactDeveloperButton.jsx";
 import CategoryForm from "../../components/dashboard/CategoryForm.jsx";
 import CouponForm from "../../components/dashboard/CouponForm.jsx";
+import PlanBadge from "../../components/dashboard/PlanBadge.jsx";
 import CustomerStoreForm from "../../components/dashboard/CustomerStoreForm.jsx";
 import ProductForm from "../../components/dashboard/ProductForm.jsx";
 import SectionForm from "../../components/dashboard/SectionForm.jsx";
 import StatCard from "../../components/dashboard/StatCard.jsx";
 import DashboardSidebar from "../../components/layout/DashboardSidebar.jsx";
+import {
+  SUBSCRIPTION_PLANS,
+  getSubscriptionPlanByKey,
+} from "../../constants/subscriptionPlans.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useCategories from "../../hooks/categories/useCategories.js";
 import useCreateCategory from "../../hooks/categories/useCreateCategory.js";
@@ -146,34 +152,6 @@ const ORDER_STATUS_OPTIONS = [
   { value: 4, label: "تم التسليم" },
   { value: 5, label: "ملغي" },
   { value: 6, label: "مسترجع" },
-];
-
-const SUBSCRIPTION_PLANS = [
-  {
-    key: "free",
-    label: "Free",
-    nameAr: "مجانية",
-    priceLabel: "0 / شهر",
-    details: ["حتى 20 منتج", "حتى 100 طلب شهريًا", "دعم أساسي"],
-  },
-  {
-    key: "standard",
-    label: "Standard",
-    nameAr: "قياسية",
-    priceLabel: "29 / شهر",
-    details: ["حتى 500 منتج", "حتى 2,000 طلب شهريًا", "دعم أسرع وتقارير أفضل"],
-  },
-  {
-    key: "pro",
-    label: "Pro",
-    nameAr: "احترافية",
-    priceLabel: "99 / شهر",
-    details: [
-      "منتجات غير محدودة",
-      "طلبات غير محدودة",
-      "أولوية في الدعم والميزات",
-    ],
-  },
 ];
 
 function getErrorMessage(error) {
@@ -844,6 +822,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const subscription = useMemo(
     () => normalizeStoreSubscription(subscriptionQuery.data, store),
     [subscriptionQuery.data, store],
+  );
+  const activePlan = useMemo(
+    () => getSubscriptionPlanByKey(subscription.currentPlan),
+    [subscription.currentPlan],
   );
   const [selectedPlanKey, setSelectedPlanKey] = useState("");
 
@@ -1603,6 +1585,35 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       }
     >
       <Box className="owner-dashboard">
+        <Paper className="owner-topbar" elevation={0}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            alignItems={{ xs: "flex-start", md: "center" }}
+            justifyContent="space-between"
+            gap={2}
+          >
+            <PlanBadge planKey={subscription.currentPlan} />
+
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              <AppButton
+                component={RouterLink}
+                to="/owner/subscription"
+                variant={
+                  activeTab === "subscription" ? "contained" : "outlined"
+                }
+                startIcon={<WorkspacePremiumRoundedIcon fontSize="small" />}
+              >
+                الباقات
+              </AppButton>
+
+              <ContactDeveloperButton
+                label="تواصل مع المطور"
+                variant="outlined"
+              />
+            </Stack>
+          </Stack>
+        </Paper>
+
         <Paper className="owner-hero" elevation={0}>
           <Box className="owner-hero__copy">
             <Typography variant="overline" className="owner-hero__eyebrow">
@@ -1718,10 +1729,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             ) : (
               <>
                 <Alert severity="info" className="owner-inline-alert">
-                  الباقة النشطة حاليًا:{" "}
-                  {SUBSCRIPTION_PLANS.find(
-                    (item) => item.key === subscription.currentPlan,
-                  )?.label || "Free"}
+                  الباقة النشطة حاليًا: {activePlan.label}
                   {subscription.renewalAt
                     ? ` • تاريخ التجديد: ${formatDateTimeLabel(subscription.renewalAt)}`
                     : ""}
