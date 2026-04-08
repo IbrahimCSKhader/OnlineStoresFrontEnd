@@ -1,4 +1,4 @@
-﻿import Box from "@mui/material/Box";
+import Box from "@mui/material/Box";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
 import Stepper from "@mui/material/Stepper";
@@ -35,16 +35,21 @@ export default function CheckoutForm({
         {step === 0 ? (
           <Box className="checkout-form__grid">
             <AppTextField
-              label="الاسم الكامل"
-              value={form.fullName}
-              onChange={(event) => onChange("fullName", event.target.value)}
-            />
-            <AppTextField
-              label="العنوان"
-              value={form.address}
-              onChange={(event) => onChange("address", event.target.value)}
+              label="عنوان التوصيل"
+              value={form.deliveryAddress}
+              onChange={(event) => onChange("deliveryAddress", event.target.value)}
               multiline
               minRows={3}
+            />
+            <AppTextField
+              label="المدينة"
+              value={form.deliveryCity}
+              onChange={(event) => onChange("deliveryCity", event.target.value)}
+            />
+            <AppTextField
+              label="رقم الهاتف"
+              value={form.deliveryPhone}
+              onChange={(event) => onChange("deliveryPhone", event.target.value)}
             />
             <AppTextField
               label="كود الخصم (اختياري)"
@@ -53,8 +58,8 @@ export default function CheckoutForm({
             />
             <AppTextField
               label="ملاحظات الطلب"
-              value={form.notes}
-              onChange={(event) => onChange("notes", event.target.value)}
+              value={form.customerNotes}
+              onChange={(event) => onChange("customerNotes", event.target.value)}
               multiline
               minRows={4}
             />
@@ -66,12 +71,16 @@ export default function CheckoutForm({
             <Typography variant="h6">مراجعة البيانات</Typography>
             <Box className="checkout-form__review-grid">
               <div>
-                <span>الاسم</span>
-                <strong>{form.fullName || "-"}</strong>
+                <span>العنوان</span>
+                <strong>{form.deliveryAddress || "-"}</strong>
               </div>
               <div>
-                <span>العنوان</span>
-                <strong>{form.address || "-"}</strong>
+                <span>المدينة</span>
+                <strong>{form.deliveryCity || "-"}</strong>
+              </div>
+              <div>
+                <span>رقم الهاتف</span>
+                <strong>{form.deliveryPhone || "-"}</strong>
               </div>
               <div>
                 <span>كود الخصم</span>
@@ -79,11 +88,11 @@ export default function CheckoutForm({
               </div>
               <div>
                 <span>الملاحظات</span>
-                <strong>{form.notes || "-"}</strong>
+                <strong>{form.customerNotes || "-"}</strong>
               </div>
             </Box>
             <Typography variant="body2" color="text.secondary">
-              عند التأكيد سيتم إنشاء الطلب أولاً على النظام، ثم إرسال ملخصه عبر واتساب لصاحب المتجر.
+              عند التأكيد سيتم إنشاء الطلب من السلة الحالية في نفس المتجر ثم إرسال ملخصه عبر واتساب.
             </Typography>
           </Box>
         ) : null}

@@ -25,10 +25,11 @@ import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./Checkout.css";
 
 const initialForm = {
-  fullName: "",
-  address: "",
+  deliveryAddress: "",
+  deliveryCity: "",
+  deliveryPhone: "",
   couponCode: "",
-  notes: "",
+  customerNotes: "",
 };
 
 function findStoreWhatsAppNumber(store) {
@@ -54,13 +55,12 @@ function findStoreWhatsAppNumber(store) {
     return String(firstDirect);
   }
 
-  // Fallback: inspect first-level keys case-insensitively.
-  const entries = Object.entries(store);
-  const looseMatch = entries.find(([key, value]) => {
-    if (value === undefined || value === null || !String(value).trim())
+  const looseMatch = Object.entries(store).find(([key, value]) => {
+    if (value === undefined || value === null || !String(value).trim()) {
       return false;
-    const normalizedKey = key.toLowerCase();
+    }
 
+    const normalizedKey = key.toLowerCase();
     return (
       normalizedKey.includes("whatsapp") ||
       normalizedKey.includes("whats_app") ||
@@ -74,7 +74,6 @@ function findStoreWhatsAppNumber(store) {
     return String(looseMatch[1]);
   }
 
-  // Fallback: nested contact object if present.
   const contact = store.contact || store.contacts || store.ownerContact;
   if (contact && typeof contact === "object") {
     return findStoreWhatsAppNumber(contact);
@@ -101,13 +100,14 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
     ].join("\n");
   });
 
-  const lines = [
+  return [
     "طلب جديد",
     `المتجر: ${store.name || "-"}`,
     "",
-    "بيانات العميل:",
-    `• الاسم: ${form.fullName || "-"}`,
-    `• العنوان: ${form.address || "-"}`,
+    "بيانات التوصيل:",
+    `• العنوان: ${form.deliveryAddress || "-"}`,
+    `• المدينة: ${form.deliveryCity || "-"}`,
+    `• رقم الهاتف: ${form.deliveryPhone || "-"}`,
     "",
     "تفاصيل الطلب:",
     ...orderItems,
@@ -116,10 +116,8 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
     `• إجمالي العناصر: ${cart.itemCount}`,
     `• الإجمالي النهائي: ${formatCurrency(cart.totalAmount)}`,
     `• كود الخصم: ${form.couponCode || "-"}`,
-    `• ملاحظات: ${form.notes || "-"}`,
-  ];
-
-  return lines.join("\n");
+    `• ملاحظات: ${form.customerNotes || "-"}`,
+  ].join("\n");
 }
 
 function openPendingWhatsAppWindow() {
@@ -198,7 +196,6 @@ export default function Checkout() {
   const createOrderMutation = useCreateOrder(store?.id);
   const cart = normalizeCartResponse(cartQuery.data);
 
-  // Clear cart mutation
   const clearCartMutation = useMutation({
     mutationFn: () => cartApi.clearCart(store?.id),
     onError: (error) => {
@@ -206,20 +203,19 @@ export default function Checkout() {
     },
   });
 
-  // Protection: Redirect non-authenticated store customers to login
   if (!isStoreCustomer) {
     return (
       <Box className="storefront-page page-checkout">
         <EmptyState
           title="يجب تسجيل الدخول أولاً"
-          description="لا يمكن إكمال الطلب بدون تسجيل دخول. يرجى تسجيل الدخول أو إنشاء حساب جديد للمتابعة."
+          description="لا يمكن إكمال الطلب بدون جلسة StoreCustomer صالحة لهذا المتجر."
           action={
             <AppButton
               component={RouterLink}
               to={`/market/${slug}/login`}
               variant="contained"
             >
-              الذهاب لصفحة تسجيل الدخول
+              الذهاب لتسجيل الدخول
             </AppButton>
           }
         />
@@ -241,7 +237,6 @@ export default function Checkout() {
         <EmptyState
           title="تعذر فتح صفحة الدفع"
           description="تعذر العثور على المتجر المطلوب."
-          
         />
       </Box>
     );
@@ -252,7 +247,7 @@ export default function Checkout() {
       <Box className="storefront-page page-checkout">
         <EmptyState
           title="يلزم تسجيل الدخول لهذا المتجر"
-          description="يبدو أنك مسجل الدخول كعميل لمتجر آخر، لذلك يرفض النظام إنشاء الطلب هنا. سجّل الدخول من جديد داخل هذا المتجر ثم أعد المحاولة."
+          description="جلسة العميل الحالية تخص متجرًا آخر، لذلك سيرفض الباكند الطلب هنا."
           action={
             <AppButton
               component={RouterLink}
@@ -272,7 +267,7 @@ export default function Checkout() {
       <Box className="storefront-page page-checkout">
         <EmptyState
           title="لا يمكن المتابعة دون منتجات"
-          description="أضف منتجًا واحدًا على الأقل إلى السلة قبل إرسال الطلب عبر واتساب."
+          description="أضف منتجًا واحدًا على الأقل إلى السلة قبل إرسال الطلب."
           action={
             <AppButton
               component={RouterLink}
@@ -293,18 +288,23 @@ export default function Checkout() {
 
     if (!storefrontSession.hasScopedStorefrontSession) {
       setSubmitError(
-        "جلسة تسجيل الدخول الحالية لا تخص هذا المتجر. سجّل الدخول من داخل هذا المتجر ثم أعد المحاولة.",
+        "جلسة StoreCustomer الحالية لا تخص هذا المتجر. سجّل الدخول من داخل نفس المتجر ثم أعد المحاولة.",
       );
       return;
     }
 
-    if (!String(form.fullName || "").trim()) {
-      setSubmitError("يرجى إدخال الاسم الكامل قبل إرسال الطلب.");
+    if (!String(form.deliveryAddress || "").trim()) {
+      setSubmitError("يرجى إدخال عنوان التوصيل قبل إرسال الطلب.");
       return;
     }
 
-    if (!String(form.address || "").trim()) {
-      setSubmitError("يرجى إدخال العنوان قبل إرسال الطلب.");
+    if (!String(form.deliveryCity || "").trim()) {
+      setSubmitError("يرجى إدخال المدينة قبل إرسال الطلب.");
+      return;
+    }
+
+    if (!String(form.deliveryPhone || "").trim()) {
+      setSubmitError("يرجى إدخال رقم الهاتف قبل إرسال الطلب.");
       return;
     }
 
@@ -313,38 +313,32 @@ export default function Checkout() {
 
     if (!waNumber) {
       setSubmitError(
-        "لا يوجد رقم واتساب صالح لصاحب المتجر حاليًا. تحقق أن المتجر يحتوي حقل رقم مثل WhatsAppNumber أو whatsAppNumber.",
+        "لا يوجد رقم واتساب صالح لصاحب المتجر حاليًا. تحقق من بيانات التواصل في المتجر.",
       );
       return;
     }
 
-    if (waNumber.length < 10) {
-      setSubmitError(`رقم واتساب غير صالح: ${rawWhatsAppNumber}`);
-      return;
-    }
-
-    const message = buildWhatsAppOrderMessage({ store, cart, form });
-    const whatsappUrl = buildWhatsAppLink(waNumber, message);
+    const whatsappUrl = buildWhatsAppLink(
+      waNumber,
+      buildWhatsAppOrderMessage({ store, cart, form }),
+    );
 
     if (!whatsappUrl) {
       setSubmitError(`تعذر تجهيز رابط واتساب لهذا الرقم: ${rawWhatsAppNumber}`);
       return;
     }
 
-    // Debug: print the generated WhatsApp URL to browser console.
     if (import.meta.env.DEV) {
       console.log("[Checkout] WhatsApp URL:", whatsappUrl);
     }
 
     const pendingWhatsAppWindow = openPendingWhatsAppWindow();
-
     const payload = {
       storeId: store?.id,
-      fullName: String(form.fullName || "").trim(),
-      customerName: String(form.fullName || "").trim(),
-      shippingAddress: String(form.address || "").trim(),
-      address: String(form.address || "").trim(),
-      notes: String(form.notes || "").trim(),
+      deliveryAddress: String(form.deliveryAddress || "").trim(),
+      deliveryCity: String(form.deliveryCity || "").trim(),
+      deliveryPhone: String(form.deliveryPhone || "").trim(),
+      customerNotes: String(form.customerNotes || "").trim() || undefined,
       couponCode: String(form.couponCode || "").trim() || undefined,
     };
 
@@ -353,11 +347,21 @@ export default function Checkout() {
     } catch (error) {
       closePendingWhatsAppWindow(pendingWhatsAppWindow);
 
+      if (error?.response?.status === 401) {
+        setSubmitError(
+          extractApiError(
+            error,
+            "الطلب رُفض لأن جلسة StoreCustomer غير صالحة أو منتهية. سجّل الدخول مجددًا ثم أعد المحاولة.",
+          ),
+        );
+        return;
+      }
+
       if (error?.response?.status === 403) {
         setSubmitError(
           extractApiError(
             error,
-            "تم رفض إنشاء الطلب من النظام. غالبًا جلسة العميل الحالية لا تخص هذا المتجر أو لا تملك صلاحية إنشاء الطلب هنا.",
+            "الطلب رُفض لأن storeId المرسل لا يطابق المتجر الموجود داخل توكن العميل الحالي.",
           ),
         );
         return;
@@ -366,26 +370,25 @@ export default function Checkout() {
       setSubmitError(
         extractApiError(
           error,
-          "تعذر إنشاء الطلب على النظام. يرجى التحقق من كود الخصم أو البيانات ثم إعادة المحاولة.",
+          "تعذر إنشاء الطلب. تحقق من كود الخصم، وبيانات التوصيل، وأن عناصر السلة تنتمي لنفس المتجر مع توفر المخزون.",
         ),
       );
       return;
     }
 
-    // Clear the cart after successful order submission
     try {
       await clearCartMutation.mutateAsync();
       setSubmitSuccess(
-        `تم تجهيز الطلب بنجاح وتم مسح السلة. الآن سيتم فتح واتساب لإرسال الطلب إلى صاحب المتجر (الرقم: ${waNumber}).`,
+        `تم إنشاء الطلب ومسح السلة بنجاح. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
       );
-      redirectToWhatsApp(whatsappUrl, pendingWhatsAppWindow);
     } catch (error) {
       console.error("[Checkout] Error clearing cart:", error);
       setSubmitSuccess(
-        `تم تجهيز الطلب. سيتم فتح واتساب لإرساله إلى صاحب المتجر (الرقم: ${waNumber}).`,
+        `تم إنشاء الطلب بنجاح. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
       );
-      redirectToWhatsApp(whatsappUrl, pendingWhatsAppWindow);
     }
+
+    redirectToWhatsApp(whatsappUrl, pendingWhatsAppWindow);
   };
 
   return (
@@ -397,13 +400,9 @@ export default function Checkout() {
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">Checkout</span>
-            <Typography variant="h2">
-              إرسال الطلب عبر واتساب - {store.name}
-            </Typography>
+            <Typography variant="h2">إرسال الطلب عبر واتساب - {store.name}</Typography>
             <Typography variant="body1" className="storefront-subtitle">
-              سيتم إنشاء الطلب على النظام أولاً (مع تطبيق كود الخصم إن وجد)، ثم
-              فتح واتساب لإرسال تفاصيله لصاحب المتجر. سيتم مسح السلة تلقائيًا
-              عند نجاح الطلب.
+              سيتم إنشاء الطلب على النظام أولًا من السلة الحالية، ثم فتح واتساب لإرسال الملخص إلى صاحب المتجر.
             </Typography>
           </Box>
 
@@ -416,16 +415,6 @@ export default function Checkout() {
           </AppButton>
         </Box>
       </SurfaceCard>
-
-      {false ? (
-        <Alert severity="info">
-          إذا لم يفتح واتساب تلقائيًا يمكنك فتح الرابط يدويًا:
-          <br />
-          <a href={lastWhatsAppUrl} target="_blank" rel="noreferrer">
-            {lastWhatsAppUrl}
-          </a>
-        </Alert>
-      ) : null}
 
       <Box className="storefront-grid">
         <Box className="storefront-grid__span-8">

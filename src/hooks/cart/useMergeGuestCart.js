@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import cartApi from "../../API/cart.api.js";
 import useAuthStore from "../../store/authStore.js";
-import { syncCartReference } from "../../utils/cartSession.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 import { isStoreCustomerRole } from "../../utils/roles.js";
 import { clearGuestCart, getAllGuestCarts } from "../../utils/guestCart.js";
@@ -49,7 +48,6 @@ export default function useMergeGuestCart() {
       }
 
       if (lastServerCart) {
-        syncCartReference(lastServerCart, { storeId: cart.storeId });
         queryClient.setQueryData(queryKeys.cart.byStore(cart.storeId), lastServerCart);
       }
 

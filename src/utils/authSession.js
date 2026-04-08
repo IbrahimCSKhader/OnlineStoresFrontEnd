@@ -46,7 +46,6 @@ const lastNameKeys = [
 
 const storeIdKeys = ["store_id", "storeId", "StoreId"];
 const accountTypeKeys = ["account_type", "accountType", "AccountType"];
-const cartIdKeys = ["cart_id", "cartId", "CartId"];
 
 function pickFirstValue(...values) {
   for (const value of values) {
@@ -153,15 +152,8 @@ export function extractUser(data, token = "") {
     data?.data?.accountType,
     pickClaim(decodedToken, accountTypeKeys),
   );
-  const cartId = pickFirstValue(
-    data?.cartId,
-    data?.data?.cartId,
-    data?.cart?.id,
-    data?.data?.cart?.id,
-    pickClaim(decodedToken, cartIdKeys),
-  );
 
-  if (!id && !email && !firstName && !lastName && !storeId && !accountType && !cartId) {
+  if (!id && !email && !firstName && !lastName && !storeId && !accountType) {
     return null;
   }
 
@@ -174,7 +166,6 @@ export function extractUser(data, token = "") {
     storeCustomerId: id ? String(id) : "",
     storeId: storeId ? String(storeId) : "",
     accountType: accountType ? String(accountType) : "",
-    cartId: cartId ? String(cartId) : "",
   };
 }
 

@@ -109,7 +109,13 @@ export function normalizeCartResponse(data) {
     };
   });
 
-  const serverSubtotal = firstNumber(entity?.subtotal, entity?.subTotal, entity?.totalAmount);
+  const serverSubtotal = firstNumber(entity?.subtotal, entity?.subTotal);
+  const serverDiscount = firstNumber(entity?.discount, entity?.discountAmount);
+  const serverFinalTotal = firstNumber(
+    entity?.finalTotal,
+    entity?.grandTotal,
+    entity?.totalAmount,
+  );
   const fallbackSubtotal = normalizedItems.reduce((sum, item) => {
     const lineTotal = item.totalPrice || item.unitPrice * item.quantity;
     return sum + lineTotal;
@@ -121,11 +127,18 @@ export function normalizeCartResponse(data) {
     storeCustomerId: firstString(entity?.storeCustomerId, entity?.userId),
     storeId: firstString(entity?.storeId),
     items: normalizedItems,
+    discount: serverDiscount,
+    appliedOffers: normalizeListResponse(entity?.appliedOffers),
     itemCount:
       firstNumber(entity?.totalItems, entity?.itemCount) ||
       normalizedItems.reduce((sum, item) => sum + item.quantity, 0),
     subtotal: serverSubtotal || fallbackSubtotal,
-    totalAmount: firstNumber(entity?.totalAmount, entity?.grandTotal, serverSubtotal) || fallbackSubtotal,
+    totalAmount:
+      serverFinalTotal ||
+      Math.max((serverSubtotal || fallbackSubtotal) - serverDiscount, 0),
+    finalTotal:
+      serverFinalTotal ||
+      Math.max((serverSubtotal || fallbackSubtotal) - serverDiscount, 0),
     createdAt: firstString(entity?.createdAt),
   };
 }

@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import cartApi from "../../API/cart.api.js";
-import { syncCartReference } from "../../utils/cartSession.js";
 import { updateGuestCartItem } from "../../utils/guestCart.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 import useStorefrontSession from "../auth/useStorefrontSession.js";
@@ -32,7 +31,6 @@ export default function useUpdateCartItem(storeId, options = {}) {
     ...options,
     onSuccess: (data, variables, context) => {
       if (storeId) {
-        syncCartReference(data, { storeId });
         if (hasCartShape(data)) {
           queryClient.setQueryData(queryKeys.cart.byStore(storeId), data);
         } else {

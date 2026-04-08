@@ -4,7 +4,6 @@ export const storageKeys = {
   authRole: "online-store.auth-role",
   themeVariant: "online-store.theme-variant",
   guestCart: "online-store.guest-cart",
-  cartReferences: "online-store.cart-references",
 };
 
 function isBrowser() {
