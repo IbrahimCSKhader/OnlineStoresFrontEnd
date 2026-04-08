@@ -186,7 +186,7 @@ export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const { variant, setVariant } = useAppThemeVariant();
-  const { isAuthenticated, isStoreCustomer, role, user } = useAuth();
+  const { isAuthenticated, isStoreCustomer, role, storeCustomer } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const profileMenuOpen = Boolean(profileAnchorEl);
@@ -275,13 +275,13 @@ export default function Navbar() {
       : "داخل المتجر";
 
   const customerDisplayName =
-    user?.fullName?.trim() ||
-    [user?.firstName, user?.lastName].filter(Boolean).join(" ").trim() ||
+    storeCustomer?.fullName?.trim() ||
+    [storeCustomer?.firstName, storeCustomer?.lastName].filter(Boolean).join(" ").trim() ||
     "الزبون";
-  const customerEmail = user?.email || "";
+  const customerEmail = storeCustomer?.email || "";
   const customerStoreLabel =
     activeStore?.name || storeCustomerAuthState?.storeName || "";
-  const customerInitials = getCustomerInitials(user);
+  const customerInitials = getCustomerInitials(storeCustomer);
 
   const closeProfileMenu = () => setProfileAnchorEl(null);
 
@@ -417,7 +417,7 @@ export default function Navbar() {
             </Box>
           </Box>
 
-          {customerStoreLabel || user?.storeCustomerId ? <Divider /> : null}
+          {customerStoreLabel || storeCustomer?.storeCustomerId ? <Divider /> : null}
 
           {customerStoreLabel ? (
             <Box className="store-navbar__profile-info">
@@ -443,7 +443,7 @@ export default function Navbar() {
             </Box>
           ) : null}
 
-          {user?.storeCustomerId ? (
+          {storeCustomer?.storeCustomerId ? (
             <Box className="store-navbar__profile-info">
               <PersonRoundedIcon fontSize="small" />
               <Box>
@@ -454,7 +454,7 @@ export default function Navbar() {
                   variant="body2"
                   className="store-navbar__profile-id"
                 >
-                  {String(user.storeCustomerId).slice(0, 8)}
+                  {String(storeCustomer.storeCustomerId).slice(0, 8)}
                 </Typography>
               </Box>
             </Box>

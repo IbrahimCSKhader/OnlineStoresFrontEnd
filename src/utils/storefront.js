@@ -82,6 +82,12 @@ function firstString(...values) {
 export function normalizeCartResponse(data) {
   const entity = normalizeEntityResponse(data) ?? data ?? {};
   const items = normalizeListResponse(entity?.items || entity?.cartItems || entity?.data || entity);
+  const storeCustomerId = firstString(
+    entity?.storeCustomerId,
+    entity?.customerStoreId,
+    entity?.CustomerStoreId,
+    entity?.userId,
+  );
 
   const normalizedItems = items.map((item) => {
     const product = item.product || {};
@@ -123,8 +129,9 @@ export function normalizeCartResponse(data) {
 
   return {
     id: firstString(entity?.id, entity?.cartId),
-    userId: firstString(entity?.userId),
-    storeCustomerId: firstString(entity?.storeCustomerId, entity?.userId),
+    storeCustomerId,
+    customerStoreId: storeCustomerId,
+    userId: storeCustomerId,
     storeId: firstString(entity?.storeId),
     items: normalizedItems,
     discount: serverDiscount,

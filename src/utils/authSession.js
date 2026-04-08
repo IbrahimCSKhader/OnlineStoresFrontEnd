@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode";
+import { isGuestRole, isStoreCustomerRole } from "./roles.js";
 
 const roleKeys = [
   "role",
@@ -46,6 +47,20 @@ const lastNameKeys = [
 
 const storeIdKeys = ["store_id", "storeId", "StoreId"];
 const accountTypeKeys = ["account_type", "accountType", "AccountType"];
+const storeCustomerIdKeys = [
+  "store_customer_id",
+  "storeCustomerId",
+  "customerStoreId",
+  "CustomerStoreId",
+];
+
+function normalizeText(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim();
+}
 
 function pickFirstValue(...values) {
   for (const value of values) {
@@ -76,6 +91,123 @@ function decodeJwtToken(token) {
 function pickClaim(decodedToken, keys = []) {
   if (!decodedToken) return "";
   return pickFirstValue(...keys.map((key) => decodedToken?.[key]));
+}
+
+function resolveIdentitySource(data) {
+  if (data && typeof data === "object") {
+    return data?.user || data?.data?.user || data?.owner || data?.data?.owner || data;
+  }
+
+  return {};
+}
+
+function buildFullName(firstName, lastName, fallbackFullName) {
+  const joined = [firstName, lastName]
+    .map((value) => normalizeText(value))
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return joined || normalizeText(fallbackFullName);
+}
+
+function normalizeIdentity(source, decodedToken, fallback = {}) {
+  const accountType = pickFirstValue(
+    source?.accountType,
+    source?.AccountType,
+    fallback?.accountType,
+    fallback?.data?.accountType,
+    pickClaim(decodedToken, accountTypeKeys),
+  );
+  const storeId = pickFirstValue(
+    source?.storeId,
+    source?.StoreId,
+    source?.store?.id,
+    fallback?.storeId,
+    fallback?.data?.storeId,
+    pickClaim(decodedToken, storeIdKeys),
+  );
+  const storeCustomerId = pickFirstValue(
+    source?.storeCustomerId,
+    source?.customerStoreId,
+    source?.CustomerStoreId,
+    fallback?.storeCustomerId,
+    fallback?.data?.storeCustomerId,
+    pickClaim(decodedToken, storeCustomerIdKeys),
+  );
+  const id = pickFirstValue(
+    source?.id,
+    fallback?.id,
+    fallback?.data?.id,
+    storeCustomerId,
+    pickClaim(decodedToken, idKeys),
+  );
+  const email = pickFirstValue(
+    source?.email,
+    source?.Email,
+    fallback?.email,
+    fallback?.data?.email,
+    pickClaim(decodedToken, emailKeys),
+  );
+  const firstName = pickFirstValue(
+    source?.firstName,
+    source?.FirstName,
+    source?.givenName,
+    fallback?.firstName,
+    fallback?.data?.firstName,
+    pickClaim(decodedToken, firstNameKeys),
+  );
+  const lastName = pickFirstValue(
+    source?.lastName,
+    source?.LastName,
+    source?.familyName,
+    source?.surname,
+    fallback?.lastName,
+    fallback?.data?.lastName,
+    pickClaim(decodedToken, lastNameKeys),
+  );
+  const fullName = buildFullName(
+    firstName,
+    lastName,
+    pickFirstValue(
+      source?.fullName,
+      source?.name,
+      fallback?.fullName,
+      fallback?.name,
+      decodedToken?.name,
+    ),
+  );
+
+  if (!id && !email && !firstName && !lastName && !fullName && !storeId && !accountType) {
+    return null;
+  }
+
+  return {
+    ...(source && typeof source === "object" ? source : {}),
+    id: normalizeText(id),
+    email: normalizeText(email),
+    firstName: normalizeText(firstName),
+    lastName: normalizeText(lastName),
+    fullName,
+    storeCustomerId: normalizeText(storeCustomerId),
+    storeId: normalizeText(storeId),
+    accountType: normalizeText(accountType),
+  };
+}
+
+function isStoreScopedIdentity(identity, fallbackRole = "") {
+  if (!identity) {
+    return false;
+  }
+
+  return (
+    isStoreCustomerRole(identity.accountType) ||
+    isGuestRole(identity.accountType) ||
+    isStoreCustomerRole(fallbackRole) ||
+    isGuestRole(fallbackRole) ||
+    Boolean(identity.storeCustomerId) ||
+    Boolean(identity.storeId)
+  );
 }
 
 function coerceRoleValue(value) {
@@ -118,54 +250,47 @@ export function extractToken(data) {
 }
 
 export function extractUser(data, token = "") {
-  const directUser = data?.user || data?.data?.user || data?.owner || data?.data?.owner;
-  if (directUser) {
-    return directUser;
-  }
-
   const decodedToken = decodeJwtToken(token);
-  const id = pickFirstValue(
-    data?.storeCustomerId,
-    data?.data?.storeCustomerId,
-    data?.id,
-    data?.data?.id,
-    pickClaim(decodedToken, idKeys),
-  );
-  const email = pickFirstValue(data?.email, data?.data?.email, pickClaim(decodedToken, emailKeys));
-  const firstName = pickFirstValue(
-    data?.firstName,
-    data?.data?.firstName,
-    pickClaim(decodedToken, firstNameKeys),
-  );
-  const lastName = pickFirstValue(
-    data?.lastName,
-    data?.data?.lastName,
-    pickClaim(decodedToken, lastNameKeys),
-  );
-  const storeId = pickFirstValue(
-    data?.storeId,
-    data?.data?.storeId,
-    pickClaim(decodedToken, storeIdKeys),
-  );
-  const accountType = pickFirstValue(
-    data?.accountType,
-    data?.data?.accountType,
-    pickClaim(decodedToken, accountTypeKeys),
-  );
+  const identitySource = resolveIdentitySource(data);
+  const identity = normalizeIdentity(identitySource, decodedToken, data);
 
-  if (!id && !email && !firstName && !lastName && !storeId && !accountType) {
+  if (!identity) {
     return null;
   }
 
+  if (isStoreScopedIdentity(identity, identity.accountType)) {
+    return {
+      ...identity,
+      storeCustomerId: normalizeText(identity.storeCustomerId || identity.id),
+    };
+  }
+
+  return identity;
+}
+
+export function extractStorefrontCustomer(data, token = "") {
+  const decodedToken = decodeJwtToken(token);
+  const identity = normalizeIdentity(resolveIdentitySource(data), decodedToken, data);
+  const fallbackRole = pickFirstValue(
+    data?.role,
+    data?.data?.role,
+    data?.accountType,
+    data?.data?.accountType,
+    pickClaim(decodedToken, roleKeys),
+  );
+
+  if (!isStoreScopedIdentity(identity, fallbackRole)) {
+    return null;
+  }
+
+  const storeCustomerId = normalizeText(identity?.storeCustomerId || identity?.id);
+
   return {
-    id: id ? String(id) : "",
-    email: email ? String(email) : "",
-    firstName: firstName ? String(firstName) : "",
-    lastName: lastName ? String(lastName) : "",
-    fullName: `${firstName || ""} ${lastName || ""}`.trim(),
-    storeCustomerId: id ? String(id) : "",
-    storeId: storeId ? String(storeId) : "",
-    accountType: accountType ? String(accountType) : "",
+    ...identity,
+    id: storeCustomerId || normalizeText(identity?.id),
+    storeCustomerId,
+    storeId: normalizeText(identity?.storeId),
+    accountType: normalizeText(identity?.accountType || fallbackRole),
   };
 }
 

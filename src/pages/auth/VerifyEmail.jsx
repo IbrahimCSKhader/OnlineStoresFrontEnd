@@ -48,7 +48,7 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { slug: routeStoreSlug = "" } = useParams();
-  const { isPlatformUser, isStoreCustomer, role } = useAuth();
+  const { isPlatformUser, role, storeCustomer } = useAuth();
   const setSession = useAuthStore((state) => state.setSession);
   const mergeGuestCart = useMergeGuestCart();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
@@ -128,7 +128,7 @@ export default function VerifyEmail() {
   }
 
   const shouldRedirectAuthenticatedUser = isStoreCustomerMode
-    ? isStoreCustomer && storefrontSession.hasScopedStorefrontSession
+    ? Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession
     : isPlatformUser;
 
   if (shouldRedirectAuthenticatedUser) {

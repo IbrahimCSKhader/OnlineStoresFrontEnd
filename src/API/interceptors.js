@@ -25,13 +25,24 @@ function isPublicAuthRequest(configOrUrl) {
   const url =
     typeof configOrUrl === "string" ? configOrUrl : getRequestUrl(configOrUrl);
 
+  if (
+    url.includes("/api/store-customer-auth/store/") &&
+    url.includes("/login")
+  ) {
+    return true;
+  }
+
   return publicAuthPaths.some((path) => url.includes(path));
 }
 
 function attachAuthHeader(config) {
   const token = getAuthToken();
 
-  if (token && !isPublicAuthRequest(config)) {
+  if (
+    token &&
+    !isPublicAuthRequest(config) &&
+    !config?.headers?.Authorization
+  ) {
     config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }

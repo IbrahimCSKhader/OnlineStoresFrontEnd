@@ -8,7 +8,10 @@ export default function useStoreCustomerLogin(options = {}) {
   const setSession = useAuthStore((state) => state.setSession);
 
   return useMutation({
-    mutationFn: storeCustomerAuthApi.login,
+    mutationFn: ({ storeId, ...payload }) =>
+      storeId
+        ? storeCustomerAuthApi.loginByStore(storeId, payload)
+        : storeCustomerAuthApi.login(payload),
     ...options,
     onSuccess: (data, variables, context) => {
       const token = extractToken(data);

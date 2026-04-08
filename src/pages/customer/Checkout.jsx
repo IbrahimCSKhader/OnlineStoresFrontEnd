@@ -175,7 +175,7 @@ function redirectToWhatsApp(url, popup) {
 
 export default function Checkout() {
   const { slug } = useParams();
-  const { isStoreCustomer } = useAuth();
+  const { storeCustomer } = useAuth();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(initialForm);
   const [submitError, setSubmitError] = useState("");
@@ -203,7 +203,7 @@ export default function Checkout() {
     },
   });
 
-  if (!isStoreCustomer) {
+  if (!storeCustomer) {
     return (
       <Box className="storefront-page page-checkout">
         <EmptyState

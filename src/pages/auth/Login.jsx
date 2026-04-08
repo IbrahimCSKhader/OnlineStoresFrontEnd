@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Link as RouterLink,
   Navigate,
@@ -28,6 +28,7 @@ import useForgotPassword from "../../hooks/auth/useForgotPassword.js";
 import useResetPassword from "../../hooks/auth/useResetPassword.js";
 import useStoreCustomerForgotPassword from "../../hooks/auth/useStoreCustomerForgotPassword.js";
 import useStoreCustomerResetPassword from "../../hooks/auth/useStoreCustomerResetPassword.js";
+import useStoreCustomerSetPasswordFromAuthUser from "../../hooks/auth/useStoreCustomerSetPasswordFromAuthUser.js";
 import useMergeGuestCart from "../../hooks/cart/useMergeGuestCart.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
@@ -39,6 +40,11 @@ import {
 } from "../../utils/authSession.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
+import {
+  clearPendingStoreGoogleAuth,
+  getPendingStoreGoogleAuth,
+  setPendingStoreGoogleAuth,
+} from "../../utils/pendingStoreGoogleAuth.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
 import {
@@ -58,6 +64,7 @@ const FLOW = {
   VERIFY_EMAIL: "verify-email",
   FORGOT_PASSWORD: "forgot-password",
   RESET_PASSWORD: "reset-password",
+  GOOGLE_STORE_SETUP: "google-store-setup",
 };
 const GOOGLE_REDIRECT_FALLBACK_KEY = "googleAuthRedirectFallback";
 
@@ -101,6 +108,14 @@ function getFlowHeading(flow) {
 }
 
 function getStoreFlowHeading(flow, storeLabel) {
+  if (flow === FLOW.GOOGLE_STORE_SETUP) {
+    return {
+      overline: "Google Store Access",
+      title: `إكمال الدخول إلى ${storeLabel}`,
+      description:
+        "حوّل جلسة Google العامة إلى StoreCustomer صالح لهذا المتجر عبر تعيين كلمة مرور ثم تسجيل الدخول.",
+    };
+  }
   if (flow === FLOW.FORGOT_PASSWORD) {
     return {
       overline: "استعادة الحساب",
@@ -128,7 +143,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
   const location = useLocation();
-  const { isStoreCustomer, isPlatformUser, role } = useAuth();
+  const { isPlatformUser, role, storeCustomer } = useAuth();
   const setSession = useAuthStore((state) => state.setSession);
   const mergeGuestCart = useMergeGuestCart();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
@@ -188,6 +203,8 @@ export default function Login() {
   const platformResetPasswordMutation = useResetPassword();
   const storeCustomerForgotPasswordMutation = useStoreCustomerForgotPassword();
   const storeCustomerResetPasswordMutation = useStoreCustomerResetPassword();
+  const storeCustomerSetPasswordFromAuthUserMutation =
+    useStoreCustomerSetPasswordFromAuthUser();
   const forgotPasswordMutation = isStoreCustomerMode
     ? storeCustomerForgotPasswordMutation
     : platformForgotPasswordMutation;
@@ -200,17 +217,56 @@ export default function Login() {
   const [successMessage, setSuccessMessage] = useState("");
   const [localError, setLocalError] = useState("");
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+  const pendingStoreGoogleAuth = useMemo(() => {
+    if (!isStoreCustomerMode) {
+      return null;
+    }
+
+    const pendingAuth = getPendingStoreGoogleAuth();
+
+    if (!pendingAuth?.appUserToken) {
+      return null;
+    }
+
+    const currentStoreId = storeCustomerAuthState?.storeId || "";
+    const currentStoreSlug =
+      storeCustomerAuthState?.storeSlug || routeStoreSlug || "";
+    const matchesStoreId =
+      pendingAuth.storeId && currentStoreId && pendingAuth.storeId === currentStoreId;
+    const matchesStoreSlug =
+      pendingAuth.storeSlug &&
+      currentStoreSlug &&
+      pendingAuth.storeSlug === currentStoreSlug;
+
+    if (!matchesStoreId && !matchesStoreSlug) {
+      return null;
+    }
+
+    if (!pendingAuth.storeId && currentStoreId) {
+      return {
+        ...pendingAuth,
+        storeId: currentStoreId,
+      };
+    }
+
+    return pendingAuth;
+  }, [
+    isStoreCustomerMode,
+    routeStoreSlug,
+    storeCustomerAuthState?.storeId,
+    storeCustomerAuthState?.storeSlug,
+  ]);
 
   const defaultValues = useMemo(
     () => ({
-      email: "",
+      email: pendingStoreGoogleAuth?.email || "",
       password: "",
       verificationCode: "",
       resetCode: "",
       newPassword: "",
       confirmNewPassword: "",
     }),
-    [],
+    [pendingStoreGoogleAuth?.email],
   );
 
   const {
@@ -221,8 +277,21 @@ export default function Login() {
     formState: { errors },
   } = useForm({ defaultValues });
 
+  useEffect(() => {
+    if (!pendingStoreGoogleAuth) {
+      return;
+    }
+
+    if (pendingStoreGoogleAuth.storeId !== (storeCustomerAuthState?.storeId || "")) {
+      setPendingStoreGoogleAuth(pendingStoreGoogleAuth);
+    }
+
+    setValue("email", pendingStoreGoogleAuth.email || "");
+    setFlow(FLOW.GOOGLE_STORE_SETUP);
+  }, [pendingStoreGoogleAuth, setValue, storeCustomerAuthState?.storeId]);
+
   const shouldRedirectAuthenticatedUser = isStoreCustomerMode
-    ? isStoreCustomer && storefrontSession.hasScopedStorefrontSession
+    ? Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession
     : isPlatformUser;
 
   if (shouldRedirectAuthenticatedUser) {
@@ -237,6 +306,7 @@ export default function Login() {
   function resetMutations() {
     loginMutation.reset();
     storeCustomerLoginMutation.reset();
+    storeCustomerSetPasswordFromAuthUserMutation.reset();
     verifyEmailMutation.reset();
     resendVerificationCodeMutation.reset();
     forgotPasswordMutation.reset();
@@ -264,6 +334,7 @@ export default function Login() {
 
     try {
       setIsLoadingGoogle(true);
+      clearPendingStoreGoogleAuth();
       const apiBaseUrl = (
         import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
       ).replace(/\/+$/, "");
@@ -335,6 +406,7 @@ export default function Login() {
           email,
           password: values.password,
         });
+        clearPendingStoreGoogleAuth();
         await mergeGuestCart();
         navigate(redirectTo, { replace: true });
         return;
@@ -395,6 +467,57 @@ export default function Login() {
         return;
       }
 
+      setLocalError(getErrorMessage(error));
+    }
+  });
+
+  const onGoogleStoreSetupSubmit = handleSubmit(async (values) => {
+    resetAlerts();
+
+    if (!pendingStoreGoogleAuth?.appUserToken) {
+      clearPendingStoreGoogleAuth();
+      moveTo(FLOW.LOGIN);
+      setLocalError(
+        "انتهت جلسة Google الخاصة بهذا المتجر. ابدأ الدخول عبر Google مرة أخرى.",
+      );
+      return;
+    }
+
+    const resolvedStoreId =
+      storeCustomerAuthState?.storeId || pendingStoreGoogleAuth.storeId;
+    const email = pendingStoreGoogleAuth.email || values.email.trim();
+
+    if (!resolvedStoreId) {
+      setLocalError("تعذر تحديد المتجر المطلوب لإكمال دخول Google.");
+      return;
+    }
+
+    if (!email) {
+      setLocalError("تعذر تحديد البريد المرتبط بحساب Google لهذا المتجر.");
+      return;
+    }
+
+    try {
+      await storeCustomerSetPasswordFromAuthUserMutation.mutateAsync({
+        storeId: resolvedStoreId,
+        appUserToken: pendingStoreGoogleAuth.appUserToken,
+        newPassword: values.newPassword,
+        confirmPassword: values.confirmNewPassword,
+      });
+
+      await storeCustomerLoginMutation.mutateAsync({
+        storeId: resolvedStoreId,
+        email,
+        password: values.newPassword,
+      });
+
+      clearPendingStoreGoogleAuth();
+      setValue("password", "");
+      setValue("newPassword", "");
+      setValue("confirmNewPassword", "");
+      await mergeGuestCart();
+      navigate(redirectTo, { replace: true });
+    } catch (error) {
       setLocalError(getErrorMessage(error));
     }
   });
@@ -550,6 +673,7 @@ export default function Login() {
   const isBusy =
     loginMutation.isPending ||
     storeCustomerLoginMutation.isPending ||
+    storeCustomerSetPasswordFromAuthUserMutation.isPending ||
     verifyEmailMutation.isPending ||
     resendVerificationCodeMutation.isPending ||
     forgotPasswordMutation.isPending ||
@@ -702,6 +826,103 @@ export default function Login() {
                     </Button>
                   ) : null}
                 </Stack>
+              </Stack>
+            ) : null}
+
+            {flow === FLOW.GOOGLE_STORE_SETUP ? (
+              <Stack
+                spacing={1.5}
+                component="form"
+                onSubmit={onGoogleStoreSetupSubmit}
+              >
+                <Alert severity="info">
+                  تم التحقق من حساب Google. عيّن كلمة مرور لهذا المتجر ليتم إنشاء جلسة StoreCustomer صالحة للسلة والطلبات.
+                </Alert>
+
+                <TextField
+                  label="البريد الإلكتروني"
+                  value={pendingStoreGoogleAuth?.email || getValues("email")}
+                  disabled
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <EmailRoundedIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+
+                <TextField
+                  label="كلمة مرور جديدة لهذا المتجر"
+                  type="password"
+                  fullWidth
+                  autoComplete="new-password"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockRoundedIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  {...register("newPassword", {
+                    required: "كلمة المرور مطلوبة",
+                    minLength: {
+                      value: 6,
+                      message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+                    },
+                  })}
+                  error={Boolean(errors.newPassword)}
+                  helperText={errors.newPassword?.message}
+                />
+
+                <TextField
+                  label="تأكيد كلمة المرور"
+                  type="password"
+                  fullWidth
+                  autoComplete="new-password"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockRoundedIcon fontSize="small" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  {...register("confirmNewPassword", {
+                    required: "تأكيد كلمة المرور مطلوب",
+                    validate: (value) =>
+                      value === getValues("newPassword") ||
+                      "كلمتا المرور غير متطابقتين",
+                  })}
+                  error={Boolean(errors.confirmNewPassword)}
+                  helperText={errors.confirmNewPassword?.message}
+                />
+
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={isBusy}
+                >
+                  {storeCustomerSetPasswordFromAuthUserMutation.isPending ||
+                  storeCustomerLoginMutation.isPending
+                    ? "جارٍ إكمال الدخول..."
+                    : "إكمال الدخول إلى المتجر"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="text"
+                  onClick={() => {
+                    clearPendingStoreGoogleAuth();
+                    setValue("newPassword", "");
+                    setValue("confirmNewPassword", "");
+                    moveTo(FLOW.LOGIN);
+                  }}
+                  disabled={isBusy}
+                >
+                  رجوع إلى تسجيل الدخول العادي
+                </Button>
               </Stack>
             ) : null}
 

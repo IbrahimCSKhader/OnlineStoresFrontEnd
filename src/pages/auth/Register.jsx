@@ -38,7 +38,7 @@ export default function Register() {
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
   const location = useLocation();
-  const { isStoreCustomer } = useAuth();
+  const { storeCustomer } = useAuth();
   const registerMutation = useStoreCustomerRegister();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
     enabled: Boolean(routeStoreSlug),
@@ -98,7 +98,7 @@ export default function Register() {
     formState: { errors },
   } = useForm({ defaultValues });
 
-  if (isStoreCustomer && storefrontSession.hasScopedStorefrontSession) {
+  if (storeCustomer && storefrontSession.hasScopedStorefrontSession) {
     return <Navigate to={redirectTo} replace />;
   }
 

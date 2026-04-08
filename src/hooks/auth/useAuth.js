@@ -1,4 +1,5 @@
 import useAuthStore from "../../store/authStore.js";
+import { extractStorefrontCustomer } from "../../utils/authSession.js";
 import {
   isGuestRole,
   isOwnerRole,
@@ -16,10 +17,20 @@ export default function useAuth() {
     isOwnerRole(role) ||
     isSuperAdminRole(user?.accountType) ||
     isOwnerRole(user?.accountType);
+  const storefrontCustomer = hasStorefrontCustomerSession
+    ? extractStorefrontCustomer(user)
+    : null;
+  const storeCustomer = isStoreCustomer ? storefrontCustomer : null;
+  const guestStoreCustomer = isGuestSession ? storefrontCustomer : null;
+  const platformUser = isPlatformUser ? user : null;
 
   return {
     token,
     user,
+    storefrontCustomer,
+    storeCustomer,
+    guestStoreCustomer,
+    platformUser,
     role,
     isAuthenticated,
     isStoreCustomer,

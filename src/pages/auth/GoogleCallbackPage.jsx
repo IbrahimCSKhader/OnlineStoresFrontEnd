@@ -7,6 +7,11 @@ import Typography from "@mui/material/Typography";
 import useAuthStore from "../../store/authStore.js";
 import { extractRole, extractUser } from "../../utils/authSession.js";
 import {
+  clearPendingStoreGoogleAuth,
+  setPendingStoreGoogleAuth,
+} from "../../utils/pendingStoreGoogleAuth.js";
+import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
+import {
   clearAuthSession,
   getAuthToken,
   getStoredAuthRole,
@@ -74,8 +79,12 @@ function GoogleCallbackPage() {
     const searchParams = new URLSearchParams(location.search);
     const hashParams = readHashParams(location.hash);
     const pendingRedirect = readPendingGoogleRedirectPath();
+    const callbackStoreId =
+      hashParams.get("storeId") || searchParams.get("storeId") || "";
     const callbackStoreSlug =
       hashParams.get("storeSlug") || searchParams.get("storeSlug") || "";
+    const callbackStoreName =
+      hashParams.get("storeName") || searchParams.get("storeName") || "";
     const callbackStoreRedirect = callbackStoreSlug
       ? `/market/${callbackStoreSlug}`
       : "";
@@ -95,8 +104,10 @@ function GoogleCallbackPage() {
     const redirectPath = isSafeInternalRedirect(redirectCandidate)
       ? redirectCandidate
       : DEFAULT_REDIRECT_PATH;
+    const hasStoreGoogleContext = Boolean(callbackStoreId || callbackStoreSlug);
 
     if (error) {
+      clearPendingStoreGoogleAuth();
       clearPendingGoogleRedirectPath();
       navigate(`${GOOGLE_FAILURE_PATH}?message=${encodeURIComponent(error)}`, {
         replace: true,
@@ -125,6 +136,7 @@ function GoogleCallbackPage() {
           user: persistedUser,
           role: persistedRole,
         });
+        clearPendingStoreGoogleAuth();
         clearPendingGoogleRedirectPath();
 
         window.history.replaceState(
@@ -136,6 +148,7 @@ function GoogleCallbackPage() {
         return;
       }
 
+      clearPendingStoreGoogleAuth();
       clearPendingGoogleRedirectPath();
       navigate(`${GOOGLE_FAILURE_PATH}?message=missing_token`, {
         replace: true,
@@ -146,6 +159,43 @@ function GoogleCallbackPage() {
     const user = extractUser({}, token);
     const role = extractRole({}, token, user);
 
+    if (hasStoreGoogleContext) {
+      const storeAuthState = buildStoreCustomerAuthState({
+        storeId: callbackStoreId || "",
+        storeSlug: callbackStoreSlug,
+        storeName: callbackStoreName,
+        redirectTo: redirectPath,
+      });
+      const storeLoginPath = storeAuthState.storeSlug
+        ? `/market/${storeAuthState.storeSlug}/login`
+        : "/auth/login";
+
+      setPendingStoreGoogleAuth({
+        appUserToken: token,
+        email: user?.email || "",
+        storeId: storeAuthState.storeId,
+        storeSlug: storeAuthState.storeSlug,
+        storeName: storeAuthState.storeName,
+        redirectTo: storeAuthState.redirectTo,
+      });
+      clearPendingGoogleRedirectPath();
+
+      window.history.replaceState(
+        window.history.state,
+        document.title,
+        location.pathname,
+      );
+      navigate(storeLoginPath, {
+        replace: true,
+        state: {
+          ...storeAuthState,
+          googleStoreAuthPending: true,
+        },
+      });
+      return;
+    }
+
+    clearPendingStoreGoogleAuth();
     setAuthToken(token);
 
     if (user) {

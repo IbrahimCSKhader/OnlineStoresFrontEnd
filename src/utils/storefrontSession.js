@@ -1,7 +1,12 @@
 import cartApi from "../API/cart.api.js";
 import storeCustomerAuthApi from "../API/storeCustomerAuth.api.js";
 import useAuthStore from "../store/authStore.js";
-import { extractRole, extractToken, extractUser } from "./authSession.js";
+import {
+  extractRole,
+  extractStorefrontCustomer,
+  extractToken,
+  extractUser,
+} from "./authSession.js";
 import { clearGuestCart, getGuestCart } from "./guestCart.js";
 import {
   isGuestRole,
@@ -78,8 +83,8 @@ async function migrateGuestCartToServer(storeId) {
 export function getStorefrontSessionState(storeId, authState = useAuthStore.getState()) {
   const normalizedStoreId = normalizeStoreId(storeId);
   const role = authState?.role;
-  const user = authState?.user;
-  const accountType = user?.accountType;
+  const user = authState?.storefrontCustomer || extractStorefrontCustomer(authState?.user) || authState?.user;
+  const accountType = user?.accountType || authState?.user?.accountType;
   const isRegisteredStoreCustomer = hasMatchingRole(
     isStoreCustomerRole,
     role,
@@ -107,6 +112,7 @@ export function getStorefrontSessionState(storeId, authState = useAuthStore.getS
   return {
     normalizedStoreId,
     sessionStoreId,
+    storefrontCustomer: extractStorefrontCustomer(user) || null,
     isRegisteredStoreCustomer,
     isGuestSession,
     hasStorefrontCustomerSession,
