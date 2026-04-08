@@ -58,6 +58,17 @@ function buildOptimisticCart(currentCart, payload, storeId) {
   };
 }
 
+function buildAddToCartRequest(payload, storeId) {
+  const resolvedStoreId = storeId || payload?.storeId;
+
+  return {
+    productId: payload?.productId,
+    variantId: payload?.variantId || null,
+    quantity: Math.max(1, toNumber(payload?.quantity, 1)),
+    storeId: resolvedStoreId,
+  };
+}
+
 export default function useAddToCart(storeId, options = {}) {
   const queryClient = useQueryClient();
   const { useLocalGuestCart, hasScopedStorefrontSession, ensureStorefrontSession } =
@@ -74,7 +85,7 @@ export default function useAddToCart(storeId, options = {}) {
         await ensureStorefrontSession();
       }
 
-      return cartApi.addToCart(payload);
+      return cartApi.addToCart(buildAddToCartRequest(payload, storeId));
     },
     ...options,
     onMutate: async (variables) => {
