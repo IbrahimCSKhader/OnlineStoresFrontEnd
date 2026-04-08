@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -24,10 +25,24 @@ const cacheLtr = createCache({
 const defaultVariant = "light";
 const noop = () => {};
 
+function normalizeThemeVariant(value, fallback = null) {
+  return THEME_VARIANTS.includes(value) ? value : fallback;
+}
+
+function resolveStoredThemeVariant() {
+  return normalizeThemeVariant(
+    getStorageItem(storageKeys.themeVariant, null),
+    null,
+  );
+}
+
 const ThemeVariantContext = createContext({
   variant: defaultVariant,
   setVariant: noop,
   themeProfile: buildThemeProfile(defaultVariant),
+  hasStoredPreference: false,
+  setStoreDefaultVariant: noop,
+  clearStoreDefaultVariant: noop,
   setThemeBranding: noop,
   clearThemeBranding: noop,
 });
@@ -47,25 +62,36 @@ export function useAppThemeVariant() {
 }
 
 export default function AppThemeProvider({ children }) {
-  const [variant, setVariant] = useState(() => {
-    const storedVariant = getStorageItem(storageKeys.themeVariant, defaultVariant);
+  const [userVariant, setUserVariant] = useState(() => resolveStoredThemeVariant());
+  const [storeDefaultVariant, setStoreDefaultVariantState] = useState(
+    defaultVariant,
+  );
 
-    return THEME_VARIANTS.includes(storedVariant)
-      ? storedVariant
-      : defaultVariant;
-  });
-  const setThemeBranding = noop;
-  const clearThemeBranding = noop;
-
+  const variant = userVariant ?? storeDefaultVariant ?? defaultVariant;
   const themeProfile = useMemo(() => buildThemeProfile(variant), [variant]);
   const theme = useMemo(() => createAppTheme(themeProfile), [themeProfile]);
+
+  const setVariant = useCallback((nextVariant) => {
+    const normalizedVariant = normalizeThemeVariant(nextVariant, defaultVariant);
+
+    setUserVariant(normalizedVariant);
+    setStorageItem(storageKeys.themeVariant, normalizedVariant);
+  }, []);
+
+  const setStoreDefaultVariant = useCallback((nextVariant) => {
+    const normalizedVariant = normalizeThemeVariant(nextVariant, defaultVariant);
+    setStoreDefaultVariantState(normalizedVariant);
+  }, []);
+
+  const clearStoreDefaultVariant = useCallback(() => {
+    setStoreDefaultVariantState(defaultVariant);
+  }, []);
 
   useEffect(() => {
     document.documentElement.dataset.theme = variant;
     document.documentElement.dataset.themeMode = themeProfile.mode;
     document.documentElement.dir = "rtl";
     document.documentElement.lang = "ar";
-    setStorageItem(storageKeys.themeVariant, variant);
     applyCssVariables(themeProfile.cssVars);
   }, [themeProfile, variant]);
 
@@ -74,10 +100,20 @@ export default function AppThemeProvider({ children }) {
       variant,
       setVariant,
       themeProfile,
-      setThemeBranding,
-      clearThemeBranding,
+      hasStoredPreference: Boolean(userVariant),
+      setStoreDefaultVariant,
+      clearStoreDefaultVariant,
+      setThemeBranding: noop,
+      clearThemeBranding: noop,
     }),
-    [clearThemeBranding, setThemeBranding, themeProfile, variant],
+    [
+      clearStoreDefaultVariant,
+      setStoreDefaultVariant,
+      setVariant,
+      themeProfile,
+      userVariant,
+      variant,
+    ],
   );
 
   return (
