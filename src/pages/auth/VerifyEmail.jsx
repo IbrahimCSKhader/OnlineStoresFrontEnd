@@ -24,6 +24,7 @@ import useStoreCustomerVerifyEmail from "../../hooks/auth/useStoreCustomerVerify
 import useStoreCustomerResendVerificationCode from "../../hooks/auth/useStoreCustomerResendVerificationCode.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useMergeGuestCart from "../../hooks/cart/useMergeGuestCart.js";
+import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useAuthStore from "../../store/authStore.js";
 import { extractRole, extractToken, extractUser } from "../../utils/authSession.js";
@@ -71,6 +72,7 @@ export default function VerifyEmail() {
     : null;
   const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
   const isStoreCustomerMode = Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
+  const storefrontSession = useStorefrontSession(storeCustomerAuthState?.storeId);
   const redirectTo = isStoreCustomerMode
     ? getStoreCustomerRedirectPath(storeCustomerAuthState)
     : location.state?.redirectTo || "";
@@ -125,7 +127,11 @@ export default function VerifyEmail() {
     );
   }
 
-  if (isStoreCustomerMode ? isStoreCustomer : isPlatformUser) {
+  const shouldRedirectAuthenticatedUser = isStoreCustomerMode
+    ? isStoreCustomer && storefrontSession.hasScopedStorefrontSession
+    : isPlatformUser;
+
+  if (shouldRedirectAuthenticatedUser) {
     return <Navigate to={redirectTo || getLandingPath(role)} replace />;
   }
 

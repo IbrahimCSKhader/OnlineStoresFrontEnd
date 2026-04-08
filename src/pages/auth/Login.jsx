@@ -29,6 +29,7 @@ import useResetPassword from "../../hooks/auth/useResetPassword.js";
 import useStoreCustomerForgotPassword from "../../hooks/auth/useStoreCustomerForgotPassword.js";
 import useStoreCustomerResetPassword from "../../hooks/auth/useStoreCustomerResetPassword.js";
 import useMergeGuestCart from "../../hooks/cart/useMergeGuestCart.js";
+import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useAuthStore from "../../store/authStore.js";
 import {
@@ -153,6 +154,7 @@ export default function Login() {
     routeStoreCustomerAuthState || stateStoreCustomerAuth;
   const isStoreCustomerMode =
     Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
+  const storefrontSession = useStorefrontSession(storeCustomerAuthState?.storeId);
   const redirectTo = isStoreCustomerMode
     ? getStoreCustomerRedirectPath(storeCustomerAuthState)
     : location.state?.redirectTo || "";
@@ -219,7 +221,11 @@ export default function Login() {
     formState: { errors },
   } = useForm({ defaultValues });
 
-  if (isStoreCustomerMode ? isStoreCustomer : isPlatformUser) {
+  const shouldRedirectAuthenticatedUser = isStoreCustomerMode
+    ? isStoreCustomer && storefrontSession.hasScopedStorefrontSession
+    : isPlatformUser;
+
+  if (shouldRedirectAuthenticatedUser) {
     return <Navigate to={redirectTo || getLandingPath(role)} replace />;
   }
 

@@ -21,6 +21,7 @@ import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import useAuth from "../../hooks/auth/useAuth.js";
+import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useStoreCustomerRegister from "../../hooks/auth/useStoreCustomerRegister.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
@@ -59,6 +60,7 @@ export default function Register() {
       })
     : null;
   const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
+  const storefrontSession = useStorefrontSession(storeCustomerAuthState?.storeId);
   const redirectTo = getStoreCustomerRedirectPath(storeCustomerAuthState);
   const storeLabel =
     storeCustomerAuthState?.storeName ||
@@ -96,7 +98,7 @@ export default function Register() {
     formState: { errors },
   } = useForm({ defaultValues });
 
-  if (isStoreCustomer) {
+  if (isStoreCustomer && storefrontSession.hasScopedStorefrontSession) {
     return <Navigate to={redirectTo} replace />;
   }
 
