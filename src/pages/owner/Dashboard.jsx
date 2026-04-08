@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -16,6 +16,7 @@ import AdminPanelSettingsRoundedIcon from "@mui/icons-material/AdminPanelSetting
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ConfirmationNumberRoundedIcon from "@mui/icons-material/ConfirmationNumberRounded";
+import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
@@ -158,6 +159,29 @@ const ORDER_STATUS_OPTIONS = [
   { value: 5, label: "ملغي" },
   { value: 6, label: "مسترجع" },
 ];
+
+const MOBILE_SIDEBAR_LAUNCHER_DEFAULT_TOP = 220;
+const MOBILE_SIDEBAR_LAUNCHER_MIN_TOP = 92;
+const MOBILE_SIDEBAR_LAUNCHER_HEIGHT = 56;
+const MOBILE_SIDEBAR_LAUNCHER_BOTTOM_GAP = 92;
+
+function clampMobileSidebarLauncherTop(value) {
+  if (typeof window === "undefined") {
+    return value;
+  }
+
+  const maxTop = Math.max(
+    MOBILE_SIDEBAR_LAUNCHER_MIN_TOP,
+    window.innerHeight -
+      MOBILE_SIDEBAR_LAUNCHER_HEIGHT -
+      MOBILE_SIDEBAR_LAUNCHER_BOTTOM_GAP,
+  );
+
+  return Math.min(
+    Math.max(value, MOBILE_SIDEBAR_LAUNCHER_MIN_TOP),
+    maxTop,
+  );
+}
 
 function getErrorMessage(error) {
   return (
@@ -564,11 +588,22 @@ function SectionHeader({ title, description, onRefresh, isRefreshing }) {
 export default function OwnerDashboard({ initialTab = "overview" }) {
   const navigate = useNavigate();
   const isCompactScreen = useMediaQuery("(max-width:1080px)");
+  const mobileSidebarDragRef = useRef({
+    pointerId: null,
+    startY: 0,
+    startTop: MOBILE_SIDEBAR_LAUNCHER_DEFAULT_TOP,
+    moved: false,
+  });
+  const mobileSidebarIgnoreClickRef = useRef(false);
   const { isAuthenticated, role } = useAuth();
   const activeTab = TAB_CONFIG.some((tab) => tab.key === initialTab)
     ? initialTab
     : "overview";
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobileSidebarDragging, setIsMobileSidebarDragging] = useState(false);
+  const [mobileSidebarLauncherTop, setMobileSidebarLauncherTop] = useState(
+    MOBILE_SIDEBAR_LAUNCHER_DEFAULT_TOP,
+  );
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
   const ownerStoreQuery = useOwnerStore({ refetchOnWindowFocus: false });
@@ -1026,10 +1061,109 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     handleTabNavigate(key);
   };
 
+  const finishMobileSidebarDrag = (event) => {
+    const dragState = mobileSidebarDragRef.current;
+    const hasDragged = dragState.moved;
+
+    if (dragState.pointerId !== null) {
+      event?.currentTarget?.releasePointerCapture?.(dragState.pointerId);
+    }
+
+    mobileSidebarDragRef.current = {
+      pointerId: null,
+      startY: 0,
+      startTop: mobileSidebarLauncherTop,
+      moved: false,
+    };
+
+    if (hasDragged) {
+      mobileSidebarIgnoreClickRef.current = true;
+      window.setTimeout(() => {
+        mobileSidebarIgnoreClickRef.current = false;
+      }, 0);
+    }
+
+    setIsMobileSidebarDragging(false);
+  };
+
+  const handleMobileSidebarPointerDown = (event) => {
+    if (!isCompactScreen) {
+      return;
+    }
+
+    mobileSidebarDragRef.current = {
+      pointerId: event.pointerId,
+      startY: event.clientY,
+      startTop: mobileSidebarLauncherTop,
+      moved: false,
+    };
+
+    setIsMobileSidebarDragging(false);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handleMobileSidebarPointerMove = (event) => {
+    const dragState = mobileSidebarDragRef.current;
+
+    if (dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaY = event.clientY - dragState.startY;
+
+    if (!dragState.moved && Math.abs(deltaY) > 6) {
+      dragState.moved = true;
+      setIsMobileSidebarDragging(true);
+    }
+
+    if (!dragState.moved) {
+      return;
+    }
+
+    setMobileSidebarLauncherTop(
+      clampMobileSidebarLauncherTop(dragState.startTop + deltaY),
+    );
+  };
+
+  const handleMobileSidebarPointerUp = (event) => {
+    finishMobileSidebarDrag(event);
+  };
+
+  const handleMobileSidebarPointerCancel = (event) => {
+    finishMobileSidebarDrag(event);
+  };
+
+  const handleMobileSidebarLauncherClick = () => {
+    if (mobileSidebarIgnoreClickRef.current) {
+      return;
+    }
+
+    setIsMobileSidebarOpen(true);
+  };
+
   useEffect(() => {
     if (!isCompactScreen) {
       setIsMobileSidebarOpen(false);
     }
+  }, [isCompactScreen]);
+
+  useEffect(() => {
+    if (!isCompactScreen || typeof window === "undefined") {
+      return undefined;
+    }
+
+    const syncLauncherPosition = () => {
+      setMobileSidebarLauncherTop((previous) =>
+        clampMobileSidebarLauncherTop(previous),
+      );
+    };
+
+    syncLauncherPosition();
+    window.addEventListener("resize", syncLauncherPosition);
+
+    return () => {
+      window.removeEventListener("resize", syncLauncherPosition);
+    };
   }, [isCompactScreen]);
 
   const handleProductFormChange = (key, value) => {
@@ -1610,15 +1744,27 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       <Box className="owner-dashboard">
         {isCompactScreen ? (
           <>
-            <Box className="owner-mobile-nav">
-              <AppButton
-                variant="outlined"
-                startIcon={<AdminPanelSettingsRoundedIcon fontSize="small" />}
-                onClick={() => setIsMobileSidebarOpen(true)}
-              >
-                القائمة الإدارية
-              </AppButton>
-            </Box>
+            <button
+              type="button"
+              className={`owner-mobile-launcher${
+                isMobileSidebarDragging ? " owner-mobile-launcher--dragging" : ""
+              }`}
+              style={{ top: `${mobileSidebarLauncherTop}px` }}
+              onClick={handleMobileSidebarLauncherClick}
+              onPointerDown={handleMobileSidebarPointerDown}
+              onPointerMove={handleMobileSidebarPointerMove}
+              onPointerUp={handleMobileSidebarPointerUp}
+              onPointerCancel={handleMobileSidebarPointerCancel}
+              aria-label="فتح إدارة المتجر"
+            >
+              <span className="owner-mobile-launcher__icon" aria-hidden>
+                <AdminPanelSettingsRoundedIcon fontSize="small" />
+              </span>
+              <span className="owner-mobile-launcher__text">إدارة المتجر</span>
+              <span className="owner-mobile-launcher__drag" aria-hidden>
+                <DragIndicatorRoundedIcon fontSize="inherit" />
+              </span>
+            </button>
 
             <Drawer
               anchor="right"
