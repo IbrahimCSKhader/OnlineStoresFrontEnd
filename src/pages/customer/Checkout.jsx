@@ -10,11 +10,13 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import CheckoutForm from "../../components/order/CheckoutForm.jsx";
 import useAuth from "../../hooks/auth/useAuth.js";
+import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useCart from "../../hooks/cart/useCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useCreateOrder from "../../hooks/orders/useCreateOrder.js";
 import cartApi from "../../API/cart.api.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
+import extractApiError from "../../utils/extractApiError.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
@@ -180,7 +182,6 @@ export default function Checkout() {
   const [form, setForm] = useState(initialForm);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
-  const [lastWhatsAppUrl, setLastWhatsAppUrl] = useState("");
 
   const storeQuery = useStoreBySlug(slug);
   const store = useMemo(
@@ -193,6 +194,7 @@ export default function Checkout() {
   const cartQuery = useCart(store?.id, {
     enabled: Boolean(store?.id),
   });
+  const storefrontSession = useStorefrontSession(store?.id);
   const createOrderMutation = useCreateOrder(store?.id);
   const cart = normalizeCartResponse(cartQuery.data);
 
@@ -245,6 +247,26 @@ export default function Checkout() {
     );
   }
 
+  if (storefrontSession.hasConflictingStoreCustomerSession) {
+    return (
+      <Box className="storefront-page page-checkout">
+        <EmptyState
+          title="يلزم تسجيل الدخول لهذا المتجر"
+          description="يبدو أنك مسجل الدخول كعميل لمتجر آخر، لذلك يرفض النظام إنشاء الطلب هنا. سجّل الدخول من جديد داخل هذا المتجر ثم أعد المحاولة."
+          action={
+            <AppButton
+              component={RouterLink}
+              to={`/market/${slug}/login`}
+              variant="contained"
+            >
+              تسجيل الدخول لهذا المتجر
+            </AppButton>
+          }
+        />
+      </Box>
+    );
+  }
+
   if (!cart.items.length && !cartQuery.isLoading) {
     return (
       <Box className="storefront-page page-checkout">
@@ -268,6 +290,13 @@ export default function Checkout() {
   const handleSubmitOrder = async () => {
     setSubmitError("");
     setSubmitSuccess("");
+
+    if (!storefrontSession.hasScopedStorefrontSession) {
+      setSubmitError(
+        "جلسة تسجيل الدخول الحالية لا تخص هذا المتجر. سجّل الدخول من داخل هذا المتجر ثم أعد المحاولة.",
+      );
+      return;
+    }
 
     if (!String(form.fullName || "").trim()) {
       setSubmitError("يرجى إدخال الاسم الكامل قبل إرسال الطلب.");
@@ -307,7 +336,6 @@ export default function Checkout() {
       console.log("[Checkout] WhatsApp URL:", whatsappUrl);
     }
 
-    setLastWhatsAppUrl(whatsappUrl);
     const pendingWhatsAppWindow = openPendingWhatsAppWindow();
 
     const payload = {
@@ -322,10 +350,24 @@ export default function Checkout() {
 
     try {
       await createOrderMutation.mutateAsync(payload);
-    } catch {
+    } catch (error) {
       closePendingWhatsAppWindow(pendingWhatsAppWindow);
+
+      if (error?.response?.status === 403) {
+        setSubmitError(
+          extractApiError(
+            error,
+            "تم رفض إنشاء الطلب من النظام. غالبًا جلسة العميل الحالية لا تخص هذا المتجر أو لا تملك صلاحية إنشاء الطلب هنا.",
+          ),
+        );
+        return;
+      }
+
       setSubmitError(
-        "تعذر إنشاء الطلب على النظام. يرجى التحقق من كود الخصم أو البيانات ثم إعادة المحاولة.",
+        extractApiError(
+          error,
+          "تعذر إنشاء الطلب على النظام. يرجى التحقق من كود الخصم أو البيانات ثم إعادة المحاولة.",
+        ),
       );
       return;
     }
@@ -375,7 +417,7 @@ export default function Checkout() {
         </Box>
       </SurfaceCard>
 
-      {lastWhatsAppUrl ? (
+      {false ? (
         <Alert severity="info">
           إذا لم يفتح واتساب تلقائيًا يمكنك فتح الرابط يدويًا:
           <br />
