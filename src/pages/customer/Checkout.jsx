@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link as RouterLink, Navigate, useParams } from "react-router-dom";
+import { Link as RouterLink, useParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -18,6 +18,7 @@ import { normalizeEntityResponse } from "../../utils/collections.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
+import { buildWhatsAppLink } from "../../utils/whatsapp.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./Checkout.css";
 
@@ -80,11 +81,6 @@ function findStoreWhatsAppNumber(store) {
   return "";
 }
 
-function buildWhatsAppUrl(phoneNumber, message) {
-  const encodedMessage = encodeURIComponent(message);
-  return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-}
-
 function buildWhatsAppOrderMessage({ store, cart, form }) {
   const orderItems = cart.items.map((item, index) => {
     const productName =
@@ -122,6 +118,59 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
   ];
 
   return lines.join("\n");
+}
+
+function openPendingWhatsAppWindow() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const popup = window.open("", "_blank");
+
+  if (!popup) {
+    return null;
+  }
+
+  try {
+    popup.document.title = "Preparing WhatsApp";
+    popup.document.body.innerHTML =
+      "<p style='font-family: sans-serif; padding: 24px;'>Preparing WhatsApp...</p>";
+  } catch {
+    // Ignore document access issues and keep the popup as a plain blank tab.
+  }
+
+  return popup;
+}
+
+function closePendingWhatsAppWindow(popup) {
+  if (!popup || popup.closed) {
+    return;
+  }
+
+  try {
+    popup.close();
+  } catch {
+    // Ignore close failures.
+  }
+}
+
+function redirectToWhatsApp(url, popup) {
+  if (!url || typeof window === "undefined") {
+    closePendingWhatsAppWindow(popup);
+    return;
+  }
+
+  if (popup && !popup.closed) {
+    try {
+      popup.location.replace(url);
+      popup.focus?.();
+      return;
+    } catch {
+      // Fall back to same-tab navigation below.
+    }
+  }
+
+  window.location.assign(url);
 }
 
 export default function Checkout() {
@@ -246,13 +295,20 @@ export default function Checkout() {
     }
 
     const message = buildWhatsAppOrderMessage({ store, cart, form });
-    const whatsappUrl = buildWhatsAppUrl(waNumber, message);
+    const whatsappUrl = buildWhatsAppLink(waNumber, message);
+
+    if (!whatsappUrl) {
+      setSubmitError(`تعذر تجهيز رابط واتساب لهذا الرقم: ${rawWhatsAppNumber}`);
+      return;
+    }
+
     // Debug: print the generated WhatsApp URL to browser console.
     if (import.meta.env.DEV) {
       console.log("[Checkout] WhatsApp URL:", whatsappUrl);
     }
 
     setLastWhatsAppUrl(whatsappUrl);
+    const pendingWhatsAppWindow = openPendingWhatsAppWindow();
 
     const payload = {
       storeId: store?.id,
@@ -267,6 +323,7 @@ export default function Checkout() {
     try {
       await createOrderMutation.mutateAsync(payload);
     } catch {
+      closePendingWhatsAppWindow(pendingWhatsAppWindow);
       setSubmitError(
         "تعذر إنشاء الطلب على النظام. يرجى التحقق من كود الخصم أو البيانات ثم إعادة المحاولة.",
       );
@@ -279,20 +336,13 @@ export default function Checkout() {
       setSubmitSuccess(
         `تم تجهيز الطلب بنجاح وتم مسح السلة. الآن سيتم فتح واتساب لإرسال الطلب إلى صاحب المتجر (الرقم: ${waNumber}).`,
       );
-      
-      // Redirect to WhatsApp after a brief delay to show success message
-      setTimeout(() => {
-        window.location.href = whatsappUrl;
-      }, 1500);
+      redirectToWhatsApp(whatsappUrl, pendingWhatsAppWindow);
     } catch (error) {
       console.error("[Checkout] Error clearing cart:", error);
       setSubmitSuccess(
         `تم تجهيز الطلب. سيتم فتح واتساب لإرساله إلى صاحب المتجر (الرقم: ${waNumber}).`,
       );
-      // Still redirect even if cart clear fails
-      setTimeout(() => {
-        window.location.href = whatsappUrl;
-      }, 1500);
+      redirectToWhatsApp(whatsappUrl, pendingWhatsAppWindow);
     }
   };
 

@@ -4,12 +4,17 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
 import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import AdminPanelSettingsRoundedIcon from "@mui/icons-material/AdminPanelSettingsRounded";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ConfirmationNumberRoundedIcon from "@mui/icons-material/ConfirmationNumberRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
@@ -558,10 +563,12 @@ function SectionHeader({ title, description, onRefresh, isRefreshing }) {
 
 export default function OwnerDashboard({ initialTab = "overview" }) {
   const navigate = useNavigate();
+  const isCompactScreen = useMediaQuery("(max-width:1080px)");
   const { isAuthenticated, role } = useAuth();
   const activeTab = TAB_CONFIG.some((tab) => tab.key === initialTab)
     ? initialTab
     : "overview";
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
   const ownerStoreQuery = useOwnerStore({ refetchOnWindowFocus: false });
@@ -1010,6 +1017,20 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     if (!nextTab) return;
     navigate(nextTab.route);
   };
+
+  const handleSidebarNavigate = (key) => {
+    if (isCompactScreen) {
+      setIsMobileSidebarOpen(false);
+    }
+
+    handleTabNavigate(key);
+  };
+
+  useEffect(() => {
+    if (!isCompactScreen) {
+      setIsMobileSidebarOpen(false);
+    }
+  }, [isCompactScreen]);
 
   const handleProductFormChange = (key, value) => {
     setProductForm((previous) => {
@@ -1576,15 +1597,70 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   return (
     <DashboardLayout
       sidebar={
-        <DashboardSidebar
-          store={store}
-          activeTab={activeTab}
-          items={sidebarItems}
-          onNavigate={handleTabNavigate}
-        />
+        !isCompactScreen ? (
+          <DashboardSidebar
+            store={store}
+            activeTab={activeTab}
+            items={sidebarItems}
+            onNavigate={handleSidebarNavigate}
+          />
+        ) : null
       }
     >
       <Box className="owner-dashboard">
+        {isCompactScreen ? (
+          <>
+            <Box className="owner-mobile-nav">
+              <AppButton
+                variant="outlined"
+                startIcon={<AdminPanelSettingsRoundedIcon fontSize="small" />}
+                onClick={() => setIsMobileSidebarOpen(true)}
+              >
+                القائمة الإدارية
+              </AppButton>
+            </Box>
+
+            <Drawer
+              anchor="right"
+              open={isMobileSidebarOpen}
+              onClose={() => setIsMobileSidebarOpen(false)}
+              slotProps={{
+                paper: {
+                  className: "owner-mobile-drawer__paper",
+                },
+              }}
+            >
+              <Box className="owner-mobile-drawer__header">
+                <Box>
+                  <Typography
+                    variant="overline"
+                    className="owner-mobile-drawer__eyebrow"
+                  >
+                    إدارة المتجر
+                  </Typography>
+                  <Typography variant="h6">
+                    {store?.name || "متجرك"}
+                  </Typography>
+                </Box>
+
+                <IconButton
+                  aria-label="إغلاق القائمة الإدارية"
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                >
+                  <CloseRoundedIcon />
+                </IconButton>
+              </Box>
+
+              <DashboardSidebar
+                store={store}
+                activeTab={activeTab}
+                items={sidebarItems}
+                onNavigate={handleSidebarNavigate}
+              />
+            </Drawer>
+          </>
+        ) : null}
+
         <Paper className="owner-topbar" elevation={0}>
           <Stack
             direction={{ xs: "column", md: "row" }}

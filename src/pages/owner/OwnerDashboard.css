@@ -384,6 +384,28 @@
   color: var(--text-secondary);
 }
 
+.owner-mobile-nav {
+  display: none;
+}
+
+.owner-mobile-drawer__paper {
+  width: min(90vw, 360px);
+  padding: var(--space-3);
+  background: var(--surface-canvas);
+}
+
+.owner-mobile-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.owner-mobile-drawer__eyebrow {
+  color: var(--text-secondary);
+}
+
 @media (max-width: 1280px) {
   .owner-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -397,6 +419,11 @@
 
   .owner-shell__sidebar {
     position: static;
+  }
+
+  .owner-mobile-nav {
+    display: flex;
+    justify-content: flex-start;
   }
 
   .owner-hero {
