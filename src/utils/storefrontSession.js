@@ -9,6 +9,7 @@ import {
   isStoreCustomerRole,
   isSuperAdminRole,
 } from "./roles.js";
+import { syncCartReference } from "./cartSession.js";
 import { setAuthToken, setStoredAuthRole, setStoredAuthUser } from "./token.js";
 
 const pendingGuestSessionRequests = new Map();
@@ -69,6 +70,10 @@ async function migrateGuestCartToServer(storeId) {
       storeId,
       variantId: item.variantId || null,
     });
+  }
+
+  if (lastServerCart) {
+    syncCartReference(lastServerCart, { storeId });
   }
 
   clearGuestCart(storeId);

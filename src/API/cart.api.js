@@ -2,7 +2,7 @@ import axiosInstance from "./axiosInstance.js";
 import endpoints from "./endpoints.js";
 
 export const cartApi = {
-  getCart: (storeId) => axiosInstance.get(endpoints.cart.byStore(storeId)),
+  getCart: (cartId) => axiosInstance.get(endpoints.cart.detail(cartId)),
   addToCart: (payload) => axiosInstance.post(endpoints.cart.add, payload),
   updateCartItem: (cartItemId, payload) => axiosInstance.put(endpoints.cart.item(cartItemId), payload),
   removeCartItem: (cartItemId) => axiosInstance.delete(endpoints.cart.item(cartItemId)),

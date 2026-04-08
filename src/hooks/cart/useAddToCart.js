@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import cartApi from "../../API/cart.api.js";
+import { syncCartReference } from "../../utils/cartSession.js";
 import { addGuestCartItem } from "../../utils/guestCart.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
@@ -106,6 +107,7 @@ export default function useAddToCart(storeId, options = {}) {
     },
     onSuccess: (data, variables, context) => {
       if (storeId) {
+        syncCartReference(data, { storeId });
         queryClient.setQueryData(cartQueryKey, data);
       }
 

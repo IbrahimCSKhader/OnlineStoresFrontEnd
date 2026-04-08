@@ -71,7 +71,7 @@ export const endpoints = {
     approval: (reviewId) => withPrefix(`/Review/${reviewId}/approval`),
   },
   cart: {
-    byStore: (storeId) => withPrefix(`/Cart/${storeId}`),
+    detail: (cartId) => withPrefix(`/Cart/${cartId}`),
     add: withPrefix("/Cart/add"),
     item: (cartItemId) => withPrefix(`/Cart/item/${cartItemId}`),
     clear: (storeId) => withPrefix(`/Cart/clear/${storeId}`),
