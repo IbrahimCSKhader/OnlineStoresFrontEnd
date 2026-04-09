@@ -2714,7 +2714,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       ),
                     },
                   ]}
-                  columns={customerColumns}
                   emptyState={
                     <EmptyState
                       title="لا يوجد زبائن متجر بعد"
@@ -2856,7 +2855,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     ),
                   },
                 ]}
-                columns={orderColumns}
                 emptyState={
                   <EmptyState
                     title="لا توجد طلبات"
@@ -2932,7 +2930,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     ),
                   },
                 ]}
-                columns={reviewColumns}
                 emptyState={
                   <EmptyState
                     title="لا توجد تقييمات"

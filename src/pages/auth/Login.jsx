@@ -19,6 +19,7 @@ import Typography from "@mui/material/Typography";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
+import authApi from "../../API/auth.api.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useLogin from "../../hooks/auth/useLogin.js";
 import useStoreCustomerLogin from "../../hooks/auth/useStoreCustomerLogin.js";
@@ -46,13 +47,14 @@ import {
   setPendingStoreGoogleAuth,
 } from "../../utils/pendingStoreGoogleAuth.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
-import { getLandingPath } from "../../utils/roles.js";
+import { getLandingPath, isOwnerRole } from "../../utils/roles.js";
 import {
   buildStoreCustomerAuthState,
   getStoreCustomerRedirectPath,
   hasStoreCustomerAuthContext,
 } from "../../utils/storeCustomerAuth.js";
 import {
+  clearAuthSession,
   setAuthToken,
   setStoredAuthRole,
   setStoredAuthUser,
@@ -67,6 +69,76 @@ const FLOW = {
   GOOGLE_STORE_SETUP: "google-store-setup",
 };
 const GOOGLE_REDIRECT_FALLBACK_KEY = "googleAuthRedirectFallback";
+
+function normalizeComparableIdentity(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim().toLowerCase();
+}
+
+function collectComparableIdentities(...values) {
+  return Array.from(
+    new Set(values.map((value) => normalizeComparableIdentity(value)).filter(Boolean)),
+  );
+}
+
+function hasMatchingIdentity(sourceValues = [], targetValues = []) {
+  return sourceValues.some((value) => targetValues.includes(value));
+}
+
+function getRouteStoreOwnerEmails(store) {
+  return collectComparableIdentities(
+    store?.ownerEmail,
+    store?.owner?.email,
+    store?.owner?.Email,
+  );
+}
+
+function doesUserOwnRouteStore(user, store) {
+  if (!user || !store) {
+    return false;
+  }
+
+  const userIds = collectComparableIdentities(
+    user?.id,
+    user?.userId,
+    user?.sub,
+    user?.ownerId,
+  );
+  const userEmails = collectComparableIdentities(user?.email, user?.Email);
+  const userStoreIds = collectComparableIdentities(
+    user?.storeId,
+    user?.StoreId,
+    user?.store?.id,
+  );
+  const ownerIds = collectComparableIdentities(
+    store?.ownerId,
+    store?.owner?.id,
+    store?.owner?.userId,
+    store?.owner?.ownerId,
+  );
+  const ownerEmails = getRouteStoreOwnerEmails(store);
+  const storeIds = collectComparableIdentities(store?.id, store?.storeId);
+
+  return (
+    hasMatchingIdentity(userIds, ownerIds) ||
+    hasMatchingIdentity(userEmails, ownerEmails) ||
+    hasMatchingIdentity(userStoreIds, storeIds)
+  );
+}
+
+function buildFlowError(code, message, cause) {
+  const error = new Error(message);
+  error.code = code;
+
+  if (cause) {
+    error.cause = cause;
+  }
+
+  return error;
+}
 
 function getErrorMessage(error) {
   return extractApiError(
@@ -143,7 +215,7 @@ export default function Login() {
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
   const location = useLocation();
-  const { isPlatformUser, role, storeCustomer } = useAuth();
+  const { clearSession, isPlatformUser, role, storeCustomer, user } = useAuth();
   const setSession = useAuthStore((state) => state.setSession);
   const mergeGuestCart = useMergeGuestCart();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
@@ -291,7 +363,8 @@ export default function Login() {
   }, [pendingStoreGoogleAuth, setValue, storeCustomerAuthState?.storeId]);
 
   const shouldRedirectAuthenticatedUser = isStoreCustomerMode
-    ? Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession
+    ? (Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession) ||
+      (isPlatformUser && isOwnerRole(role) && doesUserOwnRouteStore(user, routeStore))
     : isPlatformUser;
 
   if (shouldRedirectAuthenticatedUser) {
@@ -387,10 +460,74 @@ export default function Login() {
     return resolvedRole;
   }
 
+  function clearLocalAuthState() {
+    clearAuthSession();
+    clearSession();
+  }
+
+  function handleStoreCustomerLoginError(error, email) {
+    const responseData = error?.response?.data;
+    const needsVerification =
+      error?.response?.status === 401 &&
+      responseData?.requiresEmailVerification === true;
+
+    if (needsVerification) {
+      const verificationEmail = responseData?.email || email;
+      setPendingVerificationEmail(verificationEmail);
+      navigate(storeVerifyEmailPath, {
+        replace: true,
+        state: {
+          ...storeCustomerAuthState,
+          email: verificationEmail,
+          redirectTo,
+          message:
+            responseData?.message ||
+            "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+        },
+      });
+      return;
+    }
+
+    setLocalError(getErrorMessage(error));
+  }
+
+  async function loginOwnerFromStore({ email, password }) {
+    const data = await authApi.login({
+      email,
+      password,
+    });
+    const token = extractToken(data);
+    const platformUser = extractUser(data, token);
+    const platformRole = extractRole(data, token, platformUser);
+
+    if (!isOwnerRole(platformRole)) {
+      clearLocalAuthState();
+      throw buildFlowError(
+        "STORE_OWNER_ROLE_REQUIRED",
+        "هذا الحساب ليس حساب مالك متجر.",
+      );
+    }
+
+    if (!doesUserOwnRouteStore(platformUser, routeStore)) {
+      clearLocalAuthState();
+      throw buildFlowError(
+        "STORE_OWNER_MISMATCH",
+        "هذا الحساب لا يملك هذا المتجر. ادخل من صفحة متجرك الصحيح.",
+      );
+    }
+
+    saveSessionFromAuthResponse(data);
+    return platformRole;
+  }
+
   const onLoginSubmit = handleSubmit(async (values) => {
     resetAlerts();
 
     const email = values.email.trim();
+    const routeStoreOwnerEmails = getRouteStoreOwnerEmails(routeStore);
+    const enteredOwnerEmail =
+      isStoreCustomerMode &&
+      routeStoreOwnerEmails.includes(normalizeComparableIdentity(email));
 
     try {
       if (isStoreCustomerMode) {
@@ -401,15 +538,48 @@ export default function Login() {
           return;
         }
 
-        await storeCustomerLoginMutation.mutateAsync({
-          storeId: storeCustomerAuthState.storeId,
-          email,
-          password: values.password,
-        });
-        clearPendingStoreGoogleAuth();
-        await mergeGuestCart();
-        navigate(redirectTo, { replace: true });
-        return;
+        if (enteredOwnerEmail) {
+          const ownerRole = await loginOwnerFromStore({
+            email,
+            password: values.password,
+          });
+          navigate(getLandingPath(ownerRole) || "/owner", { replace: true });
+          return;
+        }
+
+        try {
+          await storeCustomerLoginMutation.mutateAsync({
+            storeId: storeCustomerAuthState.storeId,
+            email,
+            password: values.password,
+          });
+          clearPendingStoreGoogleAuth();
+          await mergeGuestCart();
+          navigate(redirectTo, { replace: true });
+          return;
+        } catch (storeCustomerError) {
+          if (!routeStoreOwnerEmails.length) {
+            try {
+              const ownerRole = await loginOwnerFromStore({
+                email,
+                password: values.password,
+              });
+              navigate(getLandingPath(ownerRole) || "/owner", { replace: true });
+              return;
+            } catch (ownerLoginError) {
+              if (
+                ownerLoginError?.code !== "STORE_OWNER_MISMATCH" &&
+                ownerLoginError?.code !== "STORE_OWNER_ROLE_REQUIRED"
+              ) {
+                handleStoreCustomerLoginError(storeCustomerError, email);
+                return;
+              }
+            }
+          }
+
+          handleStoreCustomerLoginError(storeCustomerError, email);
+          return;
+        }
       }
 
       const data = await loginMutation.mutateAsync({
@@ -419,9 +589,23 @@ export default function Login() {
       const token = extractToken(data);
       const user = extractUser(data, token);
       const sessionRole = extractRole(data, token, user);
+
+      if (isOwnerRole(sessionRole)) {
+        clearLocalAuthState();
+        setLocalError(
+          "دخول مالك المتجر متاح فقط من صفحة متجره، وليس من صفحة الدخول العامة.",
+        );
+        return;
+      }
+
       navigate(redirectTo || getLandingPath(sessionRole), { replace: true });
     } catch (error) {
       if (isStoreCustomerMode) {
+        if (error?.code === "STORE_OWNER_MISMATCH") {
+          setLocalError(error.message);
+          return;
+        }
+
         const responseData = error?.response?.data;
         const needsVerification =
           error?.response?.status === 401 &&
@@ -444,7 +628,7 @@ export default function Login() {
           return;
         }
 
-        setLocalError(getErrorMessage(error));
+        handleStoreCustomerLoginError(error, email);
         return;
       }
 

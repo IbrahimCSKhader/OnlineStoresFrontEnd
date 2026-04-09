@@ -446,7 +446,7 @@
 .owner-mobile-drawer__paper {
   width: min(90vw, 360px);
   padding: var(--space-3);
-  background: var(--surface-canvas);
+  background: var(--surface-elevated);
 }
 
 .owner-mobile-drawer__header {
