@@ -3,6 +3,7 @@ export const storageKeys = {
   authUser: "online-store.auth-user",
   authRole: "online-store.auth-role",
   themeVariant: "online-store.theme-variant",
+  storeThemeVariants: "online-store.store-theme-variants",
   guestCart: "online-store.guest-cart",
 };
 

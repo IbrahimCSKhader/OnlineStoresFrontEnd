@@ -1,8 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import cartApi from "../../API/cart.api.js";
 import { addGuestCartItem } from "../../utils/guestCart.js";
+import {
+  buildOrderCartActor,
+  buildStorefrontSessionSummary,
+  getCartDebugSummary,
+  logOrderCartFlow,
+  serializeOrderCartError,
+} from "../../utils/orderCartDebug.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
+import useAuth from "../auth/useAuth.js";
 import useStorefrontSession from "../auth/useStorefrontSession.js";
 
 function toNumber(value, fallback = 0) {
@@ -71,21 +79,61 @@ function buildAddToCartRequest(payload, storeId) {
 
 export default function useAddToCart(storeId, options = {}) {
   const queryClient = useQueryClient();
+  const auth = useAuth();
+  const storefrontSession = useStorefrontSession(storeId);
   const { useLocalGuestCart, hasScopedStorefrontSession, ensureStorefrontSession } =
-    useStorefrontSession(storeId);
+    storefrontSession;
   const cartQueryKey = queryKeys.cart.byStore(storeId);
 
   return useMutation({
     mutationFn: async (payload) => {
-      if (useLocalGuestCart) {
-        return addGuestCartItem(payload);
-      }
+      const requestPayload = buildAddToCartRequest(payload, storeId);
+      const actor = buildOrderCartActor({
+        auth,
+        storefrontSession,
+        storeId,
+      });
 
-      if (!hasScopedStorefrontSession) {
-        await ensureStorefrontSession();
-      }
+      logOrderCartFlow("Add To Cart Request", {
+        status: "request",
+        source: payload?.debugSource || "unknown",
+        transport: useLocalGuestCart ? "local-guest-cart" : "api",
+        actor,
+        requestPayload,
+        productSnapshot: payload?.productSnapshot || null,
+      });
 
-      return cartApi.addToCart(buildAddToCartRequest(payload, storeId));
+      try {
+        if (useLocalGuestCart) {
+          return addGuestCartItem(payload);
+        }
+
+        if (!hasScopedStorefrontSession) {
+          const ensuredSession = await ensureStorefrontSession();
+
+          logOrderCartFlow("Add To Cart Session Ready", {
+            status: "session-ready",
+            source: payload?.debugSource || "unknown",
+            actor,
+            ensuredSession: buildStorefrontSessionSummary(ensuredSession),
+            ensuredCart:
+              ensuredSession?.cart !== undefined
+                ? getCartDebugSummary(ensuredSession.cart, payload)
+                : null,
+          });
+        }
+
+        return await cartApi.addToCart(requestPayload);
+      } catch (error) {
+        logOrderCartFlow("Add To Cart Request Failed", {
+          status: "request-failed",
+          source: payload?.debugSource || "unknown",
+          actor,
+          requestPayload,
+          error: serializeOrderCartError(error),
+        });
+        throw error;
+      }
     },
     ...options,
     onMutate: async (variables) => {
@@ -94,12 +142,28 @@ export default function useAddToCart(storeId, options = {}) {
       }
 
       const previousCart = storeId ? queryClient.getQueryData(cartQueryKey) : undefined;
+      const optimisticCart =
+        storeId !== undefined ? buildOptimisticCart(previousCart, variables, storeId) : null;
 
       if (storeId) {
-        queryClient.setQueryData(cartQueryKey, (currentCart) =>
-          buildOptimisticCart(currentCart, variables, storeId),
-        );
+        queryClient.setQueryData(cartQueryKey, optimisticCart);
       }
+
+      logOrderCartFlow("Add To Cart Started", {
+        status: "started",
+        source: variables?.debugSource || "unknown",
+        transport: useLocalGuestCart ? "local-guest-cart" : "api",
+        actor: buildOrderCartActor({
+          auth,
+          storefrontSession,
+          storeId,
+        }),
+        requestPayload: buildAddToCartRequest(variables, storeId),
+        previousCart:
+          previousCart !== undefined ? getCartDebugSummary(previousCart, variables) : null,
+        optimisticCart:
+          optimisticCart !== null ? getCartDebugSummary(optimisticCart, variables) : null,
+      });
 
       const userContext = await options.onMutate?.(variables);
 
@@ -113,12 +177,41 @@ export default function useAddToCart(storeId, options = {}) {
         queryClient.setQueryData(cartQueryKey, context.previousCart);
       }
 
+      logOrderCartFlow("Add To Cart Failed", {
+        status: "failed",
+        source: variables?.debugSource || "unknown",
+        actor: buildOrderCartActor({
+          auth,
+          storefrontSession,
+          storeId,
+        }),
+        requestPayload: buildAddToCartRequest(variables, storeId),
+        rollbackCart:
+          context?.previousCart !== undefined
+            ? getCartDebugSummary(context.previousCart, variables)
+            : null,
+        error: serializeOrderCartError(error),
+      });
+
       options.onError?.(error, variables, context?.userContext ?? context);
     },
     onSuccess: (data, variables, context) => {
       if (storeId) {
         queryClient.setQueryData(cartQueryKey, data);
       }
+
+      logOrderCartFlow("Add To Cart Succeeded", {
+        status: "success",
+        source: variables?.debugSource || "unknown",
+        actor: buildOrderCartActor({
+          auth,
+          storefrontSession,
+          storeId,
+        }),
+        requestPayload: buildAddToCartRequest(variables, storeId),
+        cart: getCartDebugSummary(data, variables),
+        apiResponse: data,
+      });
 
       options.onSuccess?.(data, variables, context?.userContext ?? context);
     },

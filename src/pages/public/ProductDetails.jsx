@@ -164,6 +164,7 @@ export default function ProductDetails() {
       storeId: effectiveStoreId,
       variantId: selectedVariantId || null,
       productSnapshot: buildProductSnapshot(product, { variant: selectedVariant }),
+      debugSource: "product-details-page-main",
     });
   };
 
@@ -177,6 +178,7 @@ export default function ProductDetails() {
       storeId: effectiveStoreId,
       variantId: null,
       productSnapshot: buildProductSnapshot(relatedProduct),
+      debugSource: "product-details-page-related",
     });
   };
 

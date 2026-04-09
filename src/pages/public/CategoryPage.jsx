@@ -123,6 +123,7 @@ export default function CategoryPage() {
       storeId: store.id,
       variantId: null,
       productSnapshot: buildProductSnapshot(product),
+      debugSource: "category-page",
     });
   };
 

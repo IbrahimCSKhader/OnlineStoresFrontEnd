@@ -102,6 +102,7 @@ export default function StoreDetails() {
       storeId: store.id,
       variantId: null,
       productSnapshot: buildProductSnapshot(product),
+      debugSource: "store-details-page",
     });
   };
 

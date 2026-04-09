@@ -104,7 +104,9 @@ export default function Cart() {
             <AppButton
               variant="text"
               appearance="ghost"
-              onClick={() => clearCartMutation.mutate()}
+              onClick={() =>
+                clearCartMutation.mutate({ debugSource: "customer-cart-page-hero" })
+              }
               disabled={clearCartMutation.isPending || !cart.items.length}
             >
               تفريغ السلة
@@ -157,6 +159,7 @@ export default function Cart() {
                             updateCartItemMutation.mutate({
                               cartItemId: row.id,
                               payload: { quantity: nextValue },
+                              debugSource: "customer-cart-page-mobile",
                             })
                           }
                         />
@@ -164,7 +167,12 @@ export default function Cart() {
                         <AppButton
                           variant="text"
                           appearance="ghost"
-                          onClick={() => removeCartItemMutation.mutate(row.id)}
+                          onClick={() =>
+                            removeCartItemMutation.mutate({
+                              cartItemId: row.id,
+                              debugSource: "customer-cart-page-mobile",
+                            })
+                          }
                         >
                           حذف
                         </AppButton>
@@ -199,6 +207,7 @@ export default function Cart() {
                             updateCartItemMutation.mutate({
                               cartItemId: row.id,
                               payload: { quantity: nextValue },
+                              debugSource: "customer-cart-page-table",
                             })
                           }
                         />
@@ -216,7 +225,12 @@ export default function Cart() {
                         <AppButton
                           variant="text"
                           appearance="ghost"
-                          onClick={() => removeCartItemMutation.mutate(row.id)}
+                          onClick={() =>
+                            removeCartItemMutation.mutate({
+                              cartItemId: row.id,
+                              debugSource: "customer-cart-page-table",
+                            })
+                          }
                         >
                           حذف
                         </AppButton>

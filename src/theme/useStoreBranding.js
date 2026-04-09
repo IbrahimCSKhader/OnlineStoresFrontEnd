@@ -30,6 +30,10 @@ function resolveStoreThemeVariant(store) {
   }
 }
 
+function resolveStoreThemeKey(store) {
+  return String(store?.id ?? store?.storeId ?? store?.StoreId ?? "").trim();
+}
+
 export default function useStoreBranding(store) {
   const { setStoreDefaultVariant, clearStoreDefaultVariant } =
     useAppThemeVariant();
@@ -51,10 +55,16 @@ export default function useStoreBranding(store) {
       return;
     }
 
-    setStoreDefaultVariant(resolveStoreThemeVariant(store));
+    setStoreDefaultVariant(
+      resolveStoreThemeVariant(store),
+      resolveStoreThemeKey(store),
+    );
   }, [
     setStoreDefaultVariant,
     store,
+    store?.id,
+    store?.storeId,
+    store?.StoreId,
     store?.ThemeTemplate,
     store?.themeTemplate,
   ]);

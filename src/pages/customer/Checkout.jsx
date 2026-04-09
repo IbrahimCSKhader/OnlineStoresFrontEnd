@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -12,13 +11,19 @@ import CheckoutForm from "../../components/order/CheckoutForm.jsx";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useCart from "../../hooks/cart/useCart.js";
+import useClearCart from "../../hooks/cart/useClearCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useCreateOrder from "../../hooks/orders/useCreateOrder.js";
-import cartApi from "../../API/cart.api.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
-import { normalizeCartResponse } from "../../utils/storefront.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import {
+  buildOrderCartActor,
+  getCartDebugSummary,
+  logOrderCartFlow,
+  serializeOrderCartError,
+} from "../../utils/orderCartDebug.js";
+import { normalizeCartResponse } from "../../utils/storefront.js";
 import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
 import { buildWhatsAppLink } from "../../utils/whatsapp.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
@@ -175,7 +180,8 @@ function redirectToWhatsApp(url, popup) {
 
 export default function Checkout() {
   const { slug } = useParams();
-  const { storeCustomer } = useAuth();
+  const auth = useAuth();
+  const { storeCustomer } = auth;
   const [step, setStep] = useState(0);
   const [form, setForm] = useState(initialForm);
   const [submitError, setSubmitError] = useState("");
@@ -194,13 +200,14 @@ export default function Checkout() {
   });
   const storefrontSession = useStorefrontSession(store?.id);
   const createOrderMutation = useCreateOrder(store?.id);
+  const clearCartMutation = useClearCart(store?.id);
   const cart = normalizeCartResponse(cartQuery.data);
 
-  const clearCartMutation = useMutation({
-    mutationFn: () => cartApi.clearCart(store?.id),
-    onError: (error) => {
-      console.error("[Checkout] Failed to clear cart:", error);
-    },
+  const actor = buildOrderCartActor({
+    auth,
+    storefrontSession,
+    storeId: store?.id,
+    slug,
   });
 
   if (!storeCustomer) {
@@ -226,7 +233,7 @@ export default function Checkout() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-checkout">
-        <EmptyState title="جاري تحميل صفحة الدفع..." />
+        <EmptyState title="جارِ تحميل صفحة الدفع..." />
       </Box>
     );
   }
@@ -282,29 +289,65 @@ export default function Checkout() {
     );
   }
 
+  const handleValidationFailure = (reason, message, extra = {}) => {
+    logOrderCartFlow("Checkout Validation Failed", {
+      status: "validation-failed",
+      source: "customer-checkout-page",
+      reason,
+      actor,
+      cart: getCartDebugSummary(cart),
+      ...extra,
+    });
+    setSubmitError(message);
+  };
+
   const handleSubmitOrder = async () => {
     setSubmitError("");
     setSubmitSuccess("");
 
+    logOrderCartFlow("Checkout Submit Triggered", {
+      status: "started",
+      source: "customer-checkout-page",
+      actor,
+      cart: getCartDebugSummary(cart),
+      checkoutForm: {
+        deliveryAddress: String(form.deliveryAddress || "").trim(),
+        deliveryCity: String(form.deliveryCity || "").trim(),
+        deliveryPhone: String(form.deliveryPhone || "").trim(),
+        couponCode: String(form.couponCode || "").trim(),
+        customerNotes: String(form.customerNotes || "").trim(),
+      },
+    });
+
     if (!storefrontSession.hasScopedStorefrontSession) {
-      setSubmitError(
+      handleValidationFailure(
+        "missing-scoped-storefront-session",
         "جلسة StoreCustomer الحالية لا تخص هذا المتجر. سجّل الدخول من داخل نفس المتجر ثم أعد المحاولة.",
       );
       return;
     }
 
     if (!String(form.deliveryAddress || "").trim()) {
-      setSubmitError("يرجى إدخال عنوان التوصيل قبل إرسال الطلب.");
+      handleValidationFailure(
+        "missing-delivery-address",
+        "يرجى إدخال عنوان التوصيل قبل إرسال الطلب.",
+      );
       return;
     }
 
     if (!String(form.deliveryCity || "").trim()) {
-      setSubmitError("يرجى إدخال المدينة قبل إرسال الطلب.");
+      handleValidationFailure(
+        "missing-delivery-city",
+        "يرجى إدخال المدينة قبل إرسال الطلب.",
+      );
       return;
     }
 
     if (!String(form.deliveryPhone || "").trim()) {
-      setSubmitError("يرجى إدخال رقم الهاتف قبل إرسال الطلب.");
+      handleValidationFailure(
+        "missing-delivery-phone",
+        "يرجى إدخال رقم الهاتف قبل إرسال الطلب.",
+      );
       return;
     }
 
@@ -312,8 +355,12 @@ export default function Checkout() {
     const waNumber = normalizeWhatsAppIdentifier(rawWhatsAppNumber);
 
     if (!waNumber) {
-      setSubmitError(
+      handleValidationFailure(
+        "missing-store-whatsapp-number",
         "لا يوجد رقم واتساب صالح لصاحب المتجر حاليًا. تحقق من بيانات التواصل في المتجر.",
+        {
+          rawWhatsAppNumber,
+        },
       );
       return;
     }
@@ -324,13 +371,25 @@ export default function Checkout() {
     );
 
     if (!whatsappUrl) {
-      setSubmitError(`تعذر تجهيز رابط واتساب لهذا الرقم: ${rawWhatsAppNumber}`);
+      handleValidationFailure(
+        "failed-to-build-whatsapp-url",
+        `تعذر تجهيز رابط واتساب لهذا الرقم: ${rawWhatsAppNumber}`,
+        {
+          rawWhatsAppNumber,
+          normalizedWhatsAppNumber: waNumber,
+        },
+      );
       return;
     }
 
-    if (import.meta.env.DEV) {
-      console.log("[Checkout] WhatsApp URL:", whatsappUrl);
-    }
+    logOrderCartFlow("Checkout WhatsApp Prepared", {
+      status: "ready",
+      source: "customer-checkout-page",
+      actor,
+      rawWhatsAppNumber,
+      normalizedWhatsAppNumber: waNumber,
+      whatsappUrl,
+    });
 
     const pendingWhatsAppWindow = openPendingWhatsAppWindow();
     const payload = {
@@ -340,12 +399,23 @@ export default function Checkout() {
       deliveryPhone: String(form.deliveryPhone || "").trim(),
       customerNotes: String(form.customerNotes || "").trim() || undefined,
       couponCode: String(form.couponCode || "").trim() || undefined,
+      debugSource: "customer-checkout-page",
     };
 
+    let orderResponse = null;
+
     try {
-      await createOrderMutation.mutateAsync(payload);
+      orderResponse = await createOrderMutation.mutateAsync(payload);
     } catch (error) {
       closePendingWhatsAppWindow(pendingWhatsAppWindow);
+
+      logOrderCartFlow("Checkout Order Create Failed", {
+        status: "failed",
+        source: "customer-checkout-page",
+        actor,
+        cart: getCartDebugSummary(cart),
+        error: serializeOrderCartError(error),
+      });
 
       if (error?.response?.status === 401) {
         setSubmitError(
@@ -376,17 +446,40 @@ export default function Checkout() {
       return;
     }
 
+    logOrderCartFlow("Checkout Order Create Completed", {
+      status: "success",
+      source: "customer-checkout-page",
+      actor,
+      cart: getCartDebugSummary(cart),
+      orderResponse,
+    });
+
     try {
-      await clearCartMutation.mutateAsync();
+      await clearCartMutation.mutateAsync({
+        debugSource: "customer-checkout-after-order",
+      });
       setSubmitSuccess(
         `تم إنشاء الطلب ومسح السلة بنجاح. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
       );
     } catch (error) {
-      console.error("[Checkout] Error clearing cart:", error);
+      logOrderCartFlow("Checkout Cart Clear Failed After Order", {
+        status: "failed",
+        source: "customer-checkout-after-order",
+        actor,
+        error: serializeOrderCartError(error),
+      });
       setSubmitSuccess(
         `تم إنشاء الطلب بنجاح. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
       );
     }
+
+    logOrderCartFlow("Checkout Redirecting To WhatsApp", {
+      status: "redirect",
+      source: "customer-checkout-page",
+      actor,
+      normalizedWhatsAppNumber: waNumber,
+      whatsappUrl,
+    });
 
     redirectToWhatsApp(whatsappUrl, pendingWhatsAppWindow);
   };
@@ -402,7 +495,8 @@ export default function Checkout() {
             <span className="storefront-eyebrow">Checkout</span>
             <Typography variant="h2">إرسال الطلب عبر واتساب - {store.name}</Typography>
             <Typography variant="body1" className="storefront-subtitle">
-              سيتم إنشاء الطلب على النظام أولًا من السلة الحالية، ثم فتح واتساب لإرسال الملخص إلى صاحب المتجر.
+              سيتم إنشاء الطلب على النظام أولًا من السلة الحالية، ثم فتح واتساب لإرسال الملخص
+              إلى صاحب المتجر.
             </Typography>
           </Box>
 
