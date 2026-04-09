@@ -7,6 +7,13 @@ import {
   storageKeys,
 } from "./storage.js";
 
+function logAuthToken(action, token = "") {
+  console.log("[AuthToken]", {
+    action,
+    token: token || "",
+  });
+}
+
 function serializeRole(role) {
   if (Array.isArray(role)) {
     return role.find(Boolean) ?? "";
@@ -28,19 +35,24 @@ function serializeRole(role) {
 }
 
 export function getAuthToken() {
-  return getStorageItem(storageKeys.authToken, "");
+  const token = getStorageItem(storageKeys.authToken, "");
+  logAuthToken("read", token);
+  return token;
 }
 
 export function setAuthToken(token) {
   if (!token) {
+    logAuthToken("set-empty", "");
     removeStorageItem(storageKeys.authToken);
     return;
   }
 
+  logAuthToken("set", token);
   setStorageItem(storageKeys.authToken, token);
 }
 
 export function clearAuthToken() {
+  logAuthToken("clear", "");
   removeStorageItem(storageKeys.authToken);
 }
 
