@@ -48,6 +48,7 @@ import useAuth from "../../hooks/auth/useAuth.js";
 import useCategories from "../../hooks/categories/useCategories.js";
 import useCreateCategory from "../../hooks/categories/useCreateCategory.js";
 import useDeleteCategory from "../../hooks/categories/useDeleteCategory.js";
+import useStoreBranding from "../../theme/useStoreBranding.js";
 import useUpdateCategory from "../../hooks/categories/useUpdateCategory.js";
 import useCreateCoupon from "../../hooks/coupons/useCreateCoupon.js";
 import useCoupons from "../../hooks/coupons/useCoupons.js";
@@ -609,6 +610,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const ownerStoreQuery = useOwnerStore({ refetchOnWindowFocus: false });
   const store = ownerStoreQuery.ownerStore;
   const storeId = store?.id;
+
+  // Apply store branding (theme, colors, etc.)
+  useStoreBranding(store);
 
   const isOverviewTab = activeTab === "overview";
   const shouldLoadProducts = isOverviewTab || activeTab === "products";
