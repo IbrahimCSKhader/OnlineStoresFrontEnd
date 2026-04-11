@@ -1,6 +1,5 @@
 import axiosInstance from "./axiosInstance.js";
 import endpoints from "./endpoints.js";
-import { getAuthToken } from "../utils/token.js";
 
 function isFileLike(value) {
   return (
@@ -54,19 +53,8 @@ function createMultipartFormData(payload = {}) {
 }
 
 export const productApi = {
-  getProductsByStore: (storeId, params) => {
-    const token = getAuthToken();
-    return axiosInstance.get(`/api/Product/store/${storeId}`, {
-      ...(params ? { params } : {}),
-      ...(token
-        ? {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        : {}),
-    });
-  },
+  getProductsByStore: (storeId, params) =>
+    axiosInstance.get(endpoints.products.byStore(storeId), params ? { params } : undefined),
   getFeaturedProducts: (storeId) =>
     axiosInstance.get(endpoints.products.featured(storeId)),
   getProductById: (id) => axiosInstance.get(endpoints.products.detail(id)),

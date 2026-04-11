@@ -1,44 +1,101 @@
 import { create } from "zustand";
 import { isGuestRole } from "../utils/roles.js";
 import {
-  clearAuthSession,
-  getAuthToken,
-  getStoredAuthRole,
-  getStoredAuthUser,
+  clearStorefrontAuthSession,
+  getPlatformAuthToken,
+  getStoredPlatformRole,
+  getStoredPlatformUser,
+  getStoredStorefrontRole,
+  getStoredStorefrontUser,
+  getStorefrontAuthToken,
+  migrateLegacyAuthSession,
 } from "../utils/token.js";
 
-const storedUser = getStoredAuthUser();
-const storedRole = getStoredAuthRole();
-const shouldDiscardGuestSession =
-  isGuestRole(storedRole) || isGuestRole(storedUser?.accountType);
+migrateLegacyAuthSession();
 
-if (shouldDiscardGuestSession) {
-  clearAuthSession();
+const storedPlatformUser = getStoredPlatformUser();
+const storedPlatformRole = getStoredPlatformRole();
+const storedStorefrontUser = getStoredStorefrontUser();
+const storedStorefrontRole = getStoredStorefrontRole();
+const shouldDiscardGuestStorefrontSession =
+  isGuestRole(storedStorefrontRole) || isGuestRole(storedStorefrontUser?.accountType);
+
+if (shouldDiscardGuestStorefrontSession) {
+  clearStorefrontAuthSession();
 }
 
-const token = shouldDiscardGuestSession ? "" : getAuthToken();
+const initialPlatformSession = {
+  token: getPlatformAuthToken(),
+  user: storedPlatformUser,
+  role: storedPlatformRole,
+  isAuthenticated: Boolean(getPlatformAuthToken()),
+};
+
+const storefrontToken = shouldDiscardGuestStorefrontSession
+  ? ""
+  : getStorefrontAuthToken();
 const initialState = {
-  token,
-  user: shouldDiscardGuestSession ? null : storedUser,
-  role: shouldDiscardGuestSession ? "" : storedRole,
-  isAuthenticated: Boolean(token),
+  platformSession: initialPlatformSession,
+  storefrontSession: {
+    token: storefrontToken,
+    user: shouldDiscardGuestStorefrontSession ? null : storedStorefrontUser,
+    role: shouldDiscardGuestStorefrontSession ? "" : storedStorefrontRole,
+    isAuthenticated: Boolean(storefrontToken),
+  },
 };
 
 const useAuthStore = create((set) => ({
   ...initialState,
-  setSession: ({ token, user, role }) =>
+  setPlatformSession: ({ token, user, role }) =>
     set({
-      token: token ?? "",
-      user: user ?? null,
-      role: role ?? "",
-      isAuthenticated: Boolean(token),
+      platformSession: {
+        token: token ?? "",
+        user: user ?? null,
+        role: role ?? "",
+        isAuthenticated: Boolean(token),
+      },
     }),
-  clearSession: () =>
+  clearPlatformSession: () =>
     set({
-      token: "",
-      user: null,
-      role: "",
-      isAuthenticated: false,
+      platformSession: {
+        token: "",
+        user: null,
+        role: "",
+        isAuthenticated: false,
+      },
+    }),
+  setStorefrontSession: ({ token, user, role }) =>
+    set({
+      storefrontSession: {
+        token: token ?? "",
+        user: user ?? null,
+        role: role ?? "",
+        isAuthenticated: Boolean(token),
+      },
+    }),
+  clearStorefrontSession: () =>
+    set({
+      storefrontSession: {
+        token: "",
+        user: null,
+        role: "",
+        isAuthenticated: false,
+      },
+    }),
+  clearAllSessions: () =>
+    set({
+      platformSession: {
+        token: "",
+        user: null,
+        role: "",
+        isAuthenticated: false,
+      },
+      storefrontSession: {
+        token: "",
+        user: null,
+        role: "",
+        isAuthenticated: false,
+      },
     }),
 }));
 

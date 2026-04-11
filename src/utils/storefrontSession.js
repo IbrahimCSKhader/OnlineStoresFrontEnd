@@ -20,9 +20,18 @@ function resolveSessionStoreId(user) {
 
 export function getStorefrontSessionState(storeId, authState = useAuthStore.getState()) {
   const normalizedStoreId = normalizeStoreId(storeId);
-  const role = authState?.role;
-  const user = authState?.storefrontCustomer || extractStorefrontCustomer(authState?.user) || authState?.user;
-  const accountType = user?.accountType || authState?.user?.accountType;
+  const storefrontSession = authState?.storefrontSession ?? {};
+  const role = authState?.storefrontRole || storefrontSession?.role;
+  const user =
+    authState?.storefrontCustomer ||
+    extractStorefrontCustomer(authState?.storefrontUser) ||
+    authState?.storefrontUser ||
+    extractStorefrontCustomer(storefrontSession?.user) ||
+    storefrontSession?.user;
+  const accountType =
+    user?.accountType ||
+    authState?.storefrontUser?.accountType ||
+    storefrontSession?.user?.accountType;
   const isRegisteredStoreCustomer = hasMatchingRole(
     isStoreCustomerRole,
     role,

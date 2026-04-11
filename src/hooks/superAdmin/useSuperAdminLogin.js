@@ -4,15 +4,15 @@ import useAuthStore from "../../store/authStore.js";
 import { extractRole, extractToken, extractUser } from "../../utils/authSession.js";
 import { isSuperAdminRole } from "../../utils/roles.js";
 import {
-  clearAuthSession,
-  setAuthToken,
-  setStoredAuthRole,
-  setStoredAuthUser,
+  clearPlatformAuthSession,
+  setPlatformAuthToken,
+  setStoredPlatformRole,
+  setStoredPlatformUser,
 } from "../../utils/token.js";
 
 export default function useSuperAdminLogin(options = {}) {
-  const setSession = useAuthStore((state) => state.setSession);
-  const clearSession = useAuthStore((state) => state.clearSession);
+  const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
+  const clearPlatformSession = useAuthStore((state) => state.clearPlatformSession);
 
   return useMutation({
     mutationFn: async (payload) => {
@@ -32,18 +32,18 @@ export default function useSuperAdminLogin(options = {}) {
     ...options,
     onSuccess: (result, variables, context) => {
       if (result.token) {
-        setAuthToken(result.token);
+        setPlatformAuthToken(result.token);
       }
 
       if (result.user) {
-        setStoredAuthUser(result.user);
+        setStoredPlatformUser(result.user);
       }
 
       if (result.role) {
-        setStoredAuthRole(result.role);
+        setStoredPlatformRole(result.role);
       }
 
-      setSession({
+      setPlatformSession({
         token: result.token,
         user: result.user,
         role: result.role,
@@ -53,8 +53,8 @@ export default function useSuperAdminLogin(options = {}) {
     },
     onError: (error, variables, context) => {
       if (error?.code === "NOT_SUPERADMIN") {
-        clearAuthSession();
-        clearSession();
+        clearPlatformAuthSession();
+        clearPlatformSession();
       }
 
       options.onError?.(error, variables, context);

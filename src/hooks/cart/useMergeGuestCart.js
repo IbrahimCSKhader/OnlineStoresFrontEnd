@@ -80,7 +80,9 @@ export default function useMergeGuestCart() {
   const queryClient = useQueryClient();
 
   return async function mergeGuestCart() {
-    const { role, user } = useAuthStore.getState();
+    const { storefrontSession } = useAuthStore.getState();
+    const role = storefrontSession?.role;
+    const user = storefrontSession?.user;
     const hasStoreCustomerSession =
       isStoreCustomerRole(role) || isStoreCustomerRole(user?.accountType);
     const activeStoreId = String(user?.storeId || user?.StoreId || user?.store?.id || "").trim();

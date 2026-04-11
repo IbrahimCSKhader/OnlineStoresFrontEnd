@@ -12,6 +12,7 @@ import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
+import StoreContactAccounts from "../../components/common/StoreContactAccounts.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useProducts from "../../hooks/products/useProducts.js";
@@ -75,17 +76,27 @@ export default function StoreDetails() {
   const keyword = deferredSearchText.toLowerCase().trim();
   const filteredProducts = keyword
     ? products.filter((product) =>
-        [product.name, product.description, product.shortDescription, product.slug]
+        [
+          product.name,
+          product.description,
+          product.shortDescription,
+          product.slug,
+        ]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(keyword)),
       )
     : products;
 
-  const categorySummary = buildCategorySummary(products, categories).slice(0, 8);
+  const categorySummary = buildCategorySummary(products, categories).slice(
+    0,
+    8,
+  );
   const featuredProducts = [...products]
     .sort((left, right) => {
       if (Boolean(left.isFeatured) !== Boolean(right.isFeatured)) {
-        return Number(Boolean(right.isFeatured)) - Number(Boolean(left.isFeatured));
+        return (
+          Number(Boolean(right.isFeatured)) - Number(Boolean(left.isFeatured))
+        );
       }
 
       return Number(right.visitCount ?? 0) - Number(left.visitCount ?? 0);
@@ -116,7 +127,10 @@ export default function StoreDetails() {
         <Alert severity="success">تمت إضافة المنتج إلى السلة.</Alert>
       ) : null}
 
-      <SurfaceCard variant="hero" className="storefront-hero page-store-details__hero">
+      <SurfaceCard
+        variant="hero"
+        className="storefront-hero page-store-details__hero"
+      >
         {coverImage ? (
           <Box className="page-store-details__hero-media" aria-hidden>
             <img src={coverImage} alt="" decoding="async" />
@@ -151,7 +165,10 @@ export default function StoreDetails() {
               )}
 
               <Box className="storefront-stack">
-                <Typography variant="h1" className="storefront-title page-store-details__title">
+                <Typography
+                  variant="h1"
+                  className="storefront-title page-store-details__title"
+                >
                   {store.name}
                 </Typography>
                 <Typography variant="body1" className="storefront-subtitle">
@@ -164,24 +181,33 @@ export default function StoreDetails() {
               {store.businessType ? <Chip label={store.businessType} /> : null}
               <Chip label={`${products.length} منتج`} variant="outlined" />
               <Chip label={`${categories.length} تصنيف`} variant="outlined" />
-              <Chip label={store.isActive ? "نشط" : "غير نشط"} variant="outlined" />
+              <Chip
+                label={store.isActive ? "نشط" : "غير نشط"}
+                variant="outlined"
+              />
             </Stack>
 
             <Box className="storefront-hero__metrics page-store-details__hero-metrics">
               <SurfaceCard className="storefront-metric">
                 <StorefrontRoundedIcon fontSize="small" />
                 <span className="storefront-metric__label">التصنيفات</span>
-                <strong className="storefront-metric__value">{categories.length}</strong>
+                <strong className="storefront-metric__value">
+                  {categories.length}
+                </strong>
               </SurfaceCard>
               <SurfaceCard className="storefront-metric">
                 <LocalMallRoundedIcon fontSize="small" />
                 <span className="storefront-metric__label">المنتجات</span>
-                <strong className="storefront-metric__value">{products.length}</strong>
+                <strong className="storefront-metric__value">
+                  {products.length}
+                </strong>
               </SurfaceCard>
               <SurfaceCard className="storefront-metric">
                 <VisibilityRoundedIcon fontSize="small" />
                 <span className="storefront-metric__label">الزيارات</span>
-                <strong className="storefront-metric__value">{store.visitCount ?? 0}</strong>
+                <strong className="storefront-metric__value">
+                  {store.visitCount ?? 0}
+                </strong>
               </SurfaceCard>
             </Box>
 
@@ -201,6 +227,22 @@ export default function StoreDetails() {
           </Box>
         </Box>
       </SurfaceCard>
+
+      <Box className="storefront-section page-store-details__contacts">
+        <Box className="storefront-section__head">
+          <Box className="storefront-section__copy">
+            <span className="storefront-eyebrow">التواصل</span>
+            <Typography variant="h3">حسابات التواصل</Typography>
+          </Box>
+        </Box>
+
+        <StoreContactAccounts
+          store={store}
+          showTitle={false}
+          layout="cards"
+          hideWhenEmpty
+        />
+      </Box>
 
       <Box className="storefront-section">
         <Box className="storefront-section__head">
@@ -254,13 +296,14 @@ export default function StoreDetails() {
             addingProductId={addToCartUi.activeKey}
           />
         ) : (
-          <EmptyState
-            title="لا توجد منتجات"
-          />
+          <EmptyState title="لا توجد منتجات" />
         )}
       </Box>
 
-      <Box className="storefront-section page-store-details__catalog" id="store-catalog">
+      <Box
+        className="storefront-section page-store-details__catalog"
+        id="store-catalog"
+      >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">المنتجات</span>

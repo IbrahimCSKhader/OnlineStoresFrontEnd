@@ -54,10 +54,10 @@ import {
   hasStoreCustomerAuthContext,
 } from "../../utils/storeCustomerAuth.js";
 import {
-  clearAuthSession,
-  setAuthToken,
-  setStoredAuthRole,
-  setStoredAuthUser,
+  clearPlatformAuthSession,
+  setPlatformAuthToken,
+  setStoredPlatformRole,
+  setStoredPlatformUser,
 } from "../../utils/token.js";
 import "./Login.css";
 
@@ -215,8 +215,8 @@ export default function Login() {
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
   const location = useLocation();
-  const { clearSession, isPlatformUser, role, storeCustomer, user } = useAuth();
-  const setSession = useAuthStore((state) => state.setSession);
+  const { clearPlatformSession, isPlatformUser, role, storeCustomer, user } = useAuth();
+  const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
   const mergeGuestCart = useMergeGuestCart();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
     enabled: Boolean(routeStoreSlug),
@@ -442,27 +442,27 @@ export default function Login() {
     const resolvedRole = extractRole(data, token, user);
 
     if (token) {
-      setAuthToken(token);
+      setPlatformAuthToken(token);
     }
 
     if (user) {
-      setStoredAuthUser(user);
+      setStoredPlatformUser(user);
     }
 
     if (resolvedRole) {
-      setStoredAuthRole(resolvedRole);
+      setStoredPlatformRole(resolvedRole);
     }
 
     if (token || user || resolvedRole) {
-      setSession({ token, user, role: resolvedRole });
+      setPlatformSession({ token, user, role: resolvedRole });
     }
 
     return resolvedRole;
   }
 
   function clearLocalAuthState() {
-    clearAuthSession();
-    clearSession();
+    clearPlatformAuthSession();
+    clearPlatformSession();
   }
 
   function handleStoreCustomerLoginError(error, email) {

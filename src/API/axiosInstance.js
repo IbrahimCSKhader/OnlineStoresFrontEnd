@@ -10,7 +10,6 @@ const axiosInstance = setupInterceptors(
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      token: localStorage.getItem("token"),
     },
     timeout: 30000,
   }),

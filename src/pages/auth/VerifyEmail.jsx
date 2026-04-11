@@ -41,7 +41,14 @@ import {
   getStoreCustomerRedirectPath,
   hasStoreCustomerAuthContext,
 } from "../../utils/storeCustomerAuth.js";
-import { setAuthToken, setStoredAuthRole, setStoredAuthUser } from "../../utils/token.js";
+import {
+  setPlatformAuthToken,
+  setStoredPlatformRole,
+  setStoredPlatformUser,
+  setStorefrontAuthToken,
+  setStoredStorefrontRole,
+  setStoredStorefrontUser,
+} from "../../utils/token.js";
 import "./Login.css";
 
 export default function VerifyEmail() {
@@ -49,7 +56,8 @@ export default function VerifyEmail() {
   const location = useLocation();
   const { slug: routeStoreSlug = "" } = useParams();
   const { isPlatformUser, role, storeCustomer } = useAuth();
-  const setSession = useAuthStore((state) => state.setSession);
+  const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
+  const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
   const mergeGuestCart = useMergeGuestCart();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
     enabled: Boolean(routeStoreSlug),
@@ -170,20 +178,38 @@ export default function VerifyEmail() {
     const user = extractUser(data, token);
     const resolvedRole = extractRole(data, token, user);
 
-    if (token) {
-      setAuthToken(token);
-    }
+    if (isStoreCustomerMode) {
+      if (token) {
+        setStorefrontAuthToken(token);
+      }
 
-    if (user) {
-      setStoredAuthUser(user);
-    }
+      if (user) {
+        setStoredStorefrontUser(user);
+      }
 
-    if (resolvedRole) {
-      setStoredAuthRole(resolvedRole);
-    }
+      if (resolvedRole) {
+        setStoredStorefrontRole(resolvedRole);
+      }
 
-    if (token || user || resolvedRole) {
-      setSession({ token, user, role: resolvedRole });
+      if (token || user || resolvedRole) {
+        setStorefrontSession({ token, user, role: resolvedRole });
+      }
+    } else {
+      if (token) {
+        setPlatformAuthToken(token);
+      }
+
+      if (user) {
+        setStoredPlatformUser(user);
+      }
+
+      if (resolvedRole) {
+        setStoredPlatformRole(resolvedRole);
+      }
+
+      if (token || user || resolvedRole) {
+        setPlatformSession({ token, user, role: resolvedRole });
+      }
     }
 
     clearPendingVerificationEmail();

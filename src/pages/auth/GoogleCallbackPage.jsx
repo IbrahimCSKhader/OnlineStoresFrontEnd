@@ -12,13 +12,16 @@ import {
 } from "../../utils/pendingStoreGoogleAuth.js";
 import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import {
-  clearAuthSession,
-  getAuthToken,
-  getStoredAuthRole,
-  getStoredAuthUser,
-  setAuthToken,
-  setStoredAuthRole,
-  setStoredAuthUser,
+  clearPlatformAuthSession,
+  getPlatformAuthToken,
+  getStoredPlatformRole,
+  getStoredPlatformUser,
+  getStoredStorefrontRole,
+  getStoredStorefrontUser,
+  getStorefrontAuthToken,
+  setPlatformAuthToken,
+  setStoredPlatformRole,
+  setStoredPlatformUser,
 } from "../../utils/token.js";
 
 const DEFAULT_REDIRECT_PATH = "/";
@@ -66,7 +69,9 @@ function clearPendingGoogleRedirectPath() {
 function GoogleCallbackPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const setSession = useAuthStore((state) => state.setSession);
+  const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
+  const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
+  const clearPlatformSession = useAuthStore((state) => state.clearPlatformSession);
   const hasHandledCallbackRef = useRef(false);
 
   useEffect(() => {
@@ -119,23 +124,55 @@ function GoogleCallbackPage() {
       // In React StrictMode, callback effects may execute more than once.
       // Rehydrate from persisted auth session to keep Zustand/UI in sync.
       const currentAuthState = useAuthStore.getState();
-      const persistedToken = currentAuthState?.token || getAuthToken();
+      const persistedPlatformSession = {
+        token:
+          currentAuthState?.platformSession?.token || getPlatformAuthToken(),
+        user:
+          currentAuthState?.platformSession?.user || getStoredPlatformUser(),
+        role:
+          currentAuthState?.platformSession?.role || getStoredPlatformRole(),
+      };
+      const persistedStorefrontSession = {
+        token:
+          currentAuthState?.storefrontSession?.token || getStorefrontAuthToken(),
+        user:
+          currentAuthState?.storefrontSession?.user || getStoredStorefrontUser(),
+        role:
+          currentAuthState?.storefrontSession?.role || getStoredStorefrontRole(),
+      };
+      const persistedSession = persistedPlatformSession.token
+        ? {
+            type: "platform",
+            ...persistedPlatformSession,
+          }
+        : persistedStorefrontSession.token
+          ? {
+              type: "storefront",
+              ...persistedStorefrontSession,
+            }
+          : null;
 
-      if (persistedToken) {
+      if (persistedSession?.token) {
         const persistedUser =
-          currentAuthState?.user ||
-          getStoredAuthUser() ||
-          extractUser({}, persistedToken);
+          persistedSession.user || extractUser({}, persistedSession.token);
         const persistedRole =
-          currentAuthState?.role ||
-          getStoredAuthRole() ||
-          extractRole({}, persistedToken, persistedUser);
+          persistedSession.role ||
+          extractRole({}, persistedSession.token, persistedUser);
 
-        setSession({
-          token: persistedToken,
-          user: persistedUser,
-          role: persistedRole,
-        });
+        if (persistedSession.type === "platform") {
+          setPlatformSession({
+            token: persistedSession.token,
+            user: persistedUser,
+            role: persistedRole,
+          });
+        } else {
+          setStorefrontSession({
+            token: persistedSession.token,
+            user: persistedUser,
+            role: persistedRole,
+          });
+        }
+
         clearPendingStoreGoogleAuth();
         clearPendingGoogleRedirectPath();
 
@@ -196,21 +233,21 @@ function GoogleCallbackPage() {
     }
 
     clearPendingStoreGoogleAuth();
-    setAuthToken(token);
+    setPlatformAuthToken(token);
 
     if (user) {
-      setStoredAuthUser(user);
+      setStoredPlatformUser(user);
     }
 
     if (role) {
-      setStoredAuthRole(role);
+      setStoredPlatformRole(role);
     }
 
     try {
-      setSession({ token, user, role });
+      setPlatformSession({ token, user, role });
     } catch {
-      clearAuthSession();
-      setSession({ token: "", user: null, role: "" });
+      clearPlatformAuthSession();
+      clearPlatformSession();
       clearPendingGoogleRedirectPath();
       navigate(`${GOOGLE_FAILURE_PATH}?message=invalid_token`, {
         replace: true,
@@ -232,7 +269,9 @@ function GoogleCallbackPage() {
     location.search,
     location.state,
     navigate,
-    setSession,
+    setPlatformSession,
+    setStorefrontSession,
+    clearPlatformSession,
   ]);
 
   return (

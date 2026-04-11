@@ -2,10 +2,14 @@ import { useMutation } from "@tanstack/react-query";
 import authApi from "../../API/auth.api.js";
 import useAuthStore from "../../store/authStore.js";
 import { extractRole, extractToken, extractUser } from "../../utils/authSession.js";
-import { setAuthToken, setStoredAuthRole, setStoredAuthUser } from "../../utils/token.js";
+import {
+  setPlatformAuthToken,
+  setStoredPlatformRole,
+  setStoredPlatformUser,
+} from "../../utils/token.js";
 
 export default function useLogin(options = {}) {
-  const setSession = useAuthStore((state) => state.setSession);
+  const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
 
   return useMutation({
     mutationFn: authApi.login,
@@ -16,19 +20,19 @@ export default function useLogin(options = {}) {
       const role = extractRole(data, token, user);
 
       if (token) {
-        setAuthToken(token);
+        setPlatformAuthToken(token);
       }
 
       if (user) {
-        setStoredAuthUser(user);
+        setStoredPlatformUser(user);
       }
 
       if (role) {
-        setStoredAuthRole(role);
+        setStoredPlatformRole(role);
       }
 
       if (token || user || role) {
-        setSession({ token, user, role });
+        setPlatformSession({ token, user, role });
       }
 
       options.onSuccess?.(data, variables, context);

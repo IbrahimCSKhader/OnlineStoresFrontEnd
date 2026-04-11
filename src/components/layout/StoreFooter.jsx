@@ -4,13 +4,16 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AppButton from "../common/buttons/AppButton.jsx";
+import StoreContactAccounts from "../common/StoreContactAccounts.jsx";
 import { getStoreContactEntries } from "../../utils/storeContacts.js";
 import "./StoreFooter.css";
 
 export default function StoreFooter({ store, slug = "" }) {
   const year = new Date().getFullYear();
   const contactEntries = getStoreContactEntries(store);
-  const primaryWhatsApp = contactEntries.find((entry) => entry.platform === "WhatsApp");
+  const primaryWhatsApp = contactEntries.find(
+    (entry) => entry.platform === "WhatsApp",
+  );
   const localLinks = [
     { to: `/market/${slug}`, label: "الرئيسية" },
     { to: `/market/${slug}/about`, label: "من نحن" },
@@ -28,11 +31,18 @@ export default function StoreFooter({ store, slug = "" }) {
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             <Chip label={store?.businessType || "متجر"} variant="outlined" />
-            <Chip label={store?.isActive === false ? "غير نشط" : "نشط"} variant="outlined" />
+            <Chip
+              label={store?.isActive === false ? "غير نشط" : "نشط"}
+              variant="outlined"
+            />
           </Stack>
         </Box>
 
-        <Box component="nav" className="store-local-footer__links" aria-label="روابط المتجر">
+        <Box
+          component="nav"
+          className="store-local-footer__links"
+          aria-label="روابط المتجر"
+        >
           {localLinks.map((link) => (
             <Box
               key={link.to}
@@ -47,20 +57,40 @@ export default function StoreFooter({ store, slug = "" }) {
 
         <Box className="store-local-footer__actions">
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            <AppButton component={RouterLink} to={`/market/${slug}/contact`} variant="contained">
+            <AppButton
+              component={RouterLink}
+              to={`/market/${slug}/contact`}
+              variant="contained"
+            >
               تواصل
             </AppButton>
             {primaryWhatsApp?.url ? (
-              <AppButton component="a" href={primaryWhatsApp.url} target="_blank" rel="noreferrer" variant="text">
+              <AppButton
+                component="a"
+                href={primaryWhatsApp.url}
+                target="_blank"
+                rel="noreferrer"
+                variant="text"
+              >
                 واتساب
               </AppButton>
             ) : null}
           </Stack>
+
+          <StoreContactAccounts
+            accounts={contactEntries}
+            title=""
+            layout="compact"
+            showTitle={false}
+            hideWhenEmpty
+          />
         </Box>
       </Box>
 
       <Box className="store-local-footer__bottom">
-        <Typography variant="body2">© {year} {store?.name || "Store"}</Typography>
+        <Typography variant="body2">
+          © {year} {store?.name || "Store"}
+        </Typography>
       </Box>
     </Box>
   );

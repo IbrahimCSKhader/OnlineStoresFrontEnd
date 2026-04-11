@@ -20,7 +20,6 @@ export const endpoints = {
     register: withPrefix("/store-customer-auth/register"),
     login: withPrefix("/store-customer-auth/login"),
     storeLogin: (storeId) => withPrefix(`/store-customer-auth/store/${storeId}/login`),
-    guest: withPrefix("/store-customer-auth/guest"),
     forgotPassword: withPrefix("/store-customer-auth/forgot-password"),
     resetPassword: withPrefix("/store-customer-auth/reset-password"),
     setPassword: withPrefix("/store-customer-auth/set-password"),
