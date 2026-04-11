@@ -232,10 +232,7 @@ export default function Navbar() {
     isStoreCustomer &&
     hasScopedStorefrontSession;
   const canAccessStoreCart = Boolean(activeStoreSlug);
-  const isPlatformAuthenticated =
-    isAuthenticated &&
-    !isStoreCustomer &&
-    (isOwnerRole(role) || isSuperAdminRole(role));
+  const isPlatformAuthenticated = false;
 
   const logoutMutation = useLogout({
     onSettled: () => {

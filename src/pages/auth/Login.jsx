@@ -19,12 +19,13 @@ import Typography from "@mui/material/Typography";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import VerifiedRoundedIcon from "@mui/icons-material/VerifiedRounded";
-import authApi from "../../API/auth.api.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useLogin from "../../hooks/auth/useLogin.js";
 import useStoreCustomerLogin from "../../hooks/auth/useStoreCustomerLogin.js";
 import useVerifyEmail from "../../hooks/auth/useVerifyEmail.js";
 import useResendVerificationCode from "../../hooks/auth/useResendVerificationCode.js";
+import useStoreCustomerVerifyEmail from "../../hooks/auth/useStoreCustomerVerifyEmail.js";
+import useStoreCustomerResendVerificationCode from "../../hooks/auth/useStoreCustomerResendVerificationCode.js";
 import useForgotPassword from "../../hooks/auth/useForgotPassword.js";
 import useResetPassword from "../../hooks/auth/useResetPassword.js";
 import useStoreCustomerForgotPassword from "../../hooks/auth/useStoreCustomerForgotPassword.js";
@@ -47,17 +48,19 @@ import {
   setPendingStoreGoogleAuth,
 } from "../../utils/pendingStoreGoogleAuth.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
-import { getLandingPath, isOwnerRole } from "../../utils/roles.js";
+import { getLandingPath } from "../../utils/roles.js";
 import {
   buildStoreCustomerAuthState,
   getStoreCustomerRedirectPath,
   hasStoreCustomerAuthContext,
 } from "../../utils/storeCustomerAuth.js";
 import {
-  clearPlatformAuthSession,
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
+  setStorefrontAuthToken,
+  setStoredStorefrontRole,
+  setStoredStorefrontUser,
 } from "../../utils/token.js";
 import "./Login.css";
 
@@ -69,76 +72,6 @@ const FLOW = {
   GOOGLE_STORE_SETUP: "google-store-setup",
 };
 const GOOGLE_REDIRECT_FALLBACK_KEY = "googleAuthRedirectFallback";
-
-function normalizeComparableIdentity(value) {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  return String(value).trim().toLowerCase();
-}
-
-function collectComparableIdentities(...values) {
-  return Array.from(
-    new Set(values.map((value) => normalizeComparableIdentity(value)).filter(Boolean)),
-  );
-}
-
-function hasMatchingIdentity(sourceValues = [], targetValues = []) {
-  return sourceValues.some((value) => targetValues.includes(value));
-}
-
-function getRouteStoreOwnerEmails(store) {
-  return collectComparableIdentities(
-    store?.ownerEmail,
-    store?.owner?.email,
-    store?.owner?.Email,
-  );
-}
-
-function doesUserOwnRouteStore(user, store) {
-  if (!user || !store) {
-    return false;
-  }
-
-  const userIds = collectComparableIdentities(
-    user?.id,
-    user?.userId,
-    user?.sub,
-    user?.ownerId,
-  );
-  const userEmails = collectComparableIdentities(user?.email, user?.Email);
-  const userStoreIds = collectComparableIdentities(
-    user?.storeId,
-    user?.StoreId,
-    user?.store?.id,
-  );
-  const ownerIds = collectComparableIdentities(
-    store?.ownerId,
-    store?.owner?.id,
-    store?.owner?.userId,
-    store?.owner?.ownerId,
-  );
-  const ownerEmails = getRouteStoreOwnerEmails(store);
-  const storeIds = collectComparableIdentities(store?.id, store?.storeId);
-
-  return (
-    hasMatchingIdentity(userIds, ownerIds) ||
-    hasMatchingIdentity(userEmails, ownerEmails) ||
-    hasMatchingIdentity(userStoreIds, storeIds)
-  );
-}
-
-function buildFlowError(code, message, cause) {
-  const error = new Error(message);
-  error.code = code;
-
-  if (cause) {
-    error.cause = cause;
-  }
-
-  return error;
-}
 
 function getErrorMessage(error) {
   return extractApiError(
@@ -215,8 +148,9 @@ export default function Login() {
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
   const location = useLocation();
-  const { clearPlatformSession, isPlatformUser, role, storeCustomer, user } = useAuth();
+  const { isPlatformAuthenticated, role, storeCustomer } = useAuth();
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
+  const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
   const mergeGuestCart = useMergeGuestCart();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
     enabled: Boolean(routeStoreSlug),
@@ -231,9 +165,9 @@ export default function Login() {
     : null;
   const routeStoreCustomerAuthState = routeStoreSlug
     ? buildStoreCustomerAuthState({
-        storeId: routeStore?.id || "",
+        storeId: routeStore?.id || location.state?.storeId || "",
         storeSlug: routeStoreSlug,
-        storeName: routeStore?.name || routeStoreSlug,
+        storeName: routeStore?.name || location.state?.storeName || routeStoreSlug,
         redirectTo: location.state?.redirectTo || `/market/${routeStoreSlug}`,
       })
     : null;
@@ -269,14 +203,23 @@ export default function Login() {
 
   const loginMutation = useLogin();
   const storeCustomerLoginMutation = useStoreCustomerLogin();
-  const verifyEmailMutation = useVerifyEmail();
-  const resendVerificationCodeMutation = useResendVerificationCode();
+  const platformVerifyEmailMutation = useVerifyEmail();
+  const platformResendVerificationCodeMutation = useResendVerificationCode();
+  const storeCustomerVerifyEmailMutation = useStoreCustomerVerifyEmail();
+  const storeCustomerResendVerificationCodeMutation =
+    useStoreCustomerResendVerificationCode();
   const platformForgotPasswordMutation = useForgotPassword();
   const platformResetPasswordMutation = useResetPassword();
   const storeCustomerForgotPasswordMutation = useStoreCustomerForgotPassword();
   const storeCustomerResetPasswordMutation = useStoreCustomerResetPassword();
   const storeCustomerSetPasswordFromAuthUserMutation =
     useStoreCustomerSetPasswordFromAuthUser();
+  const verifyEmailMutation = isStoreCustomerMode
+    ? storeCustomerVerifyEmailMutation
+    : platformVerifyEmailMutation;
+  const resendVerificationCodeMutation = isStoreCustomerMode
+    ? storeCustomerResendVerificationCodeMutation
+    : platformResendVerificationCodeMutation;
   const forgotPasswordMutation = isStoreCustomerMode
     ? storeCustomerForgotPasswordMutation
     : platformForgotPasswordMutation;
@@ -362,10 +305,24 @@ export default function Login() {
     setFlow(FLOW.GOOGLE_STORE_SETUP);
   }, [pendingStoreGoogleAuth, setValue, storeCustomerAuthState?.storeId]);
 
+  if (routeStoreSlug && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
+    return (
+      <Box className="page-login">
+        <Box
+          className="page-login__shell"
+          style={{ gridTemplateColumns: "minmax(0, 1fr)" }}
+        >
+          <Paper className="page-login__panel page-login__panel--form" elevation={0}>
+            <Typography variant="body1">ط¬ط§ط±ظٹ طھط¬ظ‡ظٹط² ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±...</Typography>
+          </Paper>
+        </Box>
+      </Box>
+    );
+  }
+
   const shouldRedirectAuthenticatedUser = isStoreCustomerMode
-    ? (Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession) ||
-      (isPlatformUser && isOwnerRole(role) && doesUserOwnRouteStore(user, routeStore))
-    : isPlatformUser;
+    ? Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession
+    : isPlatformAuthenticated;
 
   if (shouldRedirectAuthenticatedUser) {
     return <Navigate to={redirectTo || getLandingPath(role)} replace />;
@@ -460,9 +417,28 @@ export default function Login() {
     return resolvedRole;
   }
 
-  function clearLocalAuthState() {
-    clearPlatformAuthSession();
-    clearPlatformSession();
+  function saveStorefrontSessionFromAuthResponse(data) {
+    const token = extractToken(data);
+    const user = extractUser(data, token);
+    const resolvedRole = extractRole(data, token, user);
+
+    if (token) {
+      setStorefrontAuthToken(token);
+    }
+
+    if (user) {
+      setStoredStorefrontUser(user);
+    }
+
+    if (resolvedRole) {
+      setStoredStorefrontRole(resolvedRole);
+    }
+
+    if (token || user || resolvedRole) {
+      setStorefrontSession({ token, user, role: resolvedRole });
+    }
+
+    return resolvedRole;
   }
 
   function handleStoreCustomerLoginError(error, email) {
@@ -491,43 +467,10 @@ export default function Login() {
     setLocalError(getErrorMessage(error));
   }
 
-  async function loginOwnerFromStore({ email, password }) {
-    const data = await authApi.login({
-      email,
-      password,
-    });
-    const token = extractToken(data);
-    const platformUser = extractUser(data, token);
-    const platformRole = extractRole(data, token, platformUser);
-
-    if (!isOwnerRole(platformRole)) {
-      clearLocalAuthState();
-      throw buildFlowError(
-        "STORE_OWNER_ROLE_REQUIRED",
-        "هذا الحساب ليس حساب مالك متجر.",
-      );
-    }
-
-    if (!doesUserOwnRouteStore(platformUser, routeStore)) {
-      clearLocalAuthState();
-      throw buildFlowError(
-        "STORE_OWNER_MISMATCH",
-        "هذا الحساب لا يملك هذا المتجر. ادخل من صفحة متجرك الصحيح.",
-      );
-    }
-
-    saveSessionFromAuthResponse(data);
-    return platformRole;
-  }
-
   const onLoginSubmit = handleSubmit(async (values) => {
     resetAlerts();
 
     const email = values.email.trim();
-    const routeStoreOwnerEmails = getRouteStoreOwnerEmails(routeStore);
-    const enteredOwnerEmail =
-      isStoreCustomerMode &&
-      routeStoreOwnerEmails.includes(normalizeComparableIdentity(email));
 
     try {
       if (isStoreCustomerMode) {
@@ -535,15 +478,6 @@ export default function Login() {
           setLocalError(
             "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
           );
-          return;
-        }
-
-        if (enteredOwnerEmail) {
-          const ownerRole = await loginOwnerFromStore({
-            email,
-            password: values.password,
-          });
-          navigate(getLandingPath(ownerRole) || "/owner", { replace: true });
           return;
         }
 
@@ -558,25 +492,6 @@ export default function Login() {
           navigate(redirectTo, { replace: true });
           return;
         } catch (storeCustomerError) {
-          if (!routeStoreOwnerEmails.length) {
-            try {
-              const ownerRole = await loginOwnerFromStore({
-                email,
-                password: values.password,
-              });
-              navigate(getLandingPath(ownerRole) || "/owner", { replace: true });
-              return;
-            } catch (ownerLoginError) {
-              if (
-                ownerLoginError?.code !== "STORE_OWNER_MISMATCH" &&
-                ownerLoginError?.code !== "STORE_OWNER_ROLE_REQUIRED"
-              ) {
-                handleStoreCustomerLoginError(storeCustomerError, email);
-                return;
-              }
-            }
-          }
-
           handleStoreCustomerLoginError(storeCustomerError, email);
           return;
         }
@@ -590,22 +505,9 @@ export default function Login() {
       const user = extractUser(data, token);
       const sessionRole = extractRole(data, token, user);
 
-      if (isOwnerRole(sessionRole)) {
-        clearLocalAuthState();
-        setLocalError(
-          "دخول مالك المتجر متاح فقط من صفحة متجره، وليس من صفحة الدخول العامة.",
-        );
-        return;
-      }
-
       navigate(redirectTo || getLandingPath(sessionRole), { replace: true });
     } catch (error) {
       if (isStoreCustomerMode) {
-        if (error?.code === "STORE_OWNER_MISMATCH") {
-          setLocalError(error.message);
-          return;
-        }
-
         const responseData = error?.response?.data;
         const needsVerification =
           error?.response?.status === 401 &&
@@ -713,8 +615,28 @@ export default function Login() {
     const code = values.verificationCode.trim();
 
     try {
-      const data = await verifyEmailMutation.mutateAsync({ email, code });
-      const sessionRole = saveSessionFromAuthResponse(data);
+      if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
+        setLocalError(
+          "ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط± ظ„ظ… طھظƒطھظ…ظ„ ط¨ط¹ط¯. ط§ظ†طھط¸ط± ظ„ط­ط¸ط© ط«ظ… ط£ط¹ط¯ ط§ظ„ظ…ط­ط§ظˆظ„ط©.",
+        );
+        return;
+      }
+
+      const data = await verifyEmailMutation.mutateAsync(
+        isStoreCustomerMode
+          ? {
+              storeId: storeCustomerAuthState?.storeId,
+              email,
+              code,
+            }
+          : {
+              email,
+              code,
+            },
+      );
+      const sessionRole = isStoreCustomerMode
+        ? saveStorefrontSessionFromAuthResponse(data)
+        : saveSessionFromAuthResponse(data);
       await mergeGuestCart();
       navigate(redirectTo || getLandingPath(sessionRole), { replace: true });
     } catch (error) {
@@ -733,7 +655,21 @@ export default function Login() {
     }
 
     try {
-      await resendVerificationCodeMutation.mutateAsync({ email });
+      if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
+        setLocalError(
+          "ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط± ظ„ظ… طھظƒطھظ…ظ„ ط¨ط¹ط¯. ط§ظ†طھط¸ط± ظ„ط­ط¸ط© ط«ظ… ط£ط¹ط¯ ط§ظ„ظ…ط­ط§ظˆظ„ط©.",
+        );
+        return;
+      }
+
+      await resendVerificationCodeMutation.mutateAsync(
+        isStoreCustomerMode
+          ? {
+              storeId: storeCustomerAuthState?.storeId,
+              email,
+            }
+          : { email },
+      );
       setSuccessMessage("تم إرسال كود التفعيل مرة أخرى إلى بريدك الإلكتروني.");
     } catch (error) {
       setLocalError(getErrorMessage(error));
@@ -835,7 +771,9 @@ export default function Login() {
           : {
               email,
               code,
+              resetCode: code,
               newPassword: values.newPassword,
+              confirmPassword: values.confirmNewPassword,
             },
       );
 

@@ -16,54 +16,53 @@ import {
 const PLATFORM_VISUALS = {
   Instagram: {
     icon: <InstagramIcon fontSize="small" />,
-    color: "#d81b60",
-    accent: "rgba(216, 27, 96, 0.16)",
+    color: "#ff4d8d",
+    accent: "rgba(255, 77, 141, 0.16)",
     cardBackground:
-      "linear-gradient(135deg, rgba(131, 58, 180, 0.2) 0%, rgba(253, 29, 29, 0.12) 52%, rgba(252, 176, 69, 0.16) 100%)",
-    cardBorder: "rgba(216, 27, 96, 0.35)",
-    cardText: "var(--text-primary)",
-    cardMuted: "var(--text-secondary)",
+      "linear-gradient(135deg, rgba(255, 77, 141, 0.18) 0%, rgba(255, 177, 208, 0.12) 100%)",
+    cardBorder: "rgba(255, 77, 141, 0.28)",
+    cardText: "#7c133d",
+    cardMuted: "rgba(124, 19, 61, 0.72)",
   },
   TikTok: {
     icon: <MusicVideoRoundedIcon fontSize="small" />,
     color: "#ffffff",
-    accent:
-      "linear-gradient(135deg, rgba(37, 244, 238, 0.34), rgba(254, 44, 85, 0.34))",
+    accent: "rgba(37, 244, 238, 0.16)",
     cardBackground:
-      "linear-gradient(135deg, rgba(7, 7, 9, 1) 0%, rgba(14, 14, 18, 1) 100%)",
-    cardBorder: "rgba(37, 244, 238, 0.34)",
-    cardText: "#f9fafb",
-    cardMuted: "rgba(236, 239, 241, 0.86)",
+      "linear-gradient(135deg, rgba(12, 12, 14, 0.98) 0%, rgba(24, 24, 28, 0.98) 100%)",
+    cardBorder: "rgba(255, 255, 255, 0.12)",
+    cardText: "#ffffff",
+    cardMuted: "rgba(255, 255, 255, 0.74)",
   },
   Facebook: {
     icon: <FacebookRoundedIcon fontSize="small" />,
-    color: "#1877f2",
-    accent: "rgba(24, 119, 242, 0.12)",
+    color: "#ffffff",
+    accent: "rgba(24, 119, 242, 0.18)",
     cardBackground:
-      "linear-gradient(135deg, rgba(24, 119, 242, 0.16), rgba(24, 119, 242, 0.06))",
-    cardBorder: "rgba(24, 119, 242, 0.36)",
-    cardText: "var(--text-primary)",
-    cardMuted: "var(--text-secondary)",
+      "linear-gradient(135deg, rgba(24, 119, 242, 0.96) 0%, rgba(18, 91, 185, 0.98) 100%)",
+    cardBorder: "rgba(24, 119, 242, 0.28)",
+    cardText: "#ffffff",
+    cardMuted: "rgba(255, 255, 255, 0.8)",
   },
   Snapchat: {
     icon: <CameraAltRoundedIcon fontSize="small" />,
-    color: "#d6b800",
-    accent: "rgba(214, 184, 0, 0.14)",
+    color: "#111111",
+    accent: "rgba(255, 220, 77, 0.22)",
     cardBackground:
-      "linear-gradient(135deg, rgba(214, 184, 0, 0.2), rgba(214, 184, 0, 0.08))",
-    cardBorder: "rgba(214, 184, 0, 0.34)",
-    cardText: "var(--text-primary)",
-    cardMuted: "var(--text-secondary)",
+      "linear-gradient(135deg, rgba(255, 247, 184, 0.98) 0%, rgba(255, 236, 131, 0.96) 100%)",
+    cardBorder: "rgba(176, 145, 0, 0.22)",
+    cardText: "#2f2200",
+    cardMuted: "rgba(47, 34, 0, 0.72)",
   },
   WhatsApp: {
     icon: <WhatsAppIcon fontSize="small" />,
-    color: "#25d366",
-    accent: "rgba(37, 211, 102, 0.14)",
+    color: "#ffffff",
+    accent: "rgba(37, 211, 102, 0.2)",
     cardBackground:
-      "linear-gradient(135deg, rgba(37, 211, 102, 0.2), rgba(37, 211, 102, 0.08))",
-    cardBorder: "rgba(37, 211, 102, 0.34)",
-    cardText: "var(--text-primary)",
-    cardMuted: "var(--text-secondary)",
+      "linear-gradient(135deg, rgba(37, 211, 102, 0.96) 0%, rgba(22, 163, 74, 0.98) 100%)",
+    cardBorder: "rgba(37, 211, 102, 0.26)",
+    cardText: "#ffffff",
+    cardMuted: "rgba(255, 255, 255, 0.82)",
   },
 };
 
@@ -71,12 +70,11 @@ function getPlatformVisual(platform) {
   return (
     PLATFORM_VISUALS[platform] || {
       icon: <OpenInNewRoundedIcon fontSize="small" />,
-      color: "var(--text-secondary)",
-      accent:
-        "color-mix(in srgb, var(--surface-muted) 78%, var(--surface-elevated))",
+      color: "#334155",
+      accent: "rgba(148, 163, 184, 0.14)",
       cardBackground:
-        "linear-gradient(180deg, color-mix(in srgb, var(--surface) 88%, white) 0%, var(--surface) 100%)",
-      cardBorder: "var(--border-subtle)",
+        "linear-gradient(180deg, rgba(248, 249, 251, 0.98) 0%, rgba(242, 244, 247, 0.96) 100%)",
+      cardBorder: "rgba(148, 163, 184, 0.2)",
       cardText: "var(--text-primary)",
       cardMuted: "var(--text-secondary)",
     }
@@ -176,7 +174,7 @@ export default function StoreContactAccounts({
                 "&:hover": {
                   transform: "translateY(-1px)",
                   borderColor: platformVisual.color,
-                  boxShadow: "var(--shadow-sm)",
+                  boxShadow: "0 14px 28px rgba(22, 30, 38, 0.08)",
                 },
               }}
             >

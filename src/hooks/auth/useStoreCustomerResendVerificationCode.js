@@ -3,7 +3,10 @@ import storeCustomerAuthApi from "../../API/storeCustomerAuth.api.js";
 
 export default function useStoreCustomerResendVerificationCode(options = {}) {
   return useMutation({
-    mutationFn: storeCustomerAuthApi.resendVerificationCode,
+    mutationFn: ({ storeId, ...payload }) =>
+      storeId
+        ? storeCustomerAuthApi.resendVerificationCodeByStore(storeId, payload)
+        : storeCustomerAuthApi.resendVerificationCode(payload),
     ...options,
   });
 }

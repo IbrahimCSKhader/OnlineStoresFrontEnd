@@ -1,7 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import storeCustomerAuthApi from "../../API/storeCustomerAuth.api.js";
 import useAuthStore from "../../store/authStore.js";
-import { extractRole, extractToken, extractUser } from "../../utils/authSession.js";
+import {
+  extractRole,
+  extractToken,
+  extractUser,
+} from "../../utils/authSession.js";
 import {
   setStorefrontAuthToken,
   setStoredStorefrontRole,
@@ -9,10 +13,15 @@ import {
 } from "../../utils/token.js";
 
 export default function useStoreCustomerRegister(options = {}) {
-  const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
+  const setStorefrontSession = useAuthStore(
+    (state) => state.setStorefrontSession,
+  );
 
   return useMutation({
-    mutationFn: storeCustomerAuthApi.register,
+    mutationFn: ({ storeId, ...payload }) =>
+      storeId
+        ? storeCustomerAuthApi.registerByStore(storeId, payload)
+        : storeCustomerAuthApi.register(payload),
     ...options,
     onSuccess: (data, variables, context) => {
       const token = extractToken(data);

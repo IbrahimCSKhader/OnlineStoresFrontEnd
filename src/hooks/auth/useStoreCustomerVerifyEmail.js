@@ -3,7 +3,10 @@ import storeCustomerAuthApi from "../../API/storeCustomerAuth.api.js";
 
 export default function useStoreCustomerVerifyEmail(options = {}) {
   return useMutation({
-    mutationFn: storeCustomerAuthApi.verifyEmail,
+    mutationFn: ({ storeId, ...payload }) =>
+      storeId
+        ? storeCustomerAuthApi.verifyEmailByStore(storeId, payload)
+        : storeCustomerAuthApi.verifyEmail(payload),
     ...options,
   });
 }

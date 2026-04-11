@@ -452,6 +452,15 @@ export function createAppTheme(variant = "light", branding = null) {
             paddingTop: 14,
             paddingBottom: 14,
             textAlign: "right",
+            "&[type='password']": {
+              direction: "ltr",
+              textAlign: "left",
+              fontFamily: '"Segoe UI", Tahoma, Arial, sans-serif',
+              letterSpacing: "normal",
+              fontVariantLigatures: "none",
+              fontFeatureSettings: "normal",
+              textRendering: "auto",
+            },
           },
           notchedOutline: {
             borderColor: withAlpha(palette.border, isDark ? 0.86 : 0.72),

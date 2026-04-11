@@ -3,7 +3,10 @@ import storeCustomerAuthApi from "../../API/storeCustomerAuth.api.js";
 
 export default function useStoreCustomerForgotPassword(options = {}) {
   return useMutation({
-    mutationFn: storeCustomerAuthApi.forgotPassword,
+    mutationFn: ({ storeId, ...payload }) =>
+      storeId
+        ? storeCustomerAuthApi.forgotPasswordByStore(storeId, payload)
+        : storeCustomerAuthApi.forgotPassword(payload),
     ...options,
   });
 }

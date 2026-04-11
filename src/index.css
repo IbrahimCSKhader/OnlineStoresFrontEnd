@@ -138,6 +138,16 @@ select {
   font: inherit;
 }
 
+input[type="password"] {
+  direction: ltr;
+  text-align: left;
+  font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+  letter-spacing: normal;
+  font-variant-ligatures: none;
+  font-feature-settings: normal;
+  text-rendering: auto;
+}
+
 #root {
   isolation: isolate;
 }

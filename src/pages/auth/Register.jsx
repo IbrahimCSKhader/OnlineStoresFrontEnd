@@ -53,9 +53,9 @@ export default function Register() {
     : null;
   const routeStoreCustomerAuthState = routeStoreSlug
     ? buildStoreCustomerAuthState({
-        storeId: routeStore?.id || "",
+        storeId: routeStore?.id || location.state?.storeId || "",
         storeSlug: routeStoreSlug,
-        storeName: routeStore?.name || routeStoreSlug,
+        storeName: routeStore?.name || location.state?.storeName || routeStoreSlug,
         redirectTo: location.state?.redirectTo || `/market/${routeStoreSlug}`,
       })
     : null;
@@ -98,6 +98,18 @@ export default function Register() {
     formState: { errors },
   } = useForm({ defaultValues });
 
+  if (routeStoreSlug && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
+    return (
+      <Box className="page-register">
+        <Box className="page-register__shell">
+          <Paper className="page-register__panel page-register__panel--form" elevation={0}>
+            <Typography variant="body1">ط¬ط§ط±ظٹ طھط¬ظ‡ظٹط² ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±...</Typography>
+          </Paper>
+        </Box>
+      </Box>
+    );
+  }
+
   if (storeCustomer && storefrontSession.hasScopedStorefrontSession) {
     return <Navigate to={redirectTo} replace />;
   }
@@ -113,6 +125,7 @@ export default function Register() {
       firstName: values.firstName.trim(),
       lastName: values.lastName.trim(),
       email,
+      phone: null,
       password: values.password,
     });
 
