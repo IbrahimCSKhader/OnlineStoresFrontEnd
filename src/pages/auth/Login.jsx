@@ -80,6 +80,35 @@ function getErrorMessage(error) {
   );
 }
 
+function normalizeValue(value) {
+  return String(value || "").trim();
+}
+
+function resolveDashboard(data = {}, user = {}) {
+  const dashboardValue = normalizeValue(
+    data?.dashboard ||
+      data?.Dashboard ||
+      data?.data?.dashboard ||
+      data?.data?.Dashboard,
+  ).toLowerCase();
+
+  if (dashboardValue === "owner") return "owner";
+  if (dashboardValue === "customer") return "customer";
+
+  const accountType = normalizeValue(
+    data?.accountType ||
+      data?.AccountType ||
+      user?.accountType ||
+      user?.AccountType,
+  ).toLowerCase();
+
+  if (accountType === "storeowner") {
+    return "owner";
+  }
+
+  return "customer";
+}
+
 function getFlowHeading(flow) {
   if (flow === FLOW.VERIFY_EMAIL) {
     return {
@@ -442,9 +471,17 @@ export default function Login() {
   }
 
   function handleStoreCustomerLoginError(error, email) {
+    if (error?.code === "STORE_SCOPE_MISMATCH") {
+      setLocalError(
+        "انتهت صلاحية سياق المتجر الحالي. أعد فتح المتجر الصحيح ثم سجّل الدخول مرة أخرى.",
+      );
+      return;
+    }
+
     const responseData = error?.response?.data;
+    const statusCode = Number(error?.response?.status || 0);
     const needsVerification =
-      error?.response?.status === 401 &&
+      statusCode === 401 &&
       responseData?.requiresEmailVerification === true;
 
     if (needsVerification) {
@@ -461,6 +498,21 @@ export default function Login() {
             "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
         },
       });
+      return;
+    }
+
+    if (statusCode === 403) {
+      setLocalError(
+        "هذا الحساب ليس مالكًا لهذا المتجر أو غير مخوّل للدخول إليه.",
+      );
+      return;
+    }
+
+    if (statusCode === 400 || statusCode === 401) {
+      setLocalError(
+        responseData?.message ||
+          "البريد الإلكتروني أو كلمة المرور غير صحيحة، أو أن الحساب لا يحقق شروط الدخول.",
+      );
       return;
     }
 
@@ -482,12 +534,30 @@ export default function Login() {
         }
 
         try {
-          await storeCustomerLoginMutation.mutateAsync({
+          const data = await storeCustomerLoginMutation.mutateAsync({
             storeId: storeCustomerAuthState.storeId,
             email,
             password: values.password,
           });
+
+          const token = extractToken(data);
+          const user = extractUser(data, token);
+          const dashboard = resolveDashboard(data, user);
+
           clearPendingStoreGoogleAuth();
+
+          if (dashboard === "owner") {
+            navigate("/owner", {
+              replace: true,
+              state: {
+                storeId: storeCustomerAuthState.storeId,
+                storeSlug: storeCustomerAuthState.storeSlug,
+                fromStoreLogin: true,
+              },
+            });
+            return;
+          }
+
           await mergeGuestCart();
           navigate(redirectTo, { replace: true });
           return;

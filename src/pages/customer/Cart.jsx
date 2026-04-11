@@ -14,6 +14,8 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import QuantityStepper from "../../components/common/inputs/QuantityStepper.jsx";
 import CartItem from "../../components/cart/CartItem.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
+import useAuth from "../../hooks/auth/useAuth.js";
+import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useCart from "../../hooks/cart/useCart.js";
 import useRemoveCartItem from "../../hooks/cart/useRemoveCartItem.js";
 import useUpdateCartItem from "../../hooks/cart/useUpdateCartItem.js";
@@ -28,6 +30,8 @@ import "./Cart.css";
 
 export default function Cart() {
   const { slug } = useParams();
+  const auth = useAuth();
+  const { storeCustomer } = auth;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -35,6 +39,7 @@ export default function Cart() {
   const store = useMemo(() => normalizeEntityResponse(storeQuery.data), [storeQuery.data]);
 
   useStoreBranding(store);
+  const storefrontSession = useStorefrontSession(store?.id);
 
   const cartQuery = useCart(store?.id, {
     enabled: Boolean(store?.id),
@@ -57,6 +62,46 @@ export default function Cart() {
         <EmptyState
           title="تعذر فتح السلة"
           description="لم نتمكن من العثور على المتجر المرتبط بهذه السلة."
+        />
+      </Box>
+    );
+  }
+
+  if (!storeCustomer) {
+    return (
+      <Box className="storefront-page page-cart">
+        <EmptyState
+          title="يلزم تسجيل الدخول"
+          description="السلة الخاصة بالمتجر تتطلب جلسة StoreCustomer صالحة لهذا المتجر."
+          action={
+            <AppButton
+              component={RouterLink}
+              to={`/market/${slug}/login`}
+              variant="contained"
+            >
+              تسجيل الدخول
+            </AppButton>
+          }
+        />
+      </Box>
+    );
+  }
+
+  if (storefrontSession.hasConflictingStoreCustomerSession) {
+    return (
+      <Box className="storefront-page page-cart">
+        <EmptyState
+          title="يلزم تسجيل الدخول لهذا المتجر"
+          description="الجلسة الحالية مرتبطة بمتجر آخر، لذا لا يمكن تحميل سلة هذا المتجر."
+          action={
+            <AppButton
+              component={RouterLink}
+              to={`/market/${slug}/login`}
+              variant="contained"
+            >
+              تسجيل الدخول لهذا المتجر
+            </AppButton>
+          }
         />
       </Box>
     );
