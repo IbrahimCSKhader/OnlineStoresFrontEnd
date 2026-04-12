@@ -40,6 +40,11 @@ import {
   extractToken,
   extractUser,
 } from "../../utils/authSession.js";
+import {
+  logAuthFlow,
+  serializeAuthFlowError,
+  serializeAuthFlowUser,
+} from "../../utils/authFlowDebug.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
 import {
@@ -304,7 +309,19 @@ export default function Login() {
     }
 
     setValue("email", pendingStoreGoogleAuth.email || "");
-  }, [pendingStoreGoogleAuth, setValue, storeCustomerAuthState?.storeId]);
+    logAuthFlow("Google store auth resumed", {
+      storeId: storeCustomerAuthState?.storeId || pendingStoreGoogleAuth.storeId || "",
+      storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug || "",
+      email: pendingStoreGoogleAuth.email || "",
+      hasAppUserToken: Boolean(pendingStoreGoogleAuth.appUserToken),
+    });
+  }, [
+    pendingStoreGoogleAuth,
+    routeStoreSlug,
+    setValue,
+    storeCustomerAuthState?.storeId,
+    storeCustomerAuthState?.storeSlug,
+  ]);
 
   if (routeStoreSlug && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
     return (
@@ -542,6 +559,13 @@ export default function Login() {
     resetAlerts();
 
     const email = values.email.trim();
+    logAuthFlow("Login submit", {
+      authMode: isStoreCustomerMode ? "store" : "platform",
+      email,
+      requestStoreId: storeCustomerAuthState?.storeId || "",
+      storeSlug: storeCustomerAuthState?.storeSlug || "",
+      redirectTo,
+    });
 
     try {
       if (isStoreCustomerMode) {
@@ -561,8 +585,22 @@ export default function Login() {
           const authResult = resolveCurrentStoreAuthResult(data);
 
           clearPendingStoreGoogleAuth();
+          logAuthFlow("Store login navigation decision", {
+            requestStoreId: storeCustomerAuthState.storeId,
+            responseStoreId: authResult.responseStoreId,
+            responseStoreCustomerId: authResult.responseStoreCustomerId,
+            isOwner: authResult.isOwner,
+            isCustomer: authResult.isCustomer,
+            role: authResult.role,
+            user: serializeAuthFlowUser(authResult.user),
+          });
 
           if (authResult.isOwner) {
+            logAuthFlow("Navigating to owner dashboard", {
+              targetPath: "/owner",
+              storeId: storeCustomerAuthState.storeId,
+              storeSlug: storeCustomerAuthState.storeSlug || "",
+            });
             navigate("/owner", {
               replace: true,
               state: {
@@ -575,9 +613,19 @@ export default function Login() {
           }
 
           await mergeGuestCart();
+          logAuthFlow("Navigating to store after customer login", {
+            targetPath: redirectTo,
+            storeId: authResult.responseStoreId,
+            storeCustomerId: authResult.responseStoreCustomerId,
+          });
           navigate(redirectTo, { replace: true });
           return;
         } catch (storeCustomerError) {
+          logAuthFlow("Store login submit failed", {
+            email,
+            requestStoreId: storeCustomerAuthState?.storeId || "",
+            error: serializeAuthFlowError(storeCustomerError),
+          });
           handleStoreCustomerLoginError(storeCustomerError, email);
           return;
         }
@@ -590,9 +638,21 @@ export default function Login() {
       const token = extractToken(data);
       const user = extractUser(data, token);
       const sessionRole = extractRole(data, token, user);
+      logAuthFlow("Platform login success", {
+        email,
+        role: sessionRole,
+        user: serializeAuthFlowUser(user),
+        targetPath: redirectTo || getLandingPath(sessionRole),
+      });
 
       navigate(redirectTo || getLandingPath(sessionRole), { replace: true });
     } catch (error) {
+      logAuthFlow("Login submit failed", {
+        authMode: isStoreCustomerMode ? "store" : "platform",
+        email,
+        requestStoreId: storeCustomerAuthState?.storeId || "",
+        error: serializeAuthFlowError(error),
+      });
       if (isStoreCustomerMode) {
         const responseData = error?.response?.data;
         const needsVerification =
@@ -669,6 +729,13 @@ export default function Login() {
       return;
     }
 
+    logAuthFlow("Google store setup submit", {
+      storeId: resolvedStoreId,
+      storeSlug: storeCustomerAuthState?.storeSlug || "",
+      email,
+      hasAppUserToken: Boolean(pendingStoreGoogleAuth?.appUserToken),
+    });
+
     try {
       await storeCustomerSetPasswordFromAuthUserMutation.mutateAsync({
         storeId: resolvedStoreId,
@@ -688,8 +755,21 @@ export default function Login() {
       setValue("password", "");
       setValue("newPassword", "");
       setValue("confirmNewPassword", "");
+      logAuthFlow("Google store setup login classified", {
+        storeId: resolvedStoreId,
+        responseStoreId: authResult.responseStoreId,
+        responseStoreCustomerId: authResult.responseStoreCustomerId,
+        isOwner: authResult.isOwner,
+        role: authResult.role,
+        user: serializeAuthFlowUser(authResult.user),
+      });
 
       if (authResult.isOwner) {
+        logAuthFlow("Navigating to owner dashboard after Google store setup", {
+          targetPath: "/owner",
+          storeId: resolvedStoreId,
+          storeSlug: storeCustomerAuthState?.storeSlug || "",
+        });
         navigate("/owner", {
           replace: true,
           state: {
@@ -702,8 +782,18 @@ export default function Login() {
       }
 
       await mergeGuestCart();
+      logAuthFlow("Navigating to store after Google store setup", {
+        targetPath: redirectTo,
+        storeId: authResult.responseStoreId,
+        storeCustomerId: authResult.responseStoreCustomerId,
+      });
       navigate(redirectTo, { replace: true });
     } catch (error) {
+      logAuthFlow("Google store setup failed", {
+        storeId: resolvedStoreId,
+        email,
+        error: serializeAuthFlowError(error),
+      });
       if (
         error?.code === "STORE_SCOPE_MISMATCH" ||
         error?.code === "STORE_SCOPE_UNRESOLVED" ||
@@ -722,6 +812,12 @@ export default function Login() {
 
     const email = pendingEmail || values.email.trim();
     const code = values.verificationCode.trim();
+    logAuthFlow("Verify email submit", {
+      authMode: isStoreCustomerMode ? "store" : "platform",
+      email,
+      codeLength: code.length,
+      requestStoreId: storeCustomerAuthState?.storeId || "",
+    });
 
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
@@ -752,6 +848,13 @@ export default function Login() {
 
       if (isStoreCustomerMode) {
         if (resolvedSession.dashboard === "owner") {
+          logAuthFlow("Verify email resolved owner session", {
+            email,
+            storeId: storeCustomerAuthState?.storeId || "",
+            role: resolvedSession.role,
+            user: serializeAuthFlowUser(resolvedSession.authResult?.user),
+            targetPath: "/owner",
+          });
           navigate("/owner", {
             replace: true,
             state: {
@@ -764,13 +867,33 @@ export default function Login() {
         }
 
         await mergeGuestCart();
+        logAuthFlow("Verify email resolved storefront session", {
+          email,
+          storeId: resolvedSession.authResult?.responseStoreId || "",
+          storeCustomerId:
+            resolvedSession.authResult?.responseStoreCustomerId || "",
+          role: resolvedSession.role,
+          user: serializeAuthFlowUser(resolvedSession.authResult?.user),
+          targetPath: redirectTo,
+        });
         navigate(redirectTo, { replace: true });
         return;
       }
 
       await mergeGuestCart();
+      logAuthFlow("Verify email resolved platform session", {
+        email,
+        role: resolvedSession.role,
+        targetPath: redirectTo || getLandingPath(resolvedSession.role),
+      });
       navigate(redirectTo || getLandingPath(resolvedSession.role), { replace: true });
     } catch (error) {
+      logAuthFlow("Verify email failed", {
+        authMode: isStoreCustomerMode ? "store" : "platform",
+        email,
+        requestStoreId: storeCustomerAuthState?.storeId || "",
+        error: serializeAuthFlowError(error),
+      });
       if (
         isStoreCustomerMode &&
         (

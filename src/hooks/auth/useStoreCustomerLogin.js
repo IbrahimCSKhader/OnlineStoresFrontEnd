@@ -1,6 +1,12 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import storeCustomerAuthApi from "../../API/storeCustomerAuth.api.js";
 import useAuthStore from "../../store/authStore.js";
+import { queryKeys } from "../../utils/queryKeys.js";
+import {
+  logAuthFlow,
+  serializeAuthFlowError,
+  serializeAuthFlowUser,
+} from "../../utils/authFlowDebug.js";
 import {
   setPlatformAuthToken,
   setStoredPlatformRole,
@@ -15,29 +21,71 @@ import {
 } from "../../utils/storeCustomerAuth.js";
 
 export default function useStoreCustomerLogin(options = {}) {
+  const queryClient = useQueryClient();
   const setStorefrontSession = useAuthStore(
     (state) => state.setStorefrontSession,
   );
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
 
+  function clearOwnerDashboardQueries() {
+    queryClient.removeQueries({ queryKey: queryKeys.stores.all });
+    queryClient.removeQueries({ queryKey: ["stores"] });
+    queryClient.removeQueries({ queryKey: ["products"] });
+    queryClient.removeQueries({ queryKey: ["categories"] });
+    queryClient.removeQueries({ queryKey: ["sections"] });
+    queryClient.removeQueries({ queryKey: ["coupons"] });
+    queryClient.removeQueries({ queryKey: ["orders"] });
+    queryClient.removeQueries({ queryKey: ["reviews"] });
+    queryClient.removeQueries({ queryKey: ["customer-stores"] });
+  }
+
   return useMutation({
     mutationFn: async ({ storeId, ...payload }) => {
-      const data = storeId
-        ? await storeCustomerAuthApi.loginByStore(storeId, payload)
-        : await storeCustomerAuthApi.login(payload);
+      logAuthFlow("Store login request", {
+        requestStoreId: String(storeId || ""),
+        email: String(payload?.email || "").trim(),
+        hasPassword: Boolean(payload?.password),
+      });
 
-      if (storeId) {
-        assertStoreScopedAuthResult(resolveStoreScopedAuthResult(data, storeId));
+      try {
+        const data = storeId
+          ? await storeCustomerAuthApi.loginByStore(storeId, payload)
+          : await storeCustomerAuthApi.login(payload);
+
+        if (storeId) {
+          assertStoreScopedAuthResult(resolveStoreScopedAuthResult(data, storeId));
+        }
+
+        return data;
+      } catch (error) {
+        logAuthFlow("Store login request failed", {
+          requestStoreId: String(storeId || ""),
+          email: String(payload?.email || "").trim(),
+          error: serializeAuthFlowError(error),
+        });
+        throw error;
       }
-
-      return data;
     },
     ...options,
     onSuccess: (data, variables, context) => {
       const authResult = resolveStoreScopedAuthResult(data, variables?.storeId);
       const { token, user, role, isOwner } = authResult;
 
+      logAuthFlow("Store login response classified", {
+        requestStoreId: String(variables?.storeId || ""),
+        responseStoreId: authResult.responseStoreId,
+        responseStoreCustomerId: authResult.responseStoreCustomerId,
+        dashboard: authResult.dashboard,
+        sessionScope: authResult.sessionScope,
+        isOwner,
+        isCustomer: authResult.isCustomer,
+        role,
+        user: serializeAuthFlowUser(user),
+      });
+
       if (isOwner) {
+        clearOwnerDashboardQueries();
+
         if (token) {
           setPlatformAuthToken(token);
         }

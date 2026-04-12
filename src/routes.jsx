@@ -6,7 +6,6 @@ import LoadingState from "./components/common/loaders/LoadingState.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import StoreLayout from "./layout/StoreLayout.jsx";
 import lazyWithRetry from "./utils/lazyWithRetry.js";
-
 const Home = lazyWithRetry(() => import("./pages/Home/Home.jsx"), "home");
 const About = lazyWithRetry(() => import("./pages/About/About.jsx"), "about");
 const Market = lazyWithRetry(

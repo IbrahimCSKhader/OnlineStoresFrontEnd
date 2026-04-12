@@ -86,6 +86,11 @@ import {
   normalizeEntityResponse,
   normalizeListResponse,
 } from "../../utils/collections.js";
+import {
+  logAuthFlow,
+  serializeAuthFlowStore,
+  serializeAuthFlowUser,
+} from "../../utils/authFlowDebug.js";
 import extractApiError from "../../utils/extractApiError.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import { normalizeOrderDetails } from "../../utils/orders.js";
@@ -805,7 +810,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     moved: false,
   });
   const mobileSidebarIgnoreClickRef = useRef(false);
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, user } = useAuth();
   const activeTab = TAB_CONFIG.some((tab) => tab.key === initialTab)
     ? initialTab
     : "overview";
@@ -819,6 +824,28 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const ownerStoreQuery = useOwnerStore({ refetchOnWindowFocus: false });
   const store = ownerStoreQuery.ownerStore;
   const storeId = store?.id;
+
+  useEffect(() => {
+    logAuthFlow("Owner dashboard state", {
+      isAuthenticated,
+      role,
+      user: serializeAuthFlowUser(user),
+      ownerStoreSource: ownerStoreQuery.ownerStoreSource,
+      store: serializeAuthFlowStore(store),
+      storeId: String(storeId || ""),
+      isOwnerStoreLoading: ownerStoreQuery.isLoading,
+      hasOwnerStoreError: Boolean(ownerStoreQuery.error),
+    });
+  }, [
+    isAuthenticated,
+    ownerStoreQuery.error,
+    ownerStoreQuery.isLoading,
+    ownerStoreQuery.ownerStoreSource,
+    role,
+    store,
+    storeId,
+    user,
+  ]);
 
   // Apply store branding (theme, colors, etc.)
   useStoreBranding(store);

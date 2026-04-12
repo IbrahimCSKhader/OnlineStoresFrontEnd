@@ -28,6 +28,11 @@ import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useAuthStore from "../../store/authStore.js";
 import { extractRole, extractToken, extractUser } from "../../utils/authSession.js";
+import {
+  logAuthFlow,
+  serializeAuthFlowError,
+  serializeAuthFlowUser,
+} from "../../utils/authFlowDebug.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
 import {
@@ -217,6 +222,14 @@ export default function VerifyEmail() {
 
     const email = values.email.trim();
     const code = values.code.trim();
+    logAuthFlow("Standalone verify-email submit", {
+      authMode: isStoreCustomerMode ? "store" : "platform",
+      email,
+      codeLength: code.length,
+      requestStoreId: storeCustomerAuthState?.storeId || "",
+      storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug || "",
+      redirectTo,
+    });
 
     if (!email) {
       setLocalError("أدخل البريد الإلكتروني أولًا.");
@@ -248,6 +261,12 @@ export default function VerifyEmail() {
         const authResult = resolveCurrentStoreAuthResult(data);
 
         if (authResult.isOwner) {
+          logAuthFlow("Standalone verify-email resolved owner session", {
+            storeId: authResult.responseStoreId,
+            role: authResult.role,
+            user: serializeAuthFlowUser(authResult.user),
+            targetPath: "/owner",
+          });
           persistPlatformSession(authResult);
           clearPendingVerificationEmail();
           navigate("/owner", {
@@ -261,6 +280,13 @@ export default function VerifyEmail() {
           return;
         }
 
+        logAuthFlow("Standalone verify-email resolved storefront session", {
+          storeId: authResult.responseStoreId,
+          storeCustomerId: authResult.responseStoreCustomerId,
+          role: authResult.role,
+          user: serializeAuthFlowUser(authResult.user),
+          targetPath: redirectTo,
+        });
         persistStorefrontSession(authResult);
         clearPendingVerificationEmail();
         await mergeGuestCart();
@@ -271,12 +297,23 @@ export default function VerifyEmail() {
       const token = extractToken(data);
       const user = extractUser(data, token);
       const resolvedRole = extractRole(data, token, user);
+      logAuthFlow("Standalone verify-email resolved platform session", {
+        role: resolvedRole,
+        user: serializeAuthFlowUser(user),
+        targetPath: redirectTo || getLandingPath(resolvedRole),
+      });
 
       persistPlatformSession({ token, user, role: resolvedRole });
       clearPendingVerificationEmail();
       await mergeGuestCart();
       navigate(redirectTo || getLandingPath(resolvedRole), { replace: true });
     } catch (error) {
+      logAuthFlow("Standalone verify-email failed", {
+        authMode: isStoreCustomerMode ? "store" : "platform",
+        email,
+        requestStoreId: storeCustomerAuthState?.storeId || "",
+        error: serializeAuthFlowError(error),
+      });
       if (isStoreCustomerMode && handleStoreScopedAuthError(error)) {
         return;
       }
