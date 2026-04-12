@@ -11,10 +11,11 @@
 2. Login with:
 
 ```http
-POST /api/store-customer-auth/store/{storeId}/login
+POST /api/store-customer-auth/login
 Content-Type: application/json
 
 {
+  "storeId": "{storeId}",
   "email": "user@example.com",
   "password": "12345678"
 }
@@ -51,10 +52,11 @@ Content-Type: application/json
 4. Then call:
 
 ```http
-POST /api/store-customer-auth/store/{storeId}/login
+POST /api/store-customer-auth/login
 Content-Type: application/json
 
 {
+  "storeId": "{storeId}",
   "email": "user@example.com",
   "password": "12345678"
 }

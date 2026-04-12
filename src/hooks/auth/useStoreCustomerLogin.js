@@ -2,11 +2,6 @@ import { useMutation } from "@tanstack/react-query";
 import storeCustomerAuthApi from "../../API/storeCustomerAuth.api.js";
 import useAuthStore from "../../store/authStore.js";
 import {
-  extractRole,
-  extractToken,
-  extractUser,
-} from "../../utils/authSession.js";
-import {
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
@@ -14,52 +9,10 @@ import {
   setStoredStorefrontRole,
   setStoredStorefrontUser,
 } from "../../utils/token.js";
-
-function normalizeValue(value) {
-  return String(value || "").trim();
-}
-
-function resolveDashboard(data = {}, user = {}) {
-  const value = normalizeValue(
-    data?.dashboard ||
-      data?.Dashboard ||
-      data?.data?.dashboard ||
-      data?.data?.Dashboard,
-  ).toLowerCase();
-
-  if (value === "owner") return "owner";
-  if (value === "customer") return "customer";
-
-  const accountType = normalizeValue(
-    data?.accountType ||
-      data?.AccountType ||
-      user?.accountType ||
-      user?.AccountType,
-  ).toLowerCase();
-  const role = normalizeValue(
-    data?.role ||
-      data?.roles ||
-      user?.role ||
-      user?.roles,
-  ).toLowerCase();
-
-  if (accountType === "storeowner" || role.includes("owner")) {
-    return "owner";
-  }
-
-  return "customer";
-}
-
-function resolveResponseStoreId(data = {}, user = {}) {
-  return normalizeValue(
-    data?.storeId ||
-      data?.StoreId ||
-      data?.data?.storeId ||
-      user?.storeId ||
-      user?.StoreId ||
-      user?.store?.id,
-  );
-}
+import {
+  assertStoreScopedAuthResult,
+  resolveStoreScopedAuthResult,
+} from "../../utils/storeCustomerAuth.js";
 
 export default function useStoreCustomerLogin(options = {}) {
   const setStorefrontSession = useAuthStore(
@@ -73,27 +26,18 @@ export default function useStoreCustomerLogin(options = {}) {
         ? await storeCustomerAuthApi.loginByStore(storeId, payload)
         : await storeCustomerAuthApi.login(payload);
 
-      const responseStoreId = resolveResponseStoreId(data, extractUser(data));
-      const requestStoreId = normalizeValue(storeId);
-
-      if (requestStoreId && responseStoreId && requestStoreId !== responseStoreId) {
-        const mismatchError = new Error(
-          "Store context mismatch. Please login again for the current store.",
-        );
-        mismatchError.code = "STORE_SCOPE_MISMATCH";
-        throw mismatchError;
+      if (storeId) {
+        assertStoreScopedAuthResult(resolveStoreScopedAuthResult(data, storeId));
       }
 
       return data;
     },
     ...options,
     onSuccess: (data, variables, context) => {
-      const token = extractToken(data);
-      const user = extractUser(data, token);
-      const role = extractRole(data, token, user);
-      const dashboard = resolveDashboard(data, user);
+      const authResult = resolveStoreScopedAuthResult(data, variables?.storeId);
+      const { token, user, role, isOwner } = authResult;
 
-      if (dashboard === "owner") {
+      if (isOwner) {
         if (token) {
           setPlatformAuthToken(token);
         }

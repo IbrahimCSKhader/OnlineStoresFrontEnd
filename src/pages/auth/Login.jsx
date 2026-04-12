@@ -50,9 +50,11 @@ import {
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
 import {
+  assertStoreScopedAuthResult,
   buildStoreCustomerAuthState,
   getStoreCustomerRedirectPath,
   hasStoreCustomerAuthContext,
+  resolveStoreScopedAuthResult,
 } from "../../utils/storeCustomerAuth.js";
 import {
   setPlatformAuthToken,
@@ -78,35 +80,6 @@ function getErrorMessage(error) {
     error,
     "تعذر تنفيذ العملية. تحقق من البيانات ثم حاول مرة أخرى.",
   );
-}
-
-function normalizeValue(value) {
-  return String(value || "").trim();
-}
-
-function resolveDashboard(data = {}, user = {}) {
-  const dashboardValue = normalizeValue(
-    data?.dashboard ||
-      data?.Dashboard ||
-      data?.data?.dashboard ||
-      data?.data?.Dashboard,
-  ).toLowerCase();
-
-  if (dashboardValue === "owner") return "owner";
-  if (dashboardValue === "customer") return "customer";
-
-  const accountType = normalizeValue(
-    data?.accountType ||
-      data?.AccountType ||
-      user?.accountType ||
-      user?.AccountType,
-  ).toLowerCase();
-
-  if (accountType === "storeowner") {
-    return "owner";
-  }
-
-  return "customer";
 }
 
 function getFlowHeading(flow) {
@@ -331,7 +304,6 @@ export default function Login() {
     }
 
     setValue("email", pendingStoreGoogleAuth.email || "");
-    setFlow(FLOW.GOOGLE_STORE_SETUP);
   }, [pendingStoreGoogleAuth, setValue, storeCustomerAuthState?.storeId]);
 
   if (routeStoreSlug && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
@@ -446,10 +418,39 @@ export default function Login() {
     return resolvedRole;
   }
 
-  function saveStorefrontSessionFromAuthResponse(data) {
-    const token = extractToken(data);
-    const user = extractUser(data, token);
-    const resolvedRole = extractRole(data, token, user);
+  function resolveCurrentStoreAuthResult(data) {
+    return assertStoreScopedAuthResult(
+      resolveStoreScopedAuthResult(data, storeCustomerAuthState?.storeId),
+    );
+  }
+
+  function saveResolvedStoreScopedSessionFromAuthResponse(data) {
+    const authResult = resolveCurrentStoreAuthResult(data);
+    const { token, user, role: resolvedRole, isOwner } = authResult;
+
+    if (isOwner) {
+      if (token) {
+        setPlatformAuthToken(token);
+      }
+
+      if (user) {
+        setStoredPlatformUser(user);
+      }
+
+      if (resolvedRole) {
+        setStoredPlatformRole(resolvedRole);
+      }
+
+      if (token || user || resolvedRole) {
+        setPlatformSession({ token, user, role: resolvedRole });
+      }
+
+      return {
+        authResult,
+        role: resolvedRole,
+        dashboard: "owner",
+      };
+    }
 
     if (token) {
       setStorefrontAuthToken(token);
@@ -467,13 +468,31 @@ export default function Login() {
       setStorefrontSession({ token, user, role: resolvedRole });
     }
 
-    return resolvedRole;
+    return {
+      authResult,
+      role: resolvedRole,
+      dashboard: "customer",
+    };
   }
 
   function handleStoreCustomerLoginError(error, email) {
     if (error?.code === "STORE_SCOPE_MISMATCH") {
       setLocalError(
         "انتهت صلاحية سياق المتجر الحالي. أعد فتح المتجر الصحيح ثم سجّل الدخول مرة أخرى.",
+      );
+      return;
+    }
+
+    if (error?.code === "STORE_SCOPE_UNRESOLVED") {
+      setLocalError(
+        "طھط¹ط°ط± طھط£ظƒظٹط¯ ط§ظ†طھظ…ط§ط، ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨ ظ„ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹ. ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰.",
+      );
+      return;
+    }
+
+    if (error?.code === "STORE_MEMBERSHIP_REQUIRED") {
+      setLocalError(
+        "ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨ ظ„ظٹط³ ظ…ط§ظ„ظƒظ‹ط§ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط± ظˆظ„ط§ ط²ط¨ظˆظ†ظ‹ط§ ظ…ط³ط¬ظ„ظ‹ط§ ظپظٹظ‡.",
       );
       return;
     }
@@ -539,14 +558,11 @@ export default function Login() {
             email,
             password: values.password,
           });
-
-          const token = extractToken(data);
-          const user = extractUser(data, token);
-          const dashboard = resolveDashboard(data, user);
+          const authResult = resolveCurrentStoreAuthResult(data);
 
           clearPendingStoreGoogleAuth();
 
-          if (dashboard === "owner") {
+          if (authResult.isOwner) {
             navigate("/owner", {
               replace: true,
               state: {
@@ -661,19 +677,42 @@ export default function Login() {
         confirmPassword: values.confirmNewPassword,
       });
 
-      await storeCustomerLoginMutation.mutateAsync({
+      const data = await storeCustomerLoginMutation.mutateAsync({
         storeId: resolvedStoreId,
         email,
         password: values.newPassword,
       });
+      const authResult = resolveCurrentStoreAuthResult(data);
 
       clearPendingStoreGoogleAuth();
       setValue("password", "");
       setValue("newPassword", "");
       setValue("confirmNewPassword", "");
+
+      if (authResult.isOwner) {
+        navigate("/owner", {
+          replace: true,
+          state: {
+            storeId: resolvedStoreId,
+            storeSlug: storeCustomerAuthState?.storeSlug,
+            fromStoreLogin: true,
+          },
+        });
+        return;
+      }
+
       await mergeGuestCart();
       navigate(redirectTo, { replace: true });
     } catch (error) {
+      if (
+        error?.code === "STORE_SCOPE_MISMATCH" ||
+        error?.code === "STORE_SCOPE_UNRESOLVED" ||
+        error?.code === "STORE_MEMBERSHIP_REQUIRED"
+      ) {
+        handleStoreCustomerLoginError(error, email);
+        return;
+      }
+
       setLocalError(getErrorMessage(error));
     }
   });
@@ -704,12 +743,46 @@ export default function Login() {
               code,
             },
       );
-      const sessionRole = isStoreCustomerMode
-        ? saveStorefrontSessionFromAuthResponse(data)
-        : saveSessionFromAuthResponse(data);
+      const resolvedSession = isStoreCustomerMode
+        ? saveResolvedStoreScopedSessionFromAuthResponse(data)
+        : {
+            role: saveSessionFromAuthResponse(data),
+            dashboard: "platform",
+          };
+
+      if (isStoreCustomerMode) {
+        if (resolvedSession.dashboard === "owner") {
+          navigate("/owner", {
+            replace: true,
+            state: {
+              storeId: storeCustomerAuthState?.storeId,
+              storeSlug: storeCustomerAuthState?.storeSlug,
+              fromStoreLogin: true,
+            },
+          });
+          return;
+        }
+
+        await mergeGuestCart();
+        navigate(redirectTo, { replace: true });
+        return;
+      }
+
       await mergeGuestCart();
-      navigate(redirectTo || getLandingPath(sessionRole), { replace: true });
+      navigate(redirectTo || getLandingPath(resolvedSession.role), { replace: true });
     } catch (error) {
+      if (
+        isStoreCustomerMode &&
+        (
+          error?.code === "STORE_SCOPE_MISMATCH" ||
+          error?.code === "STORE_SCOPE_UNRESOLVED" ||
+          error?.code === "STORE_MEMBERSHIP_REQUIRED"
+        )
+      ) {
+        handleStoreCustomerLoginError(error, email);
+        return;
+      }
+
       setLocalError(getErrorMessage(error));
     }
   });
@@ -870,10 +943,11 @@ export default function Login() {
     resendVerificationCodeMutation.isPending ||
     forgotPasswordMutation.isPending ||
     resetPasswordMutation.isPending;
+  const activeFlow = pendingStoreGoogleAuth ? FLOW.GOOGLE_STORE_SETUP : flow;
 
   const heading = isStoreCustomerMode
-    ? getStoreFlowHeading(flow, storeLabel)
-    : getFlowHeading(flow);
+    ? getStoreFlowHeading(activeFlow, storeLabel)
+    : getFlowHeading(activeFlow);
 
   return (
     <Box className="page-login">
@@ -905,7 +979,7 @@ export default function Login() {
             ) : null}
             {localError ? <Alert severity="error">{localError}</Alert> : null}
 
-            {flow === FLOW.LOGIN ? (
+            {activeFlow === FLOW.LOGIN ? (
               <Stack spacing={1.5} component="form" onSubmit={onLoginSubmit}>
                 <TextField
                   label="البريد الإلكتروني"
@@ -1021,7 +1095,7 @@ export default function Login() {
               </Stack>
             ) : null}
 
-            {flow === FLOW.GOOGLE_STORE_SETUP ? (
+            {activeFlow === FLOW.GOOGLE_STORE_SETUP ? (
               <Stack
                 spacing={1.5}
                 component="form"
@@ -1118,7 +1192,7 @@ export default function Login() {
               </Stack>
             ) : null}
 
-            {flow === FLOW.VERIFY_EMAIL ? (
+            {activeFlow === FLOW.VERIFY_EMAIL ? (
               <Stack
                 spacing={1.5}
                 component="form"
@@ -1195,7 +1269,7 @@ export default function Login() {
               </Stack>
             ) : null}
 
-            {flow === FLOW.FORGOT_PASSWORD ? (
+            {activeFlow === FLOW.FORGOT_PASSWORD ? (
               <Stack
                 spacing={1.5}
                 component="form"
@@ -1246,7 +1320,7 @@ export default function Login() {
               </Stack>
             ) : null}
 
-            {flow === FLOW.RESET_PASSWORD ? (
+            {activeFlow === FLOW.RESET_PASSWORD ? (
               <Stack
                 spacing={1.5}
                 component="form"

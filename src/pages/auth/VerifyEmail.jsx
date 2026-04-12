@@ -37,9 +37,11 @@ import {
 } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
 import {
+  assertStoreScopedAuthResult,
   buildStoreCustomerAuthState,
   getStoreCustomerRedirectPath,
   hasStoreCustomerAuthContext,
+  resolveStoreScopedAuthResult,
 } from "../../utils/storeCustomerAuth.js";
 import {
   setPlatformAuthToken,
@@ -143,6 +145,73 @@ export default function VerifyEmail() {
     return <Navigate to={redirectTo || getLandingPath(role)} replace />;
   }
 
+  function resolveCurrentStoreAuthResult(data) {
+    return assertStoreScopedAuthResult(
+      resolveStoreScopedAuthResult(data, storeCustomerAuthState?.storeId),
+    );
+  }
+
+  function persistPlatformSession({ token, user, role: resolvedRole }) {
+    if (token) {
+      setPlatformAuthToken(token);
+    }
+
+    if (user) {
+      setStoredPlatformUser(user);
+    }
+
+    if (resolvedRole) {
+      setStoredPlatformRole(resolvedRole);
+    }
+
+    if (token || user || resolvedRole) {
+      setPlatformSession({ token, user, role: resolvedRole });
+    }
+  }
+
+  function persistStorefrontSession({ token, user, role: resolvedRole }) {
+    if (token) {
+      setStorefrontAuthToken(token);
+    }
+
+    if (user) {
+      setStoredStorefrontUser(user);
+    }
+
+    if (resolvedRole) {
+      setStoredStorefrontRole(resolvedRole);
+    }
+
+    if (token || user || resolvedRole) {
+      setStorefrontSession({ token, user, role: resolvedRole });
+    }
+  }
+
+  function handleStoreScopedAuthError(error) {
+    if (error?.code === "STORE_SCOPE_MISMATCH") {
+      setLocalError(
+        "ط§ظ†طھظ‡طھ طµظ„ط§ط­ظٹط© ط³ظٹط§ظ‚ ط§ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹ. ط£ط¹ط¯ ظپطھط­ ط§ظ„ظ…طھط¬ط± ط§ظ„طµط­ظٹط­ ط«ظ… ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰.",
+      );
+      return true;
+    }
+
+    if (error?.code === "STORE_SCOPE_UNRESOLVED") {
+      setLocalError(
+        "طھط¹ط°ط± طھط£ظƒظٹط¯ ط§ظ†طھظ…ط§ط، ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨ ظ„ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹ. ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰.",
+      );
+      return true;
+    }
+
+    if (error?.code === "STORE_MEMBERSHIP_REQUIRED") {
+      setLocalError(
+        "ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨ ظ„ظٹط³ ظ…ط§ظ„ظƒظ‹ط§ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط± ظˆظ„ط§ ط²ط¨ظˆظ†ظ‹ط§ ظ…ط³ط¬ظ„ظ‹ط§ ظپظٹظ‡.",
+      );
+      return true;
+    }
+
+    return false;
+  }
+
   const onSubmit = handleSubmit(async (values) => {
     setLocalError("");
 
@@ -161,60 +230,59 @@ export default function VerifyEmail() {
 
     setPendingVerificationEmail(email);
 
-    const payload = isStoreCustomerMode
-      ? {
-          storeId: storeCustomerAuthState.storeId,
-          email,
-          code,
+    try {
+      const payload = isStoreCustomerMode
+        ? {
+            storeId: storeCustomerAuthState.storeId,
+            email,
+            code,
+          }
+        : {
+            email,
+            code,
+          };
+
+      const data = await verifyEmailMutation.mutateAsync(payload);
+
+      if (isStoreCustomerMode) {
+        const authResult = resolveCurrentStoreAuthResult(data);
+
+        if (authResult.isOwner) {
+          persistPlatformSession(authResult);
+          clearPendingVerificationEmail();
+          navigate("/owner", {
+            replace: true,
+            state: {
+              storeId: storeCustomerAuthState.storeId,
+              storeSlug: storeCustomerAuthState.storeSlug,
+              fromStoreLogin: true,
+            },
+          });
+          return;
         }
-      : {
-          email,
-          code,
-        };
 
-    const data = await verifyEmailMutation.mutateAsync(payload);
-
-    const token = extractToken(data);
-    const user = extractUser(data, token);
-    const resolvedRole = extractRole(data, token, user);
-
-    if (isStoreCustomerMode) {
-      if (token) {
-        setStorefrontAuthToken(token);
+        persistStorefrontSession(authResult);
+        clearPendingVerificationEmail();
+        await mergeGuestCart();
+        navigate(redirectTo, { replace: true });
+        return;
       }
 
-      if (user) {
-        setStoredStorefrontUser(user);
+      const token = extractToken(data);
+      const user = extractUser(data, token);
+      const resolvedRole = extractRole(data, token, user);
+
+      persistPlatformSession({ token, user, role: resolvedRole });
+      clearPendingVerificationEmail();
+      await mergeGuestCart();
+      navigate(redirectTo || getLandingPath(resolvedRole), { replace: true });
+    } catch (error) {
+      if (isStoreCustomerMode && handleStoreScopedAuthError(error)) {
+        return;
       }
 
-      if (resolvedRole) {
-        setStoredStorefrontRole(resolvedRole);
-      }
-
-      if (token || user || resolvedRole) {
-        setStorefrontSession({ token, user, role: resolvedRole });
-      }
-    } else {
-      if (token) {
-        setPlatformAuthToken(token);
-      }
-
-      if (user) {
-        setStoredPlatformUser(user);
-      }
-
-      if (resolvedRole) {
-        setStoredPlatformRole(resolvedRole);
-      }
-
-      if (token || user || resolvedRole) {
-        setPlatformSession({ token, user, role: resolvedRole });
-      }
+      setLocalError(extractApiError(error, "طھط¹ط°ط± ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ط¨ط±ظٹط¯."));
     }
-
-    clearPendingVerificationEmail();
-    await mergeGuestCart();
-    navigate(redirectTo || getLandingPath(resolvedRole), { replace: true });
   });
 
   const onResendCode = async () => {
