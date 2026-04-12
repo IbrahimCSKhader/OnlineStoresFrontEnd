@@ -6,6 +6,8 @@ export default function ProductGrid({
   storeSlug,
   onAddToCart,
   addingProductId,
+  disableCartActions = false,
+  linkSearch = "",
 }) {
   return (
     <Box className="storefront-products-grid">
@@ -16,6 +18,8 @@ export default function ProductGrid({
           storeSlug={storeSlug}
           onAddToCart={onAddToCart}
           adding={addingProductId === product.id}
+          disableCartActions={disableCartActions}
+          linkSearch={linkSearch}
         />
       ))}
     </Box>

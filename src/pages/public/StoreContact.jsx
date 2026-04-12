@@ -6,6 +6,7 @@ import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { getStoreContactEntries } from "../../utils/storeContacts.js";
 import StoreContactAccounts from "../../components/common/StoreContactAccounts.jsx";
@@ -14,6 +15,7 @@ import "./StoreContact.css";
 
 export default function StoreContact() {
   const { slug } = useParams();
+  const { buildStorePreviewPath } = useOwnerStorePreview();
   const storeQuery = useStoreBySlug(slug);
   const store = normalizeEntityResponse(storeQuery.data);
 
@@ -50,14 +52,14 @@ export default function StoreContact() {
           <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
             <AppButton
               component={RouterLink}
-              to={`/market/${slug}`}
+              to={buildStorePreviewPath(`/market/${slug}`)}
               variant="contained"
             >
               العودة لواجهة المتجر
             </AppButton>
             <AppButton
               component={RouterLink}
-              to={`/market/${slug}/about`}
+              to={buildStorePreviewPath(`/market/${slug}/about`)}
               variant="outlined"
             >
               من نحن

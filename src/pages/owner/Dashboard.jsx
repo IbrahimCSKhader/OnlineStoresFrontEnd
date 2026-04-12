@@ -51,7 +51,6 @@ import {
 import useAuth from "../../hooks/auth/useAuth.js";
 import useCategories from "../../hooks/categories/useCategories.js";
 import useCreateCategory from "../../hooks/categories/useCreateCategory.js";
-import useDeleteCategory from "../../hooks/categories/useDeleteCategory.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import useUpdateCategory from "../../hooks/categories/useUpdateCategory.js";
 import useCreateCoupon from "../../hooks/coupons/useCreateCoupon.js";
@@ -74,8 +73,8 @@ import useUploadProductImage from "../../hooks/products/useUploadProductImage.js
 import useUpdateReviewApproval from "../../hooks/reviews/useUpdateReviewApproval.js";
 import useStoreReviews from "../../hooks/reviews/useStoreReviews.js";
 import useCreateSection from "../../hooks/sections/useCreateSection.js";
-import useDeleteSection from "../../hooks/sections/useDeleteSection.js";
 import useSections from "../../hooks/sections/useSections.js";
+import { OWNER_PREVIEW_SEARCH } from "../../hooks/stores/useOwnerStorePreview.js";
 import useUpdateSection from "../../hooks/sections/useUpdateSection.js";
 import useChangeStoreSubscription from "../../hooks/stores/useChangeStoreSubscription.js";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
@@ -910,11 +909,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
   const createCategoryMutation = useCreateCategory(storeId);
   const updateCategoryMutation = useUpdateCategory(storeId);
-  const deleteCategoryMutation = useDeleteCategory(storeId);
 
   const createSectionMutation = useCreateSection(storeId);
   const updateSectionMutation = useUpdateSection(storeId);
-  const deleteSectionMutation = useDeleteSection(storeId);
 
   const createCouponMutation = useCreateCoupon(storeId);
   const updateCouponMutation = useUpdateCoupon(storeId);
@@ -1334,10 +1331,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     deleteProductImageMutation.error,
     createCategoryMutation.error,
     updateCategoryMutation.error,
-    deleteCategoryMutation.error,
     createSectionMutation.error,
     updateSectionMutation.error,
-    deleteSectionMutation.error,
     createCouponMutation.error,
     updateCouponMutation.error,
     deleteCouponMutation.error,
@@ -2312,7 +2307,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             <Stack direction="row" spacing={1}>
               <AppButton
                 component={RouterLink}
-                to={store.slug ? `/market/${store.slug}` : "/market"}
+                to={
+                  store.slug
+                    ? {
+                        pathname: `/market/${store.slug}`,
+                        search: OWNER_PREVIEW_SEARCH,
+                      }
+                    : "/market"
+                }
                 variant="outlined"
               >
                 عرض المتجر كزائر
@@ -2788,24 +2790,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         >
                           تعديل
                         </AppButton>
-                        <AppButton
-                          size="small"
-                          variant="outlined"
-                          color="error"
-                          loading={
-                            deleteCategoryMutation.isPending &&
-                            deleteCategoryMutation.variables === row.id
-                          }
-                          onClick={() =>
-                            confirmDelete(
-                              `التصنيف ${row.name}`,
-                              deleteCategoryMutation,
-                              row.id,
-                            )
-                          }
-                        >
-                          حذف
-                        </AppButton>
                       </Stack>
                     ),
                   },
@@ -2888,24 +2872,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           }
                         >
                           تعديل
-                        </AppButton>
-                        <AppButton
-                          size="small"
-                          variant="outlined"
-                          color="error"
-                          loading={
-                            deleteSectionMutation.isPending &&
-                            deleteSectionMutation.variables === row.id
-                          }
-                          onClick={() =>
-                            confirmDelete(
-                              `القسم ${row.name}`,
-                              deleteSectionMutation,
-                              row.id,
-                            )
-                          }
-                        >
-                          حذف
                         </AppButton>
                       </Stack>
                     ),

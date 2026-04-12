@@ -2,10 +2,12 @@ export default function QuantityStepper({
   value = 1,
   min = 1,
   max,
+  disabled = false,
   onChange,
 }) {
-  const decrementDisabled = value <= min;
-  const incrementDisabled = typeof max === "number" && value >= max;
+  const decrementDisabled = disabled || value <= min;
+  const incrementDisabled =
+    disabled || (typeof max === "number" && value >= max);
 
   const updateValue = (nextValue) => {
     if (!Number.isFinite(nextValue)) return;

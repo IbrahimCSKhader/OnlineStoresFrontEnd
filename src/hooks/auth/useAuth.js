@@ -10,7 +10,8 @@ import { STORE_CUSTOMER_AUTH_MODE } from "../../utils/storeCustomerAuth.js";
 
 function isStorefrontRoute(pathname) {
   return Boolean(
-    matchPath("/market/:slug/*", pathname) || matchPath("/market/:slug", pathname),
+    matchPath("/market/:slug/*", pathname) ||
+    matchPath("/market/:slug", pathname),
   );
 }
 
@@ -80,9 +81,15 @@ export default function useAuth() {
   const platformSession = useAuthStore((state) => state.platformSession);
   const storefrontSession = useAuthStore((state) => state.storefrontSession);
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
-  const clearPlatformSession = useAuthStore((state) => state.clearPlatformSession);
-  const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
-  const clearStorefrontSession = useAuthStore((state) => state.clearStorefrontSession);
+  const clearPlatformSession = useAuthStore(
+    (state) => state.clearPlatformSession,
+  );
+  const setStorefrontSession = useAuthStore(
+    (state) => state.setStorefrontSession,
+  );
+  const clearStorefrontSession = useAuthStore(
+    (state) => state.clearStorefrontSession,
+  );
   const clearAllSessions = useAuthStore((state) => state.clearAllSessions);
   const activeSession = resolveActiveSession(
     location,
@@ -93,11 +100,12 @@ export default function useAuth() {
   const user = activeSession.session.user;
   const role = activeSession.session.role;
   const isAuthenticated = activeSession.session.isAuthenticated;
-  const storefrontRole = storefrontSession.role || storefrontSession.user?.accountType;
-  const platformRole = platformSession.role || platformSession.user?.accountType;
-  const isStoreCustomer =
-    isStoreCustomerRole(storefrontRole) ||
-    isStoreCustomerRole(storefrontSession.user?.accountType);
+  const storefrontRole =
+    storefrontSession.role || storefrontSession.user?.accountType;
+  const platformRole =
+    platformSession.role || platformSession.user?.accountType;
+  const storefrontCustomer = extractStorefrontCustomer(storefrontSession.user);
+  const isStoreCustomer = Boolean(storefrontCustomer);
   const isGuestSession = false;
   const hasStorefrontCustomerSession = isStoreCustomer;
   const isPlatformUser =
@@ -105,9 +113,6 @@ export default function useAuth() {
     isOwnerRole(platformRole) ||
     isSuperAdminRole(platformSession.user?.accountType) ||
     isOwnerRole(platformSession.user?.accountType);
-  const storefrontCustomer = hasStorefrontCustomerSession
-    ? extractStorefrontCustomer(storefrontSession.user)
-    : null;
   const storeCustomer = isStoreCustomer ? storefrontCustomer : null;
   const guestStoreCustomer = null;
   const platformUser = isPlatformUser ? platformSession.user : null;
@@ -140,7 +145,9 @@ export default function useAuth() {
     clearStorefrontSession,
     clearAllSessions,
     setSession:
-      activeSession.type === "storefront" ? setStorefrontSession : setPlatformSession,
+      activeSession.type === "storefront"
+        ? setStorefrontSession
+        : setPlatformSession,
     clearSession:
       activeSession.type === "storefront"
         ? clearStorefrontSession

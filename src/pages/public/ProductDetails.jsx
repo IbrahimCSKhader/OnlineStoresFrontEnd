@@ -24,6 +24,7 @@ import useProductDetails from "../../hooks/products/useProductDetails.js";
 import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
 import useProductsBySection from "../../hooks/products/useProductsBySection.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
@@ -62,6 +63,8 @@ function getProductImages(product) {
 
 export default function ProductDetails() {
   const { slug, productId } = useParams();
+  const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
+    useOwnerStorePreview();
   const [uiState, setUiState] = useState({
     productId: "",
     selectedImageIndex: 0,
@@ -133,6 +136,7 @@ export default function ProductDetails() {
     Boolean(store?.id) &&
     Boolean(product?.storeId) &&
     String(store.id) !== String(product.storeId);
+  const currentProductId = product?.id || "";
 
   const relatedSource = product?.categoryId
     ? relatedByCategoryQuery.data
@@ -141,10 +145,10 @@ export default function ProductDetails() {
     () =>
       normalizeProductList(relatedSource)
         .filter(
-          (item) => isProductActive(item) && String(item.id) !== String(product?.id),
+          (item) => isProductActive(item) && String(item.id) !== String(currentProductId),
         )
         .slice(0, 4),
-    [product?.id, relatedSource],
+    [currentProductId, relatedSource],
   );
   const relatedProductsLoading = product?.categoryId
     ? relatedByCategoryQuery.isLoading
@@ -183,7 +187,9 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (!effectiveStoreId || !product?.id || !isAvailable) return;
+    if (isOwnerPreview || !effectiveStoreId || !product?.id || !isAvailable) {
+      return;
+    }
 
     addToCartUi.markBusy("main");
     addToCartMutation.mutate({
@@ -197,7 +203,7 @@ export default function ProductDetails() {
   };
 
   const handleRelatedAddToCart = (relatedProduct) => {
-    if (!effectiveStoreId || !relatedProduct?.id) return;
+    if (isOwnerPreview || !effectiveStoreId || !relatedProduct?.id) return;
 
     relatedAddToCartUi.markBusy(relatedProduct.id);
     addToCartMutation.mutate({
@@ -261,7 +267,11 @@ export default function ProductDetails() {
               flexWrap="wrap"
               className="page-product-details__crumbs"
             >
-              <AppButton component={RouterLink} to={`/market/${slug}`} variant="text">
+              <AppButton
+                component={RouterLink}
+                to={buildStorePreviewPath(`/market/${slug}`)}
+                variant="text"
+              >
                 {store.name}
               </AppButton>
               {product.categoryId ? (
@@ -271,7 +281,9 @@ export default function ProductDetails() {
                   </Typography>
                   <AppButton
                     component={RouterLink}
-                    to={`/market/${slug}/category/${product.categoryId}`}
+                    to={buildStorePreviewPath(
+                      `/market/${slug}/category/${product.categoryId}`,
+                    )}
                     variant="text"
                   >
                     {product.categoryName || "التصنيف"}
@@ -284,15 +296,25 @@ export default function ProductDetails() {
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             <AppButton
               component={RouterLink}
-              to={`/market/${slug}`}
+              to={buildStorePreviewPath(`/market/${slug}`)}
               variant="outlined"
               startIcon={<ArrowBackRoundedIcon fontSize="small" />}
             >
               العودة إلى المتجر
             </AppButton>
-            <AppButton component={RouterLink} to={`/market/${slug}/cart`} variant="text">
-              السلة
-            </AppButton>
+            {isOwnerPreview ? (
+              <AppButton variant="text" disabled>
+                السلة
+              </AppButton>
+            ) : (
+              <AppButton
+                component={RouterLink}
+                to={buildStorePreviewPath(`/market/${slug}/cart`)}
+                variant="text"
+              >
+                السلة
+              </AppButton>
+            )}
           </Stack>
         </Box>
       </SurfaceCard>
@@ -330,7 +352,9 @@ export default function ProductDetails() {
                 {product.categoryName ? (
                   <Chip
                     component={RouterLink}
-                    to={`/market/${slug}/category/${product.categoryId}`}
+                    to={buildStorePreviewPath(
+                      `/market/${slug}/category/${product.categoryId}`,
+                    )}
                     clickable
                     label={product.categoryName}
                     variant="outlined"
@@ -415,6 +439,7 @@ export default function ProductDetails() {
                   value={quantity}
                   min={1}
                   max={quantityMax}
+                  disabled={isOwnerPreview}
                   onChange={(nextValue) => updateUiState({ quantity: nextValue })}
                 />
 
@@ -426,18 +451,24 @@ export default function ProductDetails() {
                     onClick={handleAddToCart}
                     startIcon={<LocalMallRoundedIcon fontSize="small" />}
                     sx={{ minWidth: { xs: "100%", sm: 220 } }}
-                    disabled={!isAvailable}
+                    disabled={isOwnerPreview || !isAvailable}
                   >
                     أضف إلى السلة
                   </AppButton>
-                  <AppButton
-                    component={RouterLink}
-                    to={`/market/${slug}/checkout`}
-                    variant="outlined"
-                    disabled={!isAvailable}
-                  >
-                    اذهب إلى الدفع
-                  </AppButton>
+                  {isOwnerPreview ? (
+                    <AppButton variant="outlined" disabled>
+                      اذهب إلى الدفع
+                    </AppButton>
+                  ) : (
+                    <AppButton
+                      component={RouterLink}
+                      to={buildStorePreviewPath(`/market/${slug}/checkout`)}
+                      variant="outlined"
+                      disabled={!isAvailable}
+                    >
+                      اذهب إلى الدفع
+                    </AppButton>
+                  )}
                 </Stack>
               </Box>
 
@@ -501,6 +532,8 @@ export default function ProductDetails() {
             storeSlug={store.slug}
             onAddToCart={handleRelatedAddToCart}
             addingProductId={relatedAddToCartUi.activeKey}
+            disableCartActions={isOwnerPreview}
+            linkSearch={previewSearch}
           />
         ) : (
           <EmptyState title="لا توجد منتجات مشابهة" />

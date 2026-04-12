@@ -34,6 +34,7 @@ import useCart from "../../hooks/cart/useCart.js";
 import useLogout from "../../hooks/auth/useLogout.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
+import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
@@ -152,7 +153,7 @@ function ThemeToggleButton({ variant, onSelect, className }) {
   );
 }
 
-function NavLinks({ items, onNavigate, drawer = false }) {
+function NavLinks({ items, onNavigate, drawer = false, resolveTo }) {
   const location = useLocation();
 
   return items.map((item) => {
@@ -165,7 +166,7 @@ function NavLinks({ items, onNavigate, drawer = false }) {
     return (
       <NavLink
         key={item.to}
-        to={item.to}
+        to={resolveTo ? resolveTo(item.to) : item.to}
         className={[
           "store-navbar__link",
           isActive ? "store-navbar__link--active" : "",
@@ -196,6 +197,7 @@ export default function Navbar() {
   } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { isOwnerPreview, buildStorePreviewPath } = useOwnerStorePreview();
   const profileMenuOpen = Boolean(profileAnchorEl);
   const isOwnerDashboardRoute = location.pathname.startsWith("/owner");
 
@@ -226,7 +228,7 @@ export default function Navbar() {
   const brandHref = isScopedOwnerDashboard
     ? "/owner"
     : activeStoreSlug
-      ? `/market/${activeStoreSlug}`
+      ? buildStorePreviewPath(`/market/${activeStoreSlug}`)
       : "/";
   const brandEyebrow = isScopedOwnerDashboard ? "لوحة المتجر" : "";
   const brandName = activeStore?.name || "السوق";
@@ -243,17 +245,18 @@ export default function Navbar() {
     ? `/market/${activeStoreSlug}/register`
     : "/auth/register";
   const cartPath = activeStoreSlug
-    ? `/market/${activeStoreSlug}/cart`
+    ? buildStorePreviewPath(`/market/${activeStoreSlug}/cart`)
     : "/market";
   const { hasScopedStorefrontSession, useLocalGuestCart } =
     useStorefrontSession(activeStore?.id);
 
   const isStoreCustomerSignedIn =
+    !isOwnerPreview &&
     Boolean(activeStoreSlug) &&
     isAuthenticated &&
     isStoreCustomer &&
     hasScopedStorefrontSession;
-  const canAccessStoreCart = Boolean(activeStoreSlug);
+  const canAccessStoreCart = Boolean(activeStoreSlug) && !isOwnerPreview;
 
   const logoutMutation = useLogout({
     onSettled: () => {
@@ -344,8 +347,6 @@ export default function Navbar() {
   };
 
   const renderCartButton = (drawer = false) => {
-    if (!canAccessStoreCart) return null;
-
     const cartIcon = (
       <Badge
         badgeContent={cartItemCount}
@@ -358,6 +359,21 @@ export default function Navbar() {
     );
 
     if (drawer) {
+      if (!activeStoreSlug) return null;
+
+      if (isOwnerPreview) {
+        return (
+          <AppButton
+            variant="outlined"
+            startIcon={<ShoppingCartRoundedIcon fontSize="small" />}
+            fullWidth
+            disabled
+          >
+            السلة
+          </AppButton>
+        );
+      }
+
       return (
         <AppButton
           component={NavLink}
@@ -369,6 +385,20 @@ export default function Navbar() {
         >
           السلة
         </AppButton>
+      );
+    }
+
+    if (!activeStoreSlug) return null;
+
+    if (isOwnerPreview) {
+      return (
+        <IconButton
+          className="store-navbar__icon-button store-navbar__cart-button"
+          aria-label="السلة معطلة في وضع المعاينة"
+          disabled
+        >
+          {cartIcon}
+        </IconButton>
       );
     }
 
@@ -649,6 +679,10 @@ export default function Navbar() {
   );
 
   const renderDesktopActions = () => {
+    if (isOwnerPreview) {
+      return renderPlatformButtons();
+    }
+
     if (isStoreCustomerSignedIn) {
       return renderStoreCustomerProfileMenu();
     }
@@ -673,6 +707,15 @@ export default function Navbar() {
         onClick={() => setDrawerOpen(false)}
       />
     );
+
+    if (isOwnerPreview) {
+      return (
+        <>
+          {contactButton}
+          {renderPlatformButtons(true)}
+        </>
+      );
+    }
 
     if (isStoreCustomerSignedIn) {
       return (
@@ -733,7 +776,7 @@ export default function Navbar() {
             className="store-navbar__nav"
             aria-label="التنقل الرئيسي"
           >
-            <NavLinks items={navItems} />
+            <NavLinks items={navItems} resolveTo={buildStorePreviewPath} />
           </Box>
         ) : (
           <Box className="store-navbar__spacer" />
@@ -804,6 +847,7 @@ export default function Navbar() {
             <NavLinks
               items={navItems}
               drawer
+              resolveTo={buildStorePreviewPath}
               onNavigate={() => setDrawerOpen(false)}
             />
           </Box>

@@ -15,6 +15,7 @@ import useCategories from "../../hooks/categories/useCategories.js";
 import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
 import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import {
   normalizeEntityResponse,
@@ -32,6 +33,8 @@ import "./CategoryPage.css";
 
 export default function CategoryPage() {
   const { slug, categoryId } = useParams();
+  const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
+    useOwnerStorePreview();
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
   const [sortValue, setSortValue] = useState("popular");
@@ -120,7 +123,7 @@ export default function CategoryPage() {
   const categorySummary = buildCategorySummary(allStoreProducts, categories);
 
   const handleAddToCart = (product) => {
-    if (!store?.id || !product?.id) return;
+    if (isOwnerPreview || !store?.id || !product?.id) return;
 
     addToCartUi.markBusy(product.id);
     addToCartMutation.mutate({
@@ -215,7 +218,9 @@ export default function CategoryPage() {
                 <AppButton
                   key={category.id}
                   component={RouterLink}
-                  to={`/market/${store.slug}/category/${category.id}`}
+                  to={buildStorePreviewPath(
+                    `/market/${store.slug}/category/${category.id}`,
+                  )}
                   variant={String(category.id) === String(categoryId) ? "contained" : "outlined"}
                 >
                   {category.name} ({category.count})
@@ -235,7 +240,11 @@ export default function CategoryPage() {
                 </Typography>
               </Box>
 
-              <AppButton component={RouterLink} to={`/market/${store.slug}`} variant="outlined">
+              <AppButton
+                component={RouterLink}
+                to={buildStorePreviewPath(`/market/${store.slug}`)}
+                variant="outlined"
+              >
                 العودة إلى المتجر
               </AppButton>
             </Box>
@@ -248,6 +257,8 @@ export default function CategoryPage() {
                 storeSlug={store.slug}
                 onAddToCart={handleAddToCart}
                 addingProductId={addToCartUi.activeKey}
+                disableCartActions={isOwnerPreview}
+                linkSearch={previewSearch}
               />
             ) : (
               <EmptyState

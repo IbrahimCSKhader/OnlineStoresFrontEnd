@@ -43,6 +43,15 @@
   color: var(--text-primary);
 }
 
+.store-local-footer__link--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.store-local-footer__link--disabled:hover {
+  color: var(--text-secondary);
+}
+
 .store-local-footer__actions-title {
   margin: 0;
 }

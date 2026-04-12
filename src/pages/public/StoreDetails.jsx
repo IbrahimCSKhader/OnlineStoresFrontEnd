@@ -19,6 +19,7 @@ import useCategories from "../../hooks/categories/useCategories.js";
 import useFeaturedProducts from "../../hooks/products/useFeaturedProducts.js";
 import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import { resolveAssetUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
 import {
@@ -37,6 +38,8 @@ import "./StoreDetails.css";
 export default function StoreDetails() {
   const { slug } = useParams();
   const [searchText, setSearchText] = useState("");
+  const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
+    useOwnerStorePreview();
   const deferredSearchText = useDeferredValue(searchText);
   const storeQuery = useStoreBySlug(slug);
   const store = useMemo(
@@ -65,6 +68,13 @@ export default function StoreDetails() {
   });
   const addToCartMutation = useAddToCart(store?.id);
   const addToCartUi = useTransientBusyState();
+  const featuredProducts = useMemo(
+    () =>
+      normalizeProductList(featuredProductsQuery.data).filter((product) =>
+        isProductActive(product),
+      ),
+    [featuredProductsQuery.data],
+  );
 
   if (storeQuery.isLoading) {
     return (
@@ -88,13 +98,6 @@ export default function StoreDetails() {
   const coverImage = resolveStoreCoverUrl(store);
   const logoImage = resolveAssetUrl(store.logoUrl);
   const products = catalogProductsQuery.data;
-  const featuredProducts = useMemo(
-    () =>
-      normalizeProductList(featuredProductsQuery.data).filter((product) =>
-        isProductActive(product),
-      ),
-    [featuredProductsQuery.data],
-  );
   const keyword = deferredSearchText.toLowerCase().trim();
   const filteredProducts = keyword
     ? products.filter((product) =>
@@ -112,7 +115,7 @@ export default function StoreDetails() {
   const categorySummary = buildCategorySummary(products, categories).slice(0, 8);
 
   const handleAddToCart = (product) => {
-    if (!store?.id || !product?.id) return;
+    if (isOwnerPreview || !store?.id || !product?.id) return;
 
     addToCartUi.markBusy(product.id);
     addToCartMutation.mutate({
@@ -223,14 +226,24 @@ export default function StoreDetails() {
               <AppButton href="#store-catalog" variant="contained">
                 تصفح الكتالوج
               </AppButton>
-              <AppButton
-                component={RouterLink}
-                to={`/market/${store.slug}/cart`}
-                variant="outlined"
-                startIcon={<LocalMallRoundedIcon fontSize="small" />}
-              >
-                السلة
-              </AppButton>
+              {isOwnerPreview ? (
+                <AppButton
+                  variant="outlined"
+                  startIcon={<LocalMallRoundedIcon fontSize="small" />}
+                  disabled
+                >
+                  السلة
+                </AppButton>
+              ) : (
+                <AppButton
+                  component={RouterLink}
+                  to={buildStorePreviewPath(`/market/${store.slug}/cart`)}
+                  variant="outlined"
+                  startIcon={<LocalMallRoundedIcon fontSize="small" />}
+                >
+                  السلة
+                </AppButton>
+              )}
             </Stack>
           </Box>
         </Box>
@@ -268,7 +281,9 @@ export default function StoreDetails() {
               <SurfaceCard
                 key={category.id}
                 component={RouterLink}
-                to={`/market/${store.slug}/category/${category.id}`}
+                to={buildStorePreviewPath(
+                  `/market/${store.slug}/category/${category.id}`,
+                )}
                 interactive
                 className="page-store-details__category-card"
               >
@@ -306,6 +321,8 @@ export default function StoreDetails() {
             storeSlug={store.slug}
             onAddToCart={handleAddToCart}
             addingProductId={addToCartUi.activeKey}
+            disableCartActions={isOwnerPreview}
+            linkSearch={previewSearch}
           />
         ) : (
           <EmptyState title="لا توجد منتجات مختارة" />
@@ -340,6 +357,8 @@ export default function StoreDetails() {
               storeSlug={store.slug}
               onAddToCart={handleAddToCart}
               addingProductId={addToCartUi.activeKey}
+              disableCartActions={isOwnerPreview}
+              linkSearch={previewSearch}
             />
           ) : (
             <EmptyState

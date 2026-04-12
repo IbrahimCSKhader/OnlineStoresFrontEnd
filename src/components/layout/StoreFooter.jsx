@@ -5,20 +5,26 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AppButton from "../common/buttons/AppButton.jsx";
 import StoreContactAccounts from "../common/StoreContactAccounts.jsx";
+import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import { getStoreContactEntries } from "../../utils/storeContacts.js";
 import "./StoreFooter.css";
 
 export default function StoreFooter({ store, slug = "" }) {
   const year = new Date().getFullYear();
+  const { isOwnerPreview, buildStorePreviewPath } = useOwnerStorePreview();
   const contactEntries = getStoreContactEntries(store);
   const primaryWhatsApp = contactEntries.find(
     (entry) => entry.platform === "WhatsApp",
   );
   const localLinks = [
-    { to: `/market/${slug}`, label: "الرئيسية" },
-    { to: `/market/${slug}/about`, label: "من نحن" },
-    { to: `/market/${slug}/contact`, label: "تواصل" },
-    { to: `/market/${slug}/cart`, label: "السلة" },
+    { to: buildStorePreviewPath(`/market/${slug}`), label: "الرئيسية" },
+    { to: buildStorePreviewPath(`/market/${slug}/about`), label: "من نحن" },
+    { to: buildStorePreviewPath(`/market/${slug}/contact`), label: "تواصل" },
+    {
+      to: buildStorePreviewPath(`/market/${slug}/cart`),
+      label: "السلة",
+      disabled: isOwnerPreview,
+    },
   ];
 
   return (
@@ -44,14 +50,24 @@ export default function StoreFooter({ store, slug = "" }) {
           aria-label="روابط المتجر"
         >
           {localLinks.map((link) => (
-            <Box
-              key={link.to}
-              component={RouterLink}
-              to={link.to}
-              className="store-local-footer__link"
-            >
-              {link.label}
-            </Box>
+            link.disabled ? (
+              <Box
+                key={link.label}
+                className="store-local-footer__link store-local-footer__link--disabled"
+                aria-disabled="true"
+              >
+                {link.label}
+              </Box>
+            ) : (
+              <Box
+                key={link.label}
+                component={RouterLink}
+                to={link.to}
+                className="store-local-footer__link"
+              >
+                {link.label}
+              </Box>
+            )
           ))}
         </Box>
 
@@ -59,7 +75,7 @@ export default function StoreFooter({ store, slug = "" }) {
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             <AppButton
               component={RouterLink}
-              to={`/market/${slug}/contact`}
+              to={buildStorePreviewPath(`/market/${slug}/contact`)}
               variant="contained"
             >
               تواصل

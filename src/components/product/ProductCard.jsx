@@ -19,7 +19,14 @@ import {
 } from "../../utils/products.js";
 import "./ProductCard.css";
 
-function ProductCard({ product, storeSlug, onAddToCart, adding }) {
+function ProductCard({
+  product,
+  storeSlug,
+  onAddToCart,
+  adding,
+  disableCartActions = false,
+  linkSearch = "",
+}) {
   const normalizedProduct = normalizeProductDto(product);
   const image = resolveAssetUrl(getProductImage(normalizedProduct));
   const price = getProductDisplayPrice(normalizedProduct);
@@ -33,6 +40,11 @@ function ProductCard({ product, storeSlug, onAddToCart, adding }) {
     resolvedStoreSlug && normalizedProduct.id
       ? `/market/${resolvedStoreSlug}/product/${normalizedProduct.id}`
       : "";
+  const detailTarget = detailPath
+    ? linkSearch
+      ? { pathname: detailPath, search: linkSearch }
+      : detailPath
+    : undefined;
   const categoryLabel =
     normalizedProduct.categoryName || normalizedProduct.sectionName || "";
   const stockQuantity = Number(normalizedProduct.stockQuantity ?? 0);
@@ -51,8 +63,8 @@ function ProductCard({ product, storeSlug, onAddToCart, adding }) {
   return (
     <SurfaceCard interactive className="product-card">
       <Box
-        component={detailPath ? RouterLink : "div"}
-        to={detailPath || undefined}
+        component={detailTarget ? RouterLink : "div"}
+        to={detailTarget}
         className="product-card__link"
       >
         <Box className="product-card__media">
@@ -151,7 +163,7 @@ function ProductCard({ product, storeSlug, onAddToCart, adding }) {
         {detailPath ? (
           <AppButton
             component={RouterLink}
-            to={detailPath}
+            to={detailTarget}
             variant="text"
             endIcon={<OpenInNewRoundedIcon fontSize="small" />}
             className="product-card__detail-button"
@@ -167,7 +179,7 @@ function ProductCard({ product, storeSlug, onAddToCart, adding }) {
             loading={adding}
             loadingLabel="..."
             onClick={() => onAddToCart(normalizedProduct)}
-            disabled={!normalizedProduct.id || !isAvailable}
+            disabled={disableCartActions || !normalizedProduct.id || !isAvailable}
             startIcon={<LocalMallRoundedIcon fontSize="small" />}
             className={
               detailPath
@@ -186,5 +198,7 @@ function ProductCard({ product, storeSlug, onAddToCart, adding }) {
 export default memo(ProductCard, (previousProps, nextProps) => (
   previousProps.product === nextProps.product &&
   previousProps.storeSlug === nextProps.storeSlug &&
-  previousProps.adding === nextProps.adding
+  previousProps.adding === nextProps.adding &&
+  previousProps.disableCartActions === nextProps.disableCartActions &&
+  previousProps.linkSearch === nextProps.linkSearch
 ));

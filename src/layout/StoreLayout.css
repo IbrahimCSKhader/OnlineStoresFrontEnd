@@ -11,6 +11,10 @@
   padding-inline: var(--page-inset);
 }
 
+.store-layout__preview-alert {
+  margin-top: var(--space-4);
+}
+
 .store-layout__footer {
   width: min(100%, var(--max-width));
   margin-inline: auto;

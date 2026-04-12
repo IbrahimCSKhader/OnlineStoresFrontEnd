@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { isGuestRole } from "../utils/roles.js";
+import { extractStorefrontCustomer } from "../utils/authSession.js";
 import {
   clearStorefrontAuthSession,
   getPlatformAuthToken,
@@ -17,8 +18,12 @@ const storedPlatformUser = getStoredPlatformUser();
 const storedPlatformRole = getStoredPlatformRole();
 const storedStorefrontUser = getStoredStorefrontUser();
 const storedStorefrontRole = getStoredStorefrontRole();
+const storedStorefrontCustomer =
+  extractStorefrontCustomer(storedStorefrontUser);
 const shouldDiscardGuestStorefrontSession =
-  isGuestRole(storedStorefrontRole) || isGuestRole(storedStorefrontUser?.accountType);
+  !storedStorefrontCustomer &&
+  (isGuestRole(storedStorefrontRole) ||
+    isGuestRole(storedStorefrontUser?.accountType));
 
 if (shouldDiscardGuestStorefrontSession) {
   clearStorefrontAuthSession();
