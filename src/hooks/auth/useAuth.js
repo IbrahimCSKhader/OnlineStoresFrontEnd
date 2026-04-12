@@ -1,11 +1,7 @@
 import { matchPath, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/authStore.js";
 import { extractStorefrontCustomer } from "../../utils/authSession.js";
-import {
-  isOwnerRole,
-  isStoreCustomerRole,
-  isSuperAdminRole,
-} from "../../utils/roles.js";
+import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import { STORE_CUSTOMER_AUTH_MODE } from "../../utils/storeCustomerAuth.js";
 
 function isStorefrontRoute(pathname) {

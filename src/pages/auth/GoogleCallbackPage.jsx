@@ -10,7 +10,10 @@ import {
   clearPendingStoreGoogleAuth,
   setPendingStoreGoogleAuth,
 } from "../../utils/pendingStoreGoogleAuth.js";
-import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
+import {
+  buildStoreCustomerAuthState,
+  resolveStoreScopedAuthResult,
+} from "../../utils/storeCustomerAuth.js";
 import {
   clearPlatformAuthSession,
   getPlatformAuthToken,
@@ -22,6 +25,9 @@ import {
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
+  setStorefrontAuthToken,
+  setStoredStorefrontRole,
+  setStoredStorefrontUser,
 } from "../../utils/token.js";
 
 const DEFAULT_REDIRECT_PATH = "/";
@@ -70,8 +76,12 @@ function GoogleCallbackPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
-  const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
-  const clearPlatformSession = useAuthStore((state) => state.clearPlatformSession);
+  const setStorefrontSession = useAuthStore(
+    (state) => state.setStorefrontSession,
+  );
+  const clearPlatformSession = useAuthStore(
+    (state) => state.clearPlatformSession,
+  );
   const hasHandledCallbackRef = useRef(false);
 
   useEffect(() => {
@@ -134,11 +144,14 @@ function GoogleCallbackPage() {
       };
       const persistedStorefrontSession = {
         token:
-          currentAuthState?.storefrontSession?.token || getStorefrontAuthToken(),
+          currentAuthState?.storefrontSession?.token ||
+          getStorefrontAuthToken(),
         user:
-          currentAuthState?.storefrontSession?.user || getStoredStorefrontUser(),
+          currentAuthState?.storefrontSession?.user ||
+          getStoredStorefrontUser(),
         role:
-          currentAuthState?.storefrontSession?.role || getStoredStorefrontRole(),
+          currentAuthState?.storefrontSession?.role ||
+          getStoredStorefrontRole(),
       };
       const persistedSession = persistedPlatformSession.token
         ? {
@@ -197,6 +210,69 @@ function GoogleCallbackPage() {
     const role = extractRole({}, token, user);
 
     if (hasStoreGoogleContext) {
+      const authResult = resolveStoreScopedAuthResult(
+        { token, user, role },
+        callbackStoreId || "",
+      );
+
+      if (authResult.isOwner) {
+        clearPendingStoreGoogleAuth();
+        setPlatformAuthToken(token);
+
+        if (authResult.user) {
+          setStoredPlatformUser(authResult.user);
+        }
+
+        if (authResult.role) {
+          setStoredPlatformRole(authResult.role);
+        }
+
+        setPlatformSession({
+          token,
+          user: authResult.user,
+          role: authResult.role,
+        });
+
+        clearPendingGoogleRedirectPath();
+
+        window.history.replaceState(
+          window.history.state,
+          document.title,
+          location.pathname,
+        );
+        navigate("/owner", { replace: true });
+        return;
+      }
+
+      if (authResult.isCustomer) {
+        clearPendingStoreGoogleAuth();
+        setStorefrontAuthToken(token);
+
+        if (authResult.user) {
+          setStoredStorefrontUser(authResult.user);
+        }
+
+        if (authResult.role) {
+          setStoredStorefrontRole(authResult.role);
+        }
+
+        setStorefrontSession({
+          token,
+          user: authResult.user,
+          role: authResult.role,
+        });
+
+        clearPendingGoogleRedirectPath();
+
+        window.history.replaceState(
+          window.history.state,
+          document.title,
+          location.pathname,
+        );
+        navigate(redirectPath, { replace: true });
+        return;
+      }
+
       const storeAuthState = buildStoreCustomerAuthState({
         storeId: callbackStoreId || "",
         storeSlug: callbackStoreSlug,
