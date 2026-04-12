@@ -22,25 +22,34 @@ export default function ProductVariantPicker({
       <Box className="product-variants__grid">
         {variants.map((variant) => {
           const isActive = variant.id === selectedVariantId;
+          const isAvailable = Boolean(variant.isInStock);
+          const hasPriceOverride =
+            variant.priceOverride !== undefined && variant.priceOverride !== null;
 
           return (
             <button
               key={variant.id ?? variant.name}
               type="button"
-              className={`product-variants__item${isActive ? " product-variants__item--active" : ""}`}
+              className={`product-variants__item${isActive ? " product-variants__item--active" : ""}${!isAvailable ? " product-variants__item--disabled" : ""}`}
               onClick={() => onChange(variant.id)}
+              disabled={!isAvailable}
+              aria-pressed={isActive}
             >
               <Stack spacing={0.65}>
                 <Stack direction="row" justifyContent="space-between" gap={1}>
                   <Typography variant="subtitle2">{variant.name}</Typography>
                   <Chip
                     size="small"
-                    label={`${variant.stockQuantity ?? 0} متوفر`}
+                    label={
+                      isAvailable
+                        ? `${variant.stockQuantity ?? 0} متوفر`
+                        : "غير متوفر"
+                    }
                     variant="outlined"
                   />
                 </Stack>
 
-                {variant.priceOverride ? (
+                {hasPriceOverride ? (
                   <Typography variant="body2" color="text.secondary">
                     سعر هذا الخيار: {formatCurrency(variant.priceOverride)}
                   </Typography>

@@ -280,6 +280,88 @@
   margin-bottom: 0.15rem !important;
 }
 
+.owner-order-dialog {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.owner-order-dialog__grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.owner-order-dialog__meta,
+.owner-order-dialog__note,
+.owner-order-item,
+.owner-order-dialog__summary {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-muted) 82%, var(--surface-elevated));
+}
+
+.owner-order-dialog__meta {
+  padding: 0.9rem 1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.owner-order-dialog__meta span {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+}
+
+.owner-order-dialog__note {
+  padding: 1rem 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.owner-order-dialog__items {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.owner-order-dialog__items-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.owner-order-item {
+  padding: 1rem 1.05rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.owner-order-item__head,
+.owner-order-item__meta,
+.owner-order-dialog__summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.owner-order-item__meta {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.owner-order-dialog__summary {
+  padding: 1rem 1.1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.owner-order-dialog__summary-row--total {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+  font-weight: 700;
+}
+
 .owner-subscription-grid {
   display: grid;
   gap: var(--space-4);
@@ -498,6 +580,18 @@
   .owner-stats-grid,
   .owner-subscription-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .owner-order-dialog__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .owner-order-dialog__items-head,
+  .owner-order-item__head,
+  .owner-order-item__meta,
+  .owner-order-dialog__summary-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .owner-panel__head {

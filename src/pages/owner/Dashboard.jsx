@@ -3,6 +3,10 @@ import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
@@ -59,6 +63,7 @@ import useStoreCustomers from "../../hooks/customerStores/useStoreCustomers.js";
 import useUpdateCustomerStore from "../../hooks/customerStores/useUpdateCustomerStore.js";
 import productApi from "../../API/product.api.js";
 import useStoreOrders from "../../hooks/orders/useStoreOrders.js";
+import useStoreOrderDetails from "../../hooks/orders/useStoreOrderDetails.js";
 import useUpdateOrderStatus from "../../hooks/orders/useUpdateOrderStatus.js";
 import useCreateProduct from "../../hooks/products/useCreateProduct.js";
 import useDeleteProduct from "../../hooks/products/useDeleteProduct.js";
@@ -81,7 +86,17 @@ import {
   normalizeEntityResponse,
   normalizeListResponse,
 } from "../../utils/collections.js";
+import extractApiError from "../../utils/extractApiError.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import { normalizeOrderDetails } from "../../utils/orders.js";
+import {
+  getProductComparePrice,
+  getProductDisplayPrice,
+  getProductOriginalPrice,
+  isProductInStock,
+  normalizeProductDto,
+  normalizeProductList,
+} from "../../utils/products.js";
 import { isOwnerRole } from "../../utils/roles.js";
 import "./OwnerDashboard.css";
 
@@ -193,6 +208,10 @@ function getErrorMessage(error) {
   );
 }
 
+function getApiErrorMessage(error) {
+  return extractApiError(error, "تعذر تنفيذ العملية. حاول مرة أخرى.");
+}
+
 function normalizeText(value) {
   return String(value ?? "")
     .toLowerCase()
@@ -203,10 +222,12 @@ function normalizePlanKey(value) {
   const normalized = normalizeText(value);
 
   if (!normalized) return "";
-  if (["free", "basic", "starter", "0"].includes(normalized)) return "free";
-  if (["standard", "pro-1", "business", "1"].includes(normalized))
+  if (["free", "basic", "starter", "trial", "0"].includes(normalized))
+    return "free";
+  if (["standard", "pro-1", "business", "growth", "1"].includes(normalized))
     return "standard";
-  if (["pro", "premium", "enterprise", "2"].includes(normalized)) return "pro";
+  if (["pro", "premium", "enterprise", "plus", "ultimate", "2", "3"].includes(normalized))
+    return "pro";
 
   return "";
 }
@@ -240,10 +261,12 @@ function buildProductForm(defaultCategoryId = "", defaultSectionId = "") {
     name: "",
     slug: "",
     slugManuallyEdited: false,
+    sku: "",
     shortDescription: "",
     description: "",
     price: "",
     compareAtPrice: "",
+    costPrice: "",
     stockQuantity: "",
     categoryId: defaultCategoryId,
     sectionId: defaultSectionId,
@@ -251,8 +274,12 @@ function buildProductForm(defaultCategoryId = "", defaultSectionId = "") {
     isFeatured: false,
     status: "1",
     publishNow: true,
+    metaTitle: "",
+    metaDescription: "",
     newImages: [],
     existingImages: [],
+    variants: [],
+    attributeValues: [],
   };
 }
 
@@ -315,21 +342,50 @@ function firstDefined(...values) {
 function normalizeStoreSubscription(data, store) {
   const normalizedData = normalizeEntityResponse(data) || data || {};
   const fromNested =
-    normalizedData.subscription || normalizedData.currentSubscription || {};
+    (normalizedData.subscription &&
+    typeof normalizedData.subscription === "object"
+      ? normalizedData.subscription
+      : null) ||
+    (normalizedData.currentSubscription &&
+    typeof normalizedData.currentSubscription === "object"
+      ? normalizedData.currentSubscription
+      : null) ||
+    (normalizedData.subscriptionPlan &&
+    typeof normalizedData.subscriptionPlan === "object"
+      ? normalizedData.subscriptionPlan
+      : null) ||
+    (normalizedData.plan && typeof normalizedData.plan === "object"
+      ? normalizedData.plan
+      : null) ||
+    {};
 
   const currentPlan =
     normalizePlanKey(
       firstDefined(
         fromNested.plan,
         fromNested.planName,
+        fromNested.planKey,
+        fromNested.key,
+        fromNested.name,
+        fromNested.subscriptionPlan,
         fromNested.tier,
+        fromNested.planId,
+        fromNested.subscriptionPlanId,
+        fromNested.id,
         normalizedData.plan,
         normalizedData.planName,
+        normalizedData.planKey,
+        normalizedData.key,
         normalizedData.subscriptionPlan,
+        normalizedData.planId,
+        normalizedData.subscriptionPlanId,
         normalizedData.tier,
         store?.plan,
         store?.planName,
+        store?.planKey,
         store?.subscriptionPlan,
+        store?.planId,
+        store?.subscriptionPlanId,
       ),
     ) || "free";
 
@@ -337,12 +393,16 @@ function normalizeStoreSubscription(data, store) {
     currentPlan,
     startedAt: firstDefined(
       fromNested.startedAt,
+      fromNested.startDate,
       normalizedData.startedAt,
       normalizedData.subscriptionStartDate,
     ),
     renewalAt: firstDefined(
       fromNested.renewalAt,
+      fromNested.renewalDate,
+      fromNested.expiresAt,
       normalizedData.renewalAt,
+      normalizedData.expiresAt,
       normalizedData.subscriptionRenewalDate,
     ),
   };
@@ -487,13 +547,19 @@ function formatDateTimeLabel(value) {
 }
 
 function normalizeOrderSummary(item) {
+  const normalizedOrder = normalizeOrderDetails(item);
+
   return {
-    ...item,
-    orderNumber: firstDefined(item?.orderNumber, item?.id, "-"),
-    statusLabel: getOrderStatusLabel(item?.status),
-    createdAtLabel: formatDateTimeLabel(item?.createdAt),
-    totalAmount: toNumber(item?.totalAmount, 0),
-    itemsCount: toNumber(item?.itemsCount, 0),
+    ...normalizedOrder,
+    orderNumber: firstDefined(
+      normalizedOrder?.orderNumber,
+      normalizedOrder?.id,
+      "-",
+    ),
+    statusLabel: getOrderStatusLabel(normalizedOrder?.status),
+    createdAtLabel: formatDateTimeLabel(normalizedOrder?.createdAt),
+    totalAmount: toNumber(normalizedOrder?.totalAmount, 0),
+    itemsCount: toNumber(normalizedOrder?.itemsCount, 0),
   };
 }
 
@@ -586,6 +652,149 @@ function SectionHeader({ title, description, onRefresh, isRefreshing }) {
   );
 }
 
+function OrderDetailsDialog({ open, order, loading, error, onClose }) {
+  const displayStatus =
+    order?.statusText || order?.statusLabel || getOrderStatusLabel(order?.status);
+  const createdAtLabel = order?.createdAtLabel || formatDateTimeLabel(order?.createdAt);
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle>تفاصيل الطلب</DialogTitle>
+
+      <DialogContent dividers>
+        {loading && !order ? <LoadingState label="جارٍ تحميل تفاصيل الطلب..." /> : null}
+
+        {!loading && error && !order ? (
+          <Alert severity="error">{getApiErrorMessage(error)}</Alert>
+        ) : null}
+
+        {order ? (
+          <Box className="owner-order-dialog">
+            {error ? (
+              <Alert severity="warning">
+                تعذر تحميل أحدث نسخة من الطلب، لذلك يتم عرض البيانات المتوفرة حاليًا.
+              </Alert>
+            ) : null}
+
+            <Box className="owner-order-dialog__grid">
+              <Box className="owner-order-dialog__meta">
+                <span>رقم الطلب</span>
+                <strong>{order.orderNumber || order.id || "-"}</strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>العميل</span>
+                <strong>
+                  {order.customerName || "Customer not found"} ({order.customerId || order.storeCustomerId || "-"})
+                </strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>تاريخ الإنشاء</span>
+                <strong>{createdAtLabel}</strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>الحالة</span>
+                <strong>{displayStatus || "غير محددة"}</strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>العنوان</span>
+                <strong>{order.deliveryAddress || "-"}</strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>المدينة</span>
+                <strong>{order.deliveryCity || "-"}</strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>الهاتف</span>
+                <strong>{order.deliveryPhone || "-"}</strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>الكوبون</span>
+                <strong>{order.couponCode || "-"}</strong>
+              </Box>
+            </Box>
+
+            {order.customerNotes ? (
+              <Box className="owner-order-dialog__note">
+                <Typography variant="subtitle2">ملاحظات العميل</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {order.customerNotes}
+                </Typography>
+              </Box>
+            ) : null}
+
+            <Box className="owner-order-dialog__items">
+              <Box className="owner-order-dialog__items-head">
+                <Typography variant="h6">محتويات الطلب</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {order.itemsCount ?? 0} قطعة
+                </Typography>
+              </Box>
+
+              {order.items?.length ? (
+                <Stack spacing={1.5}>
+                  {order.items.map((item, index) => (
+                    <Box
+                      key={item.id || item.productId || `order-item-${index}`}
+                      className="owner-order-item"
+                    >
+                      <Box className="owner-order-item__head">
+                        <Box>
+                          <Typography variant="subtitle2">
+                            {item.productName || `منتج ${index + 1}`}
+                          </Typography>
+                          {item.variantName ? (
+                            <Typography variant="caption" color="text.secondary">
+                              {item.variantName}
+                            </Typography>
+                          ) : null}
+                        </Box>
+
+                        <Typography variant="subtitle2">
+                          {formatCurrency(item.totalPrice)}
+                        </Typography>
+                      </Box>
+
+                      <Box className="owner-order-item__meta">
+                        <span>الكمية: {item.quantity}</span>
+                        <span>سعر الوحدة: {formatCurrency(item.unitPrice)}</span>
+                      </Box>
+                    </Box>
+                  ))}
+                </Stack>
+              ) : (
+                <Alert severity="info">
+                  لا توجد تفاصيل منتجات مرفقة بهذا الطلب من الـ API الحالي.
+                </Alert>
+              )}
+            </Box>
+
+            <Box className="owner-order-dialog__summary">
+              <Box className="owner-order-dialog__summary-row">
+                <span>السعر الأصلي</span>
+                <strong>{formatCurrency(order.subtotal)}</strong>
+              </Box>
+              <Box className="owner-order-dialog__summary-row">
+                <span>الخصم</span>
+                <strong>{formatCurrency(order.discount)}</strong>
+              </Box>
+              <Box className="owner-order-dialog__summary-row owner-order-dialog__summary-row--total">
+                <span>الإجمالي النهائي</span>
+                <strong>{formatCurrency(order.totalAmount)}</strong>
+              </Box>
+            </Box>
+          </Box>
+        ) : null}
+      </DialogContent>
+
+      <DialogActions>
+        <AppButton variant="outlined" onClick={onClose}>
+          إغلاق
+        </AppButton>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export default function OwnerDashboard({ initialTab = "overview" }) {
   const navigate = useNavigate();
   const isCompactScreen = useMediaQuery("(max-width:1080px)");
@@ -621,10 +830,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const shouldLoadSections =
     isOverviewTab || activeTab === "sections" || activeTab === "products";
   const shouldLoadCoupons = isOverviewTab || activeTab === "coupons";
-  const shouldLoadCustomerStores = isOverviewTab || activeTab === "customers";
+  const shouldLoadCustomerStores =
+    isOverviewTab || activeTab === "customers" || activeTab === "orders";
   const shouldLoadOrders = isOverviewTab || activeTab === "orders";
   const shouldLoadReviews = isOverviewTab || activeTab === "reviews";
-  const shouldLoadSubscription = activeTab === "subscription";
+  const shouldLoadSubscription = isOverviewTab || activeTab === "subscription";
 
   const productsQuery = useProducts(storeId, undefined, {
     enabled: Boolean(storeId) && shouldLoadProducts,
@@ -648,6 +858,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   });
   const ordersQuery = useStoreOrders(storeId, {
     enabled: Boolean(storeId) && shouldLoadOrders,
+    staleTime: 30000,
+  });
+  const [selectedOrderId, setSelectedOrderId] = useState("");
+  const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
+  const orderDetailsQuery = useStoreOrderDetails(storeId, selectedOrderId, {
+    enabled: Boolean(storeId) && Boolean(selectedOrderId) && isOrderDetailsOpen,
     staleTime: 30000,
   });
   const reviewsQuery = useStoreReviews(storeId, {
@@ -689,7 +905,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     },
   });
 
-  const productsRaw = normalizeListResponse(productsQuery.data);
+  const productsRaw = normalizeProductList(productsQuery.data);
   const categoriesRaw = normalizeListResponse(categoriesQuery.data);
   const sectionsRaw = normalizeListResponse(sectionsQuery.data);
   const couponsRaw = normalizeListResponse(couponsQuery.data);
@@ -719,6 +935,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     buildCustomerStoreForm(),
   );
   const [editingProductId, setEditingProductId] = useState("");
+  const [productFormError, setProductFormError] = useState("");
 
   const newImagePreviews = useMemo(
     () =>
@@ -773,11 +990,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       productsRaw.filter((item) =>
         matchesText(item, deferredSearchText, [
           "name",
+          "fullName",
           "slug",
+          "sku",
           "shortDescription",
           "description",
           "categoryName",
           "sectionName",
+          "metaTitle",
+          "metaDescription",
         ]),
       ),
     [deferredSearchText, productsRaw],
@@ -814,6 +1035,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         .filter((item) => item.id),
     [storeCustomersRaw],
   );
+  const customersById = useMemo(
+    () =>
+      new Map(
+        storeCustomersAll.map((customer) => [String(customer.id), customer]),
+      ),
+    [storeCustomersAll],
+  );
   const customers = useMemo(
     () =>
       storeCustomersAll.filter((item) =>
@@ -829,20 +1057,143 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     refetch: () => {},
   };
   const ordersAll = useMemo(
-    () => ordersRaw.map((item) => normalizeOrderSummary(item)),
-    [ordersRaw],
+    () =>
+      ordersRaw.map((item) => {
+        const normalizedOrder = normalizeOrderSummary(item);
+        const customer =
+          customersById.get(String(normalizedOrder.storeCustomerId || "")) || null;
+
+        return {
+          ...normalizedOrder,
+          customer,
+          customerName: customer?.fullName || "Customer not found",
+          customerId: customer?.id || normalizedOrder.storeCustomerId || "-",
+          customerDisplayName: customer?.fullName || "Customer not found",
+          customerDisplayId:
+            customer?.id || normalizedOrder.storeCustomerId || "-",
+        };
+      }),
+    [customersById, ordersRaw],
   );
   const orders = useMemo(
     () =>
       ordersAll.filter((item) =>
         matchesText(item, deferredSearchText, [
           "orderNumber",
+          "customerDisplayName",
+          "customerDisplayId",
+          "storeCustomerId",
+          "deliveryPhone",
+          "couponCode",
           "statusLabel",
           "createdAtLabel",
         ]),
       ),
     [deferredSearchText, ordersAll],
   );
+  const selectedOrderSummary = useMemo(
+    () =>
+      ordersAll.find((item) => String(item.id) === String(selectedOrderId)) ||
+      null,
+    [ordersAll, selectedOrderId],
+  );
+  const selectedOrder = useMemo(() => {
+    const source = orderDetailsQuery.data || selectedOrderSummary;
+    const normalizedOrder = source ? normalizeOrderSummary(source) : null;
+
+    if (!normalizedOrder) {
+      return null;
+    }
+
+    const customer =
+      customersById.get(String(normalizedOrder.storeCustomerId || "")) || null;
+
+    return {
+      ...normalizedOrder,
+      customer,
+      customerName: customer?.fullName || "Customer not found",
+      customerId: customer?.id || normalizedOrder.storeCustomerId || "-",
+      customerDisplayName: customer?.fullName || "Customer not found",
+      customerDisplayId: customer?.id || normalizedOrder.storeCustomerId || "-",
+    };
+  }, [customersById, orderDetailsQuery.data, selectedOrderSummary]);
+  const storeOrderColumns = [
+    {
+      key: "orderNumber",
+      title: "رقم الطلب",
+      render: (row) => row.orderNumber || row.id || "-",
+    },
+    {
+      key: "customerName",
+      title: "العميل",
+      render: (row) => row.customerName || "غير محدد",
+    },
+    {
+      key: "customerId",
+      title: "Customer ID",
+      render: (row) => row.customerId || row.storeCustomerId || "-",
+    },
+    {
+      key: "itemsCount",
+      title: "المحتوى",
+      render: (row) => `${row.itemsCount ?? 0} قطعة`,
+    },
+    {
+      key: "createdAtLabel",
+      title: "تاريخ الطلب",
+      render: (row) => row.createdAtLabel || "-",
+    },
+    {
+      key: "totalAmount",
+      title: "الإجمالي",
+      render: (row) => formatCurrency(row.totalAmount),
+    },
+    {
+      key: "status",
+      title: "الحالة الحالية",
+      render: (row) => row.statusText || row.statusLabel || "غير محددة",
+    },
+    {
+      key: "details",
+      title: "التفاصيل",
+      render: (row) => (
+        <AppButton
+          size="small"
+          variant="outlined"
+          onClick={() => {
+            setSelectedOrderId(String(row.id));
+            setIsOrderDetailsOpen(true);
+          }}
+        >
+          عرض التفاصيل
+        </AppButton>
+      ),
+    },
+    {
+      key: "actions",
+      title: "تحديث الحالة",
+      render: (row) => (
+        <TextField
+          select
+          size="small"
+          value={String(row.status ?? 0)}
+          onChange={(event) =>
+            updateOrderStatusMutation.mutate({
+              orderId: row.id,
+              payload: { status: Number(event.target.value) },
+            })
+          }
+          sx={{ minWidth: 180 }}
+        >
+          {ORDER_STATUS_OPTIONS.map((option) => (
+            <MenuItem key={option.value} value={String(option.value)}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      ),
+    },
+  ];
   const reviewsAll = useMemo(
     () => reviewsRaw.map((item) => normalizeReviewItem(item)),
     [reviewsRaw],
@@ -971,8 +1322,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   ];
   const mutationError = allErrors.find(Boolean);
 
-  const resetProductForm = () =>
+  const resetProductForm = () => {
+    setProductFormError("");
     setProductForm(buildProductForm(defaultCategoryId, defaultSectionId));
+  };
   const resetCategoryForm = () => setCategoryForm(buildCategoryForm());
   const resetSectionForm = () => setSectionForm(buildSectionForm());
   const resetCouponForm = () => setCouponForm(buildCouponForm());
@@ -985,10 +1338,23 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     name: product?.name || "",
     slug: product?.slug || "",
     slugManuallyEdited: true,
+    sku: product?.sku || "",
     shortDescription: product?.shortDescription || "",
     description: product?.description || "",
-    price: String(product?.originalPrice ?? product?.price ?? ""),
-    compareAtPrice: String(product?.compareAtPrice ?? ""),
+    price:
+      product?.originalPrice !== undefined ||
+      product?.OriginalPrice !== undefined ||
+      product?.price !== undefined ||
+      product?.Price !== undefined
+        ? String(getProductOriginalPrice(product))
+        : "",
+    compareAtPrice: getProductComparePrice(product)
+      ? String(getProductComparePrice(product))
+      : "",
+    costPrice:
+      product?.costPrice !== undefined && product?.costPrice !== null
+        ? String(product.costPrice)
+        : "",
     stockQuantity: String(product?.stockQuantity ?? 0),
     categoryId: product?.categoryId || defaultCategoryId,
     sectionId: product?.sectionId || defaultSectionId,
@@ -996,17 +1362,24 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     isFeatured: Boolean(product?.isFeatured),
     status: String(product?.status ?? 1),
     publishNow: true,
+    metaTitle: product?.metaTitle || "",
+    metaDescription: product?.metaDescription || "",
     newImages: [],
     existingImages: Array.isArray(product?.images) ? product.images : [],
+    variants: Array.isArray(product?.variants) ? product.variants : [],
+    attributeValues: Array.isArray(product?.attributeValues)
+      ? product.attributeValues
+      : [],
   });
 
   const handleOpenProductEditor = async (row) => {
     if (!row?.id || editingProductId) return;
 
     setEditingProductId(row.id);
+    setProductFormError("");
 
     try {
-      const product = normalizeEntityResponse(
+      const product = normalizeProductDto(
         await productApi.getProductById(row.id),
       );
 
@@ -1283,6 +1656,24 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const handleAppendImages = (files) => {
     if (!files.length) return;
 
+    const invalidFile = files.find((file) => {
+      const fileName = String(file?.name || "").toLowerCase();
+      const isValidExtension = [".jpg", ".jpeg", ".png", ".webp"].some(
+        (extension) => fileName.endsWith(extension),
+      );
+
+      return !isValidExtension || Number(file?.size || 0) > 5 * 1024 * 1024;
+    });
+
+    if (invalidFile) {
+      setProductFormError(
+        "يجب أن تكون الصور بصيغة JPG أو JPEG أو PNG أو WEBP، وبحجم لا يتجاوز 5MB للصورة.",
+      );
+      return;
+    }
+
+    setProductFormError("");
+
     setProductForm((prev) => ({
       ...prev,
       newImages: [...prev.newImages, ...files],
@@ -1308,12 +1699,22 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         productId: productForm.id,
       });
 
-      setProductForm((prev) => ({
-        ...prev,
-        existingImages: prev.existingImages.filter(
+      setProductForm((prev) => {
+        const remainingImages = prev.existingImages.filter(
           (item) => item.id !== image.id,
-        ),
-      }));
+        );
+
+        return {
+          ...prev,
+          existingImages:
+            image.isPrimary && remainingImages.length
+              ? remainingImages.map((item, index) => ({
+                  ...item,
+                  isPrimary: index === 0,
+                }))
+              : remainingImages,
+        };
+      });
     } catch {
       // Error is surfaced through the shared error alert.
     }
@@ -1325,20 +1726,26 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     if (!storeId) return;
     if (!categoriesRaw.length || !sectionsRaw.length) return;
 
+    setProductFormError("");
+
     const payload = {
       Name: productForm.name.trim(),
       Slug: slugify(productForm.slug || productForm.name),
+      SKU: productForm.mode === "create" ? productForm.sku.trim() || undefined : undefined,
       ShortDescription: productForm.shortDescription || undefined,
       Description: productForm.description || undefined,
       Price: Number(productForm.price),
       CompareAtPrice: productForm.compareAtPrice
         ? Number(productForm.compareAtPrice)
         : undefined,
+      CostPrice: productForm.costPrice ? Number(productForm.costPrice) : undefined,
       StockQuantity: Number(productForm.stockQuantity),
       TrackInventory: Boolean(productForm.trackInventory),
       CategoryId: productForm.categoryId || defaultCategoryId,
       SectionId: productForm.sectionId || defaultSectionId,
       StoreId: storeId,
+      MetaTitle: productForm.metaTitle.trim() || undefined,
+      MetaDescription: productForm.metaDescription.trim() || undefined,
     };
 
     try {
@@ -1351,12 +1758,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             Description: payload.Description,
             Price: payload.Price,
             CompareAtPrice: payload.CompareAtPrice,
+            CostPrice: payload.CostPrice,
             StockQuantity: payload.StockQuantity,
             TrackInventory: payload.TrackInventory,
             CategoryId: payload.CategoryId,
             SectionId: payload.SectionId,
             Status: Number(productForm.status),
             IsFeatured: Boolean(productForm.isFeatured),
+            MetaTitle: payload.MetaTitle,
+            MetaDescription: payload.MetaDescription,
           },
         });
 
@@ -1381,8 +1791,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           : undefined,
       });
 
-      const createdProductEntity =
-        normalizeEntityResponse(createdProduct) || createdProduct;
+      const createdProductEntity = normalizeProductDto(createdProduct);
       const createdProductId = createdProductEntity?.id || createdProduct?.id;
 
       if (createdProductId) {
@@ -1893,7 +2302,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         </Paper>
 
         {mutationError ? (
-          <Alert severity="error">{getErrorMessage(mutationError)}</Alert>
+          <Alert severity="error">{getApiErrorMessage(mutationError)}</Alert>
         ) : null}
 
         {activeTab === "overview" ? (
@@ -1946,7 +2355,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
             {subscriptionQuery.error ? (
               <Alert severity="warning">
-                {getErrorMessage(subscriptionQuery.error)}
+                {getApiErrorMessage(subscriptionQuery.error)}
               </Alert>
             ) : null}
 
@@ -2092,6 +2501,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               onRefresh={productsQuery.refetch}
               isRefreshing={productsQuery.isFetching}
             />
+
+            {productFormError ? (
+              <Alert severity="error">{productFormError}</Alert>
+            ) : null}
 
             <ProductForm
               form={productForm}
@@ -2646,7 +3059,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 <LoadingState />
               ) : storeCustomersQuery.error ? (
                 <Alert severity="error">
-                  {getErrorMessage(storeCustomersQuery.error)}
+                  {getApiErrorMessage(storeCustomersQuery.error)}
                 </Alert>
               ) : (
                 <AppDataTable
@@ -2745,7 +3158,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 <LoadingState />
               ) : availableCustomersQuery.error ? (
                 <Alert severity="warning">
-                  {getErrorMessage(availableCustomersQuery.error)}
+                  {getApiErrorMessage(availableCustomersQuery.error)}
                 </Alert>
               ) : (
                 <AppDataTable
@@ -2859,6 +3272,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     ),
                   },
                 ]}
+                columns={storeOrderColumns}
                 emptyState={
                   <EmptyState
                     title="لا توجد طلبات"
@@ -2945,6 +3359,17 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           </Paper>
         ) : null}
       </Box>
+
+      <OrderDetailsDialog
+        open={isOrderDetailsOpen}
+        order={selectedOrder}
+        loading={orderDetailsQuery.isLoading}
+        error={orderDetailsQuery.error}
+        onClose={() => {
+          setIsOrderDetailsOpen(false);
+          setSelectedOrderId("");
+        }}
+      />
     </DashboardLayout>
   );
 }

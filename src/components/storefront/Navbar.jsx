@@ -33,6 +33,7 @@ import useAuth from "../../hooks/auth/useAuth.js";
 import useCart from "../../hooks/cart/useCart.js";
 import useLogout from "../../hooks/auth/useLogout.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
@@ -186,10 +187,17 @@ export default function Navbar() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const { variant, setVariant } = useAppThemeVariant();
-  const { isAuthenticated, isStoreCustomer, role, storeCustomer } = useAuth();
+  const {
+    isAuthenticated,
+    isPlatformAuthenticated,
+    isStoreCustomer,
+    role,
+    storeCustomer,
+  } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const profileMenuOpen = Boolean(profileAnchorEl);
+  const isOwnerDashboardRoute = location.pathname.startsWith("/owner");
 
   const storeRouteMatch = useMemo(
     () =>
@@ -206,13 +214,27 @@ export default function Navbar() {
     () => normalizeEntityResponse(storeQuery.data),
     [storeQuery.data],
   );
-  const activeStoreLogo = resolveAssetUrl(activeStore?.logoUrl);
-  const brandHref = activeStoreSlug ? `/market/${activeStoreSlug}` : "/";
-  const brandEyebrow = "";
+  const ownerStoreQuery = useOwnerStore({
+    enabled: isOwnerDashboardRoute && isPlatformAuthenticated && isOwnerRole(role),
+    staleTime: 60000,
+  });
+  const ownerStore = ownerStoreQuery.ownerStore;
+  const isScopedOwnerDashboard =
+    isOwnerDashboardRoute && isPlatformAuthenticated && isOwnerRole(role);
+  const currentBrandStore = isScopedOwnerDashboard ? ownerStore : activeStore;
+  const activeStoreLogo = resolveAssetUrl(currentBrandStore?.logoUrl);
+  const brandHref = isScopedOwnerDashboard
+    ? "/owner"
+    : activeStoreSlug
+      ? `/market/${activeStoreSlug}`
+      : "/";
+  const brandEyebrow = isScopedOwnerDashboard ? "لوحة المتجر" : "";
   const brandName = activeStore?.name || "السوق";
+  const resolvedBrandName =
+    currentBrandStore?.name || (isScopedOwnerDashboard ? "متجرك" : brandName);
   const navItems = useMemo(
-    () => buildNavItems(activeStoreSlug),
-    [activeStoreSlug],
+    () => (isScopedOwnerDashboard ? [] : buildNavItems(activeStoreSlug)),
+    [activeStoreSlug, isScopedOwnerDashboard],
   );
   const loginPath = activeStoreSlug
     ? `/market/${activeStoreSlug}/login`
@@ -232,13 +254,15 @@ export default function Navbar() {
     isStoreCustomer &&
     hasScopedStorefrontSession;
   const canAccessStoreCart = Boolean(activeStoreSlug);
-  const isPlatformAuthenticated = false;
 
   const logoutMutation = useLogout({
     onSettled: () => {
-      navigate(activeStoreSlug ? `/market/${activeStoreSlug}` : "/market", {
-        replace: true,
-      });
+      const nextPath = isScopedOwnerDashboard
+        ? "/auth/login"
+        : activeStoreSlug
+          ? `/market/${activeStoreSlug}`
+          : "/market";
+      navigate(nextPath, { replace: true });
     },
   });
 
@@ -277,7 +301,7 @@ export default function Navbar() {
     "الزبون";
   const customerEmail = storeCustomer?.email || "";
   const customerStoreLabel =
-    activeStore?.name || storeCustomerAuthState?.storeName || "";
+    currentBrandStore?.name || storeCustomerAuthState?.storeName || "";
   const customerInitials = getCustomerInitials(storeCustomer);
 
   const closeProfileMenu = () => setProfileAnchorEl(null);
@@ -293,7 +317,7 @@ export default function Navbar() {
       return (
         <img
           src={activeStoreLogo}
-          alt={`${brandName} logo`}
+          alt={`${resolvedBrandName} logo`}
           className={[
             "store-navbar__brand-logo",
             drawer ? "store-navbar__brand-logo--drawer" : "",
@@ -610,9 +634,27 @@ export default function Navbar() {
     </>
   );
 
+  const renderOwnerDashboardButtons = (drawer = false) => (
+    <AppButton
+      variant={drawer ? "outlined" : "text"}
+      appearance={drawer ? "secondary" : "ghost"}
+      startIcon={<LogoutRoundedIcon fontSize="small" />}
+      onClick={handleLogout}
+      loading={logoutMutation.isPending}
+      loadingLabel="جاري تسجيل الخروج..."
+      fullWidth={drawer}
+    >
+      تسجيل الخروج
+    </AppButton>
+  );
+
   const renderDesktopActions = () => {
     if (isStoreCustomerSignedIn) {
       return renderStoreCustomerProfileMenu();
+    }
+
+    if (isScopedOwnerDashboard) {
+      return renderOwnerDashboardButtons();
     }
 
     if (isPlatformAuthenticated) {
@@ -638,6 +680,15 @@ export default function Navbar() {
           {contactButton}
           {renderStoreCustomerDrawerPanel()}
         </Stack>
+      );
+    }
+
+    if (isScopedOwnerDashboard) {
+      return (
+        <>
+          {contactButton}
+          {renderOwnerDashboardButtons(true)}
+        </>
       );
     }
 
@@ -671,12 +722,12 @@ export default function Navbar() {
               </Typography>
             ) : null}
             <Typography component="span" className="store-navbar__brand-name">
-              {brandName}
+              {resolvedBrandName}
             </Typography>
           </Box>
         </Box>
 
-        {!isMobile ? (
+        {!isMobile && navItems.length ? (
           <Box
             component="nav"
             className="store-navbar__nav"
@@ -729,7 +780,7 @@ export default function Navbar() {
           <Box className="store-navbar__drawer-brand">
             {renderBrandVisual(true)}
             <Box>
-              <Typography variant="subtitle2">{brandName}</Typography>
+              <Typography variant="subtitle2">{resolvedBrandName}</Typography>
             </Box>
           </Box>
 
@@ -745,7 +796,7 @@ export default function Navbar() {
           </Box>
         </Box>
 
-        <Box className="store-navbar__drawer-section">
+        {navItems.length ? <Box className="store-navbar__drawer-section">
           <Typography variant="overline" className="storefront-eyebrow">
             التنقل
           </Typography>
@@ -756,7 +807,7 @@ export default function Navbar() {
               onNavigate={() => setDrawerOpen(false)}
             />
           </Box>
-        </Box>
+        </Box> : null}
 
         <Box className="store-navbar__drawer-section">
           <Typography variant="overline" className="storefront-eyebrow">

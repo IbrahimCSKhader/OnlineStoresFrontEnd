@@ -1,35 +1,18 @@
-﻿import { normalizeEntityResponse, normalizeListResponse } from "./collections.js";
+import { normalizeEntityResponse, normalizeListResponse } from "./collections.js";
+import {
+  getProductComparePrice,
+  getProductDisplayPrice,
+  getProductImage,
+  normalizeProductDto,
+} from "./products.js";
 
-export function getProductDisplayPrice(product) {
-  return Number(product?.finalPrice ?? product?.price ?? product?.originalPrice ?? 0);
-}
-
-export function getProductComparePrice(product) {
-  const compareAtPrice = Number(product?.compareAtPrice ?? 0);
-
-  if (Number.isFinite(compareAtPrice) && compareAtPrice > 0) {
-    return compareAtPrice;
-  }
-
-  const finalPrice = Number(product?.finalPrice);
-  const originalPrice = Number(product?.originalPrice ?? product?.price ?? 0);
-
-  if (Number.isFinite(finalPrice) && Number.isFinite(originalPrice) && originalPrice > finalPrice) {
-    return originalPrice;
-  }
-
-  return 0;
-}
-
-export function getProductImage(product) {
-  return product?.thumbnailUrl || product?.imageUrl || product?.images?.[0]?.url || "";
-}
+export { getProductComparePrice, getProductDisplayPrice, getProductImage };
 
 export function buildCategorySummary(products, categories) {
   return categories.map((category) => {
     const count = products.filter(
       (product) =>
-        product.categoryId === category.id ||
+        String(product.categoryId || "") === String(category.id || "") ||
         String(product.categoryName || "").trim() === String(category.name || "").trim(),
     ).length;
 
@@ -90,7 +73,7 @@ export function normalizeCartResponse(data) {
   );
 
   const normalizedItems = items.map((item) => {
-    const product = item.product || {};
+    const product = normalizeProductDto(item.product || {});
     const variant = item.variant || {};
 
     return {
@@ -106,7 +89,14 @@ export function normalizeCartResponse(data) {
         product.images?.[0]?.url,
       ),
       quantity: firstNumber(item.quantity, item.qty, 1),
-      unitPrice: firstNumber(item.unitPrice, item.price, item.productPrice, product.finalPrice, product.price),
+      unitPrice: firstNumber(
+        item.unitPrice,
+        item.price,
+        item.productPrice,
+        product.finalPrice,
+        product.originalPrice,
+        product.price,
+      ),
       totalPrice: firstNumber(item.totalPrice, item.lineTotal, item.subtotal, item.totalAmount),
       variantId: firstString(item.variantId, variant.id),
       variantName: firstString(item.variantName, variant.name),

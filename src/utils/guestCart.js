@@ -1,5 +1,9 @@
 import { getStorageJson, removeStorageItem, setStorageJson, storageKeys } from "./storage.js";
-import { getProductDisplayPrice, getProductImage } from "./storefront.js";
+import {
+  getProductDisplayPrice,
+  getProductImage,
+  isProductInStock,
+} from "./products.js";
 
 function normalizeStoreId(storeId) {
   return storeId ? String(storeId) : "";
@@ -89,7 +93,10 @@ function resolveProductSnapshot(snapshot = {}, fallback = {}) {
       source.availableStock,
       toNumber(
         source.stockQuantity,
-        toNumber(source.variant?.stockQuantity, toNumber(backup.availableStock)),
+        toNumber(
+          source.variant?.stockQuantity,
+          toNumber(backup.availableStock, isProductInStock(source) ? 1 : 0),
+        ),
       ),
     ),
   };
@@ -214,6 +221,9 @@ export function buildProductSnapshot(product, options = {}) {
     imageUrl: getProductImage(product),
     unitPrice: toNumber(unitPrice),
     variantName: variant?.name || "",
-    availableStock: toNumber(variant?.stockQuantity, toNumber(product?.stockQuantity)),
+    availableStock: toNumber(
+      variant?.stockQuantity,
+      toNumber(product?.stockQuantity, isProductInStock(product, variant) ? 1 : 0),
+    ),
   };
 }

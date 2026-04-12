@@ -13,28 +13,40 @@ import {
   getProductComparePrice,
   getProductDisplayPrice,
   getProductImage,
-} from "../../utils/storefront.js";
+  getProductOriginalPrice,
+  isProductInStock,
+  normalizeProductDto,
+} from "../../utils/products.js";
 import "./ProductCard.css";
 
-function ProductCard({
-  product,
-  storeSlug,
-  onAddToCart,
-  adding,
-}) {
-  const image = resolveAssetUrl(getProductImage(product));
-  const price = getProductDisplayPrice(product);
-  const comparePrice = getProductComparePrice(product);
+function ProductCard({ product, storeSlug, onAddToCart, adding }) {
+  const normalizedProduct = normalizeProductDto(product);
+  const image = resolveAssetUrl(getProductImage(normalizedProduct));
+  const price = getProductDisplayPrice(normalizedProduct);
+  const comparePrice = getProductComparePrice(normalizedProduct);
+  const originalPrice = getProductOriginalPrice(normalizedProduct);
   const hasComparePrice = comparePrice > price;
-  const resolvedStoreSlug = storeSlug || product.storeSlug;
+  const hasOriginalPrice = originalPrice > price && originalPrice !== comparePrice;
+  const isAvailable = isProductInStock(normalizedProduct);
+  const resolvedStoreSlug = storeSlug || normalizedProduct.storeSlug;
   const detailPath =
-    resolvedStoreSlug && product.id
-      ? `/market/${resolvedStoreSlug}/product/${product.id}`
+    resolvedStoreSlug && normalizedProduct.id
+      ? `/market/${resolvedStoreSlug}/product/${normalizedProduct.id}`
       : "";
-  const categoryLabel = product.categoryName || product.sectionName || "";
-  const stockQuantity = Number(product.stockQuantity ?? 0);
-  const availabilityLabel =
-    stockQuantity > 0 ? `متوفر ${stockQuantity}` : "نفد مؤقتاً";
+  const categoryLabel =
+    normalizedProduct.categoryName || normalizedProduct.sectionName || "";
+  const stockQuantity = Number(normalizedProduct.stockQuantity ?? 0);
+  const availabilityLabel = isAvailable
+    ? normalizedProduct.trackInventory && stockQuantity > 0
+      ? `متوفر ${stockQuantity}`
+      : "متوفر الآن"
+    : "نفد مؤقتاً";
+  const discountBadgeLabel =
+    normalizedProduct.hasDiscount && normalizedProduct.discountPercentage > 0
+      ? `%${Math.round(normalizedProduct.discountPercentage)} خصم`
+      : normalizedProduct.hasDiscount
+        ? "عرض"
+        : "";
 
   return (
     <SurfaceCard interactive className="product-card">
@@ -47,7 +59,7 @@ function ProductCard({
           {image ? (
             <img
               src={image}
-              alt={product.name}
+              alt={normalizedProduct.name}
               className="product-card__image"
               loading="lazy"
               decoding="async"
@@ -61,13 +73,19 @@ function ProductCard({
           )}
 
           <Box className="product-card__badges">
-            {hasComparePrice ? (
+            {discountBadgeLabel ? (
               <span className="product-card__badge product-card__badge--sale">
-                عرض
+                {discountBadgeLabel}
               </span>
             ) : null}
-            {product.isFeatured ? (
+            {normalizedProduct.isWholesalePriceApplied ? (
+              <span className="product-card__badge">سعر عميل</span>
+            ) : null}
+            {normalizedProduct.isFeatured ? (
               <span className="product-card__badge">مميز</span>
+            ) : null}
+            {!isAvailable ? (
+              <span className="product-card__badge">نفد</span>
             ) : null}
           </Box>
         </Box>
@@ -84,7 +102,7 @@ function ProductCard({
             ) : null}
 
             <Typography variant="h6" className="product-card__title">
-              {product.name}
+              {normalizedProduct.name}
             </Typography>
 
             <Box className="product-card__price-row">
@@ -98,13 +116,23 @@ function ProductCard({
               ) : null}
             </Box>
 
+            {hasOriginalPrice ? (
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                className="product-card__price-note"
+              >
+                قبل خصم العميل: {formatCurrency(originalPrice)}
+              </Typography>
+            ) : null}
+
             <Typography
               variant="body2"
               color="text.secondary"
               className="product-card__description"
             >
-              {product.shortDescription ||
-                product.description ||
+              {normalizedProduct.shortDescription ||
+                normalizedProduct.description ||
                 "قطعة واضحة التفاصيل مع صورة تركز على المنتج نفسه."}
             </Typography>
 
@@ -138,8 +166,8 @@ function ProductCard({
             size="small"
             loading={adding}
             loadingLabel="..."
-            onClick={() => onAddToCart(product)}
-            disabled={!product.id || stockQuantity <= 0}
+            onClick={() => onAddToCart(normalizedProduct)}
+            disabled={!normalizedProduct.id || !isAvailable}
             startIcon={<LocalMallRoundedIcon fontSize="small" />}
             className={
               detailPath

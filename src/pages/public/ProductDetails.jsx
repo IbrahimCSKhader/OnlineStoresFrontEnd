@@ -21,19 +21,22 @@ import ProductGrid from "../../components/product/ProductGrid.jsx";
 import ProductVariantPicker from "../../components/product/ProductVariantPicker.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useProductDetails from "../../hooks/products/useProductDetails.js";
-import useProducts from "../../hooks/products/useProducts.js";
+import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
+import useProductsBySection from "../../hooks/products/useProductsBySection.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
-import {
-  normalizeEntityResponse,
-  normalizeListResponse,
-} from "../../utils/collections.js";
+import { normalizeEntityResponse } from "../../utils/collections.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import { buildProductSnapshot } from "../../utils/guestCart.js";
 import {
   getProductComparePrice,
   getProductDisplayPrice,
-} from "../../utils/storefront.js";
+  getProductOriginalPrice,
+  isProductActive,
+  isProductInStock,
+  normalizeProductDto,
+  normalizeProductList,
+} from "../../utils/products.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./ProductDetails.css";
 
@@ -76,14 +79,18 @@ export default function ProductDetails() {
     [storeQuery.data],
   );
   const product = useMemo(
-    () => normalizeEntityResponse(productQuery.data),
+    () => normalizeProductDto(productQuery.data),
     [productQuery.data],
   );
+  const isPublicProduct = isProductActive(product);
 
   useStoreBranding(store);
 
-  const relatedProductsQuery = useProducts(store?.id, undefined, {
-    enabled: Boolean(store?.id),
+  const relatedByCategoryQuery = useProductsByCategory(product?.categoryId, {
+    enabled: Boolean(product?.categoryId) && isPublicProduct,
+  });
+  const relatedBySectionQuery = useProductsBySection(product?.sectionId, {
+    enabled: Boolean(product?.sectionId) && !product?.categoryId && isPublicProduct,
   });
 
   const effectiveStoreId = store?.id || product?.storeId;
@@ -101,36 +108,57 @@ export default function ProductDetails() {
       ? uiState.selectedVariantId
       : variants[0]?.id || "";
   const selectedVariant =
-    variants.find((item) => item.id === selectedVariantId) || null;
+    variants.find((item) => String(item.id) === String(selectedVariantId)) || null;
+  const isVariantPriceApplied =
+    selectedVariant?.priceOverride !== undefined &&
+    selectedVariant?.priceOverride !== null;
   const productDisplayPrice = getProductDisplayPrice(product);
-  const displayPrice = selectedVariant?.priceOverride ?? productDisplayPrice;
-  const comparePrice =
-    selectedVariant?.priceOverride === undefined ||
-    selectedVariant?.priceOverride === null
-      ? getProductComparePrice(product)
-      : 0;
+  const displayPrice = isVariantPriceApplied
+    ? Number(selectedVariant.priceOverride)
+    : productDisplayPrice;
+  const comparePrice = isVariantPriceApplied ? 0 : getProductComparePrice(product);
+  const originalPrice = isVariantPriceApplied ? 0 : getProductOriginalPrice(product);
   const hasComparePrice = comparePrice > Number(displayPrice);
+  const hasOriginalPrice =
+    originalPrice > Number(displayPrice) && originalPrice !== comparePrice;
   const attributes = product?.attributeValues || [];
+  const isAvailable = isProductInStock(product, selectedVariant);
+  const availableStock = selectedVariant
+    ? Number(selectedVariant.stockQuantity ?? 0)
+    : Number(product.stockQuantity ?? 0);
+  const quantityMax = product.trackInventory
+    ? selectedVariant?.stockQuantity ?? product.stockQuantity
+    : undefined;
   const storeMismatch =
     Boolean(store?.id) &&
     Boolean(product?.storeId) &&
-    store.id !== product.storeId;
+    String(store.id) !== String(product.storeId);
 
+  const relatedSource = product?.categoryId
+    ? relatedByCategoryQuery.data
+    : relatedBySectionQuery.data;
   const relatedProducts = useMemo(
     () =>
-      normalizeListResponse(relatedProductsQuery.data)
-        .filter((item) => item.id !== product?.id)
+      normalizeProductList(relatedSource)
+        .filter(
+          (item) => isProductActive(item) && String(item.id) !== String(product?.id),
+        )
         .slice(0, 4),
-    [product?.id, relatedProductsQuery.data],
+    [product?.id, relatedSource],
   );
+  const relatedProductsLoading = product?.categoryId
+    ? relatedByCategoryQuery.isLoading
+    : relatedBySectionQuery.isLoading;
 
   useEffect(() => {
-    if (!productId) return;
+    if (!productId || !isPublicProduct || storeMismatch) {
+      return;
+    }
 
     productApi.visitProduct(productId).catch(() => {
       // Ignore visit-count failures on the public page.
     });
-  }, [productId]);
+  }, [isPublicProduct, productId, storeMismatch]);
 
   const updateUiState = (updates) => {
     if (!product?.id) return;
@@ -155,7 +183,7 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (!effectiveStoreId || !product?.id) return;
+    if (!effectiveStoreId || !product?.id || !isAvailable) return;
 
     addToCartUi.markBusy("main");
     addToCartMutation.mutate({
@@ -185,12 +213,12 @@ export default function ProductDetails() {
   if (storeQuery.isLoading || productQuery.isLoading) {
     return (
       <Box className="storefront-page page-product-details">
-        <EmptyState title="جاري التحميل..." />
+        <EmptyState title="جارٍ التحميل..." />
       </Box>
     );
   }
 
-  if (storeQuery.error || productQuery.error || !store || !product || storeMismatch) {
+  if (storeQuery.error || productQuery.error || !store || !product || storeMismatch || !isPublicProduct) {
     return (
       <Box className="storefront-page page-product-details">
         <EmptyState
@@ -293,9 +321,7 @@ export default function ProductDetails() {
                   color="text.secondary"
                   className="page-product-details__lead"
                 >
-                  {product.shortDescription ||
-                    product.description ||
-                    ""}
+                  {product.shortDescription || product.description || ""}
                 </Typography>
               </Box>
 
@@ -311,6 +337,20 @@ export default function ProductDetails() {
                   />
                 ) : null}
                 {product.sectionName ? <Chip label={product.sectionName} variant="outlined" /> : null}
+                {product.hasDiscount ? (
+                  <Chip
+                    label={
+                      product.discountPercentage > 0
+                        ? `خصم ${Math.round(product.discountPercentage)}%`
+                        : "عرض متاح"
+                    }
+                    color="warning"
+                    variant="outlined"
+                  />
+                ) : null}
+                {product.isWholesalePriceApplied ? (
+                  <Chip label="تم تطبيق سعر العميل" color="success" variant="outlined" />
+                ) : null}
               </Stack>
 
               <Box className="page-product-details__price-wrap">
@@ -328,10 +368,27 @@ export default function ProductDetails() {
                 ) : null}
               </Box>
 
+              {hasOriginalPrice ? (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  className="page-product-details__price-note"
+                >
+                  السعر قبل خصم العميل: {formatCurrency(originalPrice)}
+                </Typography>
+              ) : null}
+
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 <Chip
                   icon={<Inventory2RoundedIcon fontSize="small" />}
-                  label={`المتوفر: ${selectedVariant?.stockQuantity ?? product.stockQuantity ?? 0}`}
+                  label={
+                    isAvailable
+                      ? product.trackInventory && availableStock > 0
+                        ? `المتوفر: ${availableStock}`
+                        : "متوفر الآن"
+                      : "غير متوفر حالياً"
+                  }
+                  color={isAvailable ? "default" : "warning"}
                   variant="outlined"
                 />
                 <Chip
@@ -346,7 +403,7 @@ export default function ProductDetails() {
               <ProductVariantPicker
                 variants={variants}
                 selectedVariantId={selectedVariantId}
-                onChange={(variantId) => updateUiState({ selectedVariantId: variantId })}
+                onChange={(variantId) => updateUiState({ selectedVariantId: variantId, quantity: 1 })}
               />
 
               <Box className="page-product-details__purchase">
@@ -357,7 +414,7 @@ export default function ProductDetails() {
                 <QuantityStepper
                   value={quantity}
                   min={1}
-                  max={selectedVariant?.stockQuantity ?? product.stockQuantity}
+                  max={quantityMax}
                   onChange={(nextValue) => updateUiState({ quantity: nextValue })}
                 />
 
@@ -365,10 +422,11 @@ export default function ProductDetails() {
                   <AppButton
                     variant="contained"
                     loading={addToCartUi.activeKey === "main"}
-                    loadingLabel="جاري الإضافة"
+                    loadingLabel="جارٍ الإضافة"
                     onClick={handleAddToCart}
                     startIcon={<LocalMallRoundedIcon fontSize="small" />}
                     sx={{ minWidth: { xs: "100%", sm: 220 } }}
+                    disabled={!isAvailable}
                   >
                     أضف إلى السلة
                   </AppButton>
@@ -376,6 +434,7 @@ export default function ProductDetails() {
                     component={RouterLink}
                     to={`/market/${slug}/checkout`}
                     variant="outlined"
+                    disabled={!isAvailable}
                   >
                     اذهب إلى الدفع
                   </AppButton>
@@ -434,7 +493,9 @@ export default function ProductDetails() {
           </Box>
         </Box>
 
-        {relatedProducts.length ? (
+        {relatedProductsLoading ? (
+          <EmptyState title="جارٍ تحميل المنتجات المشابهة..." />
+        ) : relatedProducts.length ? (
           <ProductGrid
             products={relatedProducts}
             storeSlug={store.slug}
@@ -442,9 +503,7 @@ export default function ProductDetails() {
             addingProductId={relatedAddToCartUi.activeKey}
           />
         ) : (
-          <EmptyState
-            title="لا توجد منتجات"
-          />
+          <EmptyState title="لا توجد منتجات مشابهة" />
         )}
       </Box>
     </Box>

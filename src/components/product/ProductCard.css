@@ -122,6 +122,12 @@
   text-decoration: line-through;
 }
 
+.product-card__price-note {
+  display: block;
+  margin-top: -2px;
+  font-size: 0.68rem !important;
+}
+
 .product-card__description {
   display: -webkit-box;
   -webkit-box-orient: vertical;

@@ -51,6 +51,10 @@
   flex-wrap: wrap;
 }
 
+.page-product-details__price-note {
+  margin-top: -6px !important;
+}
+
 .page-product-details__compare {
   margin-bottom: 8px !important;
   text-decoration: line-through;
@@ -285,6 +289,14 @@
   border-color: var(--border-strong);
   box-shadow: var(--shadow-soft);
   background: color-mix(in srgb, var(--primary) 8%, var(--surface-muted));
+}
+
+.product-variants__item--disabled,
+.product-variants__item--disabled:hover {
+  transform: none;
+  cursor: not-allowed;
+  opacity: 0.62;
+  box-shadow: none;
 }
 
 @media (max-width: 1024px) {

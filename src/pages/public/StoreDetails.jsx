@@ -15,8 +15,9 @@ import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import StoreContactAccounts from "../../components/common/StoreContactAccounts.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
-import useProducts from "../../hooks/products/useProducts.js";
 import useCategories from "../../hooks/categories/useCategories.js";
+import useFeaturedProducts from "../../hooks/products/useFeaturedProducts.js";
+import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import { resolveAssetUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
@@ -25,6 +26,10 @@ import {
   normalizeListResponse,
 } from "../../utils/collections.js";
 import { buildProductSnapshot } from "../../utils/guestCart.js";
+import {
+  isProductActive,
+  normalizeProductList,
+} from "../../utils/products.js";
 import { buildCategorySummary } from "../../utils/storefront.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./StoreDetails.css";
@@ -41,11 +46,22 @@ export default function StoreDetails() {
 
   useStoreBranding(store);
 
-  const productsQuery = useProducts(store?.id, undefined, {
-    enabled: Boolean(store?.id),
-  });
   const categoriesQuery = useCategories(store?.id, {
     enabled: Boolean(store?.id),
+  });
+  const featuredProductsQuery = useFeaturedProducts(store?.id, {
+    enabled: Boolean(store?.id),
+  });
+  const categories = useMemo(
+    () =>
+      normalizeListResponse(categoriesQuery.data).filter(
+        (category) => category?.id,
+      ),
+    [categoriesQuery.data],
+  );
+  const catalogProductsQuery = useStorefrontCatalogProducts(categories, {
+    enabled: Boolean(store?.id),
+    staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);
   const addToCartUi = useTransientBusyState();
@@ -53,7 +69,7 @@ export default function StoreDetails() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-details">
-        <EmptyState title="جاري تحميل المتجر..." />
+        <EmptyState title="جارٍ تحميل المتجر..." />
       </Box>
     );
   }
@@ -71,8 +87,14 @@ export default function StoreDetails() {
 
   const coverImage = resolveStoreCoverUrl(store);
   const logoImage = resolveAssetUrl(store.logoUrl);
-  const products = normalizeListResponse(productsQuery.data);
-  const categories = normalizeListResponse(categoriesQuery.data);
+  const products = catalogProductsQuery.data;
+  const featuredProducts = useMemo(
+    () =>
+      normalizeProductList(featuredProductsQuery.data).filter((product) =>
+        isProductActive(product),
+      ),
+    [featuredProductsQuery.data],
+  );
   const keyword = deferredSearchText.toLowerCase().trim();
   const filteredProducts = keyword
     ? products.filter((product) =>
@@ -87,21 +109,7 @@ export default function StoreDetails() {
       )
     : products;
 
-  const categorySummary = buildCategorySummary(products, categories).slice(
-    0,
-    8,
-  );
-  const featuredProducts = [...products]
-    .sort((left, right) => {
-      if (Boolean(left.isFeatured) !== Boolean(right.isFeatured)) {
-        return (
-          Number(Boolean(right.isFeatured)) - Number(Boolean(left.isFeatured))
-        );
-      }
-
-      return Number(right.visitCount ?? 0) - Number(left.visitCount ?? 0);
-    })
-    .slice(0, 6);
+  const categorySummary = buildCategorySummary(products, categories).slice(0, 8);
 
   const handleAddToCart = (product) => {
     if (!store?.id || !product?.id) return;
@@ -252,7 +260,9 @@ export default function StoreDetails() {
           </Box>
         </Box>
 
-        {categorySummary.length ? (
+        {categoriesQuery.isLoading && !categorySummary.length ? (
+          <EmptyState title="جارٍ تحميل التصنيفات..." />
+        ) : categorySummary.length ? (
           <Box className="storefront-cards-grid page-store-details__categories-grid">
             {categorySummary.map((category) => (
               <SurfaceCard
@@ -288,7 +298,9 @@ export default function StoreDetails() {
           </Box>
         </Box>
 
-        {featuredProducts.length ? (
+        {featuredProductsQuery.isLoading && !featuredProducts.length ? (
+          <EmptyState title="جارٍ تحميل المنتجات المختارة..." />
+        ) : featuredProducts.length ? (
           <ProductGrid
             products={featuredProducts}
             storeSlug={store.slug}
@@ -296,7 +308,7 @@ export default function StoreDetails() {
             addingProductId={addToCartUi.activeKey}
           />
         ) : (
-          <EmptyState title="لا توجد منتجات" />
+          <EmptyState title="لا توجد منتجات مختارة" />
         )}
       </Box>
 
@@ -320,8 +332,8 @@ export default function StoreDetails() {
         </Box>
 
         <Box className="page-store-details__catalog-body">
-          {productsQuery.isLoading ? (
-            <EmptyState title="جاري تحميل المنتجات..." />
+          {catalogProductsQuery.isLoading ? (
+            <EmptyState title="جارٍ تحميل المنتجات..." />
           ) : filteredProducts.length ? (
             <ProductGrid
               products={filteredProducts}

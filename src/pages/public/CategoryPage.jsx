@@ -12,7 +12,8 @@ import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
-import useProducts from "../../hooks/products/useProducts.js";
+import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
+import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import {
@@ -20,6 +21,11 @@ import {
   normalizeListResponse,
 } from "../../utils/collections.js";
 import { buildProductSnapshot } from "../../utils/guestCart.js";
+import {
+  getProductDisplayPrice,
+  isProductInStock,
+  normalizeProductList,
+} from "../../utils/products.js";
 import { buildCategorySummary, sortProducts } from "../../utils/storefront.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./CategoryPage.css";
@@ -43,8 +49,19 @@ export default function CategoryPage() {
   const categoriesQuery = useCategories(store?.id, {
     enabled: Boolean(store?.id),
   });
-  const productsQuery = useProducts(store?.id, undefined, {
+  const categories = useMemo(
+    () =>
+      normalizeListResponse(categoriesQuery.data).filter(
+        (category) => category?.id,
+      ),
+    [categoriesQuery.data],
+  );
+  const productsQuery = useProductsByCategory(categoryId, {
+    enabled: Boolean(categoryId),
+  });
+  const catalogProductsQuery = useStorefrontCatalogProducts(categories, {
     enabled: Boolean(store?.id),
+    staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);
   const addToCartUi = useTransientBusyState();
@@ -52,7 +69,7 @@ export default function CategoryPage() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-category">
-        <EmptyState title="جاري تحميل الصفحة..." />
+        <EmptyState title="جارٍ تحميل الصفحة..." />
       </Box>
     );
   }
@@ -68,31 +85,20 @@ export default function CategoryPage() {
     );
   }
 
-  const categories = normalizeListResponse(categoriesQuery.data);
-  const products = normalizeListResponse(productsQuery.data);
   const activeCategory =
     categories.find((category) => String(category.id) === String(categoryId)) || null;
-
-  const availablePrices = products.map((product) =>
-    Number(product.finalPrice ?? product.price ?? 0),
-  );
+  const products = normalizeProductList(productsQuery.data);
+  const allStoreProducts = catalogProductsQuery.data;
+  const availablePrices = products.map((product) => getProductDisplayPrice(product));
   const maxPrice = Math.max(...availablePrices, 0);
   const minFilter = Number(priceInputs.min || 0);
   const maxFilter = Number(priceInputs.max || maxPrice || 0);
-
-  const scopedProducts = products.filter(
-    (product) =>
-      String(product.categoryId) === String(categoryId) ||
-      (!product.categoryId &&
-        String(product.categoryName || "").trim() === String(activeCategory?.name || "").trim()),
-  );
-
   const keyword = deferredSearchText.toLowerCase().trim();
   const filteredProducts = sortProducts(
-    scopedProducts.filter((product) => {
-      const price = Number(product.finalPrice ?? product.price ?? 0);
+    products.filter((product) => {
+      const price = getProductDisplayPrice(product);
 
-      if (onlyInStock && Number(product.stockQuantity ?? 0) <= 0) {
+      if (onlyInStock && !isProductInStock(product)) {
         return false;
       }
 
@@ -111,7 +117,7 @@ export default function CategoryPage() {
     sortValue,
   );
 
-  const categorySummary = buildCategorySummary(products, categories);
+  const categorySummary = buildCategorySummary(allStoreProducts, categories);
 
   const handleAddToCart = (product) => {
     if (!store?.id || !product?.id) return;
@@ -234,7 +240,9 @@ export default function CategoryPage() {
               </AppButton>
             </Box>
 
-            {filteredProducts.length ? (
+            {productsQuery.isLoading ? (
+              <EmptyState title="جارٍ تحميل المنتجات..." />
+            ) : filteredProducts.length ? (
               <ProductGrid
                 products={filteredProducts}
                 storeSlug={store.slug}

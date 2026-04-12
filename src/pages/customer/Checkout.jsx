@@ -23,6 +23,7 @@ import {
   logOrderCartFlow,
   serializeOrderCartError,
 } from "../../utils/orderCartDebug.js";
+import { normalizeOrderDetails } from "../../utils/orders.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
 import { buildWhatsAppLink } from "../../utils/whatsapp.js";
@@ -87,7 +88,80 @@ function findStoreWhatsAppNumber(store) {
   return "";
 }
 
-function buildWhatsAppOrderMessage({ store, cart, form }) {
+function buildWhatsAppOrderMessage({ store, cart, form, order }) {
+  const normalizedOrder = normalizeOrderDetails(order);
+  const normalizedItems = normalizedOrder.items.length
+    ? normalizedOrder.items
+    : cart.items.map((item, index) => ({
+        productName:
+          item.name ||
+          item.productName ||
+          item.raw?.productName ||
+          item.raw?.product?.name ||
+          `منتج #${index + 1}`,
+        variantName: item.variantName || "",
+        quantity: Number(item.quantity ?? 1) || 1,
+        unitPrice: Number(item.unitPrice ?? 0) || 0,
+        totalPrice:
+          Number(
+            item.totalPrice ??
+              ((Number(item.unitPrice ?? 0) || 0) * (Number(item.quantity ?? 1) || 1)),
+          ) || 0,
+      }));
+  const subtotal =
+    normalizedOrder.subtotal ||
+    cart.subtotal ||
+    normalizedItems.reduce((sum, item) => sum + item.totalPrice, 0);
+  const finalTotal =
+    normalizedOrder.totalAmount ||
+    normalizedOrder.finalTotal ||
+    cart.totalAmount ||
+    Math.max(subtotal, 0);
+  const discountAmount =
+    normalizedOrder.discount || Math.max(subtotal - finalTotal, 0);
+  const couponCode = String(
+    normalizedOrder.couponCode || form.couponCode || "",
+  ).trim();
+  const hasCouponCode = Boolean(couponCode);
+  const orderItems = normalizedItems.map((item, index) => {
+    const variantLabel = item.variantName ? ` (${item.variantName})` : "";
+
+    return [
+      `• ${index + 1}. ${item.productName}${variantLabel}`,
+      `  الكمية: ${item.quantity}`,
+      `  سعر الوحدة: ${formatCurrency(item.unitPrice)}`,
+      `  الإجمالي: ${formatCurrency(item.totalPrice)}`,
+    ].join("\n");
+  });
+  const pricingLines = hasCouponCode
+    ? [
+        `• السعر الأصلي: ${formatCurrency(subtotal)}`,
+        `• السعر بعد الكوبون: ${formatCurrency(finalTotal)}`,
+        `• قيمة الخصم: ${formatCurrency(discountAmount)}`,
+        `• كود الخصم: ${couponCode}`,
+      ]
+    : [`• الإجمالي النهائي: ${formatCurrency(finalTotal)}`];
+
+  return [
+    "طلب جديد",
+    `المتجر: ${store.name || "-"}`,
+    `رقم الطلب: ${normalizedOrder.orderNumber || normalizedOrder.id || "-"}`,
+    "",
+    "بيانات التوصيل:",
+    `• العنوان: ${normalizedOrder.deliveryAddress || form.deliveryAddress || "-"}`,
+    `• المدينة: ${normalizedOrder.deliveryCity || form.deliveryCity || "-"}`,
+    `• رقم الهاتف: ${normalizedOrder.deliveryPhone || form.deliveryPhone || "-"}`,
+    "",
+    "تفاصيل الطلب:",
+    ...orderItems,
+    "",
+    "الملخص:",
+    `• إجمالي العناصر: ${normalizedOrder.itemsCount || cart.itemCount}`,
+    ...pricingLines,
+    `• ملاحظات: ${normalizedOrder.customerNotes || form.customerNotes || "-"}`,
+  ].join("\n");
+
+  /*
   const orderItems = cart.items.map((item, index) => {
     const productName =
       item.name ||
@@ -123,6 +197,7 @@ function buildWhatsAppOrderMessage({ store, cart, form }) {
     `• كود الخصم: ${form.couponCode || "-"}`,
     `• ملاحظات: ${form.customerNotes || "-"}`,
   ].join("\n");
+  */
 }
 
 function openPendingWhatsAppWindow() {
@@ -365,7 +440,7 @@ export default function Checkout() {
       return;
     }
 
-    const whatsappUrl = buildWhatsAppLink(
+    let whatsappUrl = buildWhatsAppLink(
       waNumber,
       buildWhatsAppOrderMessage({ store, cart, form }),
     );
@@ -452,6 +527,41 @@ export default function Checkout() {
       actor,
       cart: getCartDebugSummary(cart),
       orderResponse,
+    });
+
+    const normalizedOrder = normalizeOrderDetails(orderResponse);
+    whatsappUrl = buildWhatsAppLink(
+      waNumber,
+      buildWhatsAppOrderMessage({
+        store,
+        order: normalizedOrder,
+        cart,
+        form,
+      }),
+    );
+
+    if (!whatsappUrl) {
+      closePendingWhatsAppWindow(pendingWhatsAppWindow);
+      handleValidationFailure(
+        "failed-to-build-whatsapp-url",
+        `تعذر تجهيز رابط واتساب لهذا الرقم: ${rawWhatsAppNumber}`,
+        {
+          rawWhatsAppNumber,
+          normalizedWhatsAppNumber: waNumber,
+          orderId: normalizedOrder.id,
+        },
+      );
+      return;
+    }
+
+    logOrderCartFlow("Checkout WhatsApp Rebuilt After Order", {
+      status: "ready",
+      source: "customer-checkout-after-order",
+      actor,
+      rawWhatsAppNumber,
+      normalizedWhatsAppNumber: waNumber,
+      order: normalizedOrder,
+      whatsappUrl,
     });
 
     try {
