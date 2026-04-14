@@ -52,9 +52,14 @@ import {
   getPendingStoreGoogleAuth,
   setPendingStoreGoogleAuth,
 } from "../../utils/pendingStoreGoogleAuth.js";
+import {
+  clearPendingGoogleAuthContext,
+  setPendingGoogleAuthContext,
+} from "../../utils/pendingGoogleAuthContext.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
 import {
+  STORE_CUSTOMER_AUTH_MODE,
   assertStoreScopedAuthResult,
   buildStoreCustomerAuthState,
   getStoreCustomerRedirectPath,
@@ -78,7 +83,6 @@ const FLOW = {
   RESET_PASSWORD: "reset-password",
   GOOGLE_STORE_SETUP: "google-store-setup",
 };
-const GOOGLE_REDIRECT_FALLBACK_KEY = "googleAuthRedirectFallback";
 
 function getErrorMessage(error) {
   return extractApiError(
@@ -387,16 +391,14 @@ export default function Login() {
         import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
       ).replace(/\/+$/, "");
       const googleParams = new URLSearchParams();
-      const fallbackRedirectPath = storeCustomerAuthState?.storeSlug
-        ? `/market/${storeCustomerAuthState.storeSlug}`
-        : "";
-
-      if (fallbackRedirectPath) {
-        window.sessionStorage.setItem(
-          GOOGLE_REDIRECT_FALLBACK_KEY,
-          fallbackRedirectPath,
-        );
-      }
+      clearPendingGoogleAuthContext();
+      setPendingGoogleAuthContext({
+        authMode: STORE_CUSTOMER_AUTH_MODE,
+        storeId: storeCustomerAuthState?.storeId || "",
+        storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug || "",
+        storeName: storeCustomerAuthState?.storeName || storeLabel,
+        redirectTo,
+      });
 
       if (storeCustomerAuthState?.storeSlug) {
         googleParams.set("storeSlug", storeCustomerAuthState.storeSlug);
@@ -404,8 +406,13 @@ export default function Login() {
         googleParams.set("storeId", storeCustomerAuthState.storeId);
       }
 
+      if (redirectTo) {
+        googleParams.set("redirectTo", redirectTo);
+      }
+
       window.location.href = `${apiBaseUrl}/api/auth/google?${googleParams.toString()}`;
     } catch {
+      clearPendingGoogleAuthContext();
       setLocalError("فشل الاتصال بخادم Google. حاول مرة أخرى.");
       setIsLoadingGoogle(false);
     }
@@ -752,6 +759,7 @@ export default function Login() {
       const authResult = resolveCurrentStoreAuthResult(data);
 
       clearPendingStoreGoogleAuth();
+      clearPendingGoogleAuthContext();
       setValue("password", "");
       setValue("newPassword", "");
       setValue("confirmNewPassword", "");

@@ -168,6 +168,37 @@ export function resolveStoreScopedAuthResult(data = {}, requestedStoreId = "") {
   };
 }
 
+export function applyRequestedStoreScopeFallback(result, requestedStoreId = "") {
+  const normalizedRequestedStoreId = normalizeValue(requestedStoreId);
+  const resolvedStoreCustomerId = normalizeValue(
+    result?.responseStoreCustomerId ||
+      result?.user?.storeCustomerId ||
+      result?.user?.customerStoreId ||
+      result?.user?.CustomerStoreId,
+  );
+
+  if (
+    !normalizedRequestedStoreId ||
+    !result?.isCustomer ||
+    result?.responseStoreId ||
+    !resolvedStoreCustomerId
+  ) {
+    return result;
+  }
+
+  return {
+    ...result,
+    responseStoreId: normalizedRequestedStoreId,
+    belongsToRequestedStore: true,
+    user: result?.user
+      ? {
+          ...result.user,
+          storeId: normalizedRequestedStoreId,
+        }
+      : result?.user,
+  };
+}
+
 function buildStoreScopedAuthError(code) {
   const messages = {
     STORE_SCOPE_UNRESOLVED:

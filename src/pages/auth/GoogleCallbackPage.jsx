@@ -4,13 +4,25 @@ import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import useMergeGuestCart from "../../hooks/cart/useMergeGuestCart.js";
 import useAuthStore from "../../store/authStore.js";
+import {
+  logAuthFlow,
+  serializeAuthFlowError,
+  serializeAuthFlowUser,
+} from "../../utils/authFlowDebug.js";
 import { extractRole, extractUser } from "../../utils/authSession.js";
+import {
+  clearPendingGoogleAuthContext,
+  getPendingGoogleAuthContext,
+  isStoreScopedPendingGoogleAuthContext,
+} from "../../utils/pendingGoogleAuthContext.js";
 import {
   clearPendingStoreGoogleAuth,
   setPendingStoreGoogleAuth,
 } from "../../utils/pendingStoreGoogleAuth.js";
 import {
+  applyRequestedStoreScopeFallback,
   buildStoreCustomerAuthState,
   resolveStoreScopedAuthResult,
 } from "../../utils/storeCustomerAuth.js";
@@ -32,7 +44,6 @@ import {
 
 const DEFAULT_REDIRECT_PATH = "/";
 const GOOGLE_FAILURE_PATH = "/auth/google/failure";
-const GOOGLE_REDIRECT_FALLBACK_KEY = "googleAuthRedirectFallback";
 
 function readHashParams(hash) {
   if (!hash) return new URLSearchParams();
@@ -56,25 +67,21 @@ function isSafeInternalRedirect(path) {
   );
 }
 
-function readPendingGoogleRedirectPath() {
-  try {
-    return window.sessionStorage.getItem(GOOGLE_REDIRECT_FALLBACK_KEY) || "";
-  } catch {
-    return "";
-  }
+function replaceCallbackHistory(pathname) {
+  window.history.replaceState(window.history.state, document.title, pathname);
 }
 
-function clearPendingGoogleRedirectPath() {
-  try {
-    window.sessionStorage.removeItem(GOOGLE_REDIRECT_FALLBACK_KEY);
-  } catch {
-    // ignore storage access errors
-  }
+function resolveGoogleStoreAuthResult({ token, user, role, requestedStoreId }) {
+  return applyRequestedStoreScopeFallback(
+    resolveStoreScopedAuthResult({ token, user, role }, requestedStoreId),
+    requestedStoreId,
+  );
 }
 
 function GoogleCallbackPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const mergeGuestCart = useMergeGuestCart();
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
   const setStorefrontSession = useAuthStore(
     (state) => state.setStorefrontSession,
@@ -91,263 +98,323 @@ function GoogleCallbackPage() {
 
     hasHandledCallbackRef.current = true;
 
-    const searchParams = new URLSearchParams(location.search);
-    const hashParams = readHashParams(location.hash);
-    const pendingRedirect = readPendingGoogleRedirectPath();
-    const callbackStoreId =
-      hashParams.get("storeId") || searchParams.get("storeId") || "";
-    const callbackStoreSlug =
-      hashParams.get("storeSlug") || searchParams.get("storeSlug") || "";
-    const callbackStoreName =
-      hashParams.get("storeName") || searchParams.get("storeName") || "";
-    const callbackStoreRedirect = callbackStoreSlug
-      ? `/market/${callbackStoreSlug}`
-      : "";
-    const token = hashParams.get("token") || searchParams.get("token") || "";
-    const error = hashParams.get("error") || searchParams.get("error");
-    const redirectCandidate =
-      hashParams.get("redirectTo") ||
-      hashParams.get("redirect") ||
-      hashParams.get("returnUrl") ||
-      searchParams.get("redirectTo") ||
-      searchParams.get("redirect") ||
-      searchParams.get("returnUrl") ||
-      callbackStoreRedirect ||
-      pendingRedirect ||
-      location.state?.redirectTo ||
-      "";
-    const redirectPath = isSafeInternalRedirect(redirectCandidate)
-      ? redirectCandidate
-      : DEFAULT_REDIRECT_PATH;
-    const hasStoreGoogleContext = Boolean(callbackStoreId || callbackStoreSlug);
-
-    if (error) {
-      clearPendingStoreGoogleAuth();
-      clearPendingGoogleRedirectPath();
-      navigate(`${GOOGLE_FAILURE_PATH}?message=${encodeURIComponent(error)}`, {
-        replace: true,
-      });
-      return;
-    }
-
-    if (!token) {
-      // In React StrictMode, callback effects may execute more than once.
-      // Rehydrate from persisted auth session to keep Zustand/UI in sync.
-      const currentAuthState = useAuthStore.getState();
-      const persistedPlatformSession = {
-        token:
-          currentAuthState?.platformSession?.token || getPlatformAuthToken(),
-        user:
-          currentAuthState?.platformSession?.user || getStoredPlatformUser(),
-        role:
-          currentAuthState?.platformSession?.role || getStoredPlatformRole(),
+    async function handleCallback() {
+      const clearPendingGoogleArtifacts = () => {
+        clearPendingStoreGoogleAuth();
+        clearPendingGoogleAuthContext();
       };
-      const persistedStorefrontSession = {
-        token:
-          currentAuthState?.storefrontSession?.token ||
-          getStorefrontAuthToken(),
-        user:
-          currentAuthState?.storefrontSession?.user ||
-          getStoredStorefrontUser(),
-        role:
-          currentAuthState?.storefrontSession?.role ||
-          getStoredStorefrontRole(),
+
+      const persistPlatformSession = ({ token, user, role }) => {
+        if (token) {
+          setPlatformAuthToken(token);
+        }
+
+        if (user) {
+          setStoredPlatformUser(user);
+        }
+
+        if (role) {
+          setStoredPlatformRole(role);
+        }
+
+        setPlatformSession({ token, user, role });
       };
-      const persistedSession = persistedPlatformSession.token
-        ? {
-            type: "platform",
-            ...persistedPlatformSession,
+
+      const persistStorefrontSession = ({ token, user, role }) => {
+        if (token) {
+          setStorefrontAuthToken(token);
+        }
+
+        if (user) {
+          setStoredStorefrontUser(user);
+        }
+
+        if (role) {
+          setStoredStorefrontRole(role);
+        }
+
+        setStorefrontSession({ token, user, role });
+      };
+
+      const searchParams = new URLSearchParams(location.search);
+      const hashParams = readHashParams(location.hash);
+      const pendingGoogleContext = getPendingGoogleAuthContext();
+      const callbackStoreId =
+        hashParams.get("storeId") || searchParams.get("storeId") || "";
+      const callbackStoreSlug =
+        hashParams.get("storeSlug") || searchParams.get("storeSlug") || "";
+      const callbackStoreName =
+        hashParams.get("storeName") || searchParams.get("storeName") || "";
+      const effectiveStoreId = callbackStoreId || pendingGoogleContext?.storeId || "";
+      const effectiveStoreSlug =
+        callbackStoreSlug || pendingGoogleContext?.storeSlug || "";
+      const effectiveStoreName =
+        callbackStoreName || pendingGoogleContext?.storeName || "";
+      const callbackStoreRedirect = effectiveStoreSlug
+        ? `/market/${effectiveStoreSlug}`
+        : "";
+      const token = hashParams.get("token") || searchParams.get("token") || "";
+      const error = hashParams.get("error") || searchParams.get("error");
+      const redirectCandidate =
+        hashParams.get("redirectTo") ||
+        hashParams.get("redirect") ||
+        hashParams.get("returnUrl") ||
+        searchParams.get("redirectTo") ||
+        searchParams.get("redirect") ||
+        searchParams.get("returnUrl") ||
+        pendingGoogleContext?.redirectTo ||
+        callbackStoreRedirect ||
+        location.state?.redirectTo ||
+        "";
+      const redirectPath = isSafeInternalRedirect(redirectCandidate)
+        ? redirectCandidate
+        : callbackStoreRedirect || DEFAULT_REDIRECT_PATH;
+      const hasStoreGoogleContext =
+        Boolean(callbackStoreId || callbackStoreSlug) ||
+        isStoreScopedPendingGoogleAuthContext(pendingGoogleContext);
+
+      if (error) {
+        logAuthFlow("Google callback returned error", {
+          error,
+          storeId: effectiveStoreId,
+          storeSlug: effectiveStoreSlug,
+        });
+        clearPendingGoogleArtifacts();
+        replaceCallbackHistory(location.pathname);
+        navigate(`${GOOGLE_FAILURE_PATH}?message=${encodeURIComponent(error)}`, {
+          replace: true,
+        });
+        return;
+      }
+
+      if (!token) {
+        const currentAuthState = useAuthStore.getState();
+        const persistedPlatformSession = {
+          token:
+            currentAuthState?.platformSession?.token || getPlatformAuthToken(),
+          user:
+            currentAuthState?.platformSession?.user || getStoredPlatformUser(),
+          role:
+            currentAuthState?.platformSession?.role || getStoredPlatformRole(),
+        };
+        const persistedStorefrontSession = {
+          token:
+            currentAuthState?.storefrontSession?.token ||
+            getStorefrontAuthToken(),
+          user:
+            currentAuthState?.storefrontSession?.user ||
+            getStoredStorefrontUser(),
+          role:
+            currentAuthState?.storefrontSession?.role ||
+            getStoredStorefrontRole(),
+        };
+        const persistedSession =
+          hasStoreGoogleContext && persistedStorefrontSession.token
+            ? {
+                type: "storefront",
+                ...persistedStorefrontSession,
+              }
+            : persistedPlatformSession.token
+              ? {
+                  type: "platform",
+                  ...persistedPlatformSession,
+                }
+              : persistedStorefrontSession.token
+                ? {
+                    type: "storefront",
+                    ...persistedStorefrontSession,
+                  }
+                : null;
+
+        if (persistedSession?.token) {
+          const persistedUser =
+            persistedSession.user || extractUser({}, persistedSession.token);
+          const persistedRole =
+            persistedSession.role ||
+            extractRole({}, persistedSession.token, persistedUser);
+
+          if (persistedSession.type === "platform") {
+            setPlatformSession({
+              token: persistedSession.token,
+              user: persistedUser,
+              role: persistedRole,
+            });
+          } else {
+            setStorefrontSession({
+              token: persistedSession.token,
+              user: persistedUser,
+              role: persistedRole,
+            });
           }
-        : persistedStorefrontSession.token
-          ? {
-              type: "storefront",
-              ...persistedStorefrontSession,
-            }
-          : null;
 
-      if (persistedSession?.token) {
-        const persistedUser =
-          persistedSession.user || extractUser({}, persistedSession.token);
-        const persistedRole =
-          persistedSession.role ||
-          extractRole({}, persistedSession.token, persistedUser);
-
-        if (persistedSession.type === "platform") {
-          setPlatformSession({
-            token: persistedSession.token,
-            user: persistedUser,
-            role: persistedRole,
-          });
-        } else {
-          setStorefrontSession({
-            token: persistedSession.token,
-            user: persistedUser,
-            role: persistedRole,
-          });
+          clearPendingGoogleArtifacts();
+          replaceCallbackHistory(location.pathname);
+          navigate(
+            hasStoreGoogleContext && persistedSession.type === "platform"
+              ? "/owner"
+              : redirectPath,
+            { replace: true },
+          );
+          return;
         }
 
-        clearPendingStoreGoogleAuth();
-        clearPendingGoogleRedirectPath();
-
-        window.history.replaceState(
-          window.history.state,
-          document.title,
-          location.pathname,
-        );
-        navigate(redirectPath, { replace: true });
+        clearPendingGoogleArtifacts();
+        replaceCallbackHistory(location.pathname);
+        navigate(`${GOOGLE_FAILURE_PATH}?message=missing_token`, {
+          replace: true,
+        });
         return;
       }
 
-      clearPendingStoreGoogleAuth();
-      clearPendingGoogleRedirectPath();
-      navigate(`${GOOGLE_FAILURE_PATH}?message=missing_token`, {
-        replace: true,
-      });
-      return;
-    }
+      const user = extractUser({}, token);
+      const role = extractRole({}, token, user);
 
-    const user = extractUser({}, token);
-    const role = extractRole({}, token, user);
-
-    if (hasStoreGoogleContext) {
-      const authResult = resolveStoreScopedAuthResult(
-        { token, user, role },
-        callbackStoreId || "",
-      );
-
-      if (authResult.isOwner) {
-        clearPendingStoreGoogleAuth();
-        setPlatformAuthToken(token);
-
-        if (authResult.user) {
-          setStoredPlatformUser(authResult.user);
-        }
-
-        if (authResult.role) {
-          setStoredPlatformRole(authResult.role);
-        }
-
-        setPlatformSession({
+      if (hasStoreGoogleContext) {
+        const authResult = resolveGoogleStoreAuthResult({
           token,
-          user: authResult.user,
-          role: authResult.role,
+          user,
+          role,
+          requestedStoreId: effectiveStoreId,
         });
 
-        clearPendingGoogleRedirectPath();
-
-        window.history.replaceState(
-          window.history.state,
-          document.title,
-          location.pathname,
-        );
-        navigate("/owner", { replace: true });
-        return;
-      }
-
-      if (authResult.isCustomer) {
-        clearPendingStoreGoogleAuth();
-        setStorefrontAuthToken(token);
-
-        if (authResult.user) {
-          setStoredStorefrontUser(authResult.user);
-        }
-
-        if (authResult.role) {
-          setStoredStorefrontRole(authResult.role);
-        }
-
-        setStorefrontSession({
-          token,
-          user: authResult.user,
+        logAuthFlow("Google callback classified store result", {
+          storeId: effectiveStoreId,
+          storeSlug: effectiveStoreSlug,
+          redirectTo: redirectPath,
+          responseStoreId: authResult.responseStoreId,
+          responseStoreCustomerId: authResult.responseStoreCustomerId,
+          isOwner: authResult.isOwner,
+          isCustomer: authResult.isCustomer,
+          belongsToRequestedStore: authResult.belongsToRequestedStore,
           role: authResult.role,
+          user: serializeAuthFlowUser(authResult.user),
         });
 
-        clearPendingGoogleRedirectPath();
+        if (authResult.isOwner) {
+          clearPendingGoogleArtifacts();
+          persistPlatformSession({
+            token,
+            user: authResult.user,
+            role: authResult.role,
+          });
+          replaceCallbackHistory(location.pathname);
+          navigate("/owner", { replace: true });
+          return;
+        }
 
-        window.history.replaceState(
-          window.history.state,
-          document.title,
-          location.pathname,
-        );
-        navigate(redirectPath, { replace: true });
+        if (authResult.isCustomer && authResult.belongsToRequestedStore) {
+          clearPendingGoogleArtifacts();
+          persistStorefrontSession({
+            token,
+            user: authResult.user,
+            role: authResult.role,
+          });
+          await mergeGuestCart();
+          replaceCallbackHistory(location.pathname);
+          navigate(redirectPath, { replace: true });
+          return;
+        }
+
+        if (authResult.isCustomer && effectiveStoreId) {
+          logAuthFlow("Google callback rejected mismatched store session", {
+            requestedStoreId: effectiveStoreId,
+            responseStoreId: authResult.responseStoreId,
+            role: authResult.role,
+            user: serializeAuthFlowUser(authResult.user),
+          });
+          clearPendingGoogleArtifacts();
+          replaceCallbackHistory(location.pathname);
+          navigate(`${GOOGLE_FAILURE_PATH}?message=store_scope_mismatch`, {
+            replace: true,
+          });
+          return;
+        }
+
+        const storeAuthState = buildStoreCustomerAuthState({
+          storeId: effectiveStoreId,
+          storeSlug: effectiveStoreSlug,
+          storeName: effectiveStoreName,
+          redirectTo: redirectPath,
+        });
+        const storeLoginPath = storeAuthState.storeSlug
+          ? `/market/${storeAuthState.storeSlug}/login`
+          : "/auth/login";
+
+        setPendingStoreGoogleAuth({
+          appUserToken: token,
+          email: user?.email || "",
+          storeId: storeAuthState.storeId,
+          storeSlug: storeAuthState.storeSlug,
+          storeName: storeAuthState.storeName,
+          redirectTo: storeAuthState.redirectTo,
+        });
+        clearPendingGoogleAuthContext();
+
+        logAuthFlow("Google callback requires store setup", {
+          storeId: storeAuthState.storeId,
+          storeSlug: storeAuthState.storeSlug,
+          redirectTo: storeAuthState.redirectTo,
+          email: user?.email || "",
+          role,
+          user: serializeAuthFlowUser(user),
+        });
+
+        replaceCallbackHistory(location.pathname);
+        navigate(storeLoginPath, {
+          replace: true,
+          state: {
+            ...storeAuthState,
+            googleStoreAuthPending: true,
+          },
+        });
         return;
       }
 
-      const storeAuthState = buildStoreCustomerAuthState({
-        storeId: callbackStoreId || "",
-        storeSlug: callbackStoreSlug,
-        storeName: callbackStoreName,
+      clearPendingGoogleArtifacts();
+
+      try {
+        persistPlatformSession({ token, user, role });
+      } catch {
+        clearPlatformAuthSession();
+        clearPlatformSession();
+        replaceCallbackHistory(location.pathname);
+        navigate(`${GOOGLE_FAILURE_PATH}?message=invalid_token`, {
+          replace: true,
+        });
+        return;
+      }
+
+      logAuthFlow("Google callback created platform session", {
         redirectTo: redirectPath,
+        role,
+        user: serializeAuthFlowUser(user),
       });
-      const storeLoginPath = storeAuthState.storeSlug
-        ? `/market/${storeAuthState.storeSlug}/login`
-        : "/auth/login";
 
-      setPendingStoreGoogleAuth({
-        appUserToken: token,
-        email: user?.email || "",
-        storeId: storeAuthState.storeId,
-        storeSlug: storeAuthState.storeSlug,
-        storeName: storeAuthState.storeName,
-        redirectTo: storeAuthState.redirectTo,
-      });
-      clearPendingGoogleRedirectPath();
-
-      window.history.replaceState(
-        window.history.state,
-        document.title,
-        location.pathname,
-      );
-      navigate(storeLoginPath, {
-        replace: true,
-        state: {
-          ...storeAuthState,
-          googleStoreAuthPending: true,
-        },
-      });
-      return;
+      replaceCallbackHistory(location.pathname);
+      navigate(redirectPath, { replace: true });
     }
 
-    clearPendingStoreGoogleAuth();
-    setPlatformAuthToken(token);
-
-    if (user) {
-      setStoredPlatformUser(user);
-    }
-
-    if (role) {
-      setStoredPlatformRole(role);
-    }
-
-    try {
-      setPlatformSession({ token, user, role });
-    } catch {
-      clearPlatformAuthSession();
-      clearPlatformSession();
-      clearPendingGoogleRedirectPath();
-      navigate(`${GOOGLE_FAILURE_PATH}?message=invalid_token`, {
+    void handleCallback().catch((error) => {
+      logAuthFlow("Google callback processing failed", {
+        error: serializeAuthFlowError(error),
+      });
+      clearPendingStoreGoogleAuth();
+      clearPendingGoogleAuthContext();
+      replaceCallbackHistory(location.pathname);
+      navigate(`${GOOGLE_FAILURE_PATH}?message=processing_failed`, {
         replace: true,
       });
-      return;
-    }
-
-    clearPendingGoogleRedirectPath();
-
-    window.history.replaceState(
-      window.history.state,
-      document.title,
-      location.pathname,
-    );
-    navigate(redirectPath, { replace: true });
+    });
   }, [
+    clearPlatformSession,
     location.hash,
     location.pathname,
     location.search,
     location.state,
+    mergeGuestCart,
     navigate,
     setPlatformSession,
     setStorefrontSession,
-    clearPlatformSession,
   ]);
 
   return (
@@ -363,7 +430,7 @@ function GoogleCallbackPage() {
       <Stack spacing={2} alignItems="center">
         <CircularProgress />
         <Typography variant="body1" color="text.secondary">
-          جارٍ إكمال تسجيل الدخول عبر Google...
+          ط¬ط§ط±ظچ ط¥ظƒظ…ط§ظ„ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ط¹ط¨ط± Google...
         </Typography>
       </Stack>
     </Box>
