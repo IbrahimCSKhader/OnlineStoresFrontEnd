@@ -35,6 +35,7 @@ import {
   buildStoreCustomerAuthState,
   resolveStoreScopedAuthResult,
 } from "../../utils/storeCustomerAuth.js";
+import { isOwnerRole, isStoreCustomerRole } from "../../utils/roles.js";
 import {
   getPlatformAuthToken,
   getStoredPlatformRole,
@@ -85,6 +86,54 @@ function resolveGoogleStoreAuthResult({ token, user, role, requestedStoreId }) {
     resolveStoreScopedAuthResult({ token, user, role }, requestedStoreId),
     requestedStoreId,
   );
+}
+
+function resolveGoogleCallbackSessionTarget({ token, user, role }) {
+  const storefrontIdentity =
+    extractStorefrontCustomer(user || {}, token) || extractStorefrontCustomer({}, token);
+  const normalizedAccountType =
+    user?.accountType || storefrontIdentity?.accountType || "";
+  const hasStoreCustomerRoleSignal =
+    isStoreCustomerRole(role) ||
+    isStoreCustomerRole(normalizedAccountType) ||
+    isStoreCustomerRole(storefrontIdentity?.accountType);
+  const hasStoreCustomerIdSignal = Boolean(storefrontIdentity?.storeCustomerId);
+  const hasStoreIdSignal = Boolean(storefrontIdentity?.storeId);
+  const hasOwnerRoleSignal =
+    isOwnerRole(role) ||
+    isOwnerRole(normalizedAccountType) ||
+    isOwnerRole(storefrontIdentity?.accountType);
+
+  if (hasStoreCustomerRoleSignal || hasStoreCustomerIdSignal) {
+    return {
+      sessionType: "storefront",
+      storefrontIdentity,
+      hasStoreCustomerRoleSignal,
+      hasStoreCustomerIdSignal,
+      hasStoreIdSignal,
+      hasOwnerRoleSignal,
+    };
+  }
+
+  if (hasOwnerRoleSignal) {
+    return {
+      sessionType: "platform",
+      storefrontIdentity,
+      hasStoreCustomerRoleSignal,
+      hasStoreCustomerIdSignal,
+      hasStoreIdSignal,
+      hasOwnerRoleSignal,
+    };
+  }
+
+  return {
+    sessionType: "",
+    storefrontIdentity,
+    hasStoreCustomerRoleSignal,
+    hasStoreCustomerIdSignal,
+    hasStoreIdSignal,
+    hasOwnerRoleSignal,
+  };
 }
 
 function pickSafeRedirect(candidate, fallback) {
@@ -444,11 +493,40 @@ function GoogleCallbackPage() {
         role,
         requestedStoreId: effectiveStoreId,
       });
+      const tokenSessionTarget = resolveGoogleCallbackSessionTarget({
+        token,
+        user,
+        role,
+      });
+      const resolvedStorefrontUser =
+        authResult.isCustomer && authResult.user
+          ? authResult.user
+          : tokenSessionTarget.storefrontIdentity || authResult.user || user;
+      const resolvedStorefrontRole =
+        authResult.role ||
+        role ||
+        resolvedStorefrontUser?.accountType ||
+        tokenSessionTarget.storefrontIdentity?.accountType ||
+        "";
+      const resolvedStorefrontStoreId =
+        authResult.responseStoreId ||
+        tokenSessionTarget.storefrontIdentity?.storeId ||
+        effectiveStoreId;
+      const resolvedStorefrontCustomerId =
+        authResult.responseStoreCustomerId ||
+        tokenSessionTarget.storefrontIdentity?.storeCustomerId ||
+        resolvedStorefrontUser?.storeCustomerId ||
+        "";
       const hasExplicitStoreMismatch =
         Boolean(effectiveStoreId) &&
-        authResult.isCustomer &&
-        Boolean(authResult.responseStoreId) &&
-        !authResult.belongsToRequestedStore;
+        (
+          (authResult.isCustomer &&
+            Boolean(authResult.responseStoreId) &&
+            !authResult.belongsToRequestedStore) ||
+          (tokenSessionTarget.sessionType === "storefront" &&
+            Boolean(resolvedStorefrontStoreId) &&
+            resolvedStorefrontStoreId !== effectiveStoreId)
+        );
 
       logAuthFlow("Google callback token classified", {
         effectiveStoreId,
@@ -457,6 +535,15 @@ function GoogleCallbackPage() {
         redirectTo: storefrontRedirectPath,
         role,
         decodedUser: serializeAuthFlowUser(user),
+        tokenSessionType: tokenSessionTarget.sessionType,
+        tokenAccountType:
+          user?.accountType || tokenSessionTarget.storefrontIdentity?.accountType || "",
+        tokenStoreId: resolvedStorefrontStoreId,
+        tokenStoreCustomerId: resolvedStorefrontCustomerId,
+        hasStoreCustomerRoleSignal: tokenSessionTarget.hasStoreCustomerRoleSignal,
+        hasStoreCustomerIdSignal: tokenSessionTarget.hasStoreCustomerIdSignal,
+        hasStoreIdSignal: tokenSessionTarget.hasStoreIdSignal,
+        hasOwnerRoleSignal: tokenSessionTarget.hasOwnerRoleSignal,
         responseStoreId: authResult.responseStoreId,
         responseStoreCustomerId: authResult.responseStoreCustomerId,
         isOwner: authResult.isOwner,
@@ -465,7 +552,43 @@ function GoogleCallbackPage() {
         sessionScope: authResult.sessionScope,
       });
 
-      if (authResult.isOwner) {
+      if (tokenSessionTarget.sessionType === "storefront") {
+        if (hasExplicitStoreMismatch) {
+          logAuthFlow("Google callback detected store scope mismatch", {
+            requestedStoreId: effectiveStoreId,
+            responseStoreId: resolvedStorefrontStoreId,
+            responseStoreCustomerId: resolvedStorefrontCustomerId,
+            role: resolvedStorefrontRole,
+            user: serializeAuthFlowUser(resolvedStorefrontUser),
+          });
+          clearPendingGoogleArtifacts();
+          replaceCallbackHistory(location.pathname);
+          navigate(`${GOOGLE_FAILURE_PATH}?message=store_scope_mismatch`, {
+            replace: true,
+          });
+          return;
+        }
+
+        persistStorefrontSession({
+          token,
+          user: resolvedStorefrontUser,
+          role: resolvedStorefrontRole,
+        });
+        setPendingGoogleCallbackResult({
+          sessionType: "storefront",
+          redirectTo: storefrontRedirectPath,
+          storeId: resolvedStorefrontStoreId,
+          storeSlug: effectiveStoreSlug,
+        });
+        clearPendingStoreGoogleAuth();
+        clearPendingGoogleAuthContext();
+        await safeMergeGuestCart();
+        replaceCallbackHistory(location.pathname);
+        navigate(storefrontRedirectPath, { replace: true });
+        return;
+      }
+
+      if (tokenSessionTarget.sessionType === "platform" || authResult.isOwner) {
         persistPlatformSession({
           token,
           user: authResult.user,
