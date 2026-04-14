@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import { isGuestRole } from "../utils/roles.js";
+import { isGuestRole, isStoreCustomerRole } from "../utils/roles.js";
 import { extractStorefrontCustomer } from "../utils/authSession.js";
 import {
+  clearPlatformAuthSession,
   clearStorefrontAuthSession,
   getPlatformAuthToken,
   getStoredPlatformRole,
@@ -14,26 +15,41 @@ import {
 
 migrateLegacyAuthSession();
 
+const storedPlatformToken = getPlatformAuthToken();
 const storedPlatformUser = getStoredPlatformUser();
 const storedPlatformRole = getStoredPlatformRole();
 const storedStorefrontUser = getStoredStorefrontUser();
 const storedStorefrontRole = getStoredStorefrontRole();
+const storedPlatformStorefrontCustomer = extractStorefrontCustomer(
+  storedPlatformUser,
+  storedPlatformToken,
+);
 const storedStorefrontCustomer =
   extractStorefrontCustomer(storedStorefrontUser);
+const shouldDiscardStorefrontScopedPlatformSession =
+  Boolean(storedPlatformStorefrontCustomer) ||
+  isStoreCustomerRole(storedPlatformRole) ||
+  isStoreCustomerRole(storedPlatformUser?.accountType);
 const shouldDiscardGuestStorefrontSession =
   !storedStorefrontCustomer &&
   (isGuestRole(storedStorefrontRole) ||
     isGuestRole(storedStorefrontUser?.accountType));
+
+if (shouldDiscardStorefrontScopedPlatformSession) {
+  clearPlatformAuthSession();
+}
 
 if (shouldDiscardGuestStorefrontSession) {
   clearStorefrontAuthSession();
 }
 
 const initialPlatformSession = {
-  token: getPlatformAuthToken(),
-  user: storedPlatformUser,
-  role: storedPlatformRole,
-  isAuthenticated: Boolean(getPlatformAuthToken()),
+  token: shouldDiscardStorefrontScopedPlatformSession ? "" : storedPlatformToken,
+  user: shouldDiscardStorefrontScopedPlatformSession ? null : storedPlatformUser,
+  role: shouldDiscardStorefrontScopedPlatformSession ? "" : storedPlatformRole,
+  isAuthenticated: Boolean(
+    shouldDiscardStorefrontScopedPlatformSession ? "" : storedPlatformToken,
+  ),
 };
 
 const storefrontToken = shouldDiscardGuestStorefrontSession

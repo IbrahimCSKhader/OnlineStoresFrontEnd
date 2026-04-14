@@ -37,6 +37,7 @@ import {
 } from "../../utils/storeCustomerAuth.js";
 import { isOwnerRole, isStoreCustomerRole } from "../../utils/roles.js";
 import {
+  clearPlatformAuthSession,
   getPlatformAuthToken,
   getStoredPlatformRole,
   getStoredPlatformUser,
@@ -185,6 +186,7 @@ function GoogleCallbackPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const mergeGuestCart = useMergeGuestCart();
+  const clearPlatformSession = useAuthStore((state) => state.clearPlatformSession);
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
   const setStorefrontSession = useAuthStore(
     (state) => state.setStorefrontSession,
@@ -222,6 +224,33 @@ function GoogleCallbackPage() {
       };
 
       const persistStorefrontSession = ({ token, user, role }) => {
+        const authState = useAuthStore.getState();
+        const existingPlatformToken =
+          authState?.platformSession?.token || getPlatformAuthToken();
+        const existingPlatformUser =
+          authState?.platformSession?.user || getStoredPlatformUser();
+        const existingPlatformRole =
+          authState?.platformSession?.role || getStoredPlatformRole();
+        const existingPlatformStorefrontIdentity = extractStorefrontCustomer(
+          existingPlatformUser || {},
+          existingPlatformToken,
+        );
+        const hasConflictingPlatformStorefrontSession =
+          existingPlatformToken === token ||
+          isStoreCustomerRole(existingPlatformRole) ||
+          isStoreCustomerRole(existingPlatformUser?.accountType) ||
+          Boolean(existingPlatformStorefrontIdentity);
+
+        if (hasConflictingPlatformStorefrontSession) {
+          clearPlatformAuthSession();
+          clearPlatformSession();
+          logAuthFlow("Cleared conflicting platform session before storefront persist", {
+            existingPlatformRole,
+            existingPlatformUser: serializeAuthFlowUser(existingPlatformUser),
+            hasExistingPlatformToken: Boolean(existingPlatformToken),
+          });
+        }
+
         if (token) {
           setStorefrontAuthToken(token);
         }
@@ -715,6 +744,7 @@ function GoogleCallbackPage() {
       });
     });
   }, [
+    clearPlatformSession,
     location.hash,
     location.pathname,
     location.search,
