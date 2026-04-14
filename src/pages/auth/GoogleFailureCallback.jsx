@@ -7,8 +7,13 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { clearPendingGoogleCallbackResult } from "../../utils/pendingGoogleCallbackResult.js";
-import { clearPendingGoogleAuthContext } from "../../utils/pendingGoogleAuthContext.js";
+import {
+  clearPendingGoogleAuthContext,
+  getPendingGoogleAuthContext,
+} from "../../utils/pendingGoogleAuthContext.js";
 import { clearPendingStoreGoogleAuth } from "../../utils/pendingStoreGoogleAuth.js";
+import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
+import { getPendingGoogleCallbackResult } from "../../utils/pendingGoogleCallbackResult.js";
 
 const ERROR_MESSAGES = {
   missing_token:
@@ -59,6 +64,22 @@ function resolveFailureMessage(searchParams) {
 export default function GoogleFailureCallback() {
   const [searchParams] = useSearchParams();
   const displayMessage = resolveFailureMessage(searchParams);
+  const pendingGoogleContext = getPendingGoogleAuthContext();
+  const pendingGoogleCallbackResult = getPendingGoogleCallbackResult();
+  const retryStoreSlug =
+    pendingGoogleContext?.storeSlug || pendingGoogleCallbackResult?.storeSlug || "";
+  const retryStoreId =
+    pendingGoogleContext?.storeId || pendingGoogleCallbackResult?.storeId || "";
+  const retryPath = retryStoreSlug ? `/market/${retryStoreSlug}/login` : "/auth/login";
+  const retryState =
+    retryStoreSlug || retryStoreId
+      ? buildStoreCustomerAuthState({
+          storeId: retryStoreId,
+          storeSlug: retryStoreSlug,
+          storeName: pendingGoogleContext?.storeName || "",
+          redirectTo: pendingGoogleContext?.redirectTo || "",
+        })
+      : undefined;
 
   useEffect(() => {
     clearPendingGoogleCallbackResult();
@@ -92,7 +113,8 @@ export default function GoogleFailureCallback() {
 
           <Button
             component={RouterLink}
-            to="/auth/login"
+            to={retryPath}
+            state={retryState}
             variant="contained"
             size="large"
             fullWidth

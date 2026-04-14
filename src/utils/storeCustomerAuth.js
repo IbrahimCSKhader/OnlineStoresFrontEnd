@@ -84,7 +84,10 @@ export function isStoreCustomerAuthMode(state) {
 }
 
 export function hasStoreCustomerAuthContext(state) {
-  return isStoreCustomerAuthMode(state) && Boolean(state?.storeId);
+  return (
+    isStoreCustomerAuthMode(state) &&
+    (Boolean(state?.storeId) || Boolean(state?.storeSlug))
+  );
 }
 
 export function getStoreCustomerRedirectPath(state) {

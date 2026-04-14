@@ -185,6 +185,18 @@ export default function Login() {
     : null;
   const storeCustomerAuthState =
     routeStoreCustomerAuthState || stateStoreCustomerAuth;
+  const resolvedGoogleStoreSlug =
+    storeCustomerAuthState?.storeSlug ||
+    routeStoreSlug ||
+    location.state?.storeSlug ||
+    "";
+  const resolvedGoogleStoreId =
+    storeCustomerAuthState?.storeId || location.state?.storeId || "";
+  const resolvedGoogleStoreName =
+    storeCustomerAuthState?.storeName ||
+    routeStore?.name ||
+    location.state?.storeName ||
+    resolvedGoogleStoreSlug;
   const isStoreCustomerMode =
     Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
   const storefrontSession = useStorefrontSession(storeCustomerAuthState?.storeId);
@@ -197,8 +209,8 @@ export default function Login() {
       ? { redirectTo }
       : undefined;
   const storeLabel =
-    storeCustomerAuthState?.storeName ||
-    storeCustomerAuthState?.storeSlug ||
+    resolvedGoogleStoreName ||
+    resolvedGoogleStoreSlug ||
     "هذا المتجر";
   const storeHomePath = storeCustomerAuthState?.storeSlug
     ? `/market/${storeCustomerAuthState.storeSlug}`
@@ -210,7 +222,7 @@ export default function Login() {
     ? `/market/${storeCustomerAuthState.storeSlug}/verify-email`
     : "/auth/verify-email";
   const canStartStoreGoogleLogin = Boolean(
-    storeCustomerAuthState?.storeSlug || storeCustomerAuthState?.storeId,
+    resolvedGoogleStoreSlug || resolvedGoogleStoreId,
   );
 
   const loginMutation = useLogin();
@@ -374,11 +386,26 @@ export default function Login() {
 
   function handleGoogleLogin() {
     if (!isStoreCustomerMode) {
+      logAuthFlow("Blocked Google login because store mode was not resolved", {
+        pathname: location.pathname,
+        routeStoreSlug,
+        stateStoreId: location.state?.storeId || "",
+        stateStoreSlug: location.state?.storeSlug || "",
+      });
       setLocalError("تسجيل الدخول عبر Google متاح فقط من صفحة متجر محدد.");
       return;
     }
 
     if (!canStartStoreGoogleLogin) {
+      logAuthFlow("Blocked Google login because store context was incomplete", {
+        pathname: location.pathname,
+        routeStoreSlug,
+        routeStoreId: routeStore?.id || "",
+        stateStoreId: location.state?.storeId || "",
+        stateStoreSlug: location.state?.storeSlug || "",
+        resolvedGoogleStoreId,
+        resolvedGoogleStoreSlug,
+      });
       setLocalError(
         "بيانات المتجر غير مكتملة. افتح صفحة المتجر ثم أعد المحاولة.",
       );
@@ -393,24 +420,41 @@ export default function Login() {
         import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
       ).replace(/\/+$/, "");
       const googleParams = new URLSearchParams();
+      const googleStoreSlug = resolvedGoogleStoreSlug;
+      const googleStoreId = resolvedGoogleStoreId;
+      const googleStoreName = resolvedGoogleStoreName || storeLabel;
       clearPendingGoogleAuthContext();
       setPendingGoogleAuthContext({
         authMode: STORE_CUSTOMER_AUTH_MODE,
-        storeId: storeCustomerAuthState?.storeId || "",
-        storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug || "",
-        storeName: storeCustomerAuthState?.storeName || storeLabel,
+        storeId: googleStoreId,
+        storeSlug: googleStoreSlug,
+        storeName: googleStoreName,
         redirectTo,
       });
 
-      if (storeCustomerAuthState?.storeSlug) {
-        googleParams.set("storeSlug", storeCustomerAuthState.storeSlug);
-      } else if (storeCustomerAuthState?.storeId) {
-        googleParams.set("storeId", storeCustomerAuthState.storeId);
+      if (googleStoreSlug) {
+        googleParams.set("storeSlug", googleStoreSlug);
+      } else if (googleStoreId) {
+        googleParams.set("storeId", googleStoreId);
       }
 
       if (redirectTo) {
         googleParams.set("redirectTo", redirectTo);
       }
+
+      logAuthFlow("Starting Google store login redirect", {
+        pathname: location.pathname,
+        apiBaseUrl,
+        routeStoreSlug,
+        routeStoreId: routeStore?.id || "",
+        stateStoreId: location.state?.storeId || "",
+        stateStoreSlug: location.state?.storeSlug || "",
+        googleStoreId,
+        googleStoreSlug,
+        googleStoreName,
+        redirectTo,
+        googleParams: googleParams.toString(),
+      });
 
       window.location.href = `${apiBaseUrl}/api/auth/google?${googleParams.toString()}`;
     } catch {
