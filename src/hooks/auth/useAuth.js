@@ -1,6 +1,11 @@
 import { matchPath, useLocation } from "react-router-dom";
 import useAuthStore from "../../store/authStore.js";
 import { extractStorefrontCustomer } from "../../utils/authSession.js";
+import { getPendingGoogleCallbackResult } from "../../utils/pendingGoogleCallbackResult.js";
+import {
+  getPendingGoogleAuthContext,
+  isStoreScopedPendingGoogleAuthContext,
+} from "../../utils/pendingGoogleAuthContext.js";
 import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import { STORE_CUSTOMER_AUTH_MODE } from "../../utils/storeCustomerAuth.js";
 
@@ -22,6 +27,17 @@ function isPlatformRoute(pathname) {
 function shouldPreferStorefrontSession(location) {
   if (isStorefrontRoute(location.pathname)) {
     return true;
+  }
+
+  if (location.pathname.startsWith("/auth/google")) {
+    const pendingGoogleContext = getPendingGoogleAuthContext();
+    const pendingGoogleCallbackResult = getPendingGoogleCallbackResult();
+
+    return (
+      pendingGoogleCallbackResult?.sessionType === "storefront" ||
+      pendingGoogleCallbackResult?.sessionType === "pending" ||
+      isStoreScopedPendingGoogleAuthContext(pendingGoogleContext)
+    );
   }
 
   return (

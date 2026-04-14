@@ -56,6 +56,7 @@ import {
   clearPendingGoogleAuthContext,
   setPendingGoogleAuthContext,
 } from "../../utils/pendingGoogleAuthContext.js";
+import { clearPendingGoogleCallbackResult } from "../../utils/pendingGoogleCallbackResult.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
 import {
@@ -387,6 +388,7 @@ export default function Login() {
     try {
       setIsLoadingGoogle(true);
       clearPendingStoreGoogleAuth();
+      clearPendingGoogleCallbackResult();
       const apiBaseUrl = (
         import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
       ).replace(/\/+$/, "");
@@ -412,6 +414,7 @@ export default function Login() {
 
       window.location.href = `${apiBaseUrl}/api/auth/google?${googleParams.toString()}`;
     } catch {
+      clearPendingGoogleCallbackResult();
       clearPendingGoogleAuthContext();
       setLocalError("فشل الاتصال بخادم Google. حاول مرة أخرى.");
       setIsLoadingGoogle(false);
@@ -759,6 +762,7 @@ export default function Login() {
       const authResult = resolveCurrentStoreAuthResult(data);
 
       clearPendingStoreGoogleAuth();
+      clearPendingGoogleCallbackResult();
       clearPendingGoogleAuthContext();
       setValue("password", "");
       setValue("newPassword", "");
