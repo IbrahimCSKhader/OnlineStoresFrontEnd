@@ -12,10 +12,7 @@ export const storeCustomerAuthApi = {
   login: (payload) =>
     axiosInstance.post(endpoints.storeCustomerAuth.login, payload),
   loginByStore: (storeId, payload) =>
-    axiosInstance.post(endpoints.storeCustomerAuth.login, {
-      ...payload,
-      storeId,
-    }),
+    axiosInstance.post(endpoints.storeCustomerAuth.storeLogin(storeId), payload),
   forgotPassword: (payload) =>
     axiosInstance.post(endpoints.storeCustomerAuth.forgotPassword, payload),
   forgotPasswordByStore: (storeId, payload) =>

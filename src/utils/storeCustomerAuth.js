@@ -11,6 +11,10 @@ function normalizeValue(value) {
   return String(value).trim();
 }
 
+function normalizeLowercaseValue(value) {
+  return normalizeValue(value).toLowerCase();
+}
+
 function resolveStoreAuthResponseStoreId(data = {}, user = {}) {
   return normalizeValue(
     data?.storeId ||
@@ -130,6 +134,18 @@ export function resolveStoreScopedAuthResult(data = {}, requestedStoreId = "") {
   const extractedUser = extractUser(data, token);
   const role = extractRole(data, token, extractedUser);
   const dashboard = resolveStoreCustomerDashboard(data, extractedUser, role);
+  const responseSessionScope = normalizeLowercaseValue(
+    data?.sessionScope ||
+      data?.SessionScope ||
+      data?.data?.sessionScope ||
+      data?.data?.SessionScope,
+  );
+  const responseAuthMode = normalizeLowercaseValue(
+    data?.authMode ||
+      data?.AuthMode ||
+      data?.data?.authMode ||
+      data?.data?.AuthMode,
+  );
   const responseStoreId = resolveStoreAuthResponseStoreId(data, extractedUser);
   const responseStoreCustomerId = resolveStoreAuthResponseStoreCustomerId(
     data,
@@ -137,12 +153,15 @@ export function resolveStoreScopedAuthResult(data = {}, requestedStoreId = "") {
   );
   const normalizedRequestedStoreId = normalizeValue(requestedStoreId);
   const isOwner =
+    responseSessionScope === "platform" ||
     dashboard === "owner" ||
     isOwnerRole(role) ||
     isOwnerRole(extractedUser?.accountType);
   const isCustomer =
     !isOwner &&
     (
+      responseSessionScope === "storefront" ||
+      responseAuthMode === STORE_CUSTOMER_AUTH_MODE ||
       dashboard === "customer" ||
       isStoreCustomerRole(role) ||
       isStoreCustomerRole(extractedUser?.accountType) ||
@@ -162,7 +181,9 @@ export function resolveStoreScopedAuthResult(data = {}, requestedStoreId = "") {
     isOwner,
     isCustomer,
     belongsToRequestedStore,
-    sessionScope: isOwner ? "platform" : isCustomer ? "storefront" : "",
+    authMode: responseAuthMode,
+    sessionScope:
+      responseSessionScope || (isOwner ? "platform" : isCustomer ? "storefront" : ""),
   };
 
   return {

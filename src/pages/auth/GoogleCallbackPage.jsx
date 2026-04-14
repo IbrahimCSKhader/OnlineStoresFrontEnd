@@ -82,18 +82,149 @@ function replaceCallbackHistory(pathname) {
   window.history.replaceState(window.history.state, document.title, pathname);
 }
 
-function resolveGoogleStoreAuthResult({ token, user, role, requestedStoreId }) {
+function resolveGoogleStoreAuthResult({ data, requestedStoreId }) {
   return applyRequestedStoreScopeFallback(
-    resolveStoreScopedAuthResult({ token, user, role }, requestedStoreId),
+    resolveStoreScopedAuthResult(data, requestedStoreId),
     requestedStoreId,
   );
 }
 
-function resolveGoogleCallbackSessionTarget({ token, user, role }) {
+function pickFirstValue(...values) {
+  for (const value of values) {
+    if (Array.isArray(value)) {
+      const filteredValues = value
+        .map((item) => String(item || "").trim())
+        .filter(Boolean);
+
+      if (filteredValues.length) {
+        return filteredValues;
+      }
+
+      continue;
+    }
+
+    if (value !== null && value !== undefined) {
+      const normalizedValue = String(value).trim();
+
+      if (normalizedValue) {
+        return normalizedValue;
+      }
+    }
+  }
+
+  return "";
+}
+
+function getParamValue(hashParams, searchParams, keys = []) {
+  return pickFirstValue(
+    ...keys.map((key) => hashParams.get(key)),
+    ...keys.map((key) => searchParams.get(key)),
+  );
+}
+
+function getParamArrayValue(hashParams, searchParams, keys = []) {
+  const rawValue = getParamValue(hashParams, searchParams, keys);
+
+  if (Array.isArray(rawValue)) {
+    return rawValue;
+  }
+
+  if (!rawValue) {
+    return [];
+  }
+
+  return String(rawValue)
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function buildGoogleCallbackAuthPayload({
+  hashParams,
+  searchParams,
+  token,
+  fallbackStoreId,
+  fallbackStoreSlug,
+  fallbackRedirectTo,
+}) {
+  const roleValues = getParamArrayValue(hashParams, searchParams, [
+    "roles",
+    "role",
+    "Role",
+  ]);
+  const fallbackRole = roleValues[0] || "";
+
+  return {
+    token,
+    email: getParamValue(hashParams, searchParams, ["email", "Email"]),
+    firstName: getParamValue(hashParams, searchParams, [
+      "firstName",
+      "FirstName",
+      "given_name",
+      "givenName",
+    ]),
+    lastName: getParamValue(hashParams, searchParams, [
+      "lastName",
+      "LastName",
+      "family_name",
+      "surname",
+    ]),
+    storeId:
+      getParamValue(hashParams, searchParams, ["storeId", "StoreId", "store_id"]) ||
+      fallbackStoreId,
+    storeSlug:
+      getParamValue(hashParams, searchParams, ["storeSlug", "store_slug"]) ||
+      fallbackStoreSlug,
+    storeCustomerId: getParamValue(hashParams, searchParams, [
+      "storeCustomerId",
+      "StoreCustomerId",
+      "store_customer_id",
+      "customerStoreId",
+      "CustomerStoreId",
+    ]),
+    accountType: getParamValue(hashParams, searchParams, [
+      "accountType",
+      "AccountType",
+      "account_type",
+    ]),
+    role: fallbackRole,
+    roles: roleValues,
+    redirectTo:
+      getParamValue(hashParams, searchParams, [
+        "redirectTo",
+        "redirect",
+        "returnUrl",
+      ]) || fallbackRedirectTo,
+    authMode: getParamValue(hashParams, searchParams, [
+      "authMode",
+      "AuthMode",
+      "auth_mode",
+    ]),
+    sessionScope: getParamValue(hashParams, searchParams, [
+      "sessionScope",
+      "SessionScope",
+      "session_scope",
+    ]),
+    dashboard: getParamValue(hashParams, searchParams, [
+      "dashboard",
+      "Dashboard",
+    ]),
+  };
+}
+
+function resolveGoogleCallbackSessionTarget({ data, token, user, role }) {
   const storefrontIdentity =
-    extractStorefrontCustomer(user || {}, token) || extractStorefrontCustomer({}, token);
+    extractStorefrontCustomer(data || user || {}, token) ||
+    extractStorefrontCustomer(user || {}, token) ||
+    extractStorefrontCustomer({}, token);
   const normalizedAccountType =
-    user?.accountType || storefrontIdentity?.accountType || "";
+    user?.accountType ||
+    data?.accountType ||
+    storefrontIdentity?.accountType ||
+    "";
+  const normalizedSessionScope = String(data?.sessionScope || "").trim().toLowerCase();
+  const normalizedDashboard = String(data?.dashboard || "").trim().toLowerCase();
+  const normalizedAuthMode = String(data?.authMode || "").trim().toLowerCase();
   const hasStoreCustomerRoleSignal =
     isStoreCustomerRole(role) ||
     isStoreCustomerRole(normalizedAccountType) ||
@@ -105,7 +236,13 @@ function resolveGoogleCallbackSessionTarget({ token, user, role }) {
     isOwnerRole(normalizedAccountType) ||
     isOwnerRole(storefrontIdentity?.accountType);
 
-  if (hasStoreCustomerRoleSignal || hasStoreCustomerIdSignal) {
+  if (
+    normalizedSessionScope === "storefront" ||
+    normalizedDashboard === "customer" ||
+    normalizedAuthMode === "store-customer" ||
+    hasStoreCustomerRoleSignal ||
+    hasStoreCustomerIdSignal
+  ) {
     return {
       sessionType: "storefront",
       storefrontIdentity,
@@ -116,7 +253,11 @@ function resolveGoogleCallbackSessionTarget({ token, user, role }) {
     };
   }
 
-  if (hasOwnerRoleSignal) {
+  if (
+    normalizedSessionScope === "platform" ||
+    normalizedDashboard === "owner" ||
+    hasOwnerRoleSignal
+  ) {
     return {
       sessionType: "platform",
       storefrontIdentity,
@@ -326,6 +467,14 @@ function GoogleCallbackPage() {
         redirectCandidate,
         callbackStoreRedirect || DEFAULT_STOREFRONT_REDIRECT_PATH,
       );
+      const callbackAuthData = buildGoogleCallbackAuthPayload({
+        hashParams,
+        searchParams,
+        token,
+        fallbackStoreId: effectiveStoreId,
+        fallbackStoreSlug: effectiveStoreSlug,
+        fallbackRedirectTo: storefrontRedirectPath,
+      });
       const hasStoreGoogleContext =
         Boolean(callbackStoreId || callbackStoreSlug) ||
         isStoreScopedPendingGoogleAuthContext(pendingGoogleContext) ||
@@ -345,6 +494,18 @@ function GoogleCallbackPage() {
           error,
         }),
       );
+      logAuthFlow("Google callback metadata payload", {
+        authMode: callbackAuthData.authMode,
+        sessionScope: callbackAuthData.sessionScope,
+        dashboard: callbackAuthData.dashboard,
+        accountType: callbackAuthData.accountType,
+        role: callbackAuthData.role,
+        roles: callbackAuthData.roles,
+        storeId: callbackAuthData.storeId,
+        storeSlug: callbackAuthData.storeSlug,
+        storeCustomerId: callbackAuthData.storeCustomerId,
+        redirectTo: callbackAuthData.redirectTo,
+      });
 
       if (error) {
         logAuthFlow("Google callback returned explicit backend error", {
@@ -500,8 +661,8 @@ function GoogleCallbackPage() {
         return;
       }
 
-      const user = extractUser({}, token);
-      const role = extractRole({}, token, user);
+      const user = extractUser(callbackAuthData, token);
+      const role = extractRole(callbackAuthData, token, user);
 
       if (!user && !role) {
         logAuthFlow("Google callback token could not be decoded", {
@@ -517,12 +678,11 @@ function GoogleCallbackPage() {
       }
 
       const authResult = resolveGoogleStoreAuthResult({
-        token,
-        user,
-        role,
+        data: callbackAuthData,
         requestedStoreId: effectiveStoreId,
       });
       const tokenSessionTarget = resolveGoogleCallbackSessionTarget({
+        data: callbackAuthData,
         token,
         user,
         role,

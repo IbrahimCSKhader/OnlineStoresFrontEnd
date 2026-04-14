@@ -32,12 +32,28 @@ const ERROR_MESSAGES = {
     "The Google sign-in request was invalid or incomplete.",
   store_context_required:
     "Google sign-in must be started from a specific store page.",
+  store_context_missing:
+    "The store context was lost during the Google sign-in roundtrip.",
   store_scope_mismatch:
     "The returned Google account does not belong to the current store context.",
+  google_auth_failed:
+    "Google authentication could not be completed.",
+  email_not_found:
+    "Google did not return an email for this account.",
+  store_invalid_or_missing:
+    "The selected store is invalid, missing, or inactive.",
+  owner_customer_conflict:
+    "This email belongs to the store owner flow, not the storefront customer flow.",
+  jwt_generation_failed:
+    "The session token could not be created.",
+  redirect_build_failed:
+    "The Google redirect could not be completed.",
   server_error:
     "The server failed while processing the Google sign-in request.",
   temporarily_unavailable:
     "Google sign-in is temporarily unavailable.",
+  unexpected_error:
+    "An unexpected error happened during Google sign-in.",
   default:
     "Google sign-in could not be completed. Please try again from the login page.",
 };

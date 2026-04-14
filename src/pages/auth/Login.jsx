@@ -75,6 +75,7 @@ import {
   setStoredStorefrontRole,
   setStoredStorefrontUser,
 } from "../../utils/token.js";
+import endpoints from "../../API/endpoints.js";
 import "./Login.css";
 
 const FLOW = {
@@ -432,10 +433,12 @@ export default function Login() {
         redirectTo,
       });
 
+      if (googleStoreId) {
+        googleParams.set("storeId", googleStoreId);
+      }
+
       if (googleStoreSlug) {
         googleParams.set("storeSlug", googleStoreSlug);
-      } else if (googleStoreId) {
-        googleParams.set("storeId", googleStoreId);
       }
 
       if (redirectTo) {
@@ -456,7 +459,7 @@ export default function Login() {
         googleParams: googleParams.toString(),
       });
 
-      window.location.href = `${apiBaseUrl}/api/auth/google?${googleParams.toString()}`;
+      window.location.href = `${apiBaseUrl}${endpoints.storeCustomerAuth.google}?${googleParams.toString()}`;
     } catch {
       clearPendingGoogleCallbackResult();
       clearPendingGoogleAuthContext();
