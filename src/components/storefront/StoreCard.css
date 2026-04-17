@@ -4,6 +4,8 @@
   flex-direction: column;
   overflow: hidden;
   color: inherit;
+  border-radius: var(--radius-xl);
+  background: var(--surface-card);
 }
 
 .store-card--disabled {
@@ -15,7 +17,7 @@
   height: var(--store-card-media-height);
   min-height: var(--store-card-media-height);
   padding: 0;
-  background: var(--surface-contrast);
+  background: var(--surface-low);
 }
 
 .store-card__cover {
@@ -42,9 +44,9 @@
   position: absolute !important;
   top: 12px;
   inset-inline-start: 12px;
-  border: 1px solid var(--border-subtle) !important;
-  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent) !important;
+  background: var(--surface-overlay) !important;
   z-index: 1;
+  backdrop-filter: blur(10px);
 }
 
 .store-card__status--active {
@@ -63,9 +65,9 @@
   height: 48px;
   border-radius: 12px;
   object-fit: cover;
-  border: 2px solid var(--surface-elevated);
-  background: var(--surface-elevated);
-  box-shadow: none;
+  border: 0;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
 }
 
 .store-card__logo--empty {
@@ -79,7 +81,7 @@
 .store-card__content {
   display: grid;
   gap: 10px;
-  padding: 24px 12px 12px;
+  padding: 26px 16px 16px;
 }
 
 .store-card__copy {
@@ -90,11 +92,13 @@
 .store-card__eyebrow {
   color: var(--text-secondary);
   font-size: 0.68rem !important;
+  letter-spacing: 0.12em !important;
 }
 
 .store-card__title {
-  font-size: 0.92rem !important;
-  line-height: 1.28 !important;
+  font-size: 1rem !important;
+  line-height: 1.36 !important;
+  letter-spacing: -0.01em !important;
 }
 
 .store-card__description {

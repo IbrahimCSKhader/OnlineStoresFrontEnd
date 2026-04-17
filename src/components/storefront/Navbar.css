@@ -1,21 +1,22 @@
 .store-navbar {
-  padding: 8px var(--page-inset) 0;
+  padding: 12px var(--page-inset) 0;
+  background: transparent;
 }
 
 .store-navbar__toolbar {
   width: min(100%, var(--max-width));
-  min-height: 68px;
+  min-height: 76px;
   margin-inline: auto;
   display: grid;
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: var(--space-5);
-  padding: 10px 0;
+  padding: 12px 16px;
   border: 0;
-  border-bottom: 1px solid var(--border-subtle);
-  border-radius: 0;
-  background: var(--background);
-  box-shadow: none;
+  border-radius: calc(var(--radius-xxl) - 6px);
+  background: var(--nav-glass);
+  backdrop-filter: blur(var(--nav-blur));
+  box-shadow: var(--shadow-soft);
 }
 
 .store-navbar__brand {
@@ -27,35 +28,30 @@
 }
 
 .store-navbar__brand-mark {
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 16px;
   color: var(--button-text);
-  background: var(--primary);
-  box-shadow: none;
+  background: var(--cta-gradient);
+  box-shadow: var(--shadow-soft);
 }
 
 .store-navbar__brand-logo {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  object-fit: cover;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.store-navbar__brand-mark--drawer,
+.store-navbar__brand-logo--drawer {
   width: 42px;
   height: 42px;
-  flex-shrink: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  object-fit: cover;
-  background: var(--surface);
-}
-
-.store-navbar__brand-mark--drawer {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-}
-
-.store-navbar__brand-logo--drawer {
-  width: 40px;
-  height: 40px;
 }
 
 .store-navbar__brand-text {
@@ -66,14 +62,14 @@
 
 .store-navbar__eyebrow {
   color: var(--text-secondary);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
 }
 
 .store-navbar__brand-name {
   font-family: var(--font-heading);
-  font-size: 1.15rem;
+  font-size: 1.08rem;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: -0.015em;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -84,44 +80,37 @@
   display: inline-flex;
   justify-self: center;
   align-items: center;
-  gap: var(--space-5);
+  gap: 8px;
+  padding: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-low) 84%, transparent);
 }
 
 .store-navbar__link {
   position: relative;
-  min-height: 40px;
+  min-height: 42px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding-inline: 4px;
+  padding-inline: 14px;
+  border-radius: 999px;
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.94rem;
   transition:
     color var(--transition-fast),
+    background-color var(--transition-fast),
     transform var(--transition-fast);
 }
 
 .store-navbar__link::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  bottom: 3px;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--primary);
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform var(--transition-fast);
+  display: none;
 }
 
 .store-navbar__link:hover,
 .store-navbar__link--active {
-  color: var(--text-primary);
-}
-
-.store-navbar__link:hover::after,
-.store-navbar__link--active::after {
-  transform: scaleX(1);
+  color: var(--surface-inverse-text);
+  background: var(--surface-inverse);
+  transform: translateY(-1px);
 }
 
 .store-navbar__actions {
@@ -139,12 +128,18 @@
   white-space: nowrap;
 }
 
+.store-navbar__profile-trigger,
+.store-navbar__icon-button,
+.store-navbar__theme-option {
+  border: 0 !important;
+  background: var(--surface-card) !important;
+  box-shadow: none;
+}
+
 .store-navbar__profile-trigger {
   width: 42px;
   height: 42px;
   padding: 0 !important;
-  border: 1px solid var(--border-subtle) !important;
-  background: var(--surface) !important;
 }
 
 .store-navbar__profile-avatar {
@@ -153,7 +148,7 @@
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--button-text);
-  background: var(--primary);
+  background: var(--cta-gradient);
 }
 
 .store-navbar__profile-avatar--large {
@@ -162,17 +157,19 @@
   flex-shrink: 0;
 }
 
-.store-navbar__profile-menu {
-  margin-top: 10px;
+.store-navbar__profile-menu,
+.store-navbar__theme-menu {
+  margin-top: 12px;
   min-width: 260px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 18px;
-  background: var(--surface) !important;
-  box-shadow: var(--shadow-medium) !important;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--surface-bright) !important;
+  box-shadow: var(--shadow-strong) !important;
 }
 
-.store-navbar__profile-menu-list {
-  padding: 0 !important;
+.store-navbar__profile-menu-list,
+.store-navbar__theme-menu-list {
+  padding: 8px !important;
 }
 
 .store-navbar__profile-menu-head,
@@ -184,7 +181,7 @@
 }
 
 .store-navbar__profile-menu-head {
-  padding: 14px;
+  padding: 10px;
 }
 
 .store-navbar__profile-copy {
@@ -202,12 +199,12 @@
 }
 
 .store-navbar__profile-info {
-  padding: 12px 14px 0;
+  padding: 10px;
   color: var(--text-secondary);
 }
 
 .store-navbar__profile-info:last-of-type {
-  padding-bottom: 12px;
+  padding-bottom: 10px;
 }
 
 .store-navbar__profile-id {
@@ -217,23 +214,21 @@
 
 .store-navbar__profile-item {
   min-height: 46px !important;
-  gap: 4px;
+  gap: 6px;
+  border-radius: 14px;
 }
 
 .store-navbar__profile-panel {
   display: grid;
   gap: 12px;
   padding: 14px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--surface-elevated) 80%, var(--surface));
+  border-radius: var(--radius-xl);
+  background: var(--surface-low);
 }
 
 .store-navbar__icon-button {
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--border-subtle) !important;
-  background: var(--surface) !important;
+  width: 40px;
+  height: 40px;
   color: var(--text-primary) !important;
 }
 
@@ -247,37 +242,22 @@
   height: 18px;
 }
 
-.store-navbar__theme-menu {
-  margin-top: 10px;
-  border: 1px solid var(--border-subtle);
-  border-radius: 16px;
-  background: var(--surface) !important;
-  box-shadow: var(--shadow-medium) !important;
-}
-
-.store-navbar__theme-menu-list {
-  padding: 0 !important;
-}
-
 .store-navbar__theme-options {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px;
+  padding: 2px;
 }
 
 .store-navbar__theme-option {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border-subtle) !important;
-  background: var(--surface) !important;
   color: var(--text-secondary) !important;
 }
 
 .store-navbar__theme-option--active {
-  border-color: var(--primary) !important;
-  background: var(--interactive-hover) !important;
-  color: var(--primary) !important;
+  background: var(--surface-inverse) !important;
+  color: var(--surface-inverse-text) !important;
 }
 
 .store-navbar__spacer {
@@ -290,8 +270,7 @@
   display: grid;
   align-content: start;
   gap: var(--space-6);
-  background: var(--surface);
-  border-inline-start: 1px solid var(--border-subtle);
+  background: var(--surface-bright);
 }
 
 .store-navbar__drawer-head,
@@ -332,13 +311,10 @@
   background: transparent;
 }
 
-.store-navbar__link--drawer::after {
-  display: none;
-}
-
 .store-navbar__link--drawer:hover,
 .store-navbar__link--drawer.store-navbar__link--active {
-  background: var(--interactive-hover);
+  background: var(--surface-low);
+  color: var(--text-primary);
 }
 
 @media (max-width: 1199px) {
@@ -347,7 +323,7 @@
   }
 
   .store-navbar__nav {
-    gap: var(--space-4);
+    gap: 6px;
   }
 
   .store-navbar__support-button {
@@ -357,13 +333,13 @@
 
 @media (max-width: 899px) {
   .store-navbar {
-    padding-top: 4px;
+    padding-top: 8px;
   }
 
   .store-navbar__toolbar {
-    min-height: 62px;
+    min-height: 68px;
     grid-template-columns: auto 1fr auto;
-    padding: 8px 0;
+    padding: 10px 12px;
   }
 
   .store-navbar__brand-name {
@@ -372,19 +348,20 @@
 
   .store-navbar__brand-mark,
   .store-navbar__brand-logo {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
   }
 
   .store-navbar__profile-trigger {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
   }
 }
 
 @media (max-width: 639px) {
   .store-navbar__toolbar {
     gap: var(--space-3);
+    padding-inline: 10px;
   }
 
   .store-navbar__eyebrow {
@@ -392,7 +369,7 @@
   }
 
   .store-navbar__brand-name {
-    max-width: 26vw;
+    max-width: 28vw;
     font-size: 0.96rem;
   }
 }

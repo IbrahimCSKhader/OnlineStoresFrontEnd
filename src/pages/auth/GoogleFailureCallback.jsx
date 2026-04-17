@@ -60,7 +60,9 @@ const ERROR_MESSAGES = {
 
 function resolveFailureMessage(searchParams) {
   const rawMessage = searchParams.get("message")?.trim();
-  const errorCode = searchParams.get("error")?.trim();
+  const errorCode =
+    searchParams.get("errorCode")?.trim() ||
+    searchParams.get("error")?.trim();
 
   if (rawMessage && ERROR_MESSAGES[rawMessage]) {
     return ERROR_MESSAGES[rawMessage];

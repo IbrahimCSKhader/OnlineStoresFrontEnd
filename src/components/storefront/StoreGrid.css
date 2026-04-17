@@ -21,9 +21,8 @@
   justify-items: center;
   text-align: center;
   padding: 2.4rem;
-  border: 1px dashed var(--border-subtle);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: var(--surface-low);
 }
 
 .store-grid--state .MuiTypography-h6 {

@@ -44,8 +44,7 @@
 .super-admin-story-card,
 .super-admin-detail-hero {
   border-radius: 24px;
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-elevated);
+  background: var(--surface-card);
   box-shadow: var(--shadow-soft);
 }
 
@@ -64,7 +63,7 @@
 }
 
 .super-admin-kpi-card--neutral {
-  background: color-mix(in srgb, var(--surface-muted) 74%, var(--surface-elevated));
+  background: var(--surface-low);
 }
 
 .super-admin-kpi-card__label {
@@ -142,8 +141,8 @@
   display: grid;
   gap: 18px;
   background:
-    linear-gradient(145deg, color-mix(in srgb, var(--primary) 8%, transparent), transparent 42%),
-    var(--surface-elevated);
+    radial-gradient(circle at top right, color-mix(in srgb, var(--primary-container) 10%, transparent), transparent 42%),
+    var(--gradient-panel);
 }
 
 .super-admin-detail-grid {
@@ -172,7 +171,7 @@
   align-items: flex-start;
   gap: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--ghost-border);
 }
 
 .super-admin-info-row:last-child {
@@ -186,20 +185,18 @@
 }
 
 .super-admin-owner-store-card {
-  border: 1px solid var(--border-subtle);
   border-radius: 18px;
   padding: 16px;
   display: grid;
   gap: 12px;
-  background: color-mix(in srgb, var(--surface-muted) 74%, var(--surface-elevated));
+  background: var(--surface-low);
 }
 
 .super-admin-store-visual {
   min-height: 180px;
   overflow: hidden;
   border-radius: 20px;
-  border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface-muted) 70%, var(--surface-elevated));
+  background: var(--surface-low);
 }
 
 .super-admin-store-visual img {
@@ -219,9 +216,8 @@
   width: 68px;
   height: 68px;
   border-radius: 18px;
-  border: 1px solid var(--border-subtle);
   object-fit: cover;
-  background: var(--surface-elevated);
+  background: var(--surface-card);
 }
 
 .super-admin-logo-thumb--empty {
@@ -245,8 +241,7 @@
   align-items: start;
   padding: 14px;
   border-radius: 18px;
-  border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface-muted) 74%, var(--surface-elevated));
+  background: var(--surface-low);
 }
 
 .super-admin-section-tabs {
@@ -258,9 +253,9 @@
 .super-admin-empty-inline {
   padding: 16px;
   border-radius: 18px;
-  border: 1px dashed var(--border-strong);
+  border: 1px dashed var(--ghost-border);
   color: var(--text-secondary);
-  background: color-mix(in srgb, var(--surface-muted) 74%, var(--surface-elevated));
+  background: var(--surface-low);
 }
 
 @media (max-width: 1180px) {

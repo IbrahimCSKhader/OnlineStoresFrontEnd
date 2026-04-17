@@ -76,9 +76,8 @@
   gap: var(--space-4);
   flex-wrap: wrap;
   padding: 14px 16px;
-  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  background: var(--surface-muted);
+  background: var(--surface-low);
 }
 
 .product-gallery {
@@ -130,11 +129,11 @@
   align-items: center;
   padding-inline: 10px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border-subtle) 88%, transparent);
+  background: var(--surface-overlay);
   color: var(--text-primary);
   font-size: 0.72rem;
   font-weight: 700;
+  backdrop-filter: blur(10px);
 }
 
 .product-gallery__thumbs {
@@ -166,8 +165,7 @@
   height: 76px;
   padding: 4px;
   border-radius: 16px;
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-elevated);
+  background: var(--surface-card);
   cursor: pointer;
   transition:
     transform var(--transition-fast),
@@ -178,7 +176,6 @@
 .product-gallery__thumb:hover,
 .product-gallery__thumb--active {
   transform: translateY(-2px);
-  border-color: var(--border-strong);
   box-shadow: var(--shadow-soft);
 }
 
@@ -213,8 +210,7 @@
 
 .product-gallery__lightbox-close,
 .product-gallery__lightbox-arrow {
-  border: 1px solid var(--border-subtle) !important;
-  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent) !important;
+  background: var(--surface-card) !important;
   color: var(--text-primary) !important;
 }
 
@@ -272,9 +268,8 @@
 .product-variants__item {
   padding: 16px;
   text-align: right;
-  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  background: var(--surface-muted);
+  background: var(--surface-low);
   cursor: pointer;
   transition:
     transform var(--transition-fast),
@@ -286,9 +281,8 @@
 .product-variants__item:hover,
 .product-variants__item--active {
   transform: translateY(-2px);
-  border-color: var(--border-strong);
   box-shadow: var(--shadow-soft);
-  background: color-mix(in srgb, var(--primary) 8%, var(--surface-muted));
+  background: color-mix(in srgb, var(--primary-container) 8%, var(--surface-low));
 }
 
 .product-variants__item--disabled,

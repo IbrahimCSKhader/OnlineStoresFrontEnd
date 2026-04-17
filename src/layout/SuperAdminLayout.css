@@ -4,8 +4,8 @@
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   direction: rtl;
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 10%, transparent), transparent 30%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-muted) 82%, var(--background)), var(--background));
+    radial-gradient(circle at top left, color-mix(in srgb, var(--primary-container) 10%, transparent), transparent 30%),
+    var(--gradient-page);
 }
 
 .super-admin-shell__sidebar {
@@ -13,9 +13,8 @@
   top: 0;
   height: 100vh;
   padding: 24px;
-  border-left: 1px solid var(--border-subtle);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 96%, transparent), var(--surface-elevated));
+  background: var(--nav-glass);
+  backdrop-filter: blur(var(--nav-blur));
 }
 
 .super-admin-shell__main {
@@ -55,22 +54,19 @@
   gap: 14px;
   padding: 14px 16px;
   border-radius: 18px;
-  border: 1px solid transparent;
   transition:
-    border-color var(--transition-fast),
     background-color var(--transition-fast),
     transform var(--transition-fast);
 }
 
 .super-admin-sidebar__link:hover {
   transform: translateY(-1px);
-  border-color: var(--border-subtle);
-  background: color-mix(in srgb, var(--primary) 4%, var(--surface-muted));
+  background: var(--surface-low);
 }
 
 .super-admin-sidebar__link--active {
-  border-color: color-mix(in srgb, var(--primary) 24%, var(--border-subtle));
-  background: color-mix(in srgb, var(--primary) 8%, var(--surface-elevated));
+  background: var(--surface-inverse);
+  color: var(--surface-inverse-text);
 }
 
 .super-admin-sidebar__icon {
@@ -79,8 +75,8 @@
   display: grid;
   place-items: center;
   border-radius: 14px;
-  color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: inherit;
+  background: color-mix(in srgb, var(--primary-container) 10%, transparent);
 }
 
 .super-admin-sidebar__copy {
@@ -98,8 +94,8 @@
   align-items: center;
   gap: 16px;
   padding: 24px;
-  background: color-mix(in srgb, var(--background) 82%, transparent);
-  backdrop-filter: blur(14px);
+  background: color-mix(in srgb, var(--background) 78%, transparent);
+  backdrop-filter: blur(18px);
 }
 
 .super-admin-topbar__title {

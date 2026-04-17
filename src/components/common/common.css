@@ -1,13 +1,15 @@
 .app-button.MuiButton-root {
   position: relative;
-  min-height: 46px;
+  min-height: 48px;
   border-radius: var(--radius-sm);
-  padding-inline: 18px;
+  padding-inline: 20px;
   font-weight: 700;
   transition:
     background-color var(--transition-fast),
     border-color var(--transition-fast),
-    color var(--transition-fast);
+    color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 .app-button.MuiButton-root.Mui-disabled {
@@ -16,46 +18,46 @@
 
 .app-button--primary.MuiButton-root {
   color: var(--button-text);
-  background: var(--primary);
-  border: 1px solid transparent;
-  box-shadow: none;
+  background: var(--cta-gradient);
+  border: 0;
+  box-shadow: var(--shadow-soft);
 }
 
 .app-button--primary.MuiButton-root:hover {
-  background: color-mix(in srgb, var(--primary) 92%, var(--surface-elevated));
-  box-shadow: none;
+  background: var(--cta-gradient);
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-1px);
 }
 
 .app-button--secondary.MuiButton-root {
   color: var(--text-primary);
-  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
-  border: 1px solid var(--border-subtle);
+  background: var(--surface-low);
+  border: 0;
 }
 
 .app-button--secondary.MuiButton-root:hover {
-  background: color-mix(in srgb, var(--primary) 5%, var(--surface-elevated));
-  border-color: var(--border-strong);
+  background: var(--surface-bright);
+  transform: translateY(-1px);
 }
 
 .app-button--ghost.MuiButton-root {
-  color: var(--text-primary);
+  color: var(--primary);
   background: transparent;
-  border: 1px solid transparent;
+  border: 0;
 }
 
 .app-button--ghost.MuiButton-root:hover {
-  background: color-mix(in srgb, var(--primary) 6%, transparent);
+  background: color-mix(in srgb, var(--primary-container) 6%, transparent);
 }
 
 .app-button--destructive.MuiButton-root {
   color: color-mix(in srgb, var(--status-error) 82%, var(--text-primary));
-  background: color-mix(in srgb, var(--status-error) 9%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--status-error) 28%, var(--border-subtle));
+  background: var(--error-soft);
+  border: 0;
 }
 
 .app-button--destructive.MuiButton-root:hover {
-  background: color-mix(in srgb, var(--status-error) 14%, var(--surface));
-  border-color: color-mix(in srgb, var(--status-error) 46%, var(--border-subtle));
+  background: color-mix(in srgb, var(--status-error) 16%, var(--surface-card));
 }
 
 .app-button__spinner {
@@ -66,21 +68,19 @@
 .app-surface-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  background: var(--surface-elevated);
-  box-shadow: none;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
 }
 
 .app-surface-card--subtle {
-  background: var(--surface-alt);
+  background: var(--surface-low);
 }
 
 .app-surface-card--contrast {
   color: var(--text-primary);
-  border-color: var(--border-subtle);
-  background: var(--surface-alt);
-  box-shadow: none;
+  background: var(--surface-bright);
+  box-shadow: var(--shadow-soft);
 }
 
 .app-surface-card--hero {
@@ -91,26 +91,30 @@
 }
 
 .app-surface-card--glass {
-  background: var(--surface-elevated);
+  background: var(--nav-glass);
+  backdrop-filter: blur(var(--nav-blur));
 }
 
 .app-surface-card--interactive {
   transition:
-    border-color var(--transition-base),
-    background-color var(--transition-base);
+    background-color var(--transition-base),
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
 }
 
 .app-surface-card--interactive:hover {
-  border-color: var(--border-strong);
+  background: var(--surface-bright);
+  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
 }
 
 .app-input .MuiInputBase-root {
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+  background: var(--surface-card);
 }
 
 .app-input .MuiInputBase-root:hover {
-  background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
+  background: var(--surface-bright);
 }
 
 .app-input .MuiInputBase-root.Mui-focused {
@@ -118,7 +122,7 @@
 }
 
 .app-input .MuiOutlinedInput-notchedOutline {
-  border-color: var(--border-subtle);
+  border-color: var(--ghost-border);
 }
 
 .app-input .MuiInputLabel-root {
@@ -135,9 +139,8 @@
   align-items: center;
   gap: var(--space-2);
   padding: 6px;
-  border: 1px solid var(--border-subtle);
   border-radius: 18px;
-  background: var(--surface-elevated);
+  background: var(--surface-low);
 }
 
 .app-quantity__button {
@@ -145,7 +148,7 @@
   height: 38px;
   border: 0;
   border-radius: 12px;
-  background: transparent;
+  background: var(--surface-card);
   color: var(--text-primary);
   cursor: pointer;
   transition:
@@ -174,16 +177,16 @@
   width: min(92vw, 640px);
   padding: var(--panel-padding);
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-elevated);
-  box-shadow: none;
+  background: var(--surface-bright);
+  box-shadow: var(--shadow-strong);
+  backdrop-filter: blur(14px);
 }
 
 .app-data-table {
   overflow: hidden;
   border-radius: var(--radius-xl);
-  border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
 }
 
 .app-data-table__container {
@@ -196,6 +199,7 @@
 
 .app-data-table__head-cell {
   white-space: nowrap;
+  background: var(--surface-low);
 }
 
 .app-data-table__cell {
@@ -207,7 +211,7 @@
 }
 
 .app-data-table--zebra .MuiTableBody-root .MuiTableRow-root:nth-of-type(even) {
-  background: color-mix(in srgb, var(--surface-muted) 70%, transparent);
+  background: color-mix(in srgb, var(--surface-low) 76%, transparent);
 }
 
 .app-empty-state,
@@ -218,6 +222,8 @@
   gap: var(--space-4);
   text-align: center;
   padding: var(--panel-padding);
+  border-radius: var(--radius-xl);
+  background: var(--surface-low);
 }
 
 .app-empty-state__body,

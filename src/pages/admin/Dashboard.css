@@ -11,8 +11,7 @@
   align-items: stretch;
   padding: clamp(1.45rem, 2.6vw, 2.15rem);
   border-radius: 32px;
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-elevated);
+  background: var(--gradient-panel);
   box-shadow: var(--shadow-soft);
 }
 
@@ -46,8 +45,7 @@
 .admin-dashboard__chip {
   padding: 1.05rem;
   border-radius: 22px;
-  border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface-muted) 74%, var(--surface-elevated));
+  background: var(--surface-low);
 }
 
 .admin-dashboard__chip h6 {

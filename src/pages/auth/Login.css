@@ -2,12 +2,17 @@
   position: relative;
   display: flex;
   justify-content: center;
-  padding: var(--space-3) 0 var(--space-8);
+  padding: var(--space-4) 0 var(--space-8);
   overflow: hidden;
 }
 
 .page-login__glow {
-  display: none;
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+  filter: blur(54px);
+  opacity: 0.72;
+  pointer-events: none;
 }
 
 .page-login__glow--one {
@@ -37,9 +42,9 @@
 
 .page-login__panel {
   border-radius: var(--radius-xxl);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-elevated);
-  box-shadow: none;
+  background: var(--surface-overlay);
+  box-shadow: var(--shadow-medium);
+  backdrop-filter: blur(16px);
 }
 
 .page-login__panel--form {
@@ -51,7 +56,7 @@
 
 .page-login__eyebrow {
   color: var(--text-secondary);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
 }
 
 .page-login__form-title {

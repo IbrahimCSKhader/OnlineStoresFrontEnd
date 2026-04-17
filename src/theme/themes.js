@@ -1,24 +1,17 @@
 import { alpha, createTheme } from "@mui/material/styles";
 import { themeCatalog, tokens } from "./tokens.js";
-import {
-  lighten,
-  pickTextColor,
-  withAlpha,
-} from "./branding.js";
+import { lighten, pickTextColor, withAlpha } from "./branding.js";
 
 export const THEME_VARIANTS = /** @type {const} */ (Object.keys(themeCatalog));
 
 function buildMuiShadows(mode) {
   const shadowColor =
     mode === "dark"
-      ? "rgba(0, 0, 0, 0.18)"
-      : "rgba(15, 23, 42, 0.06)";
+      ? "rgba(0, 0, 0, 0.22)"
+      : "rgba(25, 28, 30, 0.08)";
 
   return [
     "none",
-    `0 1px 2px ${shadowColor}`,
-    `0 2px 6px ${shadowColor}`,
-    `0 3px 8px ${shadowColor}`,
     `0 4px 10px ${shadowColor}`,
     `0 5px 12px ${shadowColor}`,
     `0 6px 14px ${shadowColor}`,
@@ -40,35 +33,57 @@ function buildMuiShadows(mode) {
     `0 22px 46px ${shadowColor}`,
     `0 23px 48px ${shadowColor}`,
     `0 24px 50px ${shadowColor}`,
+    `0 25px 52px ${shadowColor}`,
+    `0 26px 54px ${shadowColor}`,
+    `0 27px 56px ${shadowColor}`,
   ];
 }
 
 function attachUtilityPalette(palette, isDark) {
-  const inverseSurface = isDark ? palette.primary : palette.textPrimary;
+  const primaryContainer = palette.primaryContainer || palette.primary;
+  const outlineVariant = palette.outlineVariant || palette.border;
+  const inverseSurface = isDark ? palette.surfaceBright : palette.primary;
 
   return {
     ...palette,
-    buttonText: pickTextColor(palette.primary, "#111827", "#FFFFFF"),
-    accentText: pickTextColor(palette.accent, "#111827", "#FFFFFF"),
-    focusRing: withAlpha(palette.primary, isDark ? 0.26 : 0.16),
-    pageGlowA: "transparent",
-    pageGlowB: "transparent",
-    navBackground: palette.surface,
+    buttonText: pickTextColor(palette.primary, "#101317", "#FFFFFF"),
+    accentText: pickTextColor(palette.accent, "#101317", "#FFFFFF"),
+    focusRing: withAlpha(primaryContainer, isDark ? 0.26 : 0.16),
+    pageGlowA: withAlpha(primaryContainer, isDark ? 0.28 : 0.1),
+    pageGlowB: withAlpha(palette.accent, isDark ? 0.22 : 0.14),
+    navBackground: withAlpha(
+      palette.surfaceBright || palette.surface,
+      isDark ? 0.84 : 0.8,
+    ),
     accentSoft: withAlpha(palette.accent, isDark ? 0.16 : 0.1),
-    surfaceOverlay: palette.surface,
+    surfaceOverlay: withAlpha(
+      palette.surfaceBright || palette.surface,
+      isDark ? 0.94 : 0.92,
+    ),
     surfaceInverse: inverseSurface,
     surfaceInverseHover: isDark
       ? lighten(inverseSurface, 0.04)
       : lighten(inverseSurface, 0.08),
     surfaceInverseText: pickTextColor(
       inverseSurface,
-      isDark ? palette.background : "#111827",
+      isDark ? palette.background : "#101317",
       "#FFFFFF",
     ),
-    surfacePanelSpotlight: withAlpha(palette.primary, isDark ? 0.08 : 0.03),
-    gradientPanel: palette.surface,
-    gradientSoftIcon: withAlpha(palette.primary, isDark ? 0.14 : 0.08),
-    heroSheen: "transparent",
+    surfacePanelSpotlight: withAlpha(primaryContainer, isDark ? 0.2 : 0.06),
+    gradientPanel: `linear-gradient(180deg, ${withAlpha(
+      palette.surfaceBright || palette.surface,
+      isDark ? 0.98 : 1,
+    )}, ${withAlpha(palette.surfaceCard || palette.surface, isDark ? 0.96 : 0.98)})`,
+    gradientSoftIcon: withAlpha(primaryContainer, isDark ? 0.18 : 0.08),
+    heroSheen: isDark
+      ? `radial-gradient(circle at top right, ${withAlpha(primaryContainer, 0.24)} 0%, transparent 56%)`
+      : `radial-gradient(circle at top left, ${withAlpha(primaryContainer, 0.08)} 0%, transparent 58%)`,
+    ghostBorder: withAlpha(outlineVariant, isDark ? 0.22 : 0.15),
+    ghostBorderStrong: withAlpha(outlineVariant, isDark ? 0.34 : 0.26),
+    ctaGradient: `linear-gradient(145deg, ${palette.primary} 0%, ${primaryContainer} 100%)`,
+    successSoft: withAlpha(palette.success, isDark ? 0.16 : 0.12),
+    warningSoft: withAlpha(palette.warning, isDark ? 0.16 : 0.12),
+    errorSoft: withAlpha(palette.error, isDark ? 0.16 : 0.12),
   };
 }
 
@@ -87,6 +102,7 @@ export function buildThemeProfile(variant = "light", branding = null) {
 
   const cssVars = {
     "--primary": palette.primary,
+    "--primary-container": palette.primaryContainer || palette.primary,
     "--secondary": palette.secondary,
     "--accent": palette.accent,
     "--status-success": palette.success,
@@ -94,6 +110,9 @@ export function buildThemeProfile(variant = "light", branding = null) {
     "--status-error": palette.error,
     "--background": palette.background,
     "--surface": palette.surface,
+    "--surface-low": palette.surfaceLow || palette.surfaceAlt,
+    "--surface-card": palette.surfaceCard || palette.surface,
+    "--surface-bright": palette.surfaceBright || palette.surfaceElevated,
     "--surface-muted": palette.surfaceAlt,
     "--surface-alt": palette.surfaceAlt,
     "--surface-elevated": palette.surfaceElevated,
@@ -102,8 +121,10 @@ export function buildThemeProfile(variant = "light", branding = null) {
     "--text-primary": palette.textPrimary,
     "--text-secondary": palette.textSecondary,
     "--text-muted": palette.textMuted,
-    "--border-subtle": withAlpha(palette.border, isDark ? 0.88 : 0.72),
-    "--border-strong": palette.borderStrong,
+    "--border-subtle": palette.ghostBorder,
+    "--border-strong": palette.ghostBorderStrong,
+    "--ghost-border": palette.ghostBorder,
+    "--outline-ghost": palette.ghostBorder,
     "--button-text": palette.buttonText,
     "--accent-text": palette.accentText,
     "--interactive-hover": palette.hover,
@@ -115,7 +136,12 @@ export function buildThemeProfile(variant = "light", branding = null) {
     "--page-glow-a": palette.pageGlowA,
     "--page-glow-b": palette.pageGlowB,
     "--nav-background": palette.navBackground,
+    "--nav-glass": palette.navBackground,
+    "--nav-blur": "20px",
     "--accent-soft": palette.accentSoft,
+    "--success-soft": palette.successSoft,
+    "--warning-soft": palette.warningSoft,
+    "--error-soft": palette.errorSoft,
     "--surface-inverse": palette.surfaceInverse,
     "--surface-inverse-hover": palette.surfaceInverseHover,
     "--surface-inverse-text": palette.surfaceInverseText,
@@ -126,6 +152,7 @@ export function buildThemeProfile(variant = "light", branding = null) {
     "--gradient-page": preset.gradients.page,
     "--gradient-hero": preset.gradients.hero,
     "--gradient-accent": preset.gradients.accent,
+    "--cta-gradient": palette.ctaGradient,
     "--font-body": tokens.fontFamily,
     "--font-heading": tokens.fontFamilyHeading,
     "--max-width": `${tokens.layout.maxWidth}px`,
@@ -197,27 +224,27 @@ const sharedTypography = {
   },
   h5: {
     fontFamily: tokens.fontFamilyHeading,
-    fontWeight: 700,
-    fontSize: "1.125rem",
-    lineHeight: 1.34,
-    letterSpacing: 0,
+    fontWeight: 720,
+    fontSize: "1.25rem",
+    lineHeight: 1.42,
+    letterSpacing: "-0.01em",
   },
   h6: {
     fontFamily: tokens.fontFamilyHeading,
     fontWeight: 700,
     fontSize: "1rem",
-    lineHeight: 1.4,
-    letterSpacing: 0,
+    lineHeight: 1.46,
+    letterSpacing: "-0.01em",
   },
   subtitle1: {
     fontSize: "1rem",
     fontWeight: 700,
-    lineHeight: 1.6,
+    lineHeight: 1.7,
   },
   subtitle2: {
     fontSize: tokens.typography.sizes.bodySm,
     fontWeight: 600,
-    lineHeight: 1.6,
+    lineHeight: 1.66,
   },
   body1: {
     fontSize: tokens.typography.sizes.body,
@@ -225,7 +252,7 @@ const sharedTypography = {
   },
   body2: {
     fontSize: tokens.typography.sizes.bodySm,
-    lineHeight: 1.68,
+    lineHeight: 1.78,
   },
   button: {
     textTransform: "none",
@@ -235,7 +262,7 @@ const sharedTypography = {
   },
   caption: {
     fontSize: tokens.typography.sizes.caption,
-    lineHeight: 1.6,
+    lineHeight: 1.68,
   },
   overline: {
     fontSize: tokens.typography.sizes.overline,
@@ -278,13 +305,13 @@ export function createAppTheme(variant = "light", branding = null) {
       },
       background: {
         default: palette.background,
-        paper: palette.surface,
+        paper: palette.surfaceCard || palette.surface,
       },
       text: {
         primary: palette.textPrimary,
         secondary: palette.textSecondary,
       },
-      divider: palette.border,
+      divider: palette.ghostBorder,
       success: {
         main: palette.success,
       },
@@ -313,26 +340,38 @@ export function createAppTheme(variant = "light", branding = null) {
             minHeight: "100%",
             color: palette.textPrimary,
             backgroundColor: palette.background,
-            backgroundImage: "none",
+            backgroundImage: profile.gradients.page,
           },
           a: {
             color: "inherit",
             textDecoration: "none",
           },
           "::selection": {
-            backgroundColor: withAlpha(palette.primary, isDark ? 0.34 : 0.18),
+            backgroundColor: withAlpha(
+              palette.primaryContainer || palette.primary,
+              isDark ? 0.34 : 0.18,
+            ),
           },
           "::-webkit-scrollbar": {
             width: 10,
             height: 10,
           },
           "::-webkit-scrollbar-thumb": {
-            backgroundColor: withAlpha(palette.primary, isDark ? 0.38 : 0.28),
-            border: `2px solid ${withAlpha(palette.surfaceElevated, isDark ? 0.96 : 0.98)}`,
+            backgroundColor: withAlpha(
+              palette.primaryContainer || palette.primary,
+              isDark ? 0.34 : 0.18,
+            ),
+            border: `2px solid ${withAlpha(
+              palette.surfaceBright || palette.surface,
+              isDark ? 0.94 : 0.98,
+            )}`,
             borderRadius: 999,
           },
           "::-webkit-scrollbar-track": {
-            backgroundColor: withAlpha(palette.primary, isDark ? 0.08 : 0.04),
+            backgroundColor: withAlpha(
+              palette.primaryContainer || palette.primary,
+              isDark ? 0.08 : 0.04,
+            ),
           },
         },
       },
@@ -346,6 +385,7 @@ export function createAppTheme(variant = "light", branding = null) {
             backgroundColor: "transparent",
             backgroundImage: "none",
             color: palette.textPrimary,
+            boxShadow: "none",
           },
         },
       },
@@ -353,8 +393,9 @@ export function createAppTheme(variant = "light", branding = null) {
         styleOverrides: {
           root: {
             backgroundImage: "none",
-            backgroundColor: palette.surface,
+            backgroundColor: palette.surfaceCard || palette.surface,
             borderRadius: tokens.radii.lg,
+            boxShadow: profile.shadows.soft,
           },
         },
       },
@@ -364,12 +405,12 @@ export function createAppTheme(variant = "light", branding = null) {
         },
         styleOverrides: {
           root: {
-            minHeight: 46,
+            minHeight: 48,
             borderRadius: tokens.radii.sm,
-            paddingInline: 18,
+            paddingInline: 20,
             boxShadow: "none",
             transition:
-              "box-shadow var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast)",
+              "box-shadow var(--transition-fast), background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast)",
             "&:focus-visible": {
               boxShadow: `0 0 0 3px ${palette.focusRing}`,
             },
@@ -380,25 +421,31 @@ export function createAppTheme(variant = "light", branding = null) {
           },
           contained: {
             backgroundColor: palette.primary,
+            backgroundImage: profile.gradients.accent,
             color: palette.buttonText,
-            boxShadow: "none",
+            boxShadow: profile.shadows.soft,
             "&:hover": {
-              backgroundColor: lighten(palette.primary, isDark ? 0.06 : 0.04),
-              boxShadow: "none",
+              backgroundColor: lighten(palette.primary, isDark ? 0.04 : 0.02),
+              backgroundImage: profile.gradients.accent,
+              boxShadow: profile.shadows.medium,
+              transform: "translateY(-1px)",
             },
           },
           outlined: {
-            borderColor: withAlpha(palette.borderStrong, isDark ? 0.72 : 0.58),
-            backgroundColor: palette.surface,
+            borderColor: "transparent",
+            backgroundColor: palette.surfaceLow || palette.secondary,
             "&:hover": {
-              borderColor: palette.borderStrong,
-              backgroundColor: withAlpha(palette.primary, isDark ? 0.1 : 0.05),
+              borderColor: "transparent",
+              backgroundColor: palette.surfaceBright || palette.surfaceContrast,
             },
           },
           text: {
-            color: palette.textPrimary,
+            color: palette.primary,
             "&:hover": {
-              backgroundColor: withAlpha(palette.primary, isDark ? 0.12 : 0.06),
+              backgroundColor: withAlpha(
+                palette.primaryContainer || palette.primary,
+                isDark ? 0.18 : 0.06,
+              ),
             },
           },
         },
@@ -409,14 +456,14 @@ export function createAppTheme(variant = "light", branding = null) {
             borderRadius: 999,
             height: 28,
             fontWeight: 600,
-            borderColor: withAlpha(palette.borderStrong, isDark ? 0.5 : 0.38),
-            backgroundColor: palette.surface,
+            borderColor: "transparent",
+            backgroundColor: palette.surfaceLow || palette.secondary,
           },
           filled: {
             backgroundColor: palette.accentSoft,
           },
           outlined: {
-            backgroundColor: palette.surface,
+            backgroundColor: palette.surfaceLow || palette.secondary,
           },
         },
       },
@@ -424,10 +471,16 @@ export function createAppTheme(variant = "light", branding = null) {
         styleOverrides: {
           root: {
             borderRadius: tokens.radii.sm,
+            border: `1px solid ${palette.ghostBorder}`,
+            backgroundColor: withAlpha(
+              palette.surfaceBright || palette.surface,
+              isDark ? 0.76 : 0.92,
+            ),
             transition:
-              "background-color var(--transition-fast), border-color var(--transition-fast)",
+              "background-color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast)",
             "&:hover": {
-              backgroundColor: palette.hover,
+              backgroundColor: palette.surfaceBright || palette.hover,
+              transform: "translateY(-1px)",
             },
           },
         },
@@ -437,14 +490,14 @@ export function createAppTheme(variant = "light", branding = null) {
           root: {
             minHeight: 50,
             borderRadius: tokens.radii.md,
-            backgroundColor: palette.surface,
+            backgroundColor: palette.surfaceCard || palette.surface,
             transition:
               "background-color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast)",
             "&:hover": {
-              backgroundColor: palette.surface,
+              backgroundColor: palette.surfaceBright || palette.surface,
             },
             "&.Mui-focused": {
-              backgroundColor: palette.surfaceElevated,
+              backgroundColor: palette.surfaceBright || palette.surfaceCard,
               boxShadow: `0 0 0 3px ${palette.focusRing}`,
             },
           },
@@ -463,7 +516,7 @@ export function createAppTheme(variant = "light", branding = null) {
             },
           },
           notchedOutline: {
-            borderColor: withAlpha(palette.border, isDark ? 0.86 : 0.72),
+            borderColor: palette.ghostBorder,
           },
         },
       },
@@ -492,14 +545,15 @@ export function createAppTheme(variant = "light", branding = null) {
       MuiTableCell: {
         styleOverrides: {
           root: {
-            borderBottom: `1px solid ${withAlpha(palette.border, isDark ? 0.82 : 0.52)}`,
-            paddingTop: 14,
-            paddingBottom: 14,
+            borderBottom: "none",
+            paddingTop: 16,
+            paddingBottom: 16,
           },
           head: {
             fontSize: tokens.typography.sizes.caption,
             fontWeight: 700,
             color: palette.textSecondary,
+            backgroundColor: palette.surfaceLow || palette.secondary,
           },
           body: {
             fontSize: tokens.typography.sizes.body,
@@ -511,7 +565,7 @@ export function createAppTheme(variant = "light", branding = null) {
           root: {
             transition: "background-color var(--transition-fast)",
             "&.MuiTableRow-hover:hover": {
-              backgroundColor: withAlpha(palette.primary, isDark ? 0.08 : 0.04),
+              backgroundColor: palette.surfaceBright || palette.hover,
             },
           },
         },
@@ -519,7 +573,7 @@ export function createAppTheme(variant = "light", branding = null) {
       MuiDivider: {
         styleOverrides: {
           root: {
-            borderColor: withAlpha(palette.border, isDark ? 0.82 : 0.58),
+            borderColor: palette.ghostBorder,
           },
         },
       },
@@ -527,7 +581,9 @@ export function createAppTheme(variant = "light", branding = null) {
         styleOverrides: {
           root: {
             borderRadius: 16,
-            border: `1px solid ${withAlpha(palette.borderStrong, isDark ? 0.46 : 0.32)}`,
+            border: "none",
+            backgroundColor: palette.surfaceBright || palette.surface,
+            boxShadow: profile.shadows.soft,
           },
         },
       },
@@ -535,14 +591,16 @@ export function createAppTheme(variant = "light", branding = null) {
         styleOverrides: {
           paper: {
             backgroundImage: "none",
-            backgroundColor: palette.surface,
+            backgroundColor: palette.surfaceBright || palette.surface,
+            boxShadow: profile.shadows.strong,
           },
         },
       },
       MuiBackdrop: {
         styleOverrides: {
           root: {
-            backgroundColor: alpha("#000000", isDark ? 0.62 : 0.34),
+            backgroundColor: alpha("#000000", isDark ? 0.68 : 0.22),
+            backdropFilter: "blur(6px)",
           },
         },
       },
@@ -561,8 +619,11 @@ export function createAppTheme(variant = "light", branding = null) {
       MuiMenuItem: {
         styleOverrides: {
           root: {
-            borderRadius: 12,
+            borderRadius: 14,
             margin: 4,
+            "&:hover": {
+              backgroundColor: palette.surfaceLow || palette.hover,
+            },
           },
         },
       },
