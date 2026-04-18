@@ -205,9 +205,28 @@ function isStoreScopedIdentity(identity, fallbackRole = "") {
     isGuestRole(identity.accountType) ||
     isStoreCustomerRole(fallbackRole) ||
     isGuestRole(fallbackRole) ||
-    Boolean(identity.storeCustomerId) ||
-    Boolean(identity.storeId)
+    Boolean(identity.storeCustomerId)
   );
+}
+
+function resolveStoreScopedCustomerId(identity, fallbackRole = "") {
+  const explicitStoreCustomerId = normalizeText(identity?.storeCustomerId);
+
+  if (explicitStoreCustomerId) {
+    return explicitStoreCustomerId;
+  }
+
+  const accountType = normalizeText(identity?.accountType);
+  if (
+    isStoreCustomerRole(accountType) ||
+    isGuestRole(accountType) ||
+    isStoreCustomerRole(fallbackRole) ||
+    isGuestRole(fallbackRole)
+  ) {
+    return normalizeText(identity?.id);
+  }
+
+  return "";
 }
 
 function coerceRoleValue(value) {
@@ -253,15 +272,22 @@ export function extractUser(data, token = "") {
   const decodedToken = decodeJwtToken(token);
   const identitySource = resolveIdentitySource(data);
   const identity = normalizeIdentity(identitySource, decodedToken, data);
+  const fallbackRole = pickFirstValue(
+    data?.role,
+    data?.data?.role,
+    data?.accountType,
+    data?.data?.accountType,
+    pickClaim(decodedToken, roleKeys),
+  );
 
   if (!identity) {
     return null;
   }
 
-  if (isStoreScopedIdentity(identity, identity.accountType)) {
+  if (isStoreScopedIdentity(identity, fallbackRole)) {
     return {
       ...identity,
-      storeCustomerId: normalizeText(identity.storeCustomerId || identity.id),
+      storeCustomerId: resolveStoreScopedCustomerId(identity, fallbackRole),
     };
   }
 
@@ -283,7 +309,7 @@ export function extractStorefrontCustomer(data, token = "") {
     return null;
   }
 
-  const storeCustomerId = normalizeText(identity?.storeCustomerId || identity?.id);
+  const storeCustomerId = resolveStoreScopedCustomerId(identity, fallbackRole);
 
   return {
     ...identity,
@@ -305,8 +331,10 @@ export function extractRole(data, token, user) {
     user?.roles,
     user?.userRole,
     user?.accountRole,
-    user?.accountType,
     ...roleKeys.map((key) => decodedToken?.[key]),
+    user?.accountType,
+    data?.accountType,
+    data?.data?.accountType,
   ];
 
   return coerceRoleValue(pickFirstValue(...directCandidates));
