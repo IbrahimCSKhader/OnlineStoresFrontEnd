@@ -1413,6 +1413,31 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     }
   };
 
+  useEffect(() => {
+    if (!isCompactScreen) {
+      setIsMobileSidebarOpen(false);
+    }
+  }, [isCompactScreen]);
+
+  useEffect(() => {
+    if (!isCompactScreen || typeof window === "undefined") {
+      return undefined;
+    }
+
+    const syncLauncherPosition = () => {
+      setMobileSidebarLauncherTop((previous) =>
+        clampMobileSidebarLauncherTop(previous),
+      );
+    };
+
+    syncLauncherPosition();
+    window.addEventListener("resize", syncLauncherPosition);
+
+    return () => {
+      window.removeEventListener("resize", syncLauncherPosition);
+    };
+  }, [isCompactScreen]);
+
   if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
   if (!isOwnerRole(role)) return <Navigate to="/market" replace />;
 
@@ -1539,31 +1564,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
     setIsMobileSidebarOpen(true);
   };
-
-  useEffect(() => {
-    if (!isCompactScreen) {
-      setIsMobileSidebarOpen(false);
-    }
-  }, [isCompactScreen]);
-
-  useEffect(() => {
-    if (!isCompactScreen || typeof window === "undefined") {
-      return undefined;
-    }
-
-    const syncLauncherPosition = () => {
-      setMobileSidebarLauncherTop((previous) =>
-        clampMobileSidebarLauncherTop(previous),
-      );
-    };
-
-    syncLauncherPosition();
-    window.addEventListener("resize", syncLauncherPosition);
-
-    return () => {
-      window.removeEventListener("resize", syncLauncherPosition);
-    };
-  }, [isCompactScreen]);
 
   const handleProductFormChange = (key, value) => {
     setProductForm((previous) => {
