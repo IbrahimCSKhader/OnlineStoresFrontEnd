@@ -195,21 +195,21 @@ export default function VerifyEmail() {
   function handleStoreScopedAuthError(error) {
     if (error?.code === "STORE_SCOPE_MISMATCH") {
       setLocalError(
-        "ط§ظ†طھظ‡طھ طµظ„ط§ط­ظٹط© ط³ظٹط§ظ‚ ط§ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹ. ط£ط¹ط¯ ظپطھط­ ط§ظ„ظ…طھط¬ط± ط§ظ„طµط­ظٹط­ ط«ظ… ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰.",
+        "انتهت صلاحية سياق المتجر الحالي. أعد فتح المتجر الصحيح ثم حاول مرة أخرى.",
       );
       return true;
     }
 
     if (error?.code === "STORE_SCOPE_UNRESOLVED") {
       setLocalError(
-        "طھط¹ط°ط± طھط£ظƒظٹط¯ ط§ظ†طھظ…ط§ط، ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨ ظ„ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹ. ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰.",
+        "تعذر تأكيد انتماء هذا الحساب للمتجر الحالي. حاول مرة أخرى.",
       );
       return true;
     }
 
     if (error?.code === "STORE_MEMBERSHIP_REQUIRED") {
       setLocalError(
-        "ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨ ظ„ظٹط³ ظ…ط§ظ„ظƒظ‹ط§ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط± ظˆظ„ط§ ط²ط¨ظˆظ†ظ‹ط§ ظ…ط³ط¬ظ„ظ‹ط§ ظپظٹظ‡.",
+        "هذا الحساب ليس مالكًا لهذا المتجر ولا زبونًا مسجلًا فيه.",
       );
       return true;
     }
@@ -318,7 +318,7 @@ export default function VerifyEmail() {
         return;
       }
 
-      setLocalError(extractApiError(error, "طھط¹ط°ط± ط§ظ„طھط­ظ‚ظ‚ ظ…ظ† ط§ظ„ط¨ط±ظٹط¯."));
+      setLocalError(extractApiError(error, "تعذر التحقق من البريد."));
     }
   });
 

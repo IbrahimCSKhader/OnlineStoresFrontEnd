@@ -101,77 +101,77 @@ import "./OwnerDashboard.css";
 const TAB_CONFIG = [
   {
     key: "overview",
-    label: "ظ†ط¸ط±ط© ط¹ط§ظ…ط©",
+    label: "نظرة عامة",
     route: "/owner",
-    description: "ظ…ظ„ط®طµ ط§ظ„ظ…طھط¬ط± ط§ظ„ط³ط±ظٹط¹",
+    description: "ملخص المتجر السريع",
     icon: <StorefrontRoundedIcon fontSize="small" />,
   },
   {
     key: "products",
-    label: "ط§ظ„ظ…ظ†طھط¬ط§طھ",
+    label: "المنتجات",
     route: "/owner/products",
-    description: "ط¥ط¶ط§ظپط© ظˆطھط¹ط¯ظٹظ„ ظˆظ†ط´ط± ط§ظ„ظ…ظ†طھط¬ط§طھ",
+    description: "إضافة وتعديل ونشر المنتجات",
     icon: <Inventory2RoundedIcon fontSize="small" />,
   },
   {
     key: "subscription",
-    label: "ط§ط´طھط±ط§ظƒ ط§ظ„ظ…طھط¬ط±",
+    label: "اشتراك المتجر",
     route: "/owner/subscription",
-    description: "ط¥ط¯ط§ط±ط© ط§ظ„ط¨ط§ظ‚ط© ظˆط­ط¯ظˆط¯ ط§ظ„ط§ط³طھط®ط¯ط§ظ…",
+    description: "إدارة الباقة وحدود الاستخدام",
     icon: <WorkspacePremiumRoundedIcon fontSize="small" />,
   },
   {
     key: "categories",
-    label: "ط§ظ„طھطµظ†ظٹظپط§طھ",
+    label: "التصنيفات",
     route: "/owner/categories",
-    description: "ط¨ظ†ط§ط، ط´ط¬ط±ط© ط§ظ„ظƒط§طھظٹط¬ظˆط±ظٹط²",
+    description: "بناء شجرة الكاتيجوريز",
     icon: <CategoryRoundedIcon fontSize="small" />,
   },
   {
     key: "sections",
-    label: "ط§ظ„ط£ظ‚ط³ط§ظ…",
+    label: "الأقسام",
     route: "/owner/sections",
-    description: "طھظ†ط¸ظٹظ… ط¹ط±ط¶ ط§ظ„ظ…ظ†طھط¬ط§طھ ظپظٹ ط§ظ„ظˆط§ط¬ظ‡ط©",
+    description: "تنظيم عرض المنتجات في الواجهة",
     icon: <LayersRoundedIcon fontSize="small" />,
   },
   {
     key: "orders",
-    label: "ط§ظ„ط·ظ„ط¨ط§طھ",
+    label: "الطلبات",
     route: "/owner/orders",
-    description: "ظ…طھط§ط¨ط¹ط© ط§ظ„ط­ط§ظ„ط© ظˆط§ظ„طھط¬ظ‡ظٹط²",
+    description: "متابعة الحالة والتجهيز",
     icon: <LocalMallRoundedIcon fontSize="small" />,
   },
   {
     key: "coupons",
-    label: "ط§ظ„ظƒظˆط¨ظˆظ†ط§طھ",
+    label: "الكوبونات",
     route: "/owner/coupons",
-    description: "ط¨ظ†ط§ط، ط§ظ„ط¹ط±ظˆط¶ ط§ظ„ط³ط±ظٹط¹ط©",
+    description: "بناء العروض السريعة",
     icon: <ConfirmationNumberRoundedIcon fontSize="small" />,
   },
   {
     key: "customers",
-    label: "ط²ط¨ط§ط¦ظ† ط§ظ„ظ…طھط¬ط±",
+    label: "زبائن المتجر",
     route: "/owner/customers",
-    description: "طھط­ط¯ظٹط¯ ظ…ظ† ظٹط´ط§ظ‡ط¯ ط³ط¹ط± ط§ظ„ط¬ظ…ظ„ط© ط¯ط§ط®ظ„ ط§ظ„ظ…طھط¬ط±",
+    description: "تحديد من يشاهد سعر الجملة داخل المتجر",
     icon: <PeopleAltRoundedIcon fontSize="small" />,
   },
   {
     key: "reviews",
-    label: "ط§ظ„طھظ‚ظٹظٹظ…ط§طھ",
+    label: "التقييمات",
     route: "/owner/reviews",
-    description: "ط§ط¹طھظ…ط§ط¯ ط£ظˆ ط±ظپط¶ ط§ظ„ظ…ط±ط§ط¬ط¹ط§طھ",
+    description: "اعتماد أو رفض المراجعات",
     icon: <RateReviewRoundedIcon fontSize="small" />,
   },
 ];
 
 const ORDER_STATUS_OPTIONS = [
-  { value: 0, label: "ظ‚ظٹط¯ ط§ظ„ط§ظ†طھط¸ط§ط±" },
-  { value: 1, label: "طھظ… ط§ظ„طھط£ظƒظٹط¯" },
-  { value: 2, label: "ظ‚ظٹط¯ ط§ظ„طھط¬ظ‡ظٹط²" },
-  { value: 3, label: "طھظ… ط§ظ„ط´ط­ظ†" },
-  { value: 4, label: "طھظ… ط§ظ„طھط³ظ„ظٹظ…" },
-  { value: 5, label: "ظ…ظ„ط؛ظٹ" },
-  { value: 6, label: "ظ…ط³طھط±ط¬ط¹" },
+  { value: 0, label: "قيد الانتظار" },
+  { value: 1, label: "تم التأكيد" },
+  { value: 2, label: "قيد التجهيز" },
+  { value: 3, label: "تم الشحن" },
+  { value: 4, label: "تم التسليم" },
+  { value: 5, label: "ملغي" },
+  { value: 6, label: "مسترجع" },
 ];
 
 const MOBILE_SIDEBAR_LAUNCHER_DEFAULT_TOP = 220;
@@ -202,12 +202,12 @@ function getErrorMessage(error) {
     error?.response?.data?.message ||
     error?.response?.data?.title ||
     error?.message ||
-    "طھط¹ط°ط± طھظ†ظپظٹط° ط§ظ„ط¹ظ…ظ„ظٹط©. ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰."
+    "تعذر تنفيذ العملية. حاول مرة أخرى."
   );
 }
 
 function getApiErrorMessage(error) {
-  return extractApiError(error, "طھط¹ط°ط± طھظ†ظپظٹط° ط§ظ„ط¹ظ…ظ„ظٹط©. ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰.");
+  return extractApiError(error, "تعذر تنفيذ العملية. حاول مرة أخرى.");
 }
 
 function normalizeText(value) {
@@ -484,9 +484,9 @@ function normalizeStoreCustomer(item) {
     fullName: firstDefined(
       item?.fullName,
       `${item?.firstName || ""} ${item?.lastName || ""}`.trim(),
-      "ط¹ظ…ظٹظ„ ط§ظ„ظ…طھط¬ط±",
+      "عميل المتجر",
     ),
-    name: customer.name || "ظ…ط³طھط®ط¯ظ…",
+    name: customer.name || "مستخدم",
     email: customer.email || "-",
     phone: firstDefined(item?.phone, "-"),
     discountPercentage: toNumber(
@@ -523,7 +523,7 @@ function _dedupeCustomers(customers) {
 function getOrderStatusLabel(value) {
   return (
     ORDER_STATUS_OPTIONS.find((option) => option.value === Number(value))
-      ?.label || "ط؛ظٹط± ظ…ط­ط¯ط¯ط©"
+      ?.label || "غير محددة"
   );
 }
 
@@ -566,7 +566,7 @@ function normalizeReviewItem(item) {
     ...item,
     storeCustomerFullName: firstDefined(
       item?.storeCustomerFullName,
-      "ط¹ظ…ظٹظ„ ط§ظ„ظ…طھط¬ط±",
+      "عميل المتجر",
     ),
     productId: item?.productId ? String(item.productId) : "-",
     createdAtLabel: formatDateTimeLabel(item?.createdAt),
@@ -604,7 +604,7 @@ function flattenCategories(categories) {
         depth,
         path,
         pathLabel: path.join(" / "),
-        label: `${"â€” ".repeat(depth)}${item.name}${item.isActive ? "" : " (ط؛ظٹط± ظ†ط´ط·)"}`,
+        label: `${"— ".repeat(depth)}${item.name}${item.isActive ? "" : " (غير نشط)"}`,
         isLeaf: children.length === 0,
       });
 
@@ -619,15 +619,15 @@ function flattenCategories(categories) {
 function formatProductStatus(value) {
   switch (Number(value)) {
     case 0:
-      return "ظ…ط³ظˆط¯ط©";
+      return "مسودة";
     case 1:
-      return "ظ†ط´ط·";
+      return "نشط";
     case 2:
-      return "ظ…ط¤ط±ط´ظپ";
+      return "مؤرشف";
     case 3:
-      return "ظ†ظپط¯ ظ…ط®ط²ظˆظ†ظ‡";
+      return "نفد مخزونه";
     default:
-      return "ط؛ظٹط± ظ…ط­ط¯ط¯";
+      return "غير محدد";
   }
 }
 
@@ -644,7 +644,7 @@ function SectionHeader({ title, description, onRefresh, isRefreshing }) {
       </Box>
 
       <AppButton variant="outlined" onClick={onRefresh} loading={isRefreshing}>
-        طھط­ط¯ظٹط«
+        تحديث
       </AppButton>
     </Box>
   );
@@ -657,10 +657,10 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>طھظپط§طµظٹظ„ ط§ظ„ط·ظ„ط¨</DialogTitle>
+      <DialogTitle>تفاصيل الطلب</DialogTitle>
 
       <DialogContent dividers>
-        {loading && !order ? <LoadingState label="ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ طھظپط§طµظٹظ„ ط§ظ„ط·ظ„ط¨..." /> : null}
+        {loading && !order ? <LoadingState label="جارٍ تحميل تفاصيل الطلب..." /> : null}
 
         {!loading && error && !order ? (
           <Alert severity="error">{getApiErrorMessage(error)}</Alert>
@@ -670,50 +670,50 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
           <Box className="owner-order-dialog">
             {error ? (
               <Alert severity="warning">
-                طھط¹ط°ط± طھط­ظ…ظٹظ„ ط£ط­ط¯ط« ظ†ط³ط®ط© ظ…ظ† ط§ظ„ط·ظ„ط¨طŒ ظ„ط°ظ„ظƒ ظٹطھظ… ط¹ط±ط¶ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھظˆظپط±ط© ط­ط§ظ„ظٹظ‹ط§.
+                تعذر تحميل أحدث نسخة من الطلب، لذلك يتم عرض البيانات المتوفرة حاليًا.
               </Alert>
             ) : null}
 
             <Box className="owner-order-dialog__grid">
               <Box className="owner-order-dialog__meta">
-                <span>ط±ظ‚ظ… ط§ظ„ط·ظ„ط¨</span>
+                <span>رقم الطلب</span>
                 <strong>{order.orderNumber || order.id || "-"}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>ط§ظ„ط¹ظ…ظٹظ„</span>
+                <span>العميل</span>
                 <strong>
                   {order.customerName || "Customer not found"} ({order.customerId || order.storeCustomerId || "-"})
                 </strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،</span>
+                <span>تاريخ الإنشاء</span>
                 <strong>{createdAtLabel}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>ط§ظ„ط­ط§ظ„ط©</span>
-                <strong>{displayStatus || "ط؛ظٹط± ظ…ط­ط¯ط¯ط©"}</strong>
+                <span>الحالة</span>
+                <strong>{displayStatus || "غير محددة"}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>ط§ظ„ط¹ظ†ظˆط§ظ†</span>
+                <span>العنوان</span>
                 <strong>{order.deliveryAddress || "-"}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>ط§ظ„ظ…ط¯ظٹظ†ط©</span>
+                <span>المدينة</span>
                 <strong>{order.deliveryCity || "-"}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>ط§ظ„ظ‡ط§طھظپ</span>
+                <span>الهاتف</span>
                 <strong>{order.deliveryPhone || "-"}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>ط§ظ„ظƒظˆط¨ظˆظ†</span>
+                <span>الكوبون</span>
                 <strong>{order.couponCode || "-"}</strong>
               </Box>
             </Box>
 
             {order.customerNotes ? (
               <Box className="owner-order-dialog__note">
-                <Typography variant="subtitle2">ظ…ظ„ط§ط­ط¸ط§طھ ط§ظ„ط¹ظ…ظٹظ„</Typography>
+                <Typography variant="subtitle2">ملاحظات العميل</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {order.customerNotes}
                 </Typography>
@@ -722,9 +722,9 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
 
             <Box className="owner-order-dialog__items">
               <Box className="owner-order-dialog__items-head">
-                <Typography variant="h6">ظ…ط­طھظˆظٹط§طھ ط§ظ„ط·ظ„ط¨</Typography>
+                <Typography variant="h6">محتويات الطلب</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {order.itemsCount ?? 0} ظ‚ط·ط¹ط©
+                  {order.itemsCount ?? 0} قطعة
                 </Typography>
               </Box>
 
@@ -738,7 +738,7 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
                       <Box className="owner-order-item__head">
                         <Box>
                           <Typography variant="subtitle2">
-                            {item.productName || `ظ…ظ†طھط¬ ${index + 1}`}
+                            {item.productName || `منتج ${index + 1}`}
                           </Typography>
                           {item.variantName ? (
                             <Typography variant="caption" color="text.secondary">
@@ -753,30 +753,30 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
                       </Box>
 
                       <Box className="owner-order-item__meta">
-                        <span>ط§ظ„ظƒظ…ظٹط©: {item.quantity}</span>
-                        <span>ط³ط¹ط± ط§ظ„ظˆط­ط¯ط©: {formatCurrency(item.unitPrice)}</span>
+                        <span>الكمية: {item.quantity}</span>
+                        <span>سعر الوحدة: {formatCurrency(item.unitPrice)}</span>
                       </Box>
                     </Box>
                   ))}
                 </Stack>
               ) : (
                 <Alert severity="info">
-                  ظ„ط§ طھظˆط¬ط¯ طھظپط§طµظٹظ„ ظ…ظ†طھط¬ط§طھ ظ…ط±ظپظ‚ط© ط¨ظ‡ط°ط§ ط§ظ„ط·ظ„ط¨ ظ…ظ† ط§ظ„ظ€ API ط§ظ„ط­ط§ظ„ظٹ.
+                  لا توجد تفاصيل منتجات مرفقة بهذا الطلب من الـ API الحالي.
                 </Alert>
               )}
             </Box>
 
             <Box className="owner-order-dialog__summary">
               <Box className="owner-order-dialog__summary-row">
-                <span>ط§ظ„ط³ط¹ط± ط§ظ„ط£طµظ„ظٹ</span>
+                <span>السعر الأصلي</span>
                 <strong>{formatCurrency(order.subtotal)}</strong>
               </Box>
               <Box className="owner-order-dialog__summary-row">
-                <span>ط§ظ„ط®طµظ…</span>
+                <span>الخصم</span>
                 <strong>{formatCurrency(order.discount)}</strong>
               </Box>
               <Box className="owner-order-dialog__summary-row owner-order-dialog__summary-row--total">
-                <span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ ط§ظ„ظ†ظ‡ط§ط¦ظٹ</span>
+                <span>الإجمالي النهائي</span>
                 <strong>{formatCurrency(order.totalAmount)}</strong>
               </Box>
             </Box>
@@ -786,7 +786,7 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
 
       <DialogActions>
         <AppButton variant="outlined" onClick={onClose}>
-          ط¥ط؛ظ„ط§ظ‚
+          إغلاق
         </AppButton>
       </DialogActions>
     </Dialog>
@@ -913,7 +913,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     useState("");
   const changeSubscriptionMutation = useChangeStoreSubscription(storeId, {
     onSuccess: () => {
-      setSubscriptionSuccessMessage("طھظ… طھط­ط¯ظٹط« ط¨ط§ظ‚ط© ط§ظ„ظ…طھط¬ط± ط¨ظ†ط¬ط§ط­.");
+      setSubscriptionSuccessMessage("تم تحديث باقة المتجر بنجاح.");
     },
   });
 
@@ -1071,7 +1071,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           customer?.fullName ||
           normalizedOrder.customerName ||
           normalizedOrder.customerEmail ||
-          "ط¹ظ…ظٹظ„ ط§ظ„ظ…طھط¬ط±";
+          "عميل المتجر";
         const customerEmail =
           customer?.email || normalizedOrder.customerEmail || "";
         const customerPhone =
@@ -1110,13 +1110,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const storeOrderColumns = [
     {
       key: "orderNumber",
-      title: "ط±ظ‚ظ… ط§ظ„ط·ظ„ط¨",
+      title: "رقم الطلب",
       render: (row) => row.orderNumber || row.id || "-",
     },
     {
       key: "customerName",
-      title: "ط§ظ„ط¹ظ…ظٹظ„",
-      render: (row) => row.customerName || "ط؛ظٹط± ظ…ط­ط¯ط¯",
+      title: "العميل",
+      render: (row) => row.customerName || "غير محدد",
     },
     {
       key: "customerId",
@@ -1125,27 +1125,27 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     },
     {
       key: "itemsCount",
-      title: "ط§ظ„ظ…ط­طھظˆظ‰",
-      render: (row) => `${row.itemsCount ?? 0} ظ‚ط·ط¹ط©`,
+      title: "المحتوى",
+      render: (row) => `${row.itemsCount ?? 0} قطعة`,
     },
     {
       key: "createdAtLabel",
-      title: "طھط§ط±ظٹط® ط§ظ„ط·ظ„ط¨",
+      title: "تاريخ الطلب",
       render: (row) => row.createdAtLabel || "-",
     },
     {
       key: "totalAmount",
-      title: "ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ",
+      title: "الإجمالي",
       render: (row) => formatCurrency(row.totalAmount),
     },
     {
       key: "status",
-      title: "ط§ظ„ط­ط§ظ„ط© ط§ظ„ط­ط§ظ„ظٹط©",
-      render: (row) => row.statusText || row.statusLabel || "ط؛ظٹط± ظ…ط­ط¯ط¯ط©",
+      title: "الحالة الحالية",
+      render: (row) => row.statusText || row.statusLabel || "غير محددة",
     },
     {
       key: "details",
-      title: "ط§ظ„طھظپط§طµظٹظ„",
+      title: "التفاصيل",
       render: (row) => (
         <AppButton
           size="small"
@@ -1153,13 +1153,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             component={RouterLink}
             to={`/owner/orders/${row.id}`}
         >
-          ط¹ط±ط¶ ط§ظ„طھظپط§طµظٹظ„
+          عرض التفاصيل
         </AppButton>
       ),
     },
     {
       key: "actions",
-      title: "طھط­ط¯ظٹط« ط§ظ„ط­ط§ظ„ط©",
+      title: "تحديث الحالة",
       render: (row) => (
         <TextField
           select
@@ -1221,30 +1221,30 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
   const overviewStats = [
     {
-      label: "ط§ظ„ظ…ظ†طھط¬ط§طھ ط§ظ„ظ…ظ†ط´ظˆط±ط©",
+      label: "المنتجات المنشورة",
       value: productsRaw.length,
-      help: "ط§ظ„ظ…ظ†طھط¬ط§طھ ط§ظ„ط¸ط§ظ‡ط±ط© ط­ط§ظ„ظٹظ‹ط§ ظپظٹ ط§ظ„ظ…طھط¬ط±",
+      help: "المنتجات الظاهرة حاليًا في المتجر",
       icon: <SellRoundedIcon fontSize="small" />,
       tone: "warm",
     },
     {
-      label: "ط§ظ„ط·ظ„ط¨ط§طھ ط§ظ„ظ…ظپطھظˆط­ط©",
+      label: "الطلبات المفتوحة",
       value: pendingOrdersCount,
-      help: "ط·ظ„ط¨ط§طھ طھط­طھط§ط¬ ظ…طھط§ط¨ط¹ط© ط£ظˆ طھط£ظƒظٹط¯",
+      help: "طلبات تحتاج متابعة أو تأكيد",
       icon: <LocalMallRoundedIcon fontSize="small" />,
       tone: "cool",
     },
     {
-      label: "ط§ظ„طھطµظ†ظٹظپط§طھ",
+      label: "التصنيفات",
       value: categoriesRaw.length,
-      help: "ط´ط¬ط±ط© ط§ظ„ظƒط§طھظٹط¬ظˆط±ظٹط² ط§ظ„ط­ط§ظ„ظٹط©",
+      help: "شجرة الكاتيجوريز الحالية",
       icon: <CategoryRoundedIcon fontSize="small" />,
       tone: "neutral",
     },
     {
-      label: "ط§ظ„ظ…ط±ط§ط¬ط¹ط§طھ ط§ظ„ظ…ط¹ظ„ظ‚ط©",
+      label: "المراجعات المعلقة",
       value: pendingReviewsCount,
-      help: "طھظ‚ظٹظٹظ…ط§طھ ط¨ط§ظ†طھط¸ط§ط± ط§ظ„ط§ط¹طھظ…ط§ط¯",
+      help: "تقييمات بانتظار الاعتماد",
       icon: <RateReviewRoundedIcon fontSize="small" />,
       tone: "cool",
     },
@@ -1408,14 +1408,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   }
 
   if (ownerStoreQuery.isLoading) {
-    return <LoadingState label="ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±..." />;
+    return <LoadingState label="جارٍ تحميل بيانات المتجر..." />;
   }
 
   if (!store) {
     return (
       <EmptyState
-        title="ظ„ط§ ظٹظˆط¬ط¯ ظ…طھط¬ط± ظ…ط±طھط¨ط· ط¨ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨"
-        description="طھط£ظƒط¯ ظ…ظ† ظˆط¬ظˆط¯ ظ…طھط¬ط± ظ…ط±طھط¨ط· ط¨طµط§ط­ط¨ ط§ظ„ط­ط³ط§ط¨ ط£ظˆ طھظˆط§طµظ„ ظ…ط¹ ط§ظ„ط¥ط¯ط§ط±ط©."
+        title="لا يوجد متجر مرتبط بهذا الحساب"
+        description="تأكد من وجود متجر مرتبط بصاحب الحساب أو تواصل مع الإدارة."
         action={
           <AppButton component={RouterLink} to="/" variant="contained">
             Home
@@ -1427,13 +1427,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
   const selectedCategory = categoryLookup.get(productForm.categoryId);
   const categoryHint = selectedCategory?.isLeaf
-    ? `ط§ظ„ظ…ظ†طھط¬ ط³ظٹط±طھط¨ط· ط¨ط§ظ„طھطµظ†ظٹظپ: ${selectedCategory.pathLabel}`
+    ? `المنتج سيرتبط بالتصنيف: ${selectedCategory.pathLabel}`
     : selectedCategory
-      ? `ظٹظپط¶ظ„ ط±ط¨ط· ط§ظ„ظ…ظ†طھط¬ ط¨ط¢ط®ط± ظ…ط³طھظˆظ‰ ط¯ط§ط®ظ„: ${selectedCategory.pathLabel}`
+      ? `يفضل ربط المنتج بآخر مستوى داخل: ${selectedCategory.pathLabel}`
       : "";
 
   const confirmDelete = (label, mutation, variables) => {
-    if (!window.confirm(`ظ‡ظ„ طھط±ظٹط¯ ط­ط°ظپ ${label}طں`)) return;
+    if (!window.confirm(`هل تريد حذف ${label}؟`)) return;
     mutation.mutate(variables);
   };
 
@@ -1655,7 +1655,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
     if (invalidFile) {
       setProductFormError(
-        "ظٹط¬ط¨ ط£ظ† طھظƒظˆظ† ط§ظ„طµظˆط± ط¨طµظٹط؛ط© JPG ط£ظˆ JPEG ط£ظˆ PNG ط£ظˆ WEBPطŒ ظˆط¨ط­ط¬ظ… ظ„ط§ ظٹطھط¬ط§ظˆط² 5MB ظ„ظ„طµظˆط±ط©.",
+        "يجب أن تكون الصور بصيغة JPG أو JPEG أو PNG أو WEBP، وبحجم لا يتجاوز 5MB للصورة.",
       );
       return;
     }
@@ -1679,7 +1679,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
   const handleDeleteExistingImage = async (image) => {
     if (!productForm.id || !image?.id) return;
-    if (!window.confirm("ظ‡ظ„ طھط±ظٹط¯ ط­ط°ظپ ظ‡ط°ظ‡ ط§ظ„طµظˆط±ط© ظ…ظ† ط§ظ„ظ…ظ†طھط¬طں")) return;
+    if (!window.confirm("هل تريد حذف هذه الصورة من المنتج؟")) return;
 
     try {
       await deleteProductImageMutation.mutateAsync({
@@ -1954,7 +1954,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const customerColumns = [
     {
       key: "fullName",
-      title: "ط§ظ„ط¹ظ…ظٹظ„",
+      title: "العميل",
       render: (row) => (
         <Stack spacing={0.3}>
           <Typography variant="body2" fontWeight={700}>
@@ -1968,21 +1968,21 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     },
     {
       key: "phone",
-      title: "ط§ظ„ظ‡ط§طھظپ",
+      title: "الهاتف",
       render: (row) => row.phone || "-",
     },
     {
       key: "discountPercentage",
-      title: "ط®طµظ… ط§ظ„ط¬ظ…ظ„ط©",
+      title: "خصم الجملة",
       render: (row) => formatDiscountPercentage(row.discountPercentage),
     },
     {
       key: "isActive",
-      title: "ط§ظ„ط­ط§ظ„ط©",
+      title: "الحالة",
       render: (row) => (
         <Chip
           size="small"
-          label={row.isActive ? "ظ…ظپط¹ظ„" : "ظ…طھظˆظ‚ظپ"}
+          label={row.isActive ? "مفعل" : "متوقف"}
           color={row.isActive ? "primary" : "default"}
           variant={row.isActive ? "filled" : "outlined"}
         />
@@ -1990,7 +1990,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     },
     {
       key: "actions",
-      title: "ط¥ط¬ط±ط§ط،ط§طھ",
+      title: "إجراءات",
       render: (row) => (
         <Stack direction="row" spacing={1}>
           <AppButton
@@ -1998,7 +1998,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             variant="outlined"
             onClick={() => openCustomerStoreEditor(row)}
           >
-            طھط¹ط¯ظٹظ„
+            تعديل
           </AppButton>
           <AppButton
             size="small"
@@ -2010,43 +2010,43 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             }
             onClick={() =>
               confirmDelete(
-                `ط§ظ„ط¹ظ…ظٹظ„ ${row.fullName}`,
+                `العميل ${row.fullName}`,
                 deleteCustomerStoreMutation,
                 row.id,
               )
             }
           >
-            ط­ط°ظپ
+            حذف
           </AppButton>
         </Stack>
       ),
     },
   ];
   const orderColumns = [
-    { key: "orderNumber", title: "ط±ظ‚ظ… ط§ظ„ط·ظ„ط¨" },
+    { key: "orderNumber", title: "رقم الطلب" },
     {
       key: "itemsCount",
-      title: "ط§ظ„ط¹ظ†ط§طµط±",
+      title: "العناصر",
       render: (row) => row.itemsCount ?? 0,
     },
     {
       key: "totalAmount",
-      title: "ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ",
+      title: "الإجمالي",
       render: (row) => formatCurrency(row.totalAmount),
     },
     {
       key: "statusLabel",
-      title: "ط§ظ„ط­ط§ظ„ط© ط§ظ„ط­ط§ظ„ظٹط©",
-      render: (row) => row.statusLabel || "ط؛ظٹط± ظ…ط­ط¯ط¯ط©",
+      title: "الحالة الحالية",
+      render: (row) => row.statusLabel || "غير محددة",
     },
     {
       key: "createdAtLabel",
-      title: "طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،",
+      title: "تاريخ الإنشاء",
       render: (row) => row.createdAtLabel,
     },
     {
       key: "actions",
-      title: "طھط­ط¯ظٹط« ط§ظ„ط­ط§ظ„ط©",
+      title: "تحديث الحالة",
       render: (row) => (
         <TextField
           select
@@ -2072,23 +2072,23 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const reviewColumns = [
     {
       key: "storeCustomerFullName",
-      title: "ط§ظ„ط¹ظ…ظٹظ„",
-      render: (row) => row.storeCustomerFullName || "ط¹ظ…ظٹظ„ ط§ظ„ظ…طھط¬ط±",
+      title: "العميل",
+      render: (row) => row.storeCustomerFullName || "عميل المتجر",
     },
     {
       key: "productId",
-      title: "ظ…ط¹ط±ظپ ط§ظ„ظ…ظ†طھط¬",
+      title: "معرف المنتج",
       render: (row) => row.productId,
     },
-    { key: "rating", title: "ط§ظ„طھظ‚ظٹظٹظ…" },
-    { key: "comment", title: "ط§ظ„طھط¹ظ„ظٹظ‚" },
+    { key: "rating", title: "التقييم" },
+    { key: "comment", title: "التعليق" },
     {
       key: "isApproved",
-      title: "ط§ظ„ط­ط§ظ„ط©",
+      title: "الحالة",
       render: (row) => (
         <Chip
           size="small"
-          label={row.isApproved ? "ظ…ط¹طھظ…ط¯" : "ط¨ط§ظ†طھط¸ط§ط± ط§ظ„ط§ط¹طھظ…ط§ط¯"}
+          label={row.isApproved ? "معتمد" : "بانتظار الاعتماد"}
           color={row.isApproved ? "primary" : "default"}
           variant={row.isApproved ? "filled" : "outlined"}
         />
@@ -2096,7 +2096,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     },
     {
       key: "actions",
-      title: "ط¥ط¬ط±ط§ط،ط§طھ",
+      title: "إجراءات",
       render: (row) => (
         <Stack direction="row" spacing={1}>
           <AppButton
@@ -2109,7 +2109,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               })
             }
           >
-            ط§ط¹طھظ…ط§ط¯
+            اعتماد
           </AppButton>
           <AppButton
             size="small"
@@ -2122,7 +2122,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               })
             }
           >
-            ط±ظپط¶
+            رفض
           </AppButton>
         </Stack>
       ),
@@ -2156,12 +2156,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               onPointerMove={handleMobileSidebarPointerMove}
               onPointerUp={handleMobileSidebarPointerUp}
               onPointerCancel={handleMobileSidebarPointerCancel}
-              aria-label="ظپطھط­ ط¥ط¯ط§ط±ط© ط§ظ„ظ…طھط¬ط±"
+              aria-label="فتح إدارة المتجر"
             >
               <span className="owner-mobile-launcher__icon" aria-hidden>
                 <AdminPanelSettingsRoundedIcon fontSize="small" />
               </span>
-              <span className="owner-mobile-launcher__text">ط¥ط¯ط§ط±ط© ط§ظ„ظ…طھط¬ط±</span>
+              <span className="owner-mobile-launcher__text">إدارة المتجر</span>
               <span className="owner-mobile-launcher__drag" aria-hidden>
                 <DragIndicatorRoundedIcon fontSize="inherit" />
               </span>
@@ -2183,15 +2183,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     variant="overline"
                     className="owner-mobile-drawer__eyebrow"
                   >
-                    ط¥ط¯ط§ط±ط© ط§ظ„ظ…طھط¬ط±
+                    إدارة المتجر
                   </Typography>
                   <Typography variant="h6">
-                    {store?.name || "ظ…طھط¬ط±ظƒ"}
+                    {store?.name || "متجرك"}
                   </Typography>
                 </Box>
 
                 <IconButton
-                  aria-label="ط¥ط؛ظ„ط§ظ‚ ط§ظ„ظ‚ط§ط¦ظ…ط© ط§ظ„ط¥ط¯ط§ط±ظٹط©"
+                  aria-label="إغلاق القائمة الإدارية"
                   onClick={() => setIsMobileSidebarOpen(false)}
                 >
                   <CloseRoundedIcon />
@@ -2224,11 +2224,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 }
                 startIcon={<WorkspacePremiumRoundedIcon fontSize="small" />}
               >
-                ط§ظ„ط¨ط§ظ‚ط§طھ
+                الباقات
               </AppButton>
 
               <ContactDeveloperButton
-                label="طھظˆط§طµظ„ ظ…ط¹ ط§ظ„ظ…ط·ظˆط±"
+                label="تواصل مع المطور"
                 variant="outlined"
               />
             </Stack>
@@ -2238,26 +2238,26 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         <Paper className="owner-hero" elevation={0}>
           <Box className="owner-hero__copy">
             <Typography variant="overline" className="owner-hero__eyebrow">
-              ظ…طھط¬ط± ظ…ط±طھط¨طŒ ط¥ط¯ط§ط±ط© ط£ط³ط±ط¹
+              متجر مرتب، إدارة أسرع
             </Typography>
             <Typography variant="h3" className="owner-hero__title">
-              ظƒظ„ ظ…ط§ طھط­طھط§ط¬ظ‡ ظ„ط¥ط¯ط§ط±ط© ظ…طھط¬ط±ظƒ ظپظٹ ط´ط§ط´ط© ظˆط§ط­ط¯ط©
+              كل ما تحتاجه لإدارة متجرك في شاشة واحدة
             </Typography>
             <Typography variant="body1" className="owner-hero__desc">
-              ط±طھظ‘ط¨ ط§ظ„ظ…ظ†طھط¬ط§طھطŒ طھط§ط¨ط¹ ط§ظ„ط·ظ„ط¨ط§طھطŒ ظˆظ†ط³ظ‘ظ‚ ط§ظ„طھطµظ†ظٹظپط§طھ ظˆط§ظ„ط¹ط±ظˆط¶ ظ…ظ† ظ…ط³ط§ط­ط© ط£ظˆط¶ط­
-              طھط³ط§ط¹ط¯ظƒ ط¹ظ„ظ‰ ط§ظ„ط¹ظ…ظ„ ط¨ط³ط±ط¹ط© ظˆط±ط§ط­ط©.
+              رتّب المنتجات، تابع الطلبات، ونسّق التصنيفات والعروض من مساحة أوضح
+              تساعدك على العمل بسرعة وراحة.
             </Typography>
 
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Chip
                 icon={<VisibilityRoundedIcon fontSize="small" />}
-                label={`${store.visitCount ?? 0} ط²ظٹط§ط±ط©`}
+                label={`${store.visitCount ?? 0} زيارة`}
               />
               <Chip
-                label={`${productsRaw.length} ظ…ظ†طھط¬ ظ…ظ†ط´ظˆط±`}
+                label={`${productsRaw.length} منتج منشور`}
                 variant="outlined"
               />
-              <Chip label={`${sectionsRaw.length} ظ‚ط³ظ…`} variant="outlined" />
+              <Chip label={`${sectionsRaw.length} قسم`} variant="outlined" />
             </Stack>
           </Box>
 
@@ -2265,7 +2265,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             <SearchInput
               value={searchText}
               onChange={setSearchText}
-              placeholder="ط§ط¨ط­ط« ط¯ط§ط®ظ„ ط§ظ„طھط¨ظˆظٹط¨ ط§ظ„ط­ط§ظ„ظٹ..."
+              placeholder="ابحث داخل التبويب الحالي..."
             />
 
             <Stack direction="row" spacing={1}>
@@ -2281,7 +2281,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 }
                 variant="outlined"
               >
-                ط¹ط±ط¶ ط§ظ„ظ…طھط¬ط± ظƒط²ط§ط¦ط±
+                عرض المتجر كزائر
               </AppButton>
               <AppButton
                 component={RouterLink}
@@ -2289,7 +2289,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 sx={{ display: "none" }}
                 variant="contained"
               >
-                ط§ظ„ط³ظˆظ‚
+                السوق
               </AppButton>
             </Stack>
           </Box>
@@ -2306,7 +2306,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 <Box>
                   <Typography variant="h5">{store.name}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {store.description || "ظ„ظ… ظٹطھظ… ط¥ط¶ط§ظپط© ظˆطµظپ ظ„ظ„ظ…طھط¬ط± ط¨ط¹ط¯."}
+                    {store.description || "لم يتم إضافة وصف للمتجر بعد."}
                   </Typography>
                 </Box>
 
@@ -2318,7 +2318,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     <Chip label={store.businessType} />
                   ) : null}
                   <Chip
-                    label={store.isActive ? "ط§ظ„ظ…طھط¬ط± ظ†ط´ط·" : "ط§ظ„ظ…طھط¬ط± ط؛ظٹط± ظ†ط´ط·"}
+                    label={store.isActive ? "المتجر نشط" : "المتجر غير نشط"}
                     color={store.isActive ? "primary" : "default"}
                     variant={store.isActive ? "filled" : "outlined"}
                   />
@@ -2337,8 +2337,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "subscription" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="ط§ط´طھط±ط§ظƒ ط§ظ„ظ…طھط¬ط±"
-              description="ط§ط®طھط± ط§ظ„ط¨ط§ظ‚ط© ط§ظ„ط£ظ†ط³ط¨ ظ„ظ…ط±ط­ظ„ط© ظ†ظ…ظˆ ظ…طھط¬ط±ظƒطŒ ظˆظٹظ…ظƒظ†ظƒ ط§ظ„طھط¨ط¯ظٹظ„ ظپظٹ ط£ظٹ ظˆظ‚طھ."
+              title="اشتراك المتجر"
+              description="اختر الباقة الأنسب لمرحلة نمو متجرك، ويمكنك التبديل في أي وقت."
               onRefresh={subscriptionQuery.refetch}
               isRefreshing={subscriptionQuery.isFetching}
             />
@@ -2354,20 +2354,20 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             ) : null}
 
             {subscriptionQuery.isLoading ? (
-              <LoadingState label="ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ ظ…ط¹ظ„ظˆظ…ط§طھ ط§ظ„ط§ط´طھط±ط§ظƒ..." />
+              <LoadingState label="جارٍ تحميل معلومات الاشتراك..." />
             ) : (
               <>
                 <Alert severity="info" className="owner-inline-alert">
-                  ط§ظ„ط¨ط§ظ‚ط© ط§ظ„ظ†ط´ط·ط© ط­ط§ظ„ظٹظ‹ط§: {activePlan.label}
+                  الباقة النشطة حاليًا: {activePlan.label}
                   {subscription.renewalAt
-                    ? ` â€¢ طھط§ط±ظٹط® ط§ظ„طھط¬ط¯ظٹط¯: ${formatDateTimeLabel(subscription.renewalAt)}`
+                    ? ` • تاريخ التجديد: ${formatDateTimeLabel(subscription.renewalAt)}`
                     : ""}
                 </Alert>
 
                 <Box
                   className="owner-subscription-grid"
                   role="radiogroup"
-                  aria-label="ط®ظٹط§ط±ط§طھ ط¨ط§ظ‚ط§طھ ط§ظ„ط§ط´طھط±ط§ظƒ"
+                  aria-label="خيارات باقات الاشتراك"
                 >
                   {SUBSCRIPTION_PLANS.map((plan) => {
                     const isActivePlan = plan.key === subscription.currentPlan;
@@ -2405,7 +2405,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             <Chip
                               size="small"
                               color="primary"
-                              label="ط§ظ„ط¨ط§ظ‚ط© ط§ظ„ط­ط§ظ„ظٹط©"
+                              label="الباقة الحالية"
                             />
                           ) : null}
                         </Stack>
@@ -2443,11 +2443,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             event.stopPropagation();
                             handleChangeSubscription(plan.key);
                           }}
-                          aria-label={`طھط؛ظٹظٹط± ط§ظ„ط¨ط§ظ‚ط© ط¥ظ„ظ‰ ${plan.label}`}
+                          aria-label={`تغيير الباقة إلى ${plan.label}`}
                         >
                           {isActivePlan
-                            ? "ط§ظ„ط¨ط§ظ‚ط© ط§ظ„ط­ط§ظ„ظٹط©"
-                            : "طھط؛ظٹظٹط± ط¥ظ„ظ‰ ظ‡ط°ظ‡ ط§ظ„ط¨ط§ظ‚ط©"}
+                            ? "الباقة الحالية"
+                            : "تغيير إلى هذه الباقة"}
                         </AppButton>
                       </Paper>
                     );
@@ -2464,7 +2464,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       gap={2}
                     >
                       <Typography variant="body2" color="text.secondary">
-                        ط§ظ„ط¨ط§ظ‚ط© ط§ظ„ظ…ط­ط¯ط¯ط©:{" "}
+                        الباقة المحددة:{" "}
                         {
                           SUBSCRIPTION_PLANS.find(
                             (item) => item.key === selectedPlanKey,
@@ -2477,7 +2477,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         }
                         loading={changeSubscriptionMutation.isPending}
                       >
-                        طھط£ظƒظٹط¯ طھط؛ظٹظٹط± ط§ظ„ط¨ط§ظ‚ط©
+                        تأكيد تغيير الباقة
                       </AppButton>
                     </Stack>
                   </Paper>
@@ -2490,8 +2490,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "products" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="ط¥ط¯ط§ط±ط© ط§ظ„ظ…ظ†طھط¬ط§طھ"
-              description="ط¥ط¶ط§ظپط© ظ…ظ†طھط¬ط§طھ ط£ظˆ طھط¹ط¯ظٹظ„ظ‡ط§ ظ…ط¹ ط¯ط¹ظ… طµظˆط± ظ…طھط¹ط¯ط¯ط© ظˆظ†ط´ط± ظ…ط¨ط§ط´ط±."
+              title="إدارة المنتجات"
+              description="إضافة منتجات أو تعديلها مع دعم صور متعددة ونشر مباشر."
               onRefresh={productsQuery.refetch}
               isRefreshing={productsQuery.isFetching}
             />
@@ -2536,7 +2536,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 columns={[
                   {
                     key: "name",
-                    title: "ط§ظ„ظ…ظ†طھط¬",
+                    title: "المنتج",
                     render: (row) => (
                       <Stack direction="row" spacing={1.2} alignItems="center">
                         <Box className="owner-thumb-wrap">
@@ -2566,7 +2566,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   },
                   {
                     key: "categoryName",
-                    title: "ط§ظ„طھطµظ†ظٹظپ",
+                    title: "التصنيف",
                     render: (row) => (
                       <Stack spacing={0.25}>
                         <Typography variant="body2">
@@ -2584,7 +2584,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   },
                   {
                     key: "price",
-                    title: "ط§ظ„ط³ط¹ط±",
+                    title: "السعر",
                     render: (row) => (
                       <Stack spacing={0.25}>
                         <Typography variant="body2" fontWeight={700}>
@@ -2592,7 +2592,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         </Typography>
                         {row.compareAtPrice ? (
                           <Typography variant="caption" color="text.secondary">
-                            ظ‚ط¨ظ„ ط§ظ„ط®طµظ…: {formatCurrency(row.compareAtPrice)}
+                            قبل الخصم: {formatCurrency(row.compareAtPrice)}
                           </Typography>
                         ) : null}
                       </Stack>
@@ -2600,7 +2600,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   },
                   {
                     key: "status",
-                    title: "ط§ظ„ط­ط§ظ„ط©",
+                    title: "الحالة",
                     render: (row) => (
                       <Stack spacing={0.4}>
                         <Chip
@@ -2614,15 +2614,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           }
                         />
                         <Typography variant="caption" color="text.secondary">
-                          {row.images?.length ?? 0} طµظˆط±ط©
+                          {row.images?.length ?? 0} صورة
                         </Typography>
                       </Stack>
                     ),
                   },
-                  { key: "stockQuantity", title: "ط§ظ„ظ…ط®ط²ظˆظ†" },
+                  { key: "stockQuantity", title: "المخزون" },
                   {
                     key: "actions",
-                    title: "ط¥ط¬ط±ط§ط،ط§طھ",
+                    title: "إجراءات",
                     render: (row) => (
                       <Stack direction="row" spacing={1}>
                         <AppButton
@@ -2631,7 +2631,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           loading={editingProductId === row.id}
                           onClick={() => handleOpenProductEditor(row)}
                         >
-                          طھط¹ط¯ظٹظ„
+                          تعديل
                         </AppButton>
                         <AppButton
                           size="small"
@@ -2643,13 +2643,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           }
                           onClick={() =>
                             confirmDelete(
-                              `ط§ظ„ظ…ظ†طھط¬ ${row.name}`,
+                              `المنتج ${row.name}`,
                               deleteProductMutation,
                               row.id,
                             )
                           }
                         >
-                          ط­ط°ظپ
+                          حذف
                         </AppButton>
                       </Stack>
                     ),
@@ -2657,8 +2657,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 ]}
                 emptyState={
                   <EmptyState
-                    title="ظ„ط§ طھظˆط¬ط¯ ظ…ظ†طھط¬ط§طھ ظ…ظ†ط´ظˆط±ط©"
-                    description="ط§ط¨ط¯ط£ ط¨ط¥ط¶ط§ظپط© ط£ظˆظ„ ظ…ظ†طھط¬طŒ ظˆط³ظٹطھظ… ظ†ط´ط±ظ‡ ظ…ط¨ط§ط´ط±ط© ط¥ط°ط§ ط£ط¨ظ‚ظٹطھ ط®ظٹط§ط± ط§ظ„ظ†ط´ط± ط§ظ„ظ…ط¨ط§ط´ط± ظ…ظپط¹ظ‘ظ„ظ‹ط§."
+                    title="لا توجد منتجات منشورة"
+                    description="ابدأ بإضافة أول منتج، وسيتم نشره مباشرة إذا أبقيت خيار النشر المباشر مفعّلًا."
                   />
                 }
               />
@@ -2669,8 +2669,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "categories" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="ط¥ط¯ط§ط±ط© ط§ظ„طھطµظ†ظٹظپط§طھ"
-              description="ط¥ظ†ط´ط§ط، طھطµظ†ظٹظپط§طھ ط±ط¦ظٹط³ظٹط© ظˆظپط±ط¹ظٹط© ط¨ط´ظƒظ„ ظ‡ط±ظ…ظٹ ظˆظˆط§ط¶ط­."
+              title="إدارة التصنيفات"
+              description="إنشاء تصنيفات رئيسية وفرعية بشكل هرمي وواضح."
               onRefresh={categoriesQuery.refetch}
               isRefreshing={categoriesQuery.isFetching}
             />
@@ -2699,31 +2699,31 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 columns={[
                   {
                     key: "name",
-                    title: "ط§ظ„طھطµظ†ظٹظپ",
+                    title: "التصنيف",
                     render: (row) => (
                       <Stack spacing={0.3}>
                         <Typography variant="body2" fontWeight={700}>
                           {row.pathLabel}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          ط§ظ„ظ…ط³طھظˆظ‰: {row.depth + 1}
+                          المستوى: {row.depth + 1}
                         </Typography>
                       </Stack>
                     ),
                   },
-                  { key: "slug", title: "ط§ظ„ط±ط§ط¨ط·" },
+                  { key: "slug", title: "الرابط" },
                   {
                     key: "parentCategoryName",
-                    title: "ط§ظ„ط£ط¨",
-                    render: (row) => row.parentCategoryName || "ط±ط¦ظٹط³ظٹ",
+                    title: "الأب",
+                    render: (row) => row.parentCategoryName || "رئيسي",
                   },
                   {
                     key: "isActive",
-                    title: "ط§ظ„ط­ط§ظ„ط©",
+                    title: "الحالة",
                     render: (row) => (
                       <Chip
                         size="small"
-                        label={row.isActive ? "ظ†ط´ط·" : "ط؛ظٹط± ظ†ط´ط·"}
+                        label={row.isActive ? "نشط" : "غير نشط"}
                         color={row.isActive ? "primary" : "default"}
                         variant={row.isActive ? "filled" : "outlined"}
                       />
@@ -2731,7 +2731,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   },
                   {
                     key: "actions",
-                    title: "ط¥ط¬ط±ط§ط،ط§طھ",
+                    title: "إجراءات",
                     render: (row) => (
                       <Stack direction="row" spacing={1}>
                         <AppButton
@@ -2751,7 +2751,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             })
                           }
                         >
-                          طھط¹ط¯ظٹظ„
+                          تعديل
                         </AppButton>
                       </Stack>
                     ),
@@ -2759,8 +2759,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 ]}
                 emptyState={
                   <EmptyState
-                    title="ظ„ط§ طھظˆط¬ط¯ طھطµظ†ظٹظپط§طھ"
-                    description="ط£ظ†ط´ط¦ طھطµظ†ظٹظپظ‹ط§ ط±ط¦ظٹط³ظٹظ‹ط§ ط£ظˆ ظپط±ط¹ظٹظ‹ط§ ظ„طھظ†ط¸ظٹظ… ظ…ظ†طھط¬ط§طھ ط§ظ„ظ…طھط¬ط±."
+                    title="لا توجد تصنيفات"
+                    description="أنشئ تصنيفًا رئيسيًا أو فرعيًا لتنظيم منتجات المتجر."
                   />
                 }
               />
@@ -2771,8 +2771,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "sections" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="ط¥ط¯ط§ط±ط© ط§ظ„ط£ظ‚ط³ط§ظ…"
-              description="ط§ظ„ط£ظ‚ط³ط§ظ… طھط³ط§ط¹ط¯ ظپظٹ طھظˆط²ظٹط¹ ط§ظ„ظ…ظ†طھط¬ط§طھ ط¹ظ„ظ‰ ظˆط§ط¬ظ‡ط© ط§ظ„ظ…طھط¬ط± ط¨ط´ظƒظ„ ط£ظˆط¶ط­."
+              title="إدارة الأقسام"
+              description="الأقسام تساعد في توزيع المنتجات على واجهة المتجر بشكل أوضح."
               onRefresh={sectionsQuery.refetch}
               isRefreshing={sectionsQuery.isFetching}
             />
@@ -2798,16 +2798,16 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               <AppDataTable
                 rows={sections}
                 columns={[
-                  { key: "name", title: "ط§ظ„ظ‚ط³ظ…" },
-                  { key: "slug", title: "ط§ظ„ط±ط§ط¨ط·" },
-                  { key: "displayOrder", title: "ط§ظ„طھط±طھظٹط¨" },
+                  { key: "name", title: "القسم" },
+                  { key: "slug", title: "الرابط" },
+                  { key: "displayOrder", title: "الترتيب" },
                   {
                     key: "isActive",
-                    title: "ط§ظ„ط­ط§ظ„ط©",
+                    title: "الحالة",
                     render: (row) => (
                       <Chip
                         size="small"
-                        label={row.isActive ? "ظ†ط´ط·" : "ط؛ظٹط± ظ†ط´ط·"}
+                        label={row.isActive ? "نشط" : "غير نشط"}
                         color={row.isActive ? "primary" : "default"}
                         variant={row.isActive ? "filled" : "outlined"}
                       />
@@ -2815,7 +2815,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   },
                   {
                     key: "actions",
-                    title: "ط¥ط¬ط±ط§ط،ط§طھ",
+                    title: "إجراءات",
                     render: (row) => (
                       <Stack direction="row" spacing={1}>
                         <AppButton
@@ -2834,7 +2834,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             })
                           }
                         >
-                          طھط¹ط¯ظٹظ„
+                          تعديل
                         </AppButton>
                       </Stack>
                     ),
@@ -2842,8 +2842,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 ]}
                 emptyState={
                   <EmptyState
-                    title="ظ„ط§ طھظˆط¬ط¯ ط£ظ‚ط³ط§ظ…"
-                    description="ط£ط¶ظپ ظ‚ط³ظ…ظ‹ط§ ظˆط§ط­ط¯ظ‹ط§ ط¹ظ„ظ‰ ط§ظ„ط£ظ‚ظ„ ط­طھظ‰ طھطھظ…ظƒظ† ظ…ظ† طھظˆط²ظٹط¹ ط§ظ„ظ…ظ†طھط¬ط§طھ ط¯ط§ط®ظ„ ط§ظ„ظˆط§ط¬ظ‡ط©."
+                    title="لا توجد أقسام"
+                    description="أضف قسمًا واحدًا على الأقل حتى تتمكن من توزيع المنتجات داخل الواجهة."
                   />
                 }
               />
@@ -2854,8 +2854,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "coupons" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="ط¥ط¯ط§ط±ط© ط§ظ„ظƒظˆط¨ظˆظ†ط§طھ"
-              description="ط£ظ†ط´ط¦ ط¹ط±ظˆط¶ظ‹ط§ ط³ط±ظٹط¹ط© ظˆظˆط§ط¶ط­ط© ظٹظ…ظƒظ† طھظپط¹ظٹظ„ظ‡ط§ ط£ظˆ طھط¹ط·ظٹظ„ظ‡ط§ ظ…ط¨ط§ط´ط±ط©."
+              title="إدارة الكوبونات"
+              description="أنشئ عروضًا سريعة وواضحة يمكن تفعيلها أو تعطيلها مباشرة."
               onRefresh={couponsQuery.refetch}
               isRefreshing={couponsQuery.isFetching}
             />
@@ -2881,10 +2881,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               <AppDataTable
                 rows={coupons}
                 columns={[
-                  { key: "code", title: "ط§ظ„ظƒظˆط¯" },
+                  { key: "code", title: "الكود" },
                   {
                     key: "discountValue",
-                    title: "ط§ظ„ط®طµظ…",
+                    title: "الخصم",
                     render: (row) =>
                       Number(row.discountType) === 0
                         ? `${row.discountValue}%`
@@ -2892,19 +2892,19 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   },
                   {
                     key: "discountType",
-                    title: "ط§ظ„ظ†ظˆط¹",
+                    title: "النوع",
                     render: (row) =>
                       Number(row.discountType) === 0
-                        ? "ظ†ط³ط¨ط© ظ…ط¦ظˆظٹط©"
-                        : "ظ‚ظٹظ…ط© ط«ط§ط¨طھط©",
+                        ? "نسبة مئوية"
+                        : "قيمة ثابتة",
                   },
                   {
                     key: "isActive",
-                    title: "ط§ظ„ط­ط§ظ„ط©",
+                    title: "الحالة",
                     render: (row) => (
                       <Chip
                         size="small"
-                        label={row.isActive ? "ظ†ط´ط·" : "ط؛ظٹط± ظ†ط´ط·"}
+                        label={row.isActive ? "نشط" : "غير نشط"}
                         color={row.isActive ? "primary" : "default"}
                         variant={row.isActive ? "filled" : "outlined"}
                       />
@@ -2912,7 +2912,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   },
                   {
                     key: "actions",
-                    title: "ط¥ط¬ط±ط§ط،ط§طھ",
+                    title: "إجراءات",
                     render: (row) => (
                       <Stack direction="row" spacing={1}>
                         <AppButton
@@ -2929,7 +2929,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             })
                           }
                         >
-                          طھط¹ط¯ظٹظ„
+                          تعديل
                         </AppButton>
                         <AppButton
                           size="small"
@@ -2941,13 +2941,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           }
                           onClick={() =>
                             confirmDelete(
-                              `ط§ظ„ظƒظˆط¨ظˆظ† ${row.code}`,
+                              `الكوبون ${row.code}`,
                               deleteCouponMutation,
                               row.id,
                             )
                           }
                         >
-                          ط­ط°ظپ
+                          حذف
                         </AppButton>
                       </Stack>
                     ),
@@ -2955,8 +2955,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 ]}
                 emptyState={
                   <EmptyState
-                    title="ظ„ط§ طھظˆط¬ط¯ ظƒظˆط¨ظˆظ†ط§طھ"
-                    description="ط£ط¶ظپ ط£ظˆظ„ ظƒظˆط¨ظˆظ† ظ„طھط³ظ‡ظٹظ„ ط§ظ„ط¹ط±ظˆط¶ ظˆط§ظ„طھط­ظپظٹط² ط¹ظ„ظ‰ ط§ظ„ط´ط±ط§ط،."
+                    title="لا توجد كوبونات"
+                    description="أضف أول كوبون لتسهيل العروض والتحفيز على الشراء."
                   />
                 }
               />
@@ -2967,8 +2967,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "customers" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="ط²ط¨ط§ط¦ظ† ط§ظ„ظ…طھط¬ط± ظˆط³ط¹ط± ط§ظ„ط¬ظ…ظ„ط©"
-              description="ط§ط®طھط± ظ…ظ† ط§ظ„ظ…ط³طھط®ط¯ظ…ظٹظ† ط§ظ„ظ…ط³ط¬ظ„ظٹظ† ظ…ظ† ظٹط­طµظ„ ط¹ظ„ظ‰ طھط³ط¹ظٹط± ط®ط§طµ ط¯ط§ط®ظ„ ظ…طھط¬ط±ظƒطŒ ط«ظ… ط¹ط¯ظ„ ظ†ط³ط¨ط© ط§ظ„ط®طµظ… ط£ظˆ ط£ظˆظ‚ظپظ‡ط§ ظ…طھظ‰ ط§ط­طھط¬طھ."
+              title="زبائن المتجر وسعر الجملة"
+              description="اختر من المستخدمين المسجلين من يحصل على تسعير خاص داخل متجرك، ثم عدل نسبة الخصم أو أوقفها متى احتجت."
               onRefresh={() => {
                 storeCustomersQuery.refetch();
               }}
@@ -2976,9 +2976,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             />
 
             <Alert severity="info" className="owner-inline-alert">
-              ط®طµظ… ط²ط¨ظˆظ† ط§ظ„ظ…طھط¬ط± ظ„ط§ ظٹط¤ط«ط± ط¹ظ„ظ‰ ط´ط§ط´ط© ط§ظ„ط¥ط¯ط§ط±ط© ظپظ‚ط·طŒ ط¨ظ„ ظٹط؛ظٹظ‘ط± ط§ظ„ط³ط¹ط±
-              ط§ظ„ط¸ط§ظ‡ط± ظ„ظ„ط¹ظ…ظٹظ„ ط¨ط¹ط¯ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظˆظٹظڈط«ط¨طھ ط¯ط§ط®ظ„ ط§ظ„ط³ظ„ط© ط«ظ… ظٹظ†طھظ‚ظ„ ط¥ظ„ظ‰
-              ط§ظ„ط·ظ„ط¨.
+              خصم زبون المتجر لا يؤثر على شاشة الإدارة فقط، بل يغيّر السعر
+              الظاهر للعميل بعد تسجيل الدخول ويُثبت داخل السلة ثم ينتقل إلى
+              الطلب.
             </Alert>
 
             {customerStoreForm.id ? (
@@ -2993,8 +2993,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               />
             ) : (
               <Alert severity="info" className="owner-inline-alert">
-                ط§ط®طھط± ط¹ظ…ظٹظ„ظ‹ط§ ظ…ظ† ط§ظ„ط¬ط¯ظˆظ„ ط¨ط§ظ„ط£ط³ظپظ„ ظ„طھط¹ط¯ظٹظ„ ط§ظ„ط®طµظ… ط£ظˆ ط­ط§ظ„ط© ط§ظ„ط­ط³ط§ط¨. ط¥ظ†ط´ط§ط،
-                ط¹ظ…ظٹظ„ ط¬ط¯ظٹط¯ ظ„ظ… ظٹط¹ط¯ ط¬ط²ط،ظ‹ط§ ظ…ظ† ظ‡ط°ظ‡ ط§ظ„ط´ط§ط´ط©.
+                اختر عميلًا من الجدول بالأسفل لتعديل الخصم أو حالة الحساب. إنشاء
+                عميل جديد لم يعد جزءًا من هذه الشاشة.
               </Alert>
             )}
 
@@ -3003,11 +3003,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             <Box className="owner-subsection">
               <Box>
                 <Typography variant="h6" className="owner-subsection__title">
-                  ط²ط¨ط§ط¦ظ† ط§ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹظˆظ†
+                  زبائن المتجر الحاليون
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  ظ‡ط¤ظ„ط§ط، ظ‡ظ… ط§ظ„ظ…ط³طھط®ط¯ظ…ظˆظ† ط§ظ„ط°ظٹظ† ظٹط´ط§ظ‡ط¯ظˆظ† طھط³ط¹ظٹط±ظ‹ط§ ط®ط§طµظ‹ط§ ط¯ط§ط®ظ„ ظ‡ط°ط§
-                  ط§ظ„ظ…طھط¬ط±.
+                  هؤلاء هم المستخدمون الذين يشاهدون تسعيرًا خاصًا داخل هذا
+                  المتجر.
                 </Typography>
               </Box>
 
@@ -3023,7 +3023,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   columns={[
                     {
                       key: "name",
-                      title: "ط§ظ„ط¹ظ…ظٹظ„",
+                      title: "العميل",
                       render: (row) => (
                         <Stack spacing={0.3}>
                           <Typography variant="body2" fontWeight={700}>
@@ -3037,17 +3037,17 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     },
                     {
                       key: "discountPercentage",
-                      title: "ط®طµظ… ط§ظ„ط¬ظ…ظ„ط©",
+                      title: "خصم الجملة",
                       render: (row) =>
                         formatDiscountPercentage(row.discountPercentage),
                     },
                     {
                       key: "isActive",
-                      title: "ط§ظ„ط­ط§ظ„ط©",
+                      title: "الحالة",
                       render: (row) => (
                         <Chip
                           size="small"
-                          label={row.isActive ? "ظ…ظپط¹ظ„" : "ظ…طھظˆظ‚ظپ"}
+                          label={row.isActive ? "مفعل" : "متوقف"}
                           color={row.isActive ? "primary" : "default"}
                           variant={row.isActive ? "filled" : "outlined"}
                         />
@@ -3055,7 +3055,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     },
                     {
                       key: "actions",
-                      title: "ط¥ط¬ط±ط§ط،ط§طھ",
+                      title: "إجراءات",
                       render: (row) => (
                         <Stack direction="row" spacing={1}>
                           <AppButton
@@ -3063,7 +3063,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             variant="outlined"
                             onClick={() => openCustomerStoreEditor(row)}
                           >
-                            طھط¹ط¯ظٹظ„
+                            تعديل
                           </AppButton>
                           <AppButton
                             size="small"
@@ -3075,13 +3075,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             }
                             onClick={() =>
                               confirmDelete(
-                                `ط§ظ„ط¹ظ…ظٹظ„ ${row.fullName}`,
+                                `العميل ${row.fullName}`,
                                 deleteCustomerStoreMutation,
                                 row.id,
                               )
                             }
                           >
-                            ط­ط°ظپ
+                            حذف
                           </AppButton>
                         </Stack>
                       ),
@@ -3089,8 +3089,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   ]}
                   emptyState={
                     <EmptyState
-                      title="ظ„ط§ ظٹظˆط¬ط¯ ط²ط¨ط§ط¦ظ† ظ…طھط¬ط± ط¨ط¹ط¯"
-                      description="ط§ط®طھط± ظ…ط³طھط®ط¯ظ…ظ‹ط§ ظ…ط³ط¬ظ„ظ‹ط§ ظ…ظ† ط§ظ„ظ‚ط§ط¦ظ…ط© ط¨ط§ظ„ط£ط³ظپظ„ ظˆط­ط¯ط¯ ظ„ظ‡ ظ†ط³ط¨ط© ط®طµظ… ظ„ظٹط¨ط¯ط£ ط¨ط±ط¤ظٹط© ط³ط¹ط± ط§ظ„ط¬ظ…ظ„ط©."
+                      title="لا يوجد زبائن متجر بعد"
+                      description="اختر مستخدمًا مسجلًا من القائمة بالأسفل وحدد له نسبة خصم ليبدأ برؤية سعر الجملة."
                     />
                   }
                 />
@@ -3103,8 +3103,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "orders" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="ط§ظ„ط·ظ„ط¨ط§طھ"
-              description="طھط§ط¨ط¹ ط­ط§ظ„ط© ط§ظ„ط·ظ„ط¨ط§طھ ظˆط؛ظٹظ‘ط±ظ‡ط§ ط¨ط§ط³ظ… ظˆط§ط¶ط­ ط¨ط¯ظ„ ط§ظ„ط£ط±ظ‚ط§ظ…."
+              title="الطلبات"
+              description="تابع حالة الطلبات وغيّرها باسم واضح بدل الأرقام."
               onRefresh={ordersQuery.refetch}
               isRefreshing={ordersQuery.isFetching}
             />
@@ -3115,9 +3115,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               <Box className="owner-orders-grid">
                 {orders.map((row) => {
                   const statusLabel =
-                    row.statusText || row.statusLabel || "ط؛ظٹط± ظ…ط­ط¯ط¯ط©";
+                    row.statusText || row.statusLabel || "غير محددة";
                   const customerName =
-                    row.customerName || row.customerEmail || "ط¹ظ…ظٹظ„ ط§ظ„ظ…طھط¬ط±";
+                    row.customerName || row.customerEmail || "عميل المتجر";
                   const customerId = row.customerId || row.storeCustomerId || "";
                   const statusTone =
                     Number(row.status) === 4
@@ -3133,7 +3133,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       <Box className="owner-order-card__head">
                         <Box className="owner-order-card__title">
                           <Typography variant="caption" color="text.secondary">
-                            ط±ظ‚ظ… ط§ظ„ط·ظ„ط¨
+                            رقم الطلب
                           </Typography>
                           <Typography
                             component={RouterLink}
@@ -3156,7 +3156,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       <Box className="owner-order-card__meta">
                         <Box className="owner-order-card__meta-item">
                           <Typography variant="caption" color="text.secondary">
-                            ط§ظ„ط¹ظ…ظٹظ„
+                            العميل
                           </Typography>
                           {customerId ? (
                             <Typography
@@ -3179,7 +3179,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
                         <Box className="owner-order-card__meta-item">
                           <Typography variant="caption" color="text.secondary">
-                            طھط§ط±ظٹط® ط§ظ„ط·ظ„ط¨
+                            تاريخ الطلب
                           </Typography>
                           <Typography variant="body1">
                             {row.createdAtLabel || "-"}
@@ -3194,15 +3194,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
                       <Box className="owner-order-card__summary">
                         <Box className="owner-order-card__summary-item">
-                          <span>ط§ظ„ظ…ط­طھظˆظ‰</span>
-                          <strong>{row.itemsCount ?? 0} ظ‚ط·ط¹ط©</strong>
+                          <span>المحتوى</span>
+                          <strong>{row.itemsCount ?? 0} قطعة</strong>
                         </Box>
                         <Box className="owner-order-card__summary-item">
-                          <span>ط§ظ„ط®طµظ…</span>
+                          <span>الخصم</span>
                           <strong>{formatCurrency(row.discount)}</strong>
                         </Box>
                         <Box className="owner-order-card__summary-item">
-                          <span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</span>
+                          <span>الإجمالي</span>
                           <strong>{formatCurrency(row.totalAmount)}</strong>
                         </Box>
                       </Box>
@@ -3237,7 +3237,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             size="small"
                             variant="outlined"
                           >
-                            طھظپط§طµظٹظ„ ط§ظ„ط·ظ„ط¨
+                            تفاصيل الطلب
                           </AppButton>
                           {customerId ? (
                             <AppButton
@@ -3246,7 +3246,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               size="small"
                               variant="text"
                             >
-                              ظ…ط¹ظ„ظˆظ…ط§طھ ط§ظ„ط¹ظ…ظٹظ„
+                              معلومات العميل
                             </AppButton>
                           ) : null}
                         </Stack>
@@ -3257,8 +3257,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               </Box>
             ) : (
               <EmptyState
-                title="ظ„ط§ طھظˆط¬ط¯ ط·ظ„ط¨ط§طھ"
-                description="ط³طھط¸ظ‡ط± ظ‡ظ†ط§ ط§ظ„ط·ظ„ط¨ط§طھ ط§ظ„ط¬ط¯ظٹط¯ط© ط§ظ„ظ‚ط§ط¯ظ…ط© ظ…ظ† ط§ظ„ظ…طھط¬ط±."
+                title="لا توجد طلبات"
+                description="ستظهر هنا الطلبات الجديدة القادمة من المتجر."
               />
             )}
           </Paper>
@@ -3267,8 +3267,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "reviews" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="ط§ظ„طھظ‚ظٹظٹظ…ط§طھ"
-              description="ط§ط¹طھظ…ط¯ ط§ظ„طھظ‚ظٹظٹظ…ط§طھ ط§ظ„ظ…ظ†ط§ط³ط¨ط© ط£ظˆ ط§ط±ظپط¶ظ‡ط§ ط¨ط³ط±ط¹ط©."
+              title="التقييمات"
+              description="اعتمد التقييمات المناسبة أو ارفضها بسرعة."
               onRefresh={reviewsQuery.refetch}
               isRefreshing={reviewsQuery.isFetching}
             />
@@ -3279,16 +3279,16 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               <AppDataTable
                 rows={reviews}
                 columns={[
-                  { key: "productName", title: "ط§ظ„ظ…ظ†طھط¬" },
-                  { key: "rating", title: "ط§ظ„طھظ‚ظٹظٹظ…" },
-                  { key: "comment", title: "ط§ظ„طھط¹ظ„ظٹظ‚" },
+                  { key: "productName", title: "المنتج" },
+                  { key: "rating", title: "التقييم" },
+                  { key: "comment", title: "التعليق" },
                   {
                     key: "isApproved",
-                    title: "ط§ظ„ط­ط§ظ„ط©",
+                    title: "الحالة",
                     render: (row) => (
                       <Chip
                         size="small"
-                        label={row.isApproved ? "ظ…ط¹طھظ…ط¯" : "ط¨ط§ظ†طھط¸ط§ط± ط§ظ„ط§ط¹طھظ…ط§ط¯"}
+                        label={row.isApproved ? "معتمد" : "بانتظار الاعتماد"}
                         color={row.isApproved ? "primary" : "default"}
                         variant={row.isApproved ? "filled" : "outlined"}
                       />
@@ -3296,7 +3296,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   },
                   {
                     key: "actions",
-                    title: "ط¥ط¬ط±ط§ط،ط§طھ",
+                    title: "إجراءات",
                     render: (row) => (
                       <Stack direction="row" spacing={1}>
                         <AppButton
@@ -3309,7 +3309,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             })
                           }
                         >
-                          ط§ط¹طھظ…ط§ط¯
+                          اعتماد
                         </AppButton>
                         <AppButton
                           size="small"
@@ -3322,7 +3322,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             })
                           }
                         >
-                          ط±ظپط¶
+                          رفض
                         </AppButton>
                       </Stack>
                     ),
@@ -3330,8 +3330,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 ]}
                 emptyState={
                   <EmptyState
-                    title="ظ„ط§ طھظˆط¬ط¯ طھظ‚ظٹظٹظ…ط§طھ"
-                    description="ط¹ظ†ط¯ ظˆطµظˆظ„ طھظ‚ظٹظٹظ… ط¬ط¯ظٹط¯ ظ…ظ† ط§ظ„ط¹ظ…ظ„ط§ط، ط³ظٹط¸ظ‡ط± ظ‡ظ†ط§."
+                    title="لا توجد تقييمات"
+                    description="عند وصول تقييم جديد من العملاء سيظهر هنا."
                   />
                 }
               />

@@ -103,7 +103,7 @@ export default function Register() {
       <Box className="page-register">
         <Box className="page-register__shell">
           <Paper className="page-register__panel page-register__panel--form" elevation={0}>
-            <Typography variant="body1">ط¬ط§ط±ظٹ طھط¬ظ‡ظٹط² ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±...</Typography>
+            <Typography variant="body1">جاري تجهيز بيانات المتجر...</Typography>
           </Paper>
         </Box>
       </Box>

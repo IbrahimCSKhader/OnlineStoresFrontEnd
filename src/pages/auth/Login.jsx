@@ -377,7 +377,7 @@ export default function Login() {
           style={{ gridTemplateColumns: "minmax(0, 1fr)" }}
         >
           <Paper className="page-login__panel page-login__panel--form" elevation={0}>
-            <Typography variant="body1">ط¬ط§ط±ظٹ طھط¬ظ‡ظٹط² ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط±...</Typography>
+            <Typography variant="body1">جاري تجهيز بيانات المتجر...</Typography>
           </Paper>
         </Box>
       </Box>
@@ -587,14 +587,14 @@ export default function Login() {
 
     if (error?.code === "STORE_SCOPE_UNRESOLVED") {
       setLocalError(
-        "طھط¹ط°ط± طھط£ظƒظٹط¯ ط§ظ†طھظ…ط§ط، ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨ ظ„ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹ. ط­ط§ظˆظ„ ظ…ط±ط© ط£ط®ط±ظ‰.",
+        "تعذر تأكيد انتماء هذا الحساب للمتجر الحالي. حاول مرة أخرى.",
       );
       return;
     }
 
     if (error?.code === "STORE_MEMBERSHIP_REQUIRED") {
       setLocalError(
-        "ظ‡ط°ط§ ط§ظ„ط­ط³ط§ط¨ ظ„ظٹط³ ظ…ط§ظ„ظƒظ‹ط§ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط± ظˆظ„ط§ ط²ط¨ظˆظ†ظ‹ط§ ظ…ط³ط¬ظ„ظ‹ط§ ظپظٹظ‡.",
+        "هذا الحساب ليس مالكًا لهذا المتجر ولا زبونًا مسجلًا فيه.",
       );
       return;
     }
@@ -909,7 +909,7 @@ export default function Login() {
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
         setLocalError(
-          "ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط± ظ„ظ… طھظƒطھظ…ظ„ ط¨ط¹ط¯. ط§ظ†طھط¸ط± ظ„ط­ط¸ط© ط«ظ… ط£ط¹ط¯ ط§ظ„ظ…ط­ط§ظˆظ„ط©.",
+          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
         );
         return;
       }
@@ -1010,7 +1010,7 @@ export default function Login() {
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
         setLocalError(
-          "ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط± ظ„ظ… طھظƒطھظ…ظ„ ط¨ط¹ط¯. ط§ظ†طھط¸ط± ظ„ط­ط¸ط© ط«ظ… ط£ط¹ط¯ ط§ظ„ظ…ط­ط§ظˆظ„ط©.",
+          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
         );
         return;
       }

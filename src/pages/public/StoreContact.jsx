@@ -23,7 +23,7 @@ export default function StoreContact() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-contact">
-        <EmptyState title="ط¬ط§ط±ظٹ ط§ظ„طھط­ظ…ظٹظ„..." />
+        <EmptyState title="جاري التحميل..." />
       </Box>
     );
   }
@@ -31,7 +31,7 @@ export default function StoreContact() {
   if (storeQuery.error || !store) {
     return (
       <Box className="storefront-page page-store-contact">
-        <EmptyState title="طھط¹ط°ط± ظپطھط­ ط§ظ„طµظپط­ط©" />
+        <EmptyState title="تعذر فتح الصفحة" />
       </Box>
     );
   }
@@ -40,16 +40,16 @@ export default function StoreContact() {
     <Box className="storefront-page page-store-contact">
       <SurfaceCard variant="hero" className="page-store-contact__hero">
         <Box className="storefront-section__copy">
-          <span className="storefront-eyebrow">طھظˆط§طµظ„</span>
+          <span className="storefront-eyebrow">تواصل</span>
           <Typography
             variant="h1"
             className="storefront-title page-store-contact__title"
           >
-            طھظˆط§طµظ„ ظ…ط¹ {store.name}
+            تواصل مع {store.name}
           </Typography>
           <Typography variant="body1" className="storefront-subtitle">
-            ظˆط³ط§ط¦ظ„ ط§ظ„طھظˆط§طµظ„ ط§ظ„ط®ط§طµط© ط¨ط§ظ„ظ…طھط¬ط± ط£طµط¨ط­طھ طھط¸ظ‡ط± ظپظٹ ظپظˆطھط± ط¬ظ…ظٹط¹ طµظپط­ط§طھ
-            ط§ظ„ظ…طھط¬ط± ظ„ظٹطµظ„ ط¥ظ„ظٹظ‡ط§ ط§ظ„ط²ط§ط¦ط± ظ…ظ† ط£ظٹ طµظپط­ط© ط¨ط·ط±ظٹظ‚ط© ظˆط§ط¶ط­ط©.
+            وسائل التواصل الخاصة بالمتجر أصبحت تظهر في فوتر جميع صفحات
+            المتجر ليصل إليها الزائر من أي صفحة بطريقة واضحة.
           </Typography>
 
           <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
@@ -58,24 +58,24 @@ export default function StoreContact() {
               to={buildStorePreviewPath(`/market/${slug}`)}
               variant="contained"
             >
-              ط§ظ„ط¹ظˆط¯ط© ظ„ظˆط§ط¬ظ‡ط© ط§ظ„ظ…طھط¬ط±
+              العودة لواجهة المتجر
             </AppButton>
             <AppButton
               href="#store-footer"
               variant="outlined"
               startIcon={<SouthRoundedIcon fontSize="small" />}
             >
-              ط§ظ„ط§ظ†طھظ‚ط§ظ„ ط¥ظ„ظ‰ ط§ظ„ظپظˆطھط±
+              الانتقال إلى الفوتر
             </AppButton>
           </Stack>
         </Box>
       </SurfaceCard>
 
       <SurfaceCard className="page-store-contact__notice">
-        <Typography variant="h4">ظƒظ„ ظ‚ظ†ظˆط§طھ ط§ظ„طھظˆط§طµظ„ ظپظٹ ظ…ظƒط§ظ† ظˆط§ط­ط¯</Typography>
+        <Typography variant="h4">كل قنوات التواصل في مكان واحد</Typography>
         <Typography variant="body1" color="text.secondary">
-          ط§ظ†ط²ظ„ ظ„ط£ط³ظپظ„ ط§ظ„طµظپط­ط© ظˆط³طھط¬ط¯ ظƒظ„ ط­ط³ط§ط¨ط§طھ ط§ظ„طھظˆط§طµظ„ ظپظٹ ظپظˆطھط± ط§ظ„ظ…طھط¬ط±طŒ
-          ط¨ط¯ظ„ طھظƒط±ط§ط±ظ‡ط§ ظپظٹ ط£ظƒط«ط± ظ…ظ† ظ…ظƒط§ظ†.
+          انزل لأسفل الصفحة وستجد كل حسابات التواصل في فوتر المتجر،
+          بدل تكرارها في أكثر من مكان.
         </Typography>
       </SurfaceCard>
     </Box>

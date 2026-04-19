@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import storeApi from "../../API/store.api.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
+import { isOwnerRole } from "../../utils/roles.js";
 import {
   logAuthFlow,
   serializeAuthFlowStore,
@@ -11,11 +12,17 @@ import {
 } from "../../utils/authFlowDebug.js";
 
 export default function useOwnerStore(options = {}) {
-  const { user } = useAuth();
+  const { user, platformRole, isPlatformAuthenticated } = useAuth();
+  const ownerUserId = String(user?.id || "");
+  const canLoadOwnedStore =
+    (options.enabled ?? true) &&
+    isPlatformAuthenticated &&
+    isOwnerRole(platformRole || user?.accountType);
+
   const ownerStoreQuery = useQuery({
-    queryKey: queryKeys.stores.detail("owned"),
+    queryKey: queryKeys.stores.detail(`owned:${ownerUserId || "anonymous"}`),
     queryFn: () => storeApi.getOwnedStore(),
-    enabled: options.enabled ?? true,
+    enabled: canLoadOwnedStore,
     ...options,
   });
 
@@ -37,6 +44,7 @@ export default function useOwnerStore(options = {}) {
       ownerStoreSource,
       user: serializeAuthFlowUser(user),
       ownerStore: serializeAuthFlowStore(ownerStore),
+      canLoadOwnedStore,
       ownedStoreStatus: ownerStoreQuery.status,
       isLoading,
       isFetching,
@@ -44,6 +52,7 @@ export default function useOwnerStore(options = {}) {
     });
   }, [
     error,
+    canLoadOwnedStore,
     isFetching,
     isLoading,
     ownerStore,
