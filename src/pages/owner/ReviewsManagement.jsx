@@ -1,5 +1,5 @@
 import OwnerDashboard from "./Dashboard.jsx";
 
 export default function ReviewsManagement() {
-  return <OwnerDashboard initialTab="reviews" />;
+  return <OwnerDashboard initialTab="overview" />;
 }

@@ -88,6 +88,24 @@ export function normalizeOrderDetails(data) {
     entity?.totalDiscount,
     Math.max(subtotal - totalAmount, 0),
   );
+  const couponDiscountType = firstNumber(
+    entity?.couponDiscountType,
+    entity?.coupon?.discountType,
+    entity?.couponType,
+    NaN,
+  );
+  const couponDiscountValue = firstNumber(
+    entity?.couponDiscountValue,
+    entity?.coupon?.discountValue,
+    entity?.couponValue,
+    NaN,
+  );
+  const customerDiscountPercentage = firstNumber(
+    entity?.customerDiscountPercentage,
+    entity?.storeCustomerDiscountPercentage,
+    entity?.customer?.discountPercentage,
+    entity?.storeCustomer?.discountPercentage,
+  );
 
   return {
     ...entity,
@@ -134,6 +152,9 @@ export function normalizeOrderDetails(data) {
       entity?.coupon,
       entity?.promoCode,
     ),
+    couponDiscountType: Number.isFinite(couponDiscountType) ? couponDiscountType : null,
+    couponDiscountValue: Number.isFinite(couponDiscountValue) ? couponDiscountValue : null,
+    customerDiscountPercentage,
     items,
     itemsCount:
       firstNumber(entity?.itemsCount, entity?.totalItems) ||

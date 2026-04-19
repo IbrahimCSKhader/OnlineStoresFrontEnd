@@ -21,11 +21,9 @@ import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import RateReviewRoundedIcon from "@mui/icons-material/RateReviewRounded";
 import SellRoundedIcon from "@mui/icons-material/SellRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
-import WorkspacePremiumRoundedIcon from "@mui/icons-material/WorkspacePremiumRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
@@ -39,10 +37,6 @@ import ProductForm from "../../components/dashboard/ProductForm.jsx";
 import SectionForm from "../../components/dashboard/SectionForm.jsx";
 import StatCard from "../../components/dashboard/StatCard.jsx";
 import DashboardSidebar from "../../components/layout/DashboardSidebar.jsx";
-import {
-  SUBSCRIPTION_PLANS,
-  getSubscriptionPlanByKey,
-} from "../../constants/subscriptionPlans.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useCategories from "../../hooks/categories/useCategories.js";
 import useCreateCategory from "../../hooks/categories/useCreateCategory.js";
@@ -64,21 +58,14 @@ import useDeleteProductImage from "../../hooks/products/useDeleteProductImage.js
 import useProducts from "../../hooks/products/useProducts.js";
 import useUpdateProduct from "../../hooks/products/useUpdateProduct.js";
 import useUploadProductImage from "../../hooks/products/useUploadProductImage.js";
-import useUpdateReviewApproval from "../../hooks/reviews/useUpdateReviewApproval.js";
-import useStoreReviews from "../../hooks/reviews/useStoreReviews.js";
 import useCreateSection from "../../hooks/sections/useCreateSection.js";
 import useSections from "../../hooks/sections/useSections.js";
 import { OWNER_PREVIEW_SEARCH } from "../../hooks/stores/useOwnerStorePreview.js";
 import useUpdateSection from "../../hooks/sections/useUpdateSection.js";
-import useChangeStoreSubscription from "../../hooks/stores/useChangeStoreSubscription.js";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
-import useStoreSubscription from "../../hooks/stores/useStoreSubscription.js";
 import DashboardLayout from "../../layout/DashboardLayout.jsx";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
-import {
-  normalizeEntityResponse,
-  normalizeListResponse,
-} from "../../utils/collections.js";
+import { normalizeListResponse } from "../../utils/collections.js";
 import {
   logAuthFlow,
   serializeAuthFlowStore,
@@ -114,13 +101,6 @@ const TAB_CONFIG = [
     icon: <Inventory2RoundedIcon fontSize="small" />,
   },
   {
-    key: "subscription",
-    label: "اشتراك المتجر",
-    route: "/owner/subscription",
-    description: "إدارة الباقة وحدود الاستخدام",
-    icon: <WorkspacePremiumRoundedIcon fontSize="small" />,
-  },
-  {
     key: "categories",
     label: "التصنيفات",
     route: "/owner/categories",
@@ -154,13 +134,6 @@ const TAB_CONFIG = [
     route: "/owner/customers",
     description: "تحديد من يشاهد سعر الجملة داخل المتجر",
     icon: <PeopleAltRoundedIcon fontSize="small" />,
-  },
-  {
-    key: "reviews",
-    label: "التقييمات",
-    route: "/owner/reviews",
-    description: "اعتماد أو رفض المراجعات",
-    icon: <RateReviewRoundedIcon fontSize="small" />,
   },
 ];
 
@@ -214,20 +187,6 @@ function normalizeText(value) {
   return String(value ?? "")
     .toLowerCase()
     .trim();
-}
-
-function normalizePlanKey(value) {
-  const normalized = normalizeText(value);
-
-  if (!normalized) return "";
-  if (["free", "basic", "starter", "trial", "0"].includes(normalized))
-    return "free";
-  if (["standard", "pro-1", "business", "growth", "1"].includes(normalized))
-    return "standard";
-  if (["pro", "premium", "enterprise", "plus", "ultimate", "2", "3"].includes(normalized))
-    return "pro";
-
-  return "";
 }
 
 function resolveNestedValue(item, path) {
@@ -335,85 +294,6 @@ function firstDefined(...values) {
   return values.find(
     (value) => value !== undefined && value !== null && value !== "",
   );
-}
-
-function normalizeStoreSubscription(data, store) {
-  const normalizedData = normalizeEntityResponse(data) || data || {};
-  const fromNested =
-    (normalizedData.subscription &&
-    typeof normalizedData.subscription === "object"
-      ? normalizedData.subscription
-      : null) ||
-    (normalizedData.currentSubscription &&
-    typeof normalizedData.currentSubscription === "object"
-      ? normalizedData.currentSubscription
-      : null) ||
-    (normalizedData.subscriptionPlan &&
-    typeof normalizedData.subscriptionPlan === "object"
-      ? normalizedData.subscriptionPlan
-      : null) ||
-    (normalizedData.plan && typeof normalizedData.plan === "object"
-      ? normalizedData.plan
-      : null) ||
-    {};
-
-  const currentPlan =
-    normalizePlanKey(
-      firstDefined(
-        fromNested.plan,
-        fromNested.planName,
-        fromNested.planKey,
-        fromNested.key,
-        fromNested.name,
-        fromNested.subscriptionPlan,
-        fromNested.tier,
-        fromNested.planId,
-        fromNested.subscriptionPlanId,
-        fromNested.id,
-        normalizedData.plan,
-        normalizedData.planName,
-        normalizedData.planKey,
-        normalizedData.key,
-        normalizedData.subscriptionPlan,
-        normalizedData.planId,
-        normalizedData.subscriptionPlanId,
-        normalizedData.tier,
-        store?.plan,
-        store?.planName,
-        store?.planKey,
-        store?.subscriptionPlan,
-        store?.planId,
-        store?.subscriptionPlanId,
-      ),
-    ) || "free";
-
-  return {
-    currentPlan,
-    startedAt: firstDefined(
-      fromNested.startedAt,
-      fromNested.startDate,
-      normalizedData.startedAt,
-      normalizedData.subscriptionStartDate,
-    ),
-    renewalAt: firstDefined(
-      fromNested.renewalAt,
-      fromNested.renewalDate,
-      fromNested.expiresAt,
-      normalizedData.renewalAt,
-      normalizedData.expiresAt,
-      normalizedData.subscriptionRenewalDate,
-    ),
-  };
-}
-
-function buildSubscriptionPayload(planKey) {
-  return {
-    plan: planKey,
-    planKey,
-    planName: planKey,
-    subscriptionPlan: planKey,
-    tier: planKey,
-  };
 }
 
 function toNumber(value, fallback = 0) {
@@ -853,9 +733,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const shouldLoadCustomerStores =
     isOverviewTab || activeTab === "customers" || activeTab === "orders";
   const shouldLoadOrders = isOverviewTab || activeTab === "orders";
-  const shouldLoadReviews = isOverviewTab || activeTab === "reviews";
-  const shouldLoadSubscription = isOverviewTab || activeTab === "subscription";
-
   const productsQuery = useProducts(storeId, undefined, {
     enabled: Boolean(storeId) && shouldLoadProducts,
     staleTime: 30000,
@@ -880,15 +757,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     enabled: Boolean(storeId) && shouldLoadOrders,
     staleTime: 30000,
   });
-  const reviewsQuery = useStoreReviews(storeId, {
-    enabled: Boolean(storeId) && shouldLoadReviews,
-    staleTime: 30000,
-  });
-  const subscriptionQuery = useStoreSubscription(storeId, {
-    enabled: Boolean(storeId) && shouldLoadSubscription,
-    staleTime: 30000,
-  });
-
   const createProductMutation = useCreateProduct(storeId);
   const updateProductMutation = useUpdateProduct(storeId);
   const deleteProductMutation = useDeleteProduct(storeId);
@@ -908,22 +776,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const deleteCustomerStoreMutation = useDeleteCustomerStore(storeId);
 
   const updateOrderStatusMutation = useUpdateOrderStatus(storeId);
-  const updateReviewApprovalMutation = useUpdateReviewApproval(storeId);
-  const [subscriptionSuccessMessage, setSubscriptionSuccessMessage] =
-    useState("");
-  const changeSubscriptionMutation = useChangeStoreSubscription(storeId, {
-    onSuccess: () => {
-      setSubscriptionSuccessMessage("تم تحديث باقة المتجر بنجاح.");
-    },
-  });
-
   const productsRaw = normalizeProductList(productsQuery.data);
   const categoriesRaw = normalizeListResponse(categoriesQuery.data);
   const sectionsRaw = normalizeListResponse(sectionsQuery.data);
   const couponsRaw = normalizeListResponse(couponsQuery.data);
   const storeCustomersRaw = normalizeListResponse(storeCustomersQuery.data);
   const ordersRaw = normalizeListResponse(ordersQuery.data);
-  const reviewsRaw = normalizeListResponse(reviewsQuery.data);
 
   const categoryOptions = useMemo(
     () => flattenCategories(categoriesRaw),
@@ -1182,43 +1040,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       ),
     },
   ];
-  const reviewsAll = useMemo(
-    () => reviewsRaw.map((item) => normalizeReviewItem(item)),
-    [reviewsRaw],
-  );
-  const reviews = useMemo(
-    () =>
-      reviewsAll.filter((item) =>
-        matchesText(item, deferredSearchText, [
-          "storeCustomerFullName",
-          "comment",
-          "productId",
-        ]),
-      ),
-    [deferredSearchText, reviewsAll],
-  );
 
-  const pendingReviewsCount = reviewsAll.filter(
-    (item) => !item.isApproved,
-  ).length;
   const pendingOrdersCount = ordersAll.filter(
     (item) => Number(item.status) === 0,
   ).length;
-  const subscription = useMemo(
-    () => normalizeStoreSubscription(subscriptionQuery.data, store),
-    [subscriptionQuery.data, store],
-  );
-  const activePlan = useMemo(
-    () => getSubscriptionPlanByKey(subscription.currentPlan),
-    [subscription.currentPlan],
-  );
-  const [selectedPlanKey, setSelectedPlanKey] = useState("");
-
-  useEffect(() => {
-    if (!subscription.currentPlan) return;
-    setSelectedPlanKey(subscription.currentPlan);
-  }, [subscription.currentPlan]);
-
   const overviewStats = [
     {
       label: "المنتجات المنشورة",
@@ -1240,13 +1065,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       help: "شجرة الكاتيجوريز الحالية",
       icon: <CategoryRoundedIcon fontSize="small" />,
       tone: "neutral",
-    },
-    {
-      label: "المراجعات المعلقة",
-      value: pendingReviewsCount,
-      help: "تقييمات بانتظار الاعتماد",
-      icon: <RateReviewRoundedIcon fontSize="small" />,
-      tone: "cool",
     },
   ];
 
@@ -1274,9 +1092,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           ? storeCustomersAll.length
           : undefined;
         break;
-      case "reviews":
-        count = reviewsQuery.isSuccess ? pendingReviewsCount : undefined;
-        break;
       default:
         count = undefined;
     }
@@ -1303,8 +1118,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     updateCustomerStoreMutation.error,
     deleteCustomerStoreMutation.error,
     updateOrderStatusMutation.error,
-    updateReviewApprovalMutation.error,
-    changeSubscriptionMutation.error,
   ];
   const mutationError = allErrors.find(Boolean);
 
@@ -1560,23 +1373,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
       return { ...previous, [key]: value };
     });
-  };
-
-  const handleChangeSubscription = async (planKey) => {
-    if (!planKey || planKey === subscription.currentPlan) {
-      return;
-    }
-
-    setSubscriptionSuccessMessage("");
-
-    try {
-      await changeSubscriptionMutation.mutateAsync({
-        planKey,
-        payload: buildSubscriptionPayload(planKey),
-      });
-    } catch {
-      // Error is surfaced through the shared error alert.
-    }
   };
 
   const handleCategoryFormChange = (key, value) => {
@@ -2069,66 +1865,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       ),
     },
   ];
-  const reviewColumns = [
-    {
-      key: "storeCustomerFullName",
-      title: "العميل",
-      render: (row) => row.storeCustomerFullName || "عميل المتجر",
-    },
-    {
-      key: "productId",
-      title: "معرف المنتج",
-      render: (row) => row.productId,
-    },
-    { key: "rating", title: "التقييم" },
-    { key: "comment", title: "التعليق" },
-    {
-      key: "isApproved",
-      title: "الحالة",
-      render: (row) => (
-        <Chip
-          size="small"
-          label={row.isApproved ? "معتمد" : "بانتظار الاعتماد"}
-          color={row.isApproved ? "primary" : "default"}
-          variant={row.isApproved ? "filled" : "outlined"}
-        />
-      ),
-    },
-    {
-      key: "actions",
-      title: "إجراءات",
-      render: (row) => (
-        <Stack direction="row" spacing={1}>
-          <AppButton
-            size="small"
-            variant="outlined"
-            onClick={() =>
-              updateReviewApprovalMutation.mutate({
-                reviewId: row.id,
-                payload: { isApproved: true },
-              })
-            }
-          >
-            اعتماد
-          </AppButton>
-          <AppButton
-            size="small"
-            variant="outlined"
-            color="warning"
-            onClick={() =>
-              updateReviewApprovalMutation.mutate({
-                reviewId: row.id,
-                payload: { isApproved: false },
-              })
-            }
-          >
-            رفض
-          </AppButton>
-        </Stack>
-      ),
-    },
-  ];
-
   return (
     <DashboardLayout
       sidebar={
@@ -2216,17 +1952,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             gap={2}
           >
             <Stack direction="row" spacing={1} flexWrap="wrap">
-              <AppButton
-                component={RouterLink}
-                to="/owner/subscription"
-                variant={
-                  activeTab === "subscription" ? "contained" : "outlined"
-                }
-                startIcon={<WorkspacePremiumRoundedIcon fontSize="small" />}
-              >
-                الباقات
-              </AppButton>
-
               <ContactDeveloperButton
                 label="تواصل مع المطور"
                 variant="outlined"
@@ -2332,159 +2057,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               ))}
             </Box>
           </>
-        ) : null}
-
-        {activeTab === "subscription" ? (
-          <Paper className="owner-panel" elevation={0}>
-            <SectionHeader
-              title="اشتراك المتجر"
-              description="اختر الباقة الأنسب لمرحلة نمو متجرك، ويمكنك التبديل في أي وقت."
-              onRefresh={subscriptionQuery.refetch}
-              isRefreshing={subscriptionQuery.isFetching}
-            />
-
-            {subscriptionSuccessMessage ? (
-              <Alert severity="success">{subscriptionSuccessMessage}</Alert>
-            ) : null}
-
-            {subscriptionQuery.error ? (
-              <Alert severity="warning">
-                {getApiErrorMessage(subscriptionQuery.error)}
-              </Alert>
-            ) : null}
-
-            {subscriptionQuery.isLoading ? (
-              <LoadingState label="جارٍ تحميل معلومات الاشتراك..." />
-            ) : (
-              <>
-                <Alert severity="info" className="owner-inline-alert">
-                  الباقة النشطة حاليًا: {activePlan.label}
-                  {subscription.renewalAt
-                    ? ` • تاريخ التجديد: ${formatDateTimeLabel(subscription.renewalAt)}`
-                    : ""}
-                </Alert>
-
-                <Box
-                  className="owner-subscription-grid"
-                  role="radiogroup"
-                  aria-label="خيارات باقات الاشتراك"
-                >
-                  {SUBSCRIPTION_PLANS.map((plan) => {
-                    const isActivePlan = plan.key === subscription.currentPlan;
-                    const isSelectedPlan = plan.key === selectedPlanKey;
-                    const isPendingPlan =
-                      changeSubscriptionMutation.isPending &&
-                      changeSubscriptionMutation.variables?.planKey ===
-                        plan.key;
-
-                    return (
-                      <Paper
-                        key={plan.key}
-                        elevation={0}
-                        className={`owner-subscription-card${
-                          isActivePlan ? " owner-subscription-card--active" : ""
-                        }${isSelectedPlan ? " owner-subscription-card--selected" : ""}`}
-                        role="radio"
-                        aria-checked={isSelectedPlan}
-                        tabIndex={0}
-                        onClick={() => setSelectedPlanKey(plan.key)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            setSelectedPlanKey(plan.key);
-                          }
-                        }}
-                      >
-                        <Stack
-                          direction="row"
-                          justifyContent="space-between"
-                          alignItems="center"
-                        >
-                          <Typography variant="h6">{plan.label}</Typography>
-                          {isActivePlan ? (
-                            <Chip
-                              size="small"
-                              color="primary"
-                              label="الباقة الحالية"
-                            />
-                          ) : null}
-                        </Stack>
-
-                        <Typography variant="body2" color="text.secondary">
-                          {plan.nameAr}
-                        </Typography>
-
-                        <Typography
-                          variant="h5"
-                          className="owner-subscription-card__price"
-                        >
-                          {plan.priceLabel}
-                        </Typography>
-
-                        <Box
-                          component="ul"
-                          className="owner-subscription-card__list"
-                        >
-                          {plan.details.map((detail) => (
-                            <li key={detail}>
-                              <Typography variant="body2">{detail}</Typography>
-                            </li>
-                          ))}
-                        </Box>
-
-                        <AppButton
-                          fullWidth
-                          variant={isActivePlan ? "outlined" : "contained"}
-                          disabled={
-                            isActivePlan || changeSubscriptionMutation.isPending
-                          }
-                          loading={isPendingPlan}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleChangeSubscription(plan.key);
-                          }}
-                          aria-label={`تغيير الباقة إلى ${plan.label}`}
-                        >
-                          {isActivePlan
-                            ? "الباقة الحالية"
-                            : "تغيير إلى هذه الباقة"}
-                        </AppButton>
-                      </Paper>
-                    );
-                  })}
-                </Box>
-
-                {selectedPlanKey &&
-                selectedPlanKey !== subscription.currentPlan ? (
-                  <Paper className="owner-subscription-confirm" elevation={0}>
-                    <Stack
-                      direction={{ xs: "column", sm: "row" }}
-                      justifyContent="space-between"
-                      alignItems={{ xs: "flex-start", sm: "center" }}
-                      gap={2}
-                    >
-                      <Typography variant="body2" color="text.secondary">
-                        الباقة المحددة:{" "}
-                        {
-                          SUBSCRIPTION_PLANS.find(
-                            (item) => item.key === selectedPlanKey,
-                          )?.label
-                        }
-                      </Typography>
-                      <AppButton
-                        onClick={() =>
-                          handleChangeSubscription(selectedPlanKey)
-                        }
-                        loading={changeSubscriptionMutation.isPending}
-                      >
-                        تأكيد تغيير الباقة
-                      </AppButton>
-                    </Stack>
-                  </Paper>
-                ) : null}
-              </>
-            )}
-          </Paper>
         ) : null}
 
         {activeTab === "products" ? (
@@ -3264,80 +2836,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           </Paper>
         ) : null}
 
-        {activeTab === "reviews" ? (
-          <Paper className="owner-panel" elevation={0}>
-            <SectionHeader
-              title="التقييمات"
-              description="اعتمد التقييمات المناسبة أو ارفضها بسرعة."
-              onRefresh={reviewsQuery.refetch}
-              isRefreshing={reviewsQuery.isFetching}
-            />
 
-            {reviewsQuery.isLoading ? (
-              <LoadingState />
-            ) : (
-              <AppDataTable
-                rows={reviews}
-                columns={[
-                  { key: "productName", title: "المنتج" },
-                  { key: "rating", title: "التقييم" },
-                  { key: "comment", title: "التعليق" },
-                  {
-                    key: "isApproved",
-                    title: "الحالة",
-                    render: (row) => (
-                      <Chip
-                        size="small"
-                        label={row.isApproved ? "معتمد" : "بانتظار الاعتماد"}
-                        color={row.isApproved ? "primary" : "default"}
-                        variant={row.isApproved ? "filled" : "outlined"}
-                      />
-                    ),
-                  },
-                  {
-                    key: "actions",
-                    title: "إجراءات",
-                    render: (row) => (
-                      <Stack direction="row" spacing={1}>
-                        <AppButton
-                          size="small"
-                          variant="outlined"
-                          onClick={() =>
-                            updateReviewApprovalMutation.mutate({
-                              reviewId: row.id,
-                              payload: { isApproved: true },
-                            })
-                          }
-                        >
-                          اعتماد
-                        </AppButton>
-                        <AppButton
-                          size="small"
-                          variant="outlined"
-                          color="warning"
-                          onClick={() =>
-                            updateReviewApprovalMutation.mutate({
-                              reviewId: row.id,
-                              payload: { isApproved: false },
-                            })
-                          }
-                        >
-                          رفض
-                        </AppButton>
-                      </Stack>
-                    ),
-                  },
-                ]}
-                emptyState={
-                  <EmptyState
-                    title="لا توجد تقييمات"
-                    description="عند وصول تقييم جديد من العملاء سيظهر هنا."
-                  />
-                }
-              />
-            )}
-          </Paper>
-        ) : null}
       </Box>
     </DashboardLayout>
   );

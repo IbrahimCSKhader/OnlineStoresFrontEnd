@@ -18,6 +18,21 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(amount) ? amount : fallback;
 }
 
+function clampQuantityToStock(quantity, availableStock) {
+  const normalizedQuantity = Math.max(1, toNumber(quantity, 1));
+  const normalizedStock = Number(availableStock);
+
+  if (!Number.isFinite(normalizedStock)) {
+    return normalizedQuantity;
+  }
+
+  if (normalizedStock <= 0) {
+    return 0;
+  }
+
+  return Math.min(normalizedQuantity, Math.max(1, Math.trunc(normalizedStock)));
+}
+
 function buildGuestCartItemId(productId, variantId) {
   return `${String(productId)}::${variantId || "default"}`;
 }
@@ -130,7 +145,14 @@ export function addGuestCartItem(payload) {
   const itemId = buildGuestCartItemId(payload.productId, variantId);
   const existingItem = currentCart.items.find((item) => item.id === itemId);
   const snapshot = resolveProductSnapshot(payload?.productSnapshot, existingItem);
-  const quantity = Math.max(1, toNumber(existingItem?.quantity, 0) + toNumber(payload?.quantity, 1));
+  const quantity = clampQuantityToStock(
+    toNumber(existingItem?.quantity, 0) + toNumber(payload?.quantity, 1),
+    snapshot.availableStock,
+  );
+
+  if (quantity <= 0) {
+    return currentCart;
+  }
 
   const nextItem = {
     ...existingItem,
@@ -163,13 +185,21 @@ export function updateGuestCartItem(storeId, cartItemId, payload = {}) {
     items: currentCart.items.map((item) => {
       if (item.id !== cartItemId) return item;
 
-      const quantity = Math.max(1, toNumber(payload.quantity, item.quantity));
+      const quantity = clampQuantityToStock(
+        toNumber(payload.quantity, item.quantity),
+        item.availableStock,
+      );
+
+      if (quantity <= 0) {
+        return null;
+      }
+
       return {
         ...item,
         quantity,
         totalPrice: toNumber(item.unitPrice) * quantity,
       };
-    }),
+    }).filter(Boolean),
   });
 
   const state = getGuestCartState();

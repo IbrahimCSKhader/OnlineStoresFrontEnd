@@ -18,6 +18,21 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(amount) ? amount : fallback;
 }
 
+function clampQuantityToStock(quantity, availableStock) {
+  const normalizedQuantity = Math.max(1, toNumber(quantity, 1));
+  const normalizedStock = Number(availableStock);
+
+  if (!Number.isFinite(normalizedStock)) {
+    return normalizedQuantity;
+  }
+
+  if (normalizedStock <= 0) {
+    return 0;
+  }
+
+  return Math.min(normalizedQuantity, Math.max(1, Math.trunc(normalizedStock)));
+}
+
 function buildOptimisticCart(currentCart, payload, storeId) {
   if (!payload?.productId || !storeId) {
     return currentCart;
@@ -27,9 +42,17 @@ function buildOptimisticCart(currentCart, payload, storeId) {
   const variantId = payload.variantId ? String(payload.variantId) : "";
   const itemId = `${String(payload.productId)}::${variantId || "default"}`;
   const existingItem = normalizedCart.items.find((item) => item.id === itemId);
-  const quantity = Math.max(1, toNumber(existingItem?.quantity, 0) + toNumber(payload.quantity, 1));
   const snapshot = payload.productSnapshot || {};
+  const availableStock = toNumber(snapshot.availableStock, toNumber(existingItem?.availableStock, NaN));
   const unitPrice = toNumber(snapshot.unitPrice, toNumber(existingItem?.unitPrice));
+  const quantity = clampQuantityToStock(
+    toNumber(existingItem?.quantity, 0) + toNumber(payload.quantity, 1),
+    availableStock,
+  );
+
+  if (quantity <= 0) {
+    return normalizedCart;
+  }
 
   const nextItem = {
     ...existingItem,
@@ -40,7 +63,7 @@ function buildOptimisticCart(currentCart, payload, storeId) {
     name: snapshot.name || existingItem?.name || "منتج",
     slug: snapshot.slug || existingItem?.slug || "",
     imageUrl: snapshot.imageUrl || existingItem?.imageUrl || "",
-    availableStock: toNumber(snapshot.availableStock, toNumber(existingItem?.availableStock)),
+    availableStock,
     unitPrice,
     quantity,
     totalPrice: unitPrice * quantity,

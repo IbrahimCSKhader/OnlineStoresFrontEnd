@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link as RouterLink, useParams } from "react-router-dom";
+import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -24,6 +24,7 @@ import {
   serializeOrderCartError,
 } from "../../utils/orderCartDebug.js";
 import { normalizeOrderDetails } from "../../utils/orders.js";
+import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
 import { buildWhatsAppLink } from "../../utils/whatsapp.js";
@@ -88,6 +89,25 @@ function findStoreWhatsAppNumber(store) {
   return "";
 }
 
+function buildCouponDiscountLabel(order, couponCode) {
+  const discountType = order.couponDiscountType;
+  const discountValue = Number(order.couponDiscountValue ?? 0) || 0;
+
+  if (!couponCode) {
+    return "";
+  }
+
+  if (discountType === 0 && discountValue > 0) {
+    return `- خصم ${discountValue}% على كوبون ${couponCode}`;
+  }
+
+  if (discountType === 1 && discountValue > 0) {
+    return `- خصم ${formatCurrency(discountValue)} على كوبون ${couponCode}`;
+  }
+
+  return `- تم تطبيق كوبون الخصم: ${couponCode}`;
+}
+
 function buildWhatsAppOrderMessage({ store, cart, form, order }) {
   const normalizedOrder = normalizeOrderDetails(order);
   const normalizedItems = normalizedOrder.items.length
@@ -122,25 +142,34 @@ function buildWhatsAppOrderMessage({ store, cart, form, order }) {
   const couponCode = String(
     normalizedOrder.couponCode || form.couponCode || "",
   ).trim();
-  const hasCouponCode = Boolean(couponCode);
+  const customerDiscountPercentage =
+    Number(normalizedOrder.customerDiscountPercentage ?? 0) || 0;
+  const couponDiscountLabel = buildCouponDiscountLabel(normalizedOrder, couponCode);
+
   const orderItems = normalizedItems.map((item, index) => {
     const variantLabel = item.variantName ? ` (${item.variantName})` : "";
 
     return [
-      `• ${index + 1}. ${item.productName}${variantLabel}`,
+      `- ${index + 1}. ${item.productName}${variantLabel}`,
       `  الكمية: ${item.quantity}`,
       `  سعر الوحدة: ${formatCurrency(item.unitPrice)}`,
       `  الإجمالي: ${formatCurrency(item.totalPrice)}`,
     ].join("\n");
   });
-  const pricingLines = hasCouponCode
-    ? [
-        `• السعر الأصلي: ${formatCurrency(subtotal)}`,
-        `• السعر بعد الكوبون: ${formatCurrency(finalTotal)}`,
-        `• قيمة الخصم: ${formatCurrency(discountAmount)}`,
-        `• كود الخصم: ${couponCode}`,
-      ]
-    : [`• الإجمالي النهائي: ${formatCurrency(finalTotal)}`];
+
+  const pricingLines = [
+    `- السعر قبل الخصم: ${formatCurrency(subtotal)}`,
+    `- إجمالي الخصومات: ${formatCurrency(discountAmount)}`,
+    `- الإجمالي النهائي: ${formatCurrency(finalTotal)}`,
+  ];
+
+  if (customerDiscountPercentage > 0) {
+    pricingLines.push(`- تم خصم ${customerDiscountPercentage}% لزبون متجر`);
+  }
+
+  if (couponDiscountLabel) {
+    pricingLines.push(couponDiscountLabel);
+  }
 
   return [
     "طلب جديد",
@@ -148,56 +177,18 @@ function buildWhatsAppOrderMessage({ store, cart, form, order }) {
     `رقم الطلب: ${normalizedOrder.orderNumber || normalizedOrder.id || "-"}`,
     "",
     "بيانات التوصيل:",
-    `• العنوان: ${normalizedOrder.deliveryAddress || form.deliveryAddress || "-"}`,
-    `• المدينة: ${normalizedOrder.deliveryCity || form.deliveryCity || "-"}`,
-    `• رقم الهاتف: ${normalizedOrder.deliveryPhone || form.deliveryPhone || "-"}`,
+    `- العنوان: ${normalizedOrder.deliveryAddress || form.deliveryAddress || "-"}`,
+    `- المدينة: ${normalizedOrder.deliveryCity || form.deliveryCity || "-"}`,
+    `- رقم الهاتف: ${normalizedOrder.deliveryPhone || form.deliveryPhone || "-"}`,
     "",
     "تفاصيل الطلب:",
     ...orderItems,
     "",
     "الملخص:",
-    `• إجمالي العناصر: ${normalizedOrder.itemsCount || cart.itemCount}`,
+    `- إجمالي العناصر: ${normalizedOrder.itemsCount || cart.itemCount}`,
     ...pricingLines,
-    `• ملاحظات: ${normalizedOrder.customerNotes || form.customerNotes || "-"}`,
+    `- ملاحظات: ${normalizedOrder.customerNotes || form.customerNotes || "-"}`,
   ].join("\n");
-
-  /*
-  const orderItems = cart.items.map((item, index) => {
-    const productName =
-      item.name ||
-      item.productName ||
-      item.raw?.productName ||
-      item.raw?.product?.name ||
-      `منتج #${index + 1}`;
-    const variantLabel = item.variantName ? ` (${item.variantName})` : "";
-
-    return [
-      `• ${index + 1}. ${productName}${variantLabel}`,
-      `  الكمية: ${item.quantity}`,
-      `  سعر الوحدة: ${formatCurrency(item.unitPrice)}`,
-      `  الإجمالي: ${formatCurrency(item.totalPrice)}`,
-    ].join("\n");
-  });
-
-  return [
-    "طلب جديد",
-    `المتجر: ${store.name || "-"}`,
-    "",
-    "بيانات التوصيل:",
-    `• العنوان: ${form.deliveryAddress || "-"}`,
-    `• المدينة: ${form.deliveryCity || "-"}`,
-    `• رقم الهاتف: ${form.deliveryPhone || "-"}`,
-    "",
-    "تفاصيل الطلب:",
-    ...orderItems,
-    "",
-    "الملخص:",
-    `• إجمالي العناصر: ${cart.itemCount}`,
-    `• الإجمالي النهائي: ${formatCurrency(cart.totalAmount)}`,
-    `• كود الخصم: ${form.couponCode || "-"}`,
-    `• ملاحظات: ${form.customerNotes || "-"}`,
-  ].join("\n");
-  */
 }
 
 function openPendingWhatsAppWindow() {
@@ -255,6 +246,7 @@ function redirectToWhatsApp(url, popup) {
 
 export default function Checkout() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const auth = useAuth();
   const { storeCustomer } = auth;
   const [step, setStep] = useState(0);
@@ -285,30 +277,10 @@ export default function Checkout() {
     slug,
   });
 
-  if (!storeCustomer) {
-    return (
-      <Box className="storefront-page page-checkout">
-        <EmptyState
-          title="يجب تسجيل الدخول أولاً"
-          description="لا يمكن إكمال الطلب بدون جلسة StoreCustomer صالحة لهذا المتجر."
-          action={
-            <AppButton
-              component={RouterLink}
-              to={`/market/${slug}/login`}
-              variant="contained"
-            >
-              الذهاب لتسجيل الدخول
-            </AppButton>
-          }
-        />
-      </Box>
-    );
-  }
-
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-checkout">
-        <EmptyState title="جارِ تحميل صفحة الدفع..." />
+        <EmptyState title="جارٍ تحميل صفحة الدفع..." />
       </Box>
     );
   }
@@ -329,7 +301,7 @@ export default function Checkout() {
       <Box className="storefront-page page-checkout">
         <EmptyState
           title="يلزم تسجيل الدخول لهذا المتجر"
-          description="جلسة العميل الحالية تخص متجرًا آخر، لذلك سيرفض الباكند الطلب هنا."
+          description="جلسة العميل الحالية تخص متجرًا آخر، لذلك سيُرفض الطلب هنا."
           action={
             <AppButton
               component={RouterLink}
@@ -364,6 +336,17 @@ export default function Checkout() {
     );
   }
 
+  const redirectToStoreLogin = () => {
+    navigate(`/market/${slug}/login`, {
+      state: buildStoreCustomerAuthState({
+        storeId: store?.id,
+        storeSlug: slug,
+        storeName: store?.name,
+        redirectTo: `/market/${slug}/checkout`,
+      }),
+    });
+  };
+
   const handleValidationFailure = (reason, message, extra = {}) => {
     logOrderCartFlow("Checkout Validation Failed", {
       status: "validation-failed",
@@ -394,11 +377,8 @@ export default function Checkout() {
       },
     });
 
-    if (!storefrontSession.hasScopedStorefrontSession) {
-      handleValidationFailure(
-        "missing-scoped-storefront-session",
-        "جلسة StoreCustomer الحالية لا تخص هذا المتجر. سجّل الدخول من داخل نفس المتجر ثم أعد المحاولة.",
-      );
+    if (!storeCustomer || !storefrontSession.hasScopedStorefrontSession) {
+      redirectToStoreLogin();
       return;
     }
 
@@ -493,12 +473,7 @@ export default function Checkout() {
       });
 
       if (error?.response?.status === 401) {
-        setSubmitError(
-          extractApiError(
-            error,
-            "الطلب رُفض لأن جلسة StoreCustomer غير صالحة أو منتهية. سجّل الدخول مجددًا ثم أعد المحاولة.",
-          ),
-        );
+        redirectToStoreLogin();
         return;
       }
 
@@ -506,7 +481,7 @@ export default function Checkout() {
         setSubmitError(
           extractApiError(
             error,
-            "الطلب رُفض لأن storeId المرسل لا يطابق المتجر الموجود داخل توكن العميل الحالي.",
+            "تم رفض الطلب لأن جلسة العميل الحالية لا تخص هذا المتجر.",
           ),
         );
         return;
@@ -515,7 +490,7 @@ export default function Checkout() {
       setSubmitError(
         extractApiError(
           error,
-          "تعذر إنشاء الطلب. تحقق من كود الخصم، وبيانات التوصيل، وأن عناصر السلة تنتمي لنفس المتجر مع توفر المخزون.",
+          "تعذر إنشاء الطلب. تحقق من كود الخصم وبيانات التوصيل وتوفر المخزون.",
         ),
       );
       return;
@@ -605,8 +580,8 @@ export default function Checkout() {
             <span className="storefront-eyebrow">Checkout</span>
             <Typography variant="h2">إرسال الطلب عبر واتساب - {store.name}</Typography>
             <Typography variant="body1" className="storefront-subtitle">
-              سيتم إنشاء الطلب على النظام أولًا من السلة الحالية، ثم فتح واتساب لإرسال الملخص
-              إلى صاحب المتجر.
+              يمكنك مراجعة السلة كضيف، لكن إرسال الطلب نفسه يتطلب تسجيل الدخول أولًا.
+              بعد إنشاء الطلب سيفتح واتساب مع ملخص واضح للخصومات المطبقة.
             </Typography>
           </Box>
 

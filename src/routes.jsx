@@ -132,10 +132,6 @@ const OwnerCustomerDetails = lazyWithRetry(
   () => import("./pages/owner/CustomerDetailsPage.jsx"),
   "owner-customer-details",
 );
-const OwnerReviews = lazyWithRetry(
-  () => import("./pages/owner/ReviewsManagement.jsx"),
-  "owner-reviews",
-);
 
 function withRouteSuspense(page) {
   return (
@@ -233,7 +229,6 @@ const router = createBrowserRouter([
             path: "owner/customers/:customerId",
             element: withRouteSuspense(<OwnerCustomerDetails />),
           },
-          { path: "owner/reviews", element: withRouteSuspense(<OwnerReviews />) },
 
           { path: "*", element: withRouteSuspense(<NotFound />) },
         ],
