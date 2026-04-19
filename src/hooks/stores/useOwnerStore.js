@@ -14,6 +14,9 @@ import {
 export default function useOwnerStore(options = {}) {
   const { user, platformRole, isPlatformAuthenticated } = useAuth();
   const ownerUserId = String(user?.id || "");
+  const ownerUserStoreId = String(
+    user?.storeId || user?.StoreId || user?.store?.id || "",
+  );
   const canLoadOwnedStore =
     (options.enabled ?? true) &&
     isPlatformAuthenticated &&
@@ -21,7 +24,30 @@ export default function useOwnerStore(options = {}) {
 
   const ownerStoreQuery = useQuery({
     queryKey: queryKeys.stores.detail(`owned:${ownerUserId || "anonymous"}`),
-    queryFn: () => storeApi.getOwnedStore(),
+    queryFn: async () => {
+      try {
+        return await storeApi.getOwnedStore();
+      } catch (error) {
+        if (!ownerUserStoreId) {
+          throw error;
+        }
+
+        logAuthFlow(
+          "Owned store endpoint failed, falling back to storeId from session",
+          {
+            user: serializeAuthFlowUser(user),
+            ownerUserStoreId,
+            statusCode: Number(error?.response?.status || 0),
+            errorMessage:
+              error?.response?.data?.message ||
+              error?.message ||
+              "owned-store-request-failed",
+          },
+        );
+
+        return storeApi.getStoreById(ownerUserStoreId);
+      }
+    },
     enabled: canLoadOwnedStore,
     ...options,
   });
@@ -32,6 +58,8 @@ export default function useOwnerStore(options = {}) {
   );
   const ownerStoreSource = ownerStore?.id
     ? "owned-store-endpoint"
+    : ownerUserStoreId && ownerStoreQuery.isSuccess
+      ? "owned-store:session-storeId-fallback"
     : ownerStoreQuery.isLoading
       ? "owned-store:endpoint-loading"
       : "owned-store:endpoint-empty";
@@ -45,6 +73,7 @@ export default function useOwnerStore(options = {}) {
       user: serializeAuthFlowUser(user),
       ownerStore: serializeAuthFlowStore(ownerStore),
       canLoadOwnedStore,
+      ownerUserStoreId,
       ownedStoreStatus: ownerStoreQuery.status,
       isLoading,
       isFetching,
@@ -57,6 +86,7 @@ export default function useOwnerStore(options = {}) {
     isLoading,
     ownerStore,
     ownerStoreSource,
+    ownerUserStoreId,
     ownerStoreQuery.status,
     user,
   ]);
@@ -68,5 +98,6 @@ export default function useOwnerStore(options = {}) {
     isLoading,
     isFetching,
     error,
+    ownerUserStoreId,
   };
 }
