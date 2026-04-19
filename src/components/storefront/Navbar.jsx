@@ -261,10 +261,12 @@ export default function Navbar() {
   const logoutMutation = useLogout({
     onSettled: () => {
       const nextPath = isScopedOwnerDashboard
-        ? "/auth/login"
+        ? ownerStore?.slug
+          ? `/market/${ownerStore.slug}`
+          : "/"
         : activeStoreSlug
           ? `/market/${activeStoreSlug}`
-          : "/market";
+          : "/";
       navigate(nextPath, { replace: true });
     },
   });

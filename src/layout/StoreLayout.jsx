@@ -31,7 +31,7 @@ export default function StoreLayout() {
         ) : null}
         <Outlet />
       </Box>
-      <Box className="store-layout__footer">
+      <Box className="store-layout__footer" id="store-footer">
         <StoreFooter store={store} slug={slug} />
       </Box>
     </Box>

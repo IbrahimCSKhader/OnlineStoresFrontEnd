@@ -94,12 +94,12 @@ export default function VerifyEmail() {
   const loginPath = isStoreCustomerMode
     ? storeCustomerAuthState?.storeSlug
       ? `/market/${storeCustomerAuthState.storeSlug}/login`
-      : "/auth/login"
+      : "/"
     : "/auth/login";
   const registerPath = isStoreCustomerMode
     ? storeCustomerAuthState?.storeSlug
       ? `/market/${storeCustomerAuthState.storeSlug}/register`
-      : "/auth/register"
+      : "/"
     : "/auth/register";
 
   const platformVerifyEmailMutation = useVerifyEmail();

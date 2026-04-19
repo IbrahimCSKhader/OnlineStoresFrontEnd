@@ -5,6 +5,7 @@ import AppRouteError from "./components/common/feedback/AppRouteError.jsx";
 import LoadingState from "./components/common/loaders/LoadingState.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import StoreLayout from "./layout/StoreLayout.jsx";
+import RouteFrame from "./routes/RouteFrame.jsx";
 import lazyWithRetry from "./utils/lazyWithRetry.js";
 const Home = lazyWithRetry(() => import("./pages/Home/Home.jsx"), "home");
 const About = lazyWithRetry(() => import("./pages/About/About.jsx"), "about");
@@ -107,6 +108,10 @@ const OwnerOrders = lazyWithRetry(
   () => import("./pages/owner/OrdersManagement.jsx"),
   "owner-orders",
 );
+const OwnerOrderDetails = lazyWithRetry(
+  () => import("./pages/owner/OrderDetailsPage.jsx"),
+  "owner-order-details",
+);
 const OwnerCategories = lazyWithRetry(
   () => import("./pages/owner/CategoriesManagement.jsx"),
   "owner-categories",
@@ -122,6 +127,10 @@ const OwnerCoupons = lazyWithRetry(
 const OwnerCustomers = lazyWithRetry(
   () => import("./pages/owner/CustomersManagement.jsx"),
   "owner-customers",
+);
+const OwnerCustomerDetails = lazyWithRetry(
+  () => import("./pages/owner/CustomerDetailsPage.jsx"),
+  "owner-customer-details",
 );
 const OwnerReviews = lazyWithRetry(
   () => import("./pages/owner/ReviewsManagement.jsx"),
@@ -144,103 +153,114 @@ function withRouteSuspense(page) {
 
 const router = createBrowserRouter([
   {
-    path: "/admin/login",
-    element: withRouteSuspense(<AdminLogin />),
-    errorElement: <AppRouteError />,
-  },
-  {
-    path: "/admin",
-    element: <Navigate to="/dashboard" replace />,
-  },
-  {
-    path: "/dashboard",
-    element: withRouteSuspense(<SuperAdminLayout />),
+    element: <RouteFrame />,
     errorElement: <AppRouteError />,
     children: [
-      { index: true, element: withRouteSuspense(<SuperAdminOverview />) },
-      { path: "owners", element: withRouteSuspense(<SuperAdminOwners />) },
-      { path: "stores", element: withRouteSuspense(<SuperAdminStores />) },
       {
-        path: "stores/:storeId",
-        element: withRouteSuspense(<AdminStoreDetails />),
+        path: "/admin/login",
+        element: withRouteSuspense(<AdminLogin />),
       },
-      { path: "*", element: <Navigate to="/dashboard" replace /> },
-    ],
-  },
-  {
-    path: "/",
-    element: <MainLayout />,
-    errorElement: <AppRouteError />,
-    children: [
-      { index: true, element: withRouteSuspense(<Home />) },
-      { path: "about", element: withRouteSuspense(<About />) },
-      { path: "market", element: withRouteSuspense(<Market />) },
-      { path: "contact", element: withRouteSuspense(<Contact />) },
+      {
+        path: "/admin",
+        element: <Navigate to="/dashboard" replace />,
+      },
+      {
+        path: "/dashboard",
+        element: withRouteSuspense(<SuperAdminLayout />),
+        errorElement: <AppRouteError />,
+        children: [
+          { index: true, element: withRouteSuspense(<SuperAdminOverview />) },
+          { path: "owners", element: withRouteSuspense(<SuperAdminOwners />) },
+          { path: "stores", element: withRouteSuspense(<SuperAdminStores />) },
+          {
+            path: "stores/:storeId",
+            element: withRouteSuspense(<AdminStoreDetails />),
+          },
+          { path: "*", element: <Navigate to="/dashboard" replace /> },
+        ],
+      },
+      {
+        path: "/",
+        element: <MainLayout />,
+        errorElement: <AppRouteError />,
+        children: [
+          { index: true, element: withRouteSuspense(<Home />) },
+          { path: "about", element: withRouteSuspense(<About />) },
+          { path: "market", element: withRouteSuspense(<Market />) },
+          { path: "contact", element: withRouteSuspense(<Contact />) },
 
-      { path: "auth/login", element: withRouteSuspense(<Login />) },
-      { path: "auth/register", element: withRouteSuspense(<Register />) },
-      {
-        path: "auth/verify-email",
-        element: withRouteSuspense(<VerifyEmail />),
-      },
+          { path: "auth/login", element: withRouteSuspense(<Login />) },
+          { path: "auth/register", element: withRouteSuspense(<Register />) },
+          {
+            path: "auth/verify-email",
+            element: withRouteSuspense(<VerifyEmail />),
+          },
+          {
+            path: "auth/google-callback",
+            element: withRouteSuspense(<GoogleCallbackPage />),
+          },
+          {
+            path: "auth/google/success",
+            element: withRouteSuspense(<GoogleCallbackPage />),
+          },
+          {
+            path: "auth/google/failure",
+            element: withRouteSuspense(<GoogleFailureCallback />),
+          },
 
-      // Google OAuth callback page
-      {
-        path: "auth/google-callback",
-        element: withRouteSuspense(<GoogleCallbackPage />),
-      },
-      {
-        path: "auth/google/success",
-        element: withRouteSuspense(<GoogleCallbackPage />),
-      },
-      {
-        path: "auth/google/failure",
-        element: withRouteSuspense(<GoogleFailureCallback />),
-      },
+          { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
+          { path: "owner/products", element: withRouteSuspense(<OwnerProducts />) },
+          {
+            path: "owner/subscription",
+            element: withRouteSuspense(<OwnerSubscription />),
+          },
+          { path: "owner/orders", element: withRouteSuspense(<OwnerOrders />) },
+          {
+            path: "owner/orders/:orderId",
+            element: withRouteSuspense(<OwnerOrderDetails />),
+          },
+          {
+            path: "owner/categories",
+            element: withRouteSuspense(<OwnerCategories />),
+          },
+          { path: "owner/sections", element: withRouteSuspense(<OwnerSections />) },
+          { path: "owner/coupons", element: withRouteSuspense(<OwnerCoupons />) },
+          {
+            path: "owner/customers",
+            element: withRouteSuspense(<OwnerCustomers />),
+          },
+          {
+            path: "owner/customers/:customerId",
+            element: withRouteSuspense(<OwnerCustomerDetails />),
+          },
+          { path: "owner/reviews", element: withRouteSuspense(<OwnerReviews />) },
 
-      { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
-      { path: "owner/products", element: withRouteSuspense(<OwnerProducts />) },
-      {
-        path: "owner/subscription",
-        element: withRouteSuspense(<OwnerSubscription />),
-      },
-      { path: "owner/orders", element: withRouteSuspense(<OwnerOrders />) },
-      {
-        path: "owner/categories",
-        element: withRouteSuspense(<OwnerCategories />),
-      },
-      { path: "owner/sections", element: withRouteSuspense(<OwnerSections />) },
-      { path: "owner/coupons", element: withRouteSuspense(<OwnerCoupons />) },
-      {
-        path: "owner/customers",
-        element: withRouteSuspense(<OwnerCustomers />),
-      },
-      { path: "owner/reviews", element: withRouteSuspense(<OwnerReviews />) },
-
-      { path: "*", element: withRouteSuspense(<NotFound />) },
-    ],
-  },
-  {
-    path: "/market/:slug",
-    element: <StoreLayout />,
-    errorElement: <AppRouteError />,
-    children: [
-      { index: true, element: withRouteSuspense(<StoreDetails />) },
-      { path: "about", element: withRouteSuspense(<StoreAbout />) },
-      { path: "contact", element: withRouteSuspense(<StoreContact />) },
-      {
-        path: "category/:categoryId",
-        element: withRouteSuspense(<CategoryPage />),
+          { path: "*", element: withRouteSuspense(<NotFound />) },
+        ],
       },
       {
-        path: "product/:productId",
-        element: withRouteSuspense(<ProductDetails />),
+        path: "/market/:slug",
+        element: <StoreLayout />,
+        errorElement: <AppRouteError />,
+        children: [
+          { index: true, element: withRouteSuspense(<StoreDetails />) },
+          { path: "about", element: withRouteSuspense(<StoreAbout />) },
+          { path: "contact", element: withRouteSuspense(<StoreContact />) },
+          {
+            path: "category/:categoryId",
+            element: withRouteSuspense(<CategoryPage />),
+          },
+          {
+            path: "product/:productId",
+            element: withRouteSuspense(<ProductDetails />),
+          },
+          { path: "cart", element: withRouteSuspense(<Cart />) },
+          { path: "checkout", element: withRouteSuspense(<Checkout />) },
+          { path: "login", element: withRouteSuspense(<Login />) },
+          { path: "register", element: withRouteSuspense(<Register />) },
+          { path: "verify-email", element: withRouteSuspense(<VerifyEmail />) },
+        ],
       },
-      { path: "cart", element: withRouteSuspense(<Cart />) },
-      { path: "checkout", element: withRouteSuspense(<Checkout />) },
-      { path: "login", element: withRouteSuspense(<Login />) },
-      { path: "register", element: withRouteSuspense(<Register />) },
-      { path: "verify-email", element: withRouteSuspense(<VerifyEmail />) },
     ],
   },
 ]);

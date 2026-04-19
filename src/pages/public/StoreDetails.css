@@ -76,7 +76,8 @@ html[data-theme-mode="dark"] .page-store-details__hero {
 }
 
 .page-store-details__hero-main {
-  max-width: min(100%, 760px);
+  gap: var(--space-5);
+  max-width: min(100%, 660px);
 }
 
 .page-store-details__hero .storefront-logo {
@@ -93,6 +94,10 @@ html[data-theme-mode="dark"] .page-store-details__hero {
 
 .page-store-details__title {
   max-width: 11ch;
+}
+
+.page-store-details__brand-row .storefront-stack {
+  gap: var(--space-3);
 }
 
 .page-store-details__hero .MuiChip-root {

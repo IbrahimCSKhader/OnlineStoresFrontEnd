@@ -48,5 +48,5 @@ export function getRoleLabel(role) {
 export function getLandingPath(role) {
   if (isSuperAdminRole(role)) return "/dashboard";
   if (isOwnerRole(role)) return "/owner";
-  return "/market";
+  return "/";
 }

@@ -2,17 +2,14 @@ import { useDeferredValue, useMemo, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
-import StoreContactAccounts from "../../components/common/StoreContactAccounts.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
@@ -79,7 +76,7 @@ export default function StoreDetails() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-details">
-        <EmptyState title="جارٍ تحميل المتجر..." />
+        <EmptyState title="ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ ط§ظ„ظ…طھط¬ط±..." />
       </Box>
     );
   }
@@ -88,8 +85,8 @@ export default function StoreDetails() {
     return (
       <Box className="storefront-page page-store-details">
         <EmptyState
-          title="تعذر العثور على المتجر"
-          description="قد يكون الرابط غير صحيح أو أن المتجر لم يعد متاحًا."
+          title="طھط¹ط°ط± ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ط§ظ„ظ…طھط¬ط±"
+          description="ظ‚ط¯ ظٹظƒظˆظ† ط§ظ„ط±ط§ط¨ط· ط؛ظٹط± طµط­ظٹط­ ط£ظˆ ط£ظ† ط§ظ„ظ…طھط¬ط± ظ„ظ… ظٹط¹ط¯ ظ…طھط§ط­ظ‹ط§."
         />
       </Box>
     );
@@ -131,11 +128,11 @@ export default function StoreDetails() {
   return (
     <Box className="storefront-page page-store-details">
       {addToCartMutation.isError ? (
-        <Alert severity="error">تعذر إضافة المنتج إلى السلة.</Alert>
+        <Alert severity="error">طھط¹ط°ط± ط¥ط¶ط§ظپط© ط§ظ„ظ…ظ†طھط¬ ط¥ظ„ظ‰ ط§ظ„ط³ظ„ط©.</Alert>
       ) : null}
 
       {addToCartMutation.isSuccess ? (
-        <Alert severity="success">تمت إضافة المنتج إلى السلة.</Alert>
+        <Alert severity="success">طھظ…طھ ط¥ط¶ط§ظپط© ط§ظ„ظ…ظ†طھط¬ ط¥ظ„ظ‰ ط§ظ„ط³ظ„ط©.</Alert>
       ) : null}
 
       <SurfaceCard
@@ -159,7 +156,7 @@ export default function StoreDetails() {
 
         <Box className="page-store-details__hero-grid">
           <Box className="storefront-stack page-store-details__hero-main">
-            <span className="storefront-eyebrow">المتجر</span>
+            <span className="storefront-eyebrow">ط§ظ„ظ…طھط¬ط±</span>
 
             <Box className="page-store-details__brand-row">
               {logoImage ? (
@@ -171,7 +168,7 @@ export default function StoreDetails() {
                 />
               ) : (
                 <Box className="storefront-logo storefront-logo--empty">
-                  {store.name?.[0] || "م"}
+                  {store.name?.[0] || "ظ…"}
                 </Box>
               )}
 
@@ -188,43 +185,9 @@ export default function StoreDetails() {
               </Box>
             </Box>
 
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-              {store.businessType ? <Chip label={store.businessType} /> : null}
-              <Chip label={`${products.length} منتج`} variant="outlined" />
-              <Chip label={`${categories.length} تصنيف`} variant="outlined" />
-              <Chip
-                label={store.isActive ? "نشط" : "غير نشط"}
-                variant="outlined"
-              />
-            </Stack>
-
-            <Box className="storefront-hero__metrics page-store-details__hero-metrics">
-              <SurfaceCard className="storefront-metric">
-                <StorefrontRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">التصنيفات</span>
-                <strong className="storefront-metric__value">
-                  {categories.length}
-                </strong>
-              </SurfaceCard>
-              <SurfaceCard className="storefront-metric">
-                <LocalMallRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">المنتجات</span>
-                <strong className="storefront-metric__value">
-                  {products.length}
-                </strong>
-              </SurfaceCard>
-              <SurfaceCard className="storefront-metric">
-                <VisibilityRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">الزيارات</span>
-                <strong className="storefront-metric__value">
-                  {store.visitCount ?? 0}
-                </strong>
-              </SurfaceCard>
-            </Box>
-
             <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
               <AppButton href="#store-catalog" variant="contained">
-                تصفح الكتالوج
+                طھطµظپط­ ط§ظ„ظƒطھط§ظ„ظˆط¬
               </AppButton>
               {isOwnerPreview ? (
                 <AppButton
@@ -232,7 +195,7 @@ export default function StoreDetails() {
                   startIcon={<LocalMallRoundedIcon fontSize="small" />}
                   disabled
                 >
-                  السلة
+                  ط§ظ„ط³ظ„ط©
                 </AppButton>
               ) : (
                 <AppButton
@@ -241,7 +204,7 @@ export default function StoreDetails() {
                   variant="outlined"
                   startIcon={<LocalMallRoundedIcon fontSize="small" />}
                 >
-                  السلة
+                  ط§ظ„ط³ظ„ط©
                 </AppButton>
               )}
             </Stack>
@@ -249,32 +212,16 @@ export default function StoreDetails() {
         </Box>
       </SurfaceCard>
 
-      <Box className="storefront-section page-store-details__contacts">
-        <Box className="storefront-section__head">
-          <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">التواصل</span>
-            <Typography variant="h3">حسابات التواصل</Typography>
-          </Box>
-        </Box>
-
-        <StoreContactAccounts
-          store={store}
-          showTitle={false}
-          layout="cards"
-          hideWhenEmpty
-        />
-      </Box>
-
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">Categories</span>
-            <Typography variant="h3">التصنيفات الرئيسية</Typography>
+            <Typography variant="h3">ط§ظ„طھطµظ†ظٹظپط§طھ ط§ظ„ط±ط¦ظٹط³ظٹط©</Typography>
           </Box>
         </Box>
 
         {categoriesQuery.isLoading && !categorySummary.length ? (
-          <EmptyState title="جارٍ تحميل التصنيفات..." />
+          <EmptyState title="ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ ط§ظ„طھطµظ†ظٹظپط§طھ..." />
         ) : categorySummary.length ? (
           <Box className="storefront-cards-grid page-store-details__categories-grid">
             {categorySummary.map((category) => (
@@ -292,15 +239,15 @@ export default function StoreDetails() {
                   {category.description || ""}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {category.count} منتج
+                  {category.count} ظ…ظ†طھط¬
                 </Typography>
               </SurfaceCard>
             ))}
           </Box>
         ) : (
           <EmptyState
-            title="لا توجد تصنيفات بعد"
-            description="ستظهر التصنيفات هنا بمجرد إضافة أقسام ومنتجات داخل المتجر."
+            title="ظ„ط§ طھظˆط¬ط¯ طھطµظ†ظٹظپط§طھ ط¨ط¹ط¯"
+            description="ط³طھط¸ظ‡ط± ط§ظ„طھطµظ†ظٹظپط§طھ ظ‡ظ†ط§ ط¨ظ…ط¬ط±ط¯ ط¥ط¶ط§ظپط© ط£ظ‚ط³ط§ظ… ظˆظ…ظ†طھط¬ط§طھ ط¯ط§ط®ظ„ ط§ظ„ظ…طھط¬ط±."
           />
         )}
       </Box>
@@ -308,13 +255,13 @@ export default function StoreDetails() {
       <Box className="storefront-section page-store-details__featured">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">منتجات</span>
-            <Typography variant="h3">منتجات مختارة</Typography>
+            <span className="storefront-eyebrow">ظ…ظ†طھط¬ط§طھ</span>
+            <Typography variant="h3">ظ…ظ†طھط¬ط§طھ ظ…ط®طھط§ط±ط©</Typography>
           </Box>
         </Box>
 
         {featuredProductsQuery.isLoading && !featuredProducts.length ? (
-          <EmptyState title="جارٍ تحميل المنتجات المختارة..." />
+          <EmptyState title="ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ ط§ظ„ظ…ظ†طھط¬ط§طھ ط§ظ„ظ…ط®طھط§ط±ط©..." />
         ) : featuredProducts.length ? (
           <ProductGrid
             products={featuredProducts}
@@ -325,7 +272,7 @@ export default function StoreDetails() {
             linkSearch={previewSearch}
           />
         ) : (
-          <EmptyState title="لا توجد منتجات مختارة" />
+          <EmptyState title="ظ„ط§ طھظˆط¬ط¯ ظ…ظ†طھط¬ط§طھ ظ…ط®طھط§ط±ط©" />
         )}
       </Box>
 
@@ -335,22 +282,22 @@ export default function StoreDetails() {
       >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">المنتجات</span>
-            <Typography variant="h3">جميع المنتجات</Typography>
+            <span className="storefront-eyebrow">ط§ظ„ظ…ظ†طھط¬ط§طھ</span>
+            <Typography variant="h3">ط¬ظ…ظٹط¹ ط§ظ„ظ…ظ†طھط¬ط§طھ</Typography>
           </Box>
 
           <Box className="page-store-details__search">
             <SearchInput
               value={searchText}
               onChange={setSearchText}
-              placeholder="ابحث داخل هذا المتجر"
+              placeholder="ط§ط¨ط­ط« ط¯ط§ط®ظ„ ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±"
             />
           </Box>
         </Box>
 
         <Box className="page-store-details__catalog-body">
           {catalogProductsQuery.isLoading ? (
-            <EmptyState title="جارٍ تحميل المنتجات..." />
+            <EmptyState title="ط¬ط§ط±ظچ طھط­ظ…ظٹظ„ ط§ظ„ظ…ظ†طھط¬ط§طھ..." />
           ) : filteredProducts.length ? (
             <ProductGrid
               products={filteredProducts}
@@ -362,8 +309,8 @@ export default function StoreDetails() {
             />
           ) : (
             <EmptyState
-              title="لا توجد نتائج"
-              description="جرّب كلمة بحث أخرى أو ارجع إلى جميع التصنيفات."
+              title="ظ„ط§ طھظˆط¬ط¯ ظ†طھط§ط¦ط¬"
+              description="ط¬ط±ظ‘ط¨ ظƒظ„ظ…ط© ط¨ط­ط« ط£ط®ط±ظ‰ ط£ظˆ ط§ط±ط¬ط¹ ط¥ظ„ظ‰ ط¬ظ…ظٹط¹ ط§ظ„طھطµظ†ظٹظپط§طھ."
             />
           )}
         </Box>

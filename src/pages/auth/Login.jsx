@@ -243,13 +243,13 @@ export default function Login() {
     "هذا المتجر";
   const storeHomePath = storeCustomerAuthState?.storeSlug
     ? `/market/${storeCustomerAuthState.storeSlug}`
-    : "/market";
+    : "/";
   const storeRegisterPath = storeCustomerAuthState?.storeSlug
     ? `/market/${storeCustomerAuthState.storeSlug}/register`
-    : "/auth/register";
+    : "/";
   const storeVerifyEmailPath = storeCustomerAuthState?.storeSlug
     ? `/market/${storeCustomerAuthState.storeSlug}/verify-email`
-    : "/auth/verify-email";
+    : "/";
   const canStartStoreGoogleLogin = Boolean(
     resolvedGoogleStoreSlug || resolvedGoogleStoreId,
   );

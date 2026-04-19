@@ -35,6 +35,7 @@ export const endpoints = {
   stores: {
     list: withPrefix("/Store"),
     create: withPrefix("/Store"),
+    owned: withPrefix("/Store/owned"),
     detail: (id) => withPrefix(`/Store/${id}`),
     slug: (slug) => withPrefix(`/Store/slug/${slug}`),
     subscription: (id) => withPrefix(`/Store/${id}/subscription`),

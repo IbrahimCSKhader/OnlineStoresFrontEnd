@@ -69,15 +69,15 @@ export default function Register() {
   const storeHomePath =
     storeCustomerAuthState?.storeSlug
       ? `/market/${storeCustomerAuthState.storeSlug}`
-      : "/market";
+      : "/";
   const storeLoginPath =
     storeCustomerAuthState?.storeSlug
       ? `/market/${storeCustomerAuthState.storeSlug}/login`
-      : "/auth/login";
+      : "/";
   const storeVerifyEmailPath =
     storeCustomerAuthState?.storeSlug
       ? `/market/${storeCustomerAuthState.storeSlug}/verify-email`
-      : "/auth/verify-email";
+      : "/";
 
   const defaultValues = useMemo(
     () => ({

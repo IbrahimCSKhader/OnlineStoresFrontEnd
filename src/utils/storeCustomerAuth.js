@@ -79,7 +79,7 @@ export function buildStoreCustomerAuthState({
     storeId: storeId || "",
     storeSlug,
     storeName,
-    redirectTo: redirectTo || (storeSlug ? `/market/${storeSlug}` : "/market"),
+    redirectTo: redirectTo || (storeSlug ? `/market/${storeSlug}` : "/"),
   };
 }
 
@@ -95,7 +95,7 @@ export function hasStoreCustomerAuthContext(state) {
 }
 
 export function getStoreCustomerRedirectPath(state) {
-  return state?.redirectTo || (state?.storeSlug ? `/market/${state.storeSlug}` : "/market");
+  return state?.redirectTo || (state?.storeSlug ? `/market/${state.storeSlug}` : "/");
 }
 
 export function resolveStoreCustomerDashboard(data = {}, user = {}, role = "") {

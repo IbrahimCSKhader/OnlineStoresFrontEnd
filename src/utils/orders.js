@@ -108,6 +108,18 @@ export function normalizeOrderDetails(data) {
       entity?.storeCustomer?.fullName,
       entity?.storeCustomer?.name,
     ),
+    customerEmail: firstString(
+      entity?.customerEmail,
+      entity?.customer?.email,
+      entity?.storeCustomer?.email,
+    ),
+    customerPhone: firstString(
+      entity?.customerPhone,
+      entity?.deliveryPhone,
+      entity?.phone,
+      entity?.customer?.phone,
+      entity?.storeCustomer?.phone,
+    ),
     deliveryAddress: firstString(
       entity?.deliveryAddress,
       entity?.address,

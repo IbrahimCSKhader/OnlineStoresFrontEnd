@@ -53,7 +53,7 @@ import {
 } from "../../utils/token.js";
 
 const DEFAULT_PLATFORM_REDIRECT_PATH = "/";
-const DEFAULT_STOREFRONT_REDIRECT_PATH = "/market";
+const DEFAULT_STOREFRONT_REDIRECT_PATH = "/";
 const GOOGLE_FAILURE_PATH = "/auth/google/failure";
 
 function readHashParams(hash) {
