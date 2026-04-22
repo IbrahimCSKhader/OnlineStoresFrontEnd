@@ -12,15 +12,15 @@ import {
 } from "../../utils/authFlowDebug.js";
 
 export default function useOwnerStore(options = {}) {
-  const { user, platformRole, isPlatformAuthenticated } = useAuth();
-  const ownerUserId = String(user?.id || "");
+  const { platformUser, platformRole, isPlatformAuthenticated } = useAuth();
+  const ownerUserId = String(platformUser?.id || "");
   const ownerUserStoreId = String(
-    user?.storeId || user?.StoreId || user?.store?.id || "",
+    platformUser?.storeId || platformUser?.StoreId || platformUser?.store?.id || "",
   );
   const canLoadOwnedStore =
     (options.enabled ?? true) &&
     isPlatformAuthenticated &&
-    isOwnerRole(platformRole || user?.accountType);
+    isOwnerRole(platformRole || platformUser?.accountType);
 
   const ownerStoreQuery = useQuery({
     queryKey: queryKeys.stores.detail(`owned:${ownerUserId || "anonymous"}`),
@@ -35,7 +35,7 @@ export default function useOwnerStore(options = {}) {
         logAuthFlow(
           "Owned store endpoint failed, falling back to storeId from session",
           {
-            user: serializeAuthFlowUser(user),
+            user: serializeAuthFlowUser(platformUser),
             ownerUserStoreId,
             statusCode: Number(error?.response?.status || 0),
             errorMessage:
@@ -70,7 +70,7 @@ export default function useOwnerStore(options = {}) {
   useEffect(() => {
     logAuthFlow("Owner store resolution", {
       ownerStoreSource,
-      user: serializeAuthFlowUser(user),
+      user: serializeAuthFlowUser(platformUser),
       ownerStore: serializeAuthFlowStore(ownerStore),
       canLoadOwnedStore,
       ownerUserStoreId,
@@ -88,7 +88,7 @@ export default function useOwnerStore(options = {}) {
     ownerStoreSource,
     ownerUserStoreId,
     ownerStoreQuery.status,
-    user,
+    platformUser,
   ]);
 
   return {

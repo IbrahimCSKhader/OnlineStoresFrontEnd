@@ -193,6 +193,8 @@ export default function Navbar() {
     isPlatformAuthenticated,
     isStoreCustomer,
     role,
+    platformRole,
+    platformUser,
     storeCustomer,
   } = useAuth();
   const location = useLocation();
@@ -216,13 +218,31 @@ export default function Navbar() {
     () => normalizeEntityResponse(storeQuery.data),
     [storeQuery.data],
   );
+  const isOwnerPlatformUser =
+    isPlatformAuthenticated && isOwnerRole(platformRole);
+  const ownerUserStoreId = String(
+    platformUser?.storeId || platformUser?.StoreId || platformUser?.store?.id || "",
+  ).trim();
   const ownerStoreQuery = useOwnerStore({
-    enabled: isOwnerDashboardRoute && isPlatformAuthenticated && isOwnerRole(role),
+    enabled:
+      isOwnerPlatformUser &&
+      (isOwnerDashboardRoute || (Boolean(activeStoreSlug) && !ownerUserStoreId)),
     staleTime: 60000,
   });
   const ownerStore = ownerStoreQuery.ownerStore;
   const isScopedOwnerDashboard =
-    isOwnerDashboardRoute && isPlatformAuthenticated && isOwnerRole(role);
+    isOwnerDashboardRoute && isOwnerPlatformUser;
+  const ownerScopedStoreId = String(
+    ownerStore?.id || ownerUserStoreId || "",
+  ).trim();
+  const activeStoreId = String(activeStore?.id || "").trim();
+  const isViewingOwnedStore =
+    Boolean(activeStoreId) &&
+    Boolean(ownerScopedStoreId) &&
+    activeStoreId === ownerScopedStoreId;
+  const canShowPlatformDashboardButton =
+    isPlatformAuthenticated &&
+    (isSuperAdminRole(platformRole) || isViewingOwnedStore);
   const currentBrandStore = isScopedOwnerDashboard ? ownerStore : activeStore;
   const activeStoreLogo = resolveAssetUrl(currentBrandStore?.logoUrl);
   const brandHref = isScopedOwnerDashboard
@@ -293,10 +313,10 @@ export default function Navbar() {
         })
       : undefined;
 
-  const dashboardPath = getLandingPath(role);
-  const dashboardLabel = isSuperAdminRole(role)
+  const dashboardPath = getLandingPath(platformRole);
+  const dashboardLabel = isSuperAdminRole(platformRole)
     ? "لوحة الإدارة"
-    : isOwnerRole(role)
+    : isOwnerRole(platformRole)
       ? "إدارة المتجر"
       : "داخل المتجر";
 
@@ -694,7 +714,9 @@ export default function Navbar() {
     }
 
     if (isPlatformAuthenticated) {
-      return renderPlatformButtons();
+      return canShowPlatformDashboardButton
+        ? renderPlatformButtons()
+        : renderOwnerDashboardButtons();
     }
 
     return renderGuestButtons();
@@ -741,7 +763,9 @@ export default function Navbar() {
       return (
         <>
           {contactButton}
-          {renderPlatformButtons(true)}
+          {canShowPlatformDashboardButton
+            ? renderPlatformButtons(true)
+            : renderOwnerDashboardButtons(true)}
         </>
       );
     }
