@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import AccessTimeRoundedIcon from "@mui/icons-material/AccessTimeRounded";
 import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
 import SupportAgentRoundedIcon from "@mui/icons-material/SupportAgentRounded";
+import { SITE_BRAND_ASSET_PATH } from "../../constants/siteBranding.js";
 import "./About.css";
 
 const values = [
@@ -65,8 +66,8 @@ export default function About() {
       <Paper className="page-about__story" elevation={0}>
         <Box
           component="img"
-          src="/ibrahimGraduation.jpeg"
-          alt="المهندس إبراهيم أبو هنية"
+          src={SITE_BRAND_ASSET_PATH}
+          alt="mawja logo"
           className="page-about__founder-image"
         />
 

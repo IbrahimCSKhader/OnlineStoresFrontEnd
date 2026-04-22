@@ -72,9 +72,11 @@
 .page-about__founder-image {
   width: 100%;
   aspect-ratio: 1 / 1;
-  object-fit: cover;
+  object-fit: contain;
+  padding: clamp(0.85rem, 2vw, 1.1rem);
   border-radius: 28px;
   border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
 }
 
 .page-about__story-copy {
