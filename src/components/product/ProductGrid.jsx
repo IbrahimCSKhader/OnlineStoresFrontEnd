@@ -8,9 +8,14 @@ export default function ProductGrid({
   addingProductId,
   disableCartActions = false,
   linkSearch = "",
+  className = "",
 }) {
   return (
-    <Box className="storefront-products-grid">
+    <Box
+      className={["storefront-products-grid", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
       {products.map((product) => (
         <ProductCard
           key={product.id ?? `${product.name}-${product.slug}`}

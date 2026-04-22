@@ -36,6 +36,11 @@ import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
+import useDocumentBranding from "../../hooks/useDocumentBranding.js";
+import {
+  SITE_BRAND_ASSET_PATH,
+  SITE_BRAND_NAME,
+} from "../../constants/siteBranding.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import {
@@ -192,7 +197,6 @@ export default function Navbar() {
     isAuthenticated,
     isPlatformAuthenticated,
     isStoreCustomer,
-    role,
     platformRole,
     platformUser,
     storeCustomer,
@@ -244,7 +248,10 @@ export default function Navbar() {
     isPlatformAuthenticated &&
     (isSuperAdminRole(platformRole) || isViewingOwnedStore);
   const currentBrandStore = isScopedOwnerDashboard ? ownerStore : activeStore;
-  const activeStoreLogo = resolveAssetUrl(currentBrandStore?.logoUrl);
+  const storeBrandLogo = resolveAssetUrl(currentBrandStore?.logoUrl);
+  const activeStoreLogo =
+    storeBrandLogo ||
+    (!activeStoreSlug && !isScopedOwnerDashboard ? SITE_BRAND_ASSET_PATH : "");
   const brandHref = isScopedOwnerDashboard
     ? "/owner"
     : activeStoreSlug
@@ -254,6 +261,10 @@ export default function Navbar() {
   const brandName = activeStore?.name || "السوق";
   const resolvedBrandName =
     currentBrandStore?.name || (isScopedOwnerDashboard ? "متجرك" : brandName);
+  const fallbackBrandName = activeStore?.name || SITE_BRAND_NAME;
+  const resolvedDisplayBrandName =
+    currentBrandStore?.name ||
+    (isScopedOwnerDashboard ? resolvedBrandName : fallbackBrandName);
   const navItems = useMemo(
     () => (isScopedOwnerDashboard ? [] : buildNavItems(activeStoreSlug)),
     [activeStoreSlug, isScopedOwnerDashboard],
@@ -302,6 +313,21 @@ export default function Navbar() {
   );
   const cartItemCount =
     hasScopedStorefrontSession || useLocalGuestCart ? cart.itemCount || 0 : 0;
+  const documentBrandTitle = activeStoreSlug
+    ? activeStore?.name || SITE_BRAND_NAME
+    : isScopedOwnerDashboard
+      ? currentBrandStore?.name || SITE_BRAND_NAME
+      : SITE_BRAND_NAME;
+  const documentBrandIcon = activeStoreSlug
+    ? storeBrandLogo || SITE_BRAND_ASSET_PATH
+    : isScopedOwnerDashboard
+      ? storeBrandLogo || SITE_BRAND_ASSET_PATH
+      : SITE_BRAND_ASSET_PATH;
+
+  useDocumentBranding({
+    title: documentBrandTitle,
+    iconHref: documentBrandIcon,
+  });
 
   const storeCustomerAuthState =
     activeStore?.id && activeStoreSlug
@@ -342,7 +368,7 @@ export default function Navbar() {
       return (
         <img
           src={activeStoreLogo}
-          alt={`${resolvedBrandName} logo`}
+          alt={`${resolvedDisplayBrandName} logo`}
           className={[
             "store-navbar__brand-logo",
             drawer ? "store-navbar__brand-logo--drawer" : "",
@@ -791,7 +817,7 @@ export default function Navbar() {
               </Typography>
             ) : null}
             <Typography component="span" className="store-navbar__brand-name">
-              {resolvedBrandName}
+              {resolvedDisplayBrandName}
             </Typography>
           </Box>
         </Box>
@@ -849,7 +875,7 @@ export default function Navbar() {
           <Box className="store-navbar__drawer-brand">
             {renderBrandVisual(true)}
             <Box>
-              <Typography variant="subtitle2">{resolvedBrandName}</Typography>
+              <Typography variant="subtitle2">{resolvedDisplayBrandName}</Typography>
             </Box>
           </Box>
 

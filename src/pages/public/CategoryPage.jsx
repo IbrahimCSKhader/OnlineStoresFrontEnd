@@ -259,6 +259,7 @@ export default function CategoryPage() {
                 addingProductId={addToCartUi.activeKey}
                 disableCartActions={isOwnerPreview}
                 linkSearch={previewSearch}
+                className="page-category__products-grid"
               />
             ) : (
               <EmptyState

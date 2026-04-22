@@ -13,6 +13,7 @@ import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
 import StoreGrid from "../../components/storefront/StoreGrid.jsx";
 import productApi from "../../API/product.api.js";
+import { SITE_BRAND_ASSET_PATH } from "../../constants/siteBranding.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useStores from "../../hooks/stores/useStores.js";
 import { normalizeListResponse } from "../../utils/collections.js";
@@ -131,7 +132,11 @@ export default function Home() {
           </Box>
 
           <Box className="page-home__hero-media" aria-hidden>
-            <img src="/onlineStore.jpeg" alt="Online store" className="page-home__hero-image" />
+            <img
+              src={SITE_BRAND_ASSET_PATH}
+              alt="mawja"
+              className="page-home__hero-image"
+            />
           </Box>
         </Box>
       </SurfaceCard>
