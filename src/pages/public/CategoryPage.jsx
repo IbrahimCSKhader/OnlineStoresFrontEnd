@@ -113,7 +113,7 @@ export default function CategoryPage() {
         return true;
       }
 
-      return [product.name, product.description, product.shortDescription, product.slug]
+      return [product.name, product.description, product.shortDescription]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword));
     }),

@@ -12,7 +12,6 @@ export default function CategoryForm({
   isEdit,
   categories,
   loading,
-  slugPreview,
   onChange,
   onReset,
   onSubmit,
@@ -20,7 +19,7 @@ export default function CategoryForm({
   return (
     <Box className="owner-form-card">
       <Alert severity="info" className="owner-inline-alert">
-        يتم تعبئة رابط التصنيف تلقائيًا من الاسم، ويمكنك تعديله قبل أول حفظ فقط.
+        أنشئ تصنيفات واضحة ليسهل على الزوار الوصول للمنتجات بسرعة.
       </Alert>
 
       <Box component="form" className="owner-form" onSubmit={onSubmit}>
@@ -30,16 +29,6 @@ export default function CategoryForm({
           size="small"
           required
           onChange={(event) => onChange("name", event.target.value)}
-        />
-
-        <TextField
-          label="رابط التصنيف"
-          value={form.slug}
-          size="small"
-          required
-          disabled={isEdit}
-          helperText={`الرابط الحالي: /${slugPreview || "category"}`}
-          onChange={(event) => onChange("slug", event.target.value)}
         />
 
         <TextField

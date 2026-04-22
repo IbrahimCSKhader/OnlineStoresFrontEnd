@@ -268,7 +268,7 @@ export default function Navbar() {
     ? buildStorePreviewPath(`/market/${activeStoreSlug}/cart`)
     : "/market";
   const { hasScopedStorefrontSession, useLocalGuestCart } =
-    useStorefrontSession(activeStore?.id);
+    useStorefrontSession(activeStore?.id, activeStoreSlug);
 
   const isStoreCustomerSignedIn =
     !isOwnerPreview &&
@@ -813,7 +813,7 @@ export default function Navbar() {
           {renderCartButton()}
           {!isMobile ? (
             <ContactDeveloperButton
-              label="تواصل مع المطور"
+              label="الدعم"
               variant="text"
               className="store-navbar__support-button"
             />

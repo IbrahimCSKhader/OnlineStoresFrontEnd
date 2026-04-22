@@ -27,6 +27,30 @@ function resolveStoreAuthResponseStoreId(data = {}, user = {}) {
   );
 }
 
+function resolveStoreAuthResponseStoreSlug(data = {}, user = {}) {
+  return normalizeValue(
+    data?.storeSlug ||
+      data?.StoreSlug ||
+      data?.data?.storeSlug ||
+      data?.data?.StoreSlug ||
+      user?.storeSlug ||
+      user?.StoreSlug ||
+      user?.store?.slug,
+  );
+}
+
+function resolveStoreAuthResponseStoreName(data = {}, user = {}) {
+  return normalizeValue(
+    data?.storeName ||
+      data?.StoreName ||
+      data?.data?.storeName ||
+      data?.data?.StoreName ||
+      user?.storeName ||
+      user?.StoreName ||
+      user?.store?.name,
+  );
+}
+
 function resolveStoreAuthResponseStoreCustomerId(data = {}, user = {}) {
   return normalizeValue(
     data?.storeCustomerId ||
@@ -48,7 +72,11 @@ function sanitizeStoreScopedUser(user, authResult) {
     return null;
   }
 
-  const nextUser = { ...user };
+  const nextUser = applyStoreScopeToUser(user, {
+    storeId: authResult.responseStoreId,
+    storeSlug: authResult.responseStoreSlug,
+    storeName: authResult.responseStoreName,
+  });
 
   if (authResult.responseStoreId) {
     nextUser.storeId = authResult.responseStoreId;
@@ -63,6 +91,48 @@ function sanitizeStoreScopedUser(user, authResult) {
     nextUser.storeCustomerId = normalizeValue(
       authResult.responseStoreCustomerId || nextUser.storeCustomerId || nextUser.id,
     );
+  }
+
+  return nextUser;
+}
+
+export function applyStoreScopeToUser(
+  user,
+  { storeId = "", storeSlug = "", storeName = "" } = {},
+) {
+  if (!user) {
+    return null;
+  }
+
+  const normalizedStoreId = normalizeValue(storeId);
+  const normalizedStoreSlug = normalizeValue(storeSlug);
+  const normalizedStoreName = normalizeValue(storeName);
+  const nextUser = { ...user };
+  const nextStore =
+    nextUser.store && typeof nextUser.store === "object" ? { ...nextUser.store } : {};
+
+  if (normalizedStoreId) {
+    nextUser.storeId = normalizedStoreId;
+    nextStore.id = normalizedStoreId;
+  }
+
+  if (normalizedStoreSlug) {
+    nextUser.storeSlug = normalizedStoreSlug;
+    nextStore.slug = normalizedStoreSlug;
+  }
+
+  if (normalizedStoreName) {
+    nextUser.storeName = normalizedStoreName;
+    nextStore.name = normalizedStoreName;
+  }
+
+  if (
+    normalizedStoreId ||
+    normalizedStoreSlug ||
+    normalizedStoreName ||
+    Object.keys(nextStore).length
+  ) {
+    nextUser.store = nextStore;
   }
 
   return nextUser;
@@ -147,6 +217,8 @@ export function resolveStoreScopedAuthResult(data = {}, requestedStoreId = "") {
       data?.data?.AuthMode,
   );
   const responseStoreId = resolveStoreAuthResponseStoreId(data, extractedUser);
+  const responseStoreSlug = resolveStoreAuthResponseStoreSlug(data, extractedUser);
+  const responseStoreName = resolveStoreAuthResponseStoreName(data, extractedUser);
   const responseStoreCustomerId = resolveStoreAuthResponseStoreCustomerId(
     data,
     extractedUser,
@@ -177,6 +249,8 @@ export function resolveStoreScopedAuthResult(data = {}, requestedStoreId = "") {
     dashboard,
     requestStoreId: normalizedRequestedStoreId,
     responseStoreId,
+    responseStoreSlug,
+    responseStoreName,
     responseStoreCustomerId: isCustomer ? responseStoreCustomerId : "",
     isOwner,
     isCustomer,
@@ -215,10 +289,11 @@ export function applyRequestedStoreScopeFallback(result, requestedStoreId = "") 
     responseStoreId: normalizedRequestedStoreId,
     belongsToRequestedStore: true,
     user: result?.user
-      ? {
-          ...result.user,
+      ? applyStoreScopeToUser(result.user, {
           storeId: normalizedRequestedStoreId,
-        }
+          storeSlug: result?.responseStoreSlug,
+          storeName: result?.responseStoreName,
+        })
       : result?.user,
   };
 }

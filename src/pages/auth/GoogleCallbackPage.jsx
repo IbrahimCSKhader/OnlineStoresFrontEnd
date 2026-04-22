@@ -31,6 +31,7 @@ import {
   setPendingStoreGoogleAuth,
 } from "../../utils/pendingStoreGoogleAuth.js";
 import {
+  applyStoreScopeToUser,
   applyRequestedStoreScopeFallback,
   buildStoreCustomerAuthState,
   resolveStoreScopedAuthResult,
@@ -364,7 +365,14 @@ function GoogleCallbackPage() {
         setPlatformSession({ token, user, role });
       };
 
-      const persistStorefrontSession = ({ token, user, role }) => {
+      const persistStorefrontSession = ({
+        token,
+        user,
+        role,
+        storeId = "",
+        storeSlug = "",
+        storeName = "",
+      }) => {
         const authState = useAuthStore.getState();
         const existingPlatformToken =
           authState?.platformSession?.token || getPlatformAuthToken();
@@ -392,19 +400,25 @@ function GoogleCallbackPage() {
           });
         }
 
+        const scopedUser = applyStoreScopeToUser(user, {
+          storeId,
+          storeSlug,
+          storeName,
+        });
+
         if (token) {
           setStorefrontAuthToken(token);
         }
 
-        if (user) {
-          setStoredStorefrontUser(user);
+        if (scopedUser) {
+          setStoredStorefrontUser(scopedUser);
         }
 
         if (role) {
           setStoredStorefrontRole(role);
         }
 
-        setStorefrontSession({ token, user, role });
+        setStorefrontSession({ token, user: scopedUser, role });
       };
 
       const safeMergeGuestCart = async () => {
@@ -762,6 +776,9 @@ function GoogleCallbackPage() {
           token,
           user: resolvedStorefrontUser,
           role: resolvedStorefrontRole,
+          storeId: resolvedStorefrontStoreId,
+          storeSlug: effectiveStoreSlug,
+          storeName: effectiveStoreName,
         });
         setPendingGoogleCallbackResult({
           sessionType: "storefront",
@@ -817,6 +834,9 @@ function GoogleCallbackPage() {
           token,
           user: authResult.user,
           role: authResult.role,
+          storeId: authResult.responseStoreId || effectiveStoreId,
+          storeSlug: effectiveStoreSlug,
+          storeName: effectiveStoreName,
         });
         setPendingGoogleCallbackResult({
           sessionType: "storefront",

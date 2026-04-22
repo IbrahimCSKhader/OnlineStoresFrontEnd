@@ -102,7 +102,6 @@ export default function StoreDetails() {
           product.name,
           product.description,
           product.shortDescription,
-          product.slug,
         ]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(keyword)),
@@ -215,7 +214,7 @@ export default function StoreDetails() {
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Categories</span>
+            <span className="storefront-eyebrow">التصنيفات</span>
             <Typography variant="h3">التصنيفات الرئيسية</Typography>
           </Box>
         </Box>

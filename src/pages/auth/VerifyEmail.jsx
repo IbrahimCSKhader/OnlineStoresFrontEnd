@@ -42,6 +42,7 @@ import {
 } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
 import {
+  applyStoreScopeToUser,
   assertStoreScopedAuthResult,
   buildStoreCustomerAuthState,
   getStoreCustomerRedirectPath,
@@ -87,7 +88,10 @@ export default function VerifyEmail() {
     : null;
   const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
   const isStoreCustomerMode = Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
-  const storefrontSession = useStorefrontSession(storeCustomerAuthState?.storeId);
+  const storefrontSession = useStorefrontSession(
+    storeCustomerAuthState?.storeId,
+    storeCustomerAuthState?.storeSlug || routeStoreSlug,
+  );
   const redirectTo = isStoreCustomerMode
     ? getStoreCustomerRedirectPath(storeCustomerAuthState)
     : location.state?.redirectTo || "";
@@ -175,20 +179,26 @@ export default function VerifyEmail() {
   }
 
   function persistStorefrontSession({ token, user, role: resolvedRole }) {
+    const scopedUser = applyStoreScopeToUser(user, {
+      storeId: storeCustomerAuthState?.storeId,
+      storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+      storeName: storeCustomerAuthState?.storeName || routeStore?.name,
+    });
+
     if (token) {
       setStorefrontAuthToken(token);
     }
 
-    if (user) {
-      setStoredStorefrontUser(user);
+    if (scopedUser) {
+      setStoredStorefrontUser(scopedUser);
     }
 
     if (resolvedRole) {
       setStoredStorefrontRole(resolvedRole);
     }
 
-    if (token || user || resolvedRole) {
-      setStorefrontSession({ token, user, role: resolvedRole });
+    if (token || scopedUser || resolvedRole) {
+      setStorefrontSession({ token, user: scopedUser, role: resolvedRole });
     }
   }
 

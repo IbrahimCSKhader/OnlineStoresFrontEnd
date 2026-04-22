@@ -39,7 +39,10 @@ export default function Cart() {
   const store = useMemo(() => normalizeEntityResponse(storeQuery.data), [storeQuery.data]);
 
   useStoreBranding(store);
-  const storefrontSession = useStorefrontSession(store?.id);
+  const storefrontSession = useStorefrontSession(store?.id, slug);
+  const activeStoreCustomer = storefrontSession.hasScopedStorefrontSession
+    ? storeCustomer || storefrontSession.storefrontCustomer
+    : null;
 
   const cartQuery = useCart(store?.id, {
     enabled: Boolean(store?.id),
@@ -67,12 +70,12 @@ export default function Cart() {
     );
   }
 
-  if (!storeCustomer) {
+  if (!activeStoreCustomer) {
     return (
       <Box className="storefront-page page-cart">
         <EmptyState
           title="يلزم تسجيل الدخول"
-          description="السلة الخاصة بالمتجر تتطلب جلسة StoreCustomer صالحة لهذا المتجر."
+          description="سجّل دخولك لهذا المتجر حتى تظهر السلة الخاصة به وتتابع طلباتك."
           action={
             <AppButton
               component={RouterLink}
@@ -138,7 +141,7 @@ export default function Cart() {
       <SurfaceCard className="page-cart__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Cart</span>
+            <span className="storefront-eyebrow">السلة</span>
             <Typography variant="h2">سلة {store.name}</Typography>
           </Box>
 

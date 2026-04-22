@@ -216,8 +216,6 @@ function buildProductForm(defaultCategoryId = "", defaultSectionId = "") {
     mode: "create",
     id: "",
     name: "",
-    slug: "",
-    slugManuallyEdited: false,
     sku: "",
     shortDescription: "",
     description: "",
@@ -245,8 +243,6 @@ function buildCategoryForm() {
     mode: "create",
     id: "",
     name: "",
-    slug: "",
-    slugManuallyEdited: false,
     description: "",
     displayOrder: "1",
     parentCategoryId: "",
@@ -259,8 +255,6 @@ function buildSectionForm() {
     mode: "create",
     id: "",
     name: "",
-    slug: "",
-    slugManuallyEdited: false,
     description: "",
     displayOrder: "0",
     isActive: true,
@@ -806,6 +800,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   );
   const [editingProductId, setEditingProductId] = useState("");
   const [productFormError, setProductFormError] = useState("");
+  const [productSearchText, setProductSearchText] = useState("");
+  const [productLinkFeedback, setProductLinkFeedback] = useState({
+    severity: "",
+    message: "",
+  });
+  const deferredProductSearchText = useDeferredValue(productSearchText);
 
   const newImagePreviews = useMemo(
     () =>
@@ -861,7 +861,17 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         matchesText(item, deferredSearchText, [
           "name",
           "fullName",
-          "slug",
+          "sku",
+          "shortDescription",
+          "description",
+          "categoryName",
+          "sectionName",
+          "metaTitle",
+          "metaDescription",
+        ]) &&
+        matchesText(item, deferredProductSearchText, [
+          "name",
+          "fullName",
           "sku",
           "shortDescription",
           "description",
@@ -871,7 +881,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           "metaDescription",
         ]),
       ),
-    [deferredSearchText, productsRaw],
+    [deferredProductSearchText, deferredSearchText, productsRaw],
   );
   const categories = useMemo(
     () =>
@@ -887,7 +897,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const sections = useMemo(
     () =>
       sectionsRaw.filter((item) =>
-        matchesText(item, deferredSearchText, ["name", "slug", "description"]),
+        matchesText(item, deferredSearchText, ["name", "description"]),
       ),
     [deferredSearchText, sectionsRaw],
   );
@@ -978,7 +988,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     },
     {
       key: "customerId",
-      title: "Customer ID",
+      title: "رقم العميل",
       render: (row) => row.customerId || row.storeCustomerId || "-",
     },
     {
@@ -1135,8 +1145,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     mode: "edit",
     id: product?.id || "",
     name: product?.name || "",
-    slug: product?.slug || "",
-    slugManuallyEdited: true,
     sku: product?.sku || "",
     shortDescription: product?.shortDescription || "",
     description: product?.description || "",
@@ -1231,7 +1239,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         description="تأكد من وجود متجر مرتبط بصاحب الحساب أو تواصل مع الإدارة."
         action={
           <AppButton component={RouterLink} to="/" variant="contained">
-            Home
+            الرئيسية
           </AppButton>
         }
       />
@@ -1248,6 +1256,79 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const confirmDelete = (label, mutation, variables) => {
     if (!window.confirm(`هل تريد حذف ${label}؟`)) return;
     mutation.mutate(variables);
+  };
+
+  const buildPublicProductLink = (product) => {
+    if (!store?.slug || !product?.id) {
+      return "";
+    }
+
+    const pathname = `/market/${store.slug}/product/${product.id}`;
+    return typeof window === "undefined"
+      ? pathname
+      : new URL(pathname, window.location.origin).toString();
+  };
+
+  const handleCopyProductLink = async (product) => {
+    const url = buildPublicProductLink(product);
+
+    if (!url) {
+      setProductLinkFeedback({
+        severity: "error",
+        message: "تعذر تجهيز رابط هذا المنتج الآن.",
+      });
+      return;
+    }
+
+    try {
+      if (!navigator?.clipboard?.writeText) {
+        throw new Error("clipboard-unavailable");
+      }
+
+      await navigator.clipboard.writeText(url);
+      setProductLinkFeedback({
+        severity: "success",
+        message: "تم نسخ رابط المنتج.",
+      });
+    } catch {
+      setProductLinkFeedback({
+        severity: "error",
+        message: "تعذر نسخ الرابط الآن.",
+      });
+    }
+  };
+
+  const handleShareProductLink = async (product) => {
+    const url = buildPublicProductLink(product);
+
+    if (!url) {
+      setProductLinkFeedback({
+        severity: "error",
+        message: "تعذر تجهيز رابط هذا المنتج الآن.",
+      });
+      return;
+    }
+
+    try {
+      if (navigator?.share) {
+        await navigator.share({
+          title: product?.name || "المنتج",
+          text: product?.shortDescription || product?.name || "",
+          url,
+        });
+        setProductLinkFeedback({
+          severity: "success",
+          message: "تم تجهيز الرابط للمشاركة.",
+        });
+        return;
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        return;
+      }
+    }
+
+    await handleCopyProductLink(product);
   };
 
   const handleTabNavigate = (key) => {
@@ -1345,96 +1426,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   };
 
   const handleProductFormChange = (key, value) => {
-    setProductForm((previous) => {
-      if (key === "slug") {
-        return {
-          ...previous,
-          slug: slugify(value),
-          slugManuallyEdited: true,
-        };
-      }
-
-      if (key === "name") {
-        const nextState = { ...previous, name: value };
-        const previousAutoSlug = slugify(previous.name);
-
-        if (
-          previous.mode === "create" &&
-          (!previous.slugManuallyEdited ||
-            !previous.slug ||
-            previous.slug === previousAutoSlug)
-        ) {
-          nextState.slug = slugify(value);
-          nextState.slugManuallyEdited = false;
-        }
-
-        return nextState;
-      }
-
-      return { ...previous, [key]: value };
-    });
+    setProductForm((previous) => ({ ...previous, [key]: value }));
   };
 
   const handleCategoryFormChange = (key, value) => {
-    setCategoryForm((previous) => {
-      if (key === "slug") {
-        return {
-          ...previous,
-          slug: slugify(value),
-          slugManuallyEdited: true,
-        };
-      }
-
-      if (key === "name") {
-        const nextState = { ...previous, name: value };
-        const previousAutoSlug = slugify(previous.name);
-
-        if (
-          previous.mode === "create" &&
-          (!previous.slugManuallyEdited ||
-            !previous.slug ||
-            previous.slug === previousAutoSlug)
-        ) {
-          nextState.slug = slugify(value);
-          nextState.slugManuallyEdited = false;
-        }
-
-        return nextState;
-      }
-
-      return { ...previous, [key]: value };
-    });
+    setCategoryForm((previous) => ({ ...previous, [key]: value }));
   };
 
   const handleSectionFormChange = (key, value) => {
-    setSectionForm((previous) => {
-      if (key === "slug") {
-        return {
-          ...previous,
-          slug: slugify(value),
-          slugManuallyEdited: true,
-        };
-      }
-
-      if (key === "name") {
-        const nextState = { ...previous, name: value };
-        const previousAutoSlug = slugify(previous.name);
-
-        if (
-          previous.mode === "create" &&
-          (!previous.slugManuallyEdited ||
-            !previous.slug ||
-            previous.slug === previousAutoSlug)
-        ) {
-          nextState.slug = slugify(value);
-          nextState.slugManuallyEdited = false;
-        }
-
-        return nextState;
-      }
-
-      return { ...previous, [key]: value };
-    });
+    setSectionForm((previous) => ({ ...previous, [key]: value }));
   };
 
   const handleAppendImages = (files) => {
@@ -1514,7 +1514,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
     const payload = {
       Name: productForm.name.trim(),
-      Slug: slugify(productForm.slug || productForm.name),
+      Slug: slugify(productForm.name),
       SKU: productForm.mode === "create" ? productForm.sku.trim() || undefined : undefined,
       ShortDescription: productForm.shortDescription || undefined,
       Description: productForm.description || undefined,
@@ -1618,7 +1618,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
       const createdCategory = await createCategoryMutation.mutateAsync({
         name: categoryForm.name.trim(),
-        slug: slugify(categoryForm.slug || categoryForm.name),
+        slug: slugify(categoryForm.name),
         description: categoryForm.description || undefined,
         displayOrder: Number(categoryForm.displayOrder || 1),
         storeId,
@@ -1666,7 +1666,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
       const createdSection = await createSectionMutation.mutateAsync({
         Name: sectionForm.name.trim(),
-        Slug: slugify(sectionForm.slug || sectionForm.name),
+        Slug: slugify(sectionForm.name),
         Description: sectionForm.description || undefined,
         DisplayOrder: Number(sectionForm.displayOrder || 0),
         StoreId: storeId,
@@ -1953,7 +1953,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           >
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <ContactDeveloperButton
-                label="تواصل مع المطور"
+                label="الدعم"
                 variant="outlined"
               />
             </Stack>
@@ -2036,9 +2036,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 </Box>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap">
-                  {store.slug ? (
-                    <Chip label={`/${store.slug}`} variant="outlined" />
-                  ) : null}
                   {store.businessType ? (
                     <Chip label={store.businessType} />
                   ) : null}
@@ -2080,7 +2077,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 updateProductMutation.isPending ||
                 uploadProductImageMutation.isPending
               }
-              storeSlug={store.slug || ""}
               categories={categoryOptions}
               sections={sectionsRaw}
               categoryHint={categoryHint}
@@ -2099,6 +2095,24 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               onReset={resetProductForm}
               onSubmit={handleSubmitProduct}
             />
+
+            <Box className="owner-panel__tools">
+              <SearchInput
+                value={productSearchText}
+                onChange={setProductSearchText}
+                placeholder="ابحث عن منتج بالاسم أو الوصف"
+                className="owner-panel__search"
+              />
+              <Typography variant="body2" color="text.secondary">
+                {products.length} منتج
+              </Typography>
+            </Box>
+
+            {productLinkFeedback.message ? (
+              <Alert severity={productLinkFeedback.severity || "success"}>
+                {productLinkFeedback.message}
+              </Alert>
+            ) : null}
 
             {productsQuery.isLoading ? (
               <LoadingState />
@@ -2130,7 +2144,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             {row.fullName}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {row.shortDescription || row.slug}
+                            {row.shortDescription || row.categoryName || row.sectionName || "بدون وصف"}
                           </Typography>
                         </Box>
                       </Stack>
@@ -2196,7 +2210,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     key: "actions",
                     title: "إجراءات",
                     render: (row) => (
-                      <Stack direction="row" spacing={1}>
+                      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                         <AppButton
                           size="small"
                           variant="outlined"
@@ -2204,6 +2218,20 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           onClick={() => handleOpenProductEditor(row)}
                         >
                           تعديل
+                        </AppButton>
+                        <AppButton
+                          size="small"
+                          variant="outlined"
+                          onClick={() => handleCopyProductLink(row)}
+                        >
+                          نسخ الرابط
+                        </AppButton>
+                        <AppButton
+                          size="small"
+                          variant="text"
+                          onClick={() => handleShareProductLink(row)}
+                        >
+                          مشاركة
                         </AppButton>
                         <AppButton
                           size="small"
@@ -2255,7 +2283,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 createCategoryMutation.isPending ||
                 updateCategoryMutation.isPending
               }
-              slugPreview={categoryForm.slug || categoryForm.name || "category"}
               onChange={handleCategoryFormChange}
               onReset={resetCategoryForm}
               onSubmit={handleSubmitCategory}
@@ -2314,8 +2341,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               mode: "edit",
                               id: row.id,
                               name: row.name || "",
-                              slug: row.slug || "",
-                              slugManuallyEdited: true,
                               description: row.description || "",
                               displayOrder: String(row.displayOrder ?? 0),
                               parentCategoryId: row.parentCategoryId || "",
@@ -2328,7 +2353,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       </Stack>
                     ),
                   },
-                ]}
+                ].filter((column) => column.key !== "slug")}
                 emptyState={
                   <EmptyState
                     title="لا توجد تصنيفات"
@@ -2356,7 +2381,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 createSectionMutation.isPending ||
                 updateSectionMutation.isPending
               }
-              slugPreview={sectionForm.slug || sectionForm.name || "section"}
               onChange={handleSectionFormChange}
               onReset={resetSectionForm}
               onSubmit={handleSubmitSection}
@@ -2398,8 +2422,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               mode: "edit",
                               id: row.id,
                               name: row.name || "",
-                              slug: row.slug || "",
-                              slugManuallyEdited: true,
                               description: row.description || "",
                               displayOrder: String(row.displayOrder ?? 0),
                               isActive: Boolean(row.isActive),
@@ -2411,7 +2433,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       </Stack>
                     ),
                   },
-                ]}
+                ].filter((column) => column.key !== "slug")}
                 emptyState={
                   <EmptyState
                     title="لا توجد أقسام"

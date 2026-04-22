@@ -265,10 +265,13 @@ export default function Checkout() {
   const cartQuery = useCart(store?.id, {
     enabled: Boolean(store?.id),
   });
-  const storefrontSession = useStorefrontSession(store?.id);
+  const storefrontSession = useStorefrontSession(store?.id, slug);
   const createOrderMutation = useCreateOrder(store?.id);
   const clearCartMutation = useClearCart(store?.id);
   const cart = normalizeCartResponse(cartQuery.data);
+  const activeStoreCustomer = storefrontSession.hasScopedStorefrontSession
+    ? storeCustomer || storefrontSession.storefrontCustomer
+    : null;
 
   const actor = buildOrderCartActor({
     auth,
@@ -377,7 +380,7 @@ export default function Checkout() {
       },
     });
 
-    if (!storeCustomer || !storefrontSession.hasScopedStorefrontSession) {
+    if (!activeStoreCustomer || !storefrontSession.hasScopedStorefrontSession) {
       redirectToStoreLogin();
       return;
     }
@@ -577,7 +580,7 @@ export default function Checkout() {
       <SurfaceCard className="page-checkout__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">Checkout</span>
+            <span className="storefront-eyebrow">إتمام الطلب</span>
             <Typography variant="h2">إرسال الطلب عبر واتساب - {store.name}</Typography>
             <Typography variant="body1" className="storefront-subtitle">
               يمكنك مراجعة السلة كضيف، لكن إرسال الطلب نفسه يتطلب تسجيل الدخول أولًا.

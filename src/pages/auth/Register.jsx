@@ -60,7 +60,10 @@ export default function Register() {
       })
     : null;
   const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
-  const storefrontSession = useStorefrontSession(storeCustomerAuthState?.storeId);
+  const storefrontSession = useStorefrontSession(
+    storeCustomerAuthState?.storeId,
+    storeCustomerAuthState?.storeSlug || routeStoreSlug,
+  );
   const redirectTo = getStoreCustomerRedirectPath(storeCustomerAuthState);
   const storeLabel =
     storeCustomerAuthState?.storeName ||
@@ -122,6 +125,8 @@ export default function Register() {
     const email = values.email.trim();
     const data = await registerMutation.mutateAsync({
       storeId: storeCustomerAuthState.storeId,
+      storeSlug: storeCustomerAuthState.storeSlug || routeStoreSlug,
+      storeName: storeCustomerAuthState.storeName || routeStore?.name,
       firstName: values.firstName.trim(),
       lastName: values.lastName.trim(),
       email,

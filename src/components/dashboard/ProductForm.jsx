@@ -23,7 +23,6 @@ export default function ProductForm({
   form,
   isEdit,
   loading,
-  storeSlug,
   categories,
   sections,
   categoryHint,
@@ -38,30 +37,21 @@ export default function ProductForm({
   onReset,
   onSubmit,
 }) {
-  const slugPreview = storeSlug
-    ? `${storeSlug}-${(form.slug || form.name || "").trim() || "product"}`
-    : form.slug || form.name || "product";
-
   const hasRequirements = categories.length && sections.length;
 
   return (
     <Box className="owner-form-card">
       {!hasRequirements ? (
         <Alert severity="warning" className="owner-inline-alert">
-          أضف تصنيفًا وقسمًا واحدًا على الأقل قبل إنشاء منتج جديد.
+          أضف تصنيفًا وقسمًا واحدًا على الأقل قبل إضافة منتج جديد.
         </Alert>
       ) : null}
 
-      {isEdit ? (
-        <Alert severity="info" className="owner-inline-alert">
-          يمكنك تعديل المنتج من هنا. رابط المنتج الحالي يظهر للمراجعة فقط لأن تغييره يتوقف بعد
-          أول حفظ.
-        </Alert>
-      ) : (
-        <Alert severity="info" className="owner-inline-alert">
-          سيتم تعبئة الرابط تلقائيًا من الاسم، ويمكنك تعديله قبل الحفظ إذا أردت.
-        </Alert>
-      )}
+      <Alert severity="info" className="owner-inline-alert">
+        {isEdit
+          ? "عدّل تفاصيل المنتج وصوره ثم احفظ التغييرات مباشرة."
+          : "أضف اسم المنتج وسعره وصوره ليظهر للزوار بشكل مرتب."}
+      </Alert>
 
       <Box component="form" className="owner-form" onSubmit={onSubmit}>
         <TextField
@@ -70,16 +60,6 @@ export default function ProductForm({
           size="small"
           required
           onChange={(event) => onChange("name", event.target.value)}
-        />
-
-        <TextField
-          label="رابط المنتج"
-          value={form.slug}
-          size="small"
-          required
-          disabled={isEdit}
-          helperText={`الرابط الحالي: /${slugPreview}`}
-          onChange={(event) => onChange("slug", event.target.value)}
         />
 
         <TextField
@@ -269,9 +249,7 @@ export default function ProductForm({
                     alignItems="center"
                     className="owner-gallery__meta"
                   >
-                    <Typography variant="caption" noWrap>
-                      {image.name}
-                    </Typography>
+                    <Typography variant="caption">{image.name}</Typography>
                     <IconButton
                       size="small"
                       color="error"
@@ -286,14 +264,27 @@ export default function ProductForm({
           </Box>
         ) : null}
 
+        <TextField
+          label="عنوان مختصر لمحركات البحث"
+          value={form.metaTitle}
+          size="small"
+          className="owner-form__wide"
+          onChange={(event) => onChange("metaTitle", event.target.value)}
+        />
+
+        <TextField
+          label="وصف مختصر لمحركات البحث"
+          value={form.metaDescription}
+          size="small"
+          multiline
+          minRows={2}
+          className="owner-form__wide"
+          onChange={(event) => onChange("metaDescription", event.target.value)}
+        />
+
         <Stack direction="row" spacing={1} className="owner-form__actions">
-          <AppButton
-            type="submit"
-            variant="contained"
-            loading={loading}
-            disabled={!hasRequirements}
-          >
-            {isEdit ? "حفظ التعديلات" : "إضافة المنتج"}
+          <AppButton type="submit" variant="contained" loading={loading}>
+            {isEdit ? "حفظ المنتج" : "إضافة المنتج"}
           </AppButton>
           {isEdit ? (
             <AppButton type="button" variant="outlined" onClick={onReset}>

@@ -10,7 +10,6 @@ export default function SectionForm({
   form,
   isEdit,
   loading,
-  slugPreview,
   onChange,
   onReset,
   onSubmit,
@@ -18,7 +17,7 @@ export default function SectionForm({
   return (
     <Box className="owner-form-card">
       <Alert severity="info" className="owner-inline-alert">
-        سيتم توليد رابط القسم تلقائيًا من الاسم مع استبدال المسافات بشرطات.
+        رتّب الأقسام بالشكل الذي يساعد الزوار على التصفح بسهولة.
       </Alert>
 
       <Box component="form" className="owner-form" onSubmit={onSubmit}>
@@ -28,16 +27,6 @@ export default function SectionForm({
           size="small"
           required
           onChange={(event) => onChange("name", event.target.value)}
-        />
-
-        <TextField
-          label="رابط القسم"
-          value={form.slug}
-          size="small"
-          required
-          disabled={isEdit}
-          helperText={`الرابط الحالي: /${slugPreview || "section"}`}
-          onChange={(event) => onChange("slug", event.target.value)}
         />
 
         <TextField

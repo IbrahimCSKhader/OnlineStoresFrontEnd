@@ -16,6 +16,7 @@ import {
   setStoredStorefrontUser,
 } from "../../utils/token.js";
 import {
+  applyStoreScopeToUser,
   assertStoreScopedAuthResult,
   resolveStoreScopedAuthResult,
 } from "../../utils/storeCustomerAuth.js";
@@ -40,7 +41,7 @@ export default function useStoreCustomerLogin(options = {}) {
   }
 
   return useMutation({
-    mutationFn: async ({ storeId, ...payload }) => {
+    mutationFn: async ({ storeId, storeSlug, storeName, ...payload }) => {
       logAuthFlow("Store login request", {
         requestStoreId: String(storeId || ""),
         email: String(payload?.email || "").trim(),
@@ -69,7 +70,12 @@ export default function useStoreCustomerLogin(options = {}) {
     ...options,
     onSuccess: (data, variables, context) => {
       const authResult = resolveStoreScopedAuthResult(data, variables?.storeId);
-      const { token, user, role, isOwner } = authResult;
+      const user = applyStoreScopeToUser(authResult.user, {
+        storeId: authResult.responseStoreId || variables?.storeId,
+        storeSlug: variables?.storeSlug || authResult.responseStoreSlug,
+        storeName: variables?.storeName || authResult.responseStoreName,
+      });
+      const { token, role, isOwner } = authResult;
 
       logAuthFlow("Store login response classified", {
         requestStoreId: String(variables?.storeId || ""),

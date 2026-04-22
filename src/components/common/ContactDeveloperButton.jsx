@@ -3,7 +3,7 @@ import AppButton from "./buttons/AppButton.jsx";
 import { getDeveloperSupportWhatsAppLink } from "../../utils/whatsapp.js";
 
 export default function ContactDeveloperButton({
-  label = "تواصل مع المطور",
+  label = "الدعم",
   variant = "text",
   appearance,
   fullWidth = false,

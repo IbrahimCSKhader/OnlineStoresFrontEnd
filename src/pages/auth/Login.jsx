@@ -61,6 +61,7 @@ import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmai
 import { getLandingPath } from "../../utils/roles.js";
 import {
   STORE_CUSTOMER_AUTH_MODE,
+  applyStoreScopeToUser,
   assertStoreScopedAuthResult,
   buildStoreCustomerAuthState,
   getStoreCustomerRedirectPath,
@@ -156,10 +157,10 @@ function getFlowHeading(flow) {
 function getStoreFlowHeading(flow, storeLabel) {
   if (flow === FLOW.GOOGLE_STORE_SETUP) {
     return {
-      overline: "Google Store Access",
+      overline: "متابعة الدخول",
       title: `إكمال الدخول إلى ${storeLabel}`,
       description:
-        "حوّل جلسة Google العامة إلى StoreCustomer صالح لهذا المتجر عبر تعيين كلمة مرور ثم تسجيل الدخول.",
+        "أكمل الدخول لهذا المتجر عبر تعيين كلمة مرور ثم المتابعة.",
     };
   }
   if (flow === FLOW.FORGOT_PASSWORD) {
@@ -228,7 +229,10 @@ export default function Login() {
     resolvedGoogleStoreSlug;
   const isStoreCustomerMode =
     Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
-  const storefrontSession = useStorefrontSession(storeCustomerAuthState?.storeId);
+  const storefrontSession = useStorefrontSession(
+    storeCustomerAuthState?.storeId,
+    storeCustomerAuthState?.storeSlug || routeStoreSlug,
+  );
   const redirectTo = isStoreCustomerMode
     ? getStoreCustomerRedirectPath(storeCustomerAuthState)
     : location.state?.redirectTo || "";
@@ -528,7 +532,12 @@ export default function Login() {
 
   function saveResolvedStoreScopedSessionFromAuthResponse(data) {
     const authResult = resolveCurrentStoreAuthResult(data);
-    const { token, user, role: resolvedRole, isOwner } = authResult;
+    const user = applyStoreScopeToUser(authResult.user, {
+      storeId: authResult.responseStoreId || storeCustomerAuthState?.storeId,
+      storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+      storeName: storeCustomerAuthState?.storeName || routeStore?.name,
+    });
+    const { token, role: resolvedRole, isOwner } = authResult;
 
     if (isOwner) {
       if (token) {
@@ -664,6 +673,8 @@ export default function Login() {
         try {
           const data = await storeCustomerLoginMutation.mutateAsync({
             storeId: storeCustomerAuthState.storeId,
+            storeSlug: storeCustomerAuthState.storeSlug || routeStoreSlug,
+            storeName: storeCustomerAuthState.storeName || routeStore?.name,
             email,
             password: values.password,
           });
@@ -831,6 +842,8 @@ export default function Login() {
 
       const data = await storeCustomerLoginMutation.mutateAsync({
         storeId: resolvedStoreId,
+        storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+        storeName: storeCustomerAuthState?.storeName || routeStore?.name,
         email,
         password: values.newPassword,
       });
@@ -1317,7 +1330,7 @@ export default function Login() {
                 onSubmit={onGoogleStoreSetupSubmit}
               >
                 <Alert severity="info">
-                  تم التحقق من حساب Google. عيّن كلمة مرور لهذا المتجر ليتم إنشاء جلسة StoreCustomer صالحة للسلة والطلبات.
+                  تم التحقق من حساب Google. عيّن كلمة مرور لهذا المتجر لتكمل الدخول وتتابع السلة والطلبات.
                 </Alert>
 
                 <TextField

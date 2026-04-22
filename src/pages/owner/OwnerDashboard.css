@@ -208,6 +208,19 @@
   gap: var(--space-4);
 }
 
+.owner-panel__tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.owner-panel__search {
+  flex: 1 1 280px;
+  min-width: min(100%, 320px);
+}
+
 .owner-panel__title {
   margin-bottom: 0.2rem !important;
 }

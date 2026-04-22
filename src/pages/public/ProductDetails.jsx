@@ -153,6 +153,16 @@ export default function ProductDetails() {
   const relatedProductsLoading = product?.categoryId
     ? relatedByCategoryQuery.isLoading
     : relatedBySectionQuery.isLoading;
+  const productShareUrl = useMemo(() => {
+    if (!store?.slug || !product?.id) {
+      return "";
+    }
+
+    const pathname = `/market/${store.slug}/product/${product.id}`;
+    return typeof window === "undefined"
+      ? pathname
+      : new URL(pathname, window.location.origin).toString();
+  }, [product?.id, store?.slug]);
 
   useEffect(() => {
     if (!productId || !isPublicProduct || storeMismatch) {
@@ -214,6 +224,48 @@ export default function ProductDetails() {
       productSnapshot: buildProductSnapshot(relatedProduct),
       debugSource: "product-details-page-related",
     });
+  };
+
+  const handleCopyProductLink = async () => {
+    if (!productShareUrl) {
+      window.alert("تعذر تجهيز رابط المنتج الآن.");
+      return;
+    }
+
+    try {
+      if (!navigator?.clipboard?.writeText) {
+        throw new Error("clipboard-unavailable");
+      }
+
+      await navigator.clipboard.writeText(productShareUrl);
+      window.alert("تم نسخ رابط المنتج.");
+    } catch {
+      window.alert("تعذر نسخ الرابط الآن.");
+    }
+  };
+
+  const handleShareProduct = async () => {
+    if (!productShareUrl) {
+      window.alert("تعذر تجهيز رابط المنتج الآن.");
+      return;
+    }
+
+    try {
+      if (navigator?.share) {
+        await navigator.share({
+          title: product?.name || "المنتج",
+          text: product?.shortDescription || product?.name || "",
+          url: productShareUrl,
+        });
+        return;
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        return;
+      }
+    }
+
+    await handleCopyProductLink();
   };
 
   if (storeQuery.isLoading || productQuery.isLoading) {
@@ -469,6 +521,12 @@ export default function ProductDetails() {
                       اذهب إلى الدفع
                     </AppButton>
                   )}
+                  <AppButton variant="outlined" onClick={handleCopyProductLink}>
+                    نسخ الرابط
+                  </AppButton>
+                  <AppButton variant="text" onClick={handleShareProduct}>
+                    مشاركة
+                  </AppButton>
                 </Stack>
               </Box>
 

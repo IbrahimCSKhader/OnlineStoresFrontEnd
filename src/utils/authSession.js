@@ -46,6 +46,7 @@ const lastNameKeys = [
 ];
 
 const storeIdKeys = ["store_id", "storeId", "StoreId"];
+const storeSlugKeys = ["store_slug", "storeSlug", "StoreSlug"];
 const accountTypeKeys = ["account_type", "accountType", "AccountType"];
 const storeCustomerIdKeys = [
   "store_customer_id",
@@ -127,6 +128,14 @@ function normalizeIdentity(source, decodedToken, fallback = {}) {
     fallback?.data?.storeId,
     pickClaim(decodedToken, storeIdKeys),
   );
+  const storeSlug = pickFirstValue(
+    source?.storeSlug,
+    source?.StoreSlug,
+    source?.store?.slug,
+    fallback?.storeSlug,
+    fallback?.data?.storeSlug,
+    pickClaim(decodedToken, storeSlugKeys),
+  );
   const storeCustomerId = pickFirstValue(
     source?.storeCustomerId,
     source?.customerStoreId,
@@ -178,7 +187,16 @@ function normalizeIdentity(source, decodedToken, fallback = {}) {
     ),
   );
 
-  if (!id && !email && !firstName && !lastName && !fullName && !storeId && !accountType) {
+  if (
+    !id &&
+    !email &&
+    !firstName &&
+    !lastName &&
+    !fullName &&
+    !storeId &&
+    !storeSlug &&
+    !accountType
+  ) {
     return null;
   }
 
@@ -191,6 +209,7 @@ function normalizeIdentity(source, decodedToken, fallback = {}) {
     fullName,
     storeCustomerId: normalizeText(storeCustomerId),
     storeId: normalizeText(storeId),
+    storeSlug: normalizeText(storeSlug),
     accountType: normalizeText(accountType),
   };
 }
@@ -316,6 +335,7 @@ export function extractStorefrontCustomer(data, token = "") {
     id: storeCustomerId || normalizeText(identity?.id),
     storeCustomerId,
     storeId: normalizeText(identity?.storeId),
+    storeSlug: normalizeText(identity?.storeSlug),
     accountType: normalizeText(identity?.accountType || fallbackRole),
   };
 }

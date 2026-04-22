@@ -4,12 +4,13 @@ import {
   getStorefrontSessionState,
 } from "../../utils/storefrontSession.js";
 
-export default function useStorefrontSession(storeId) {
+export default function useStorefrontSession(storeId, storeSlug = "") {
   const auth = useAuth();
-  const sessionState = getStorefrontSessionState(storeId, auth);
+  const sessionState = getStorefrontSessionState(storeId, storeSlug, auth);
 
   return {
     ...sessionState,
-    ensureStorefrontSession: () => ensureStorefrontGuestSession(storeId),
+    ensureStorefrontSession: () =>
+      ensureStorefrontGuestSession(storeId, storeSlug),
   };
 }
