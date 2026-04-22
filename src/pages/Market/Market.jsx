@@ -40,17 +40,17 @@ export default function Market() {
       <SurfaceCard variant="hero" className="storefront-hero page-market__hero">
         <Box className="page-market__hero-grid">
           <Box className="storefront-hero__copy page-market__hero-copy">
-            <span className="storefront-eyebrow">ط§ظ„ظ…طھط§ط¬ط±</span>
+            <span className="storefront-eyebrow">المتاجر</span>
             <Typography variant="h1" className="storefront-title page-market__title">
-              ط¬ظ…ظٹط¹ ط§ظ„ظ…طھط§ط¬ط±
+              جميع المتاجر
             </Typography>
 
             <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
               <AppButton href="#market-directory" variant="contained">
-                ط§ط¨ط¯ط£ ط§ظ„طھطµظپط­
+                ابدأ التصفح
               </AppButton>
               <AppButton component={RouterLink} to="/" variant="outlined">
-                ط§ظ„ط¹ظˆط¯ط© ظ„ظ„ط±ط¦ظٹط³ظٹط©
+                العودة للرئيسية
               </AppButton>
             </Stack>
           </Box>
@@ -64,15 +64,15 @@ export default function Market() {
       <Box className="storefront-section" id="market-directory">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">ظ‚ط§ط¦ظ…ط©</span>
-            <Typography variant="h3">ط¬ظ…ظٹط¹ ط§ظ„ظ…طھط§ط¬ط±</Typography>
+            <span className="storefront-eyebrow">قائمة</span>
+            <Typography variant="h3">جميع المتاجر</Typography>
           </Box>
 
           <Box className="page-market__search">
             <SearchInput
               value={searchText}
               onChange={setSearchText}
-              placeholder="ط§ط¨ط­ط« ط¨ط§ط³ظ… ط§ظ„ظ…طھط¬ط± ط£ظˆ ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط·"
+              placeholder="ابحث باسم المتجر أو نوع النشاط"
             />
           </Box>
         </Box>
