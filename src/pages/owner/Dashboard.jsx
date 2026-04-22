@@ -73,6 +73,10 @@ import {
 } from "../../utils/authFlowDebug.js";
 import extractApiError from "../../utils/extractApiError.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import {
+  formatUiDateTime,
+  formatUiNumber,
+} from "../../utils/numberFormat.js";
 import { normalizeOrderDetails } from "../../utils/orders.js";
 import {
   getProductComparePrice,
@@ -316,10 +320,14 @@ function toBoolean(value, fallback = false) {
 }
 
 function formatDiscountPercentage(value) {
-  return `${toNumber(value, 0).toLocaleString("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  })}%`;
+  return `${formatUiNumber(
+    toNumber(value, 0),
+    {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    },
+    0,
+  )}%`;
 }
 
 function _normalizeCustomerOption(entity) {
@@ -402,20 +410,7 @@ function getOrderStatusLabel(value) {
 }
 
 function formatDateTimeLabel(value) {
-  if (!value) return "-";
-
-  const parsedValue = new Date(value);
-  if (Number.isNaN(parsedValue.getTime())) {
-    return "-";
-  }
-
-  return parsedValue.toLocaleString("ar", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatUiDateTime(value);
 }
 
 function normalizeOrderSummary(item) {

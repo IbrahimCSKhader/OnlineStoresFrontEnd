@@ -154,7 +154,7 @@ export default function AppThemeProvider({ children }) {
     document.documentElement.dataset.theme = variant;
     document.documentElement.dataset.themeMode = themeProfile.mode;
     document.documentElement.dir = "rtl";
-    document.documentElement.lang = "ar";
+    document.documentElement.lang = "ar-u-nu-latn";
     applyCssVariables(themeProfile.cssVars);
   }, [themeProfile, variant]);
 

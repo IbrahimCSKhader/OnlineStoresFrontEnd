@@ -1,3 +1,9 @@
+import {
+  formatUiDate,
+  formatUiDateTime,
+  formatUiNumber,
+} from "./numberFormat.js";
+
 export function getHttpStatus(error) {
   const status = Number(error?.response?.status || error?.status || 0);
   return Number.isFinite(status) ? status : 0;
@@ -16,46 +22,15 @@ export function matchesSearch(value, query) {
 }
 
 export function formatAdminDateTime(value) {
-  if (!value) {
-    return "-";
-  }
-
-  const parsedValue = new Date(value);
-
-  if (Number.isNaN(parsedValue.getTime())) {
-    return "-";
-  }
-
-  return parsedValue.toLocaleString("ar", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatUiDateTime(value);
 }
 
 export function formatAdminDate(value) {
-  if (!value) {
-    return "-";
-  }
-
-  const parsedValue = new Date(value);
-
-  if (Number.isNaN(parsedValue.getTime())) {
-    return "-";
-  }
-
-  return parsedValue.toLocaleDateString("ar", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return formatUiDate(value);
 }
 
 export function formatAdminNumber(value, fallback = 0) {
-  const amount = Number(value ?? fallback);
-  return Number.isFinite(amount) ? amount.toLocaleString("ar") : String(fallback);
+  return formatUiNumber(value, {}, fallback);
 }
 
 export function buildDisplayName(entity, fallback = "غير معروف") {

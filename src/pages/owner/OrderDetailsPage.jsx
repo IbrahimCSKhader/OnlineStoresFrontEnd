@@ -15,6 +15,7 @@ import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
 import DashboardLayout from "../../layout/DashboardLayout.jsx";
 import { normalizeOrderDetails } from "../../utils/orders.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import { formatUiDateTime } from "../../utils/numberFormat.js";
 import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import "./OwnerDashboard.css";
 
@@ -42,20 +43,7 @@ function getStatusTone(status) {
 }
 
 function formatDateTimeLabel(value) {
-  if (!value) return "-";
-
-  const parsedValue = new Date(value);
-  if (Number.isNaN(parsedValue.getTime())) {
-    return "-";
-  }
-
-  return parsedValue.toLocaleString("ar", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatUiDateTime(value);
 }
 
 function DetailSidebar({ store }) {
