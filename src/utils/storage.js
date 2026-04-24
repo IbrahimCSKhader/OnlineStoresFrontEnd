@@ -5,6 +5,7 @@ export const storageKeys = {
   storefrontAuthToken: "online-store.storefront-auth-token",
   storefrontAuthUser: "online-store.storefront-auth-user",
   storefrontAuthRole: "online-store.storefront-auth-role",
+  storefrontScrollPositions: "online-store.storefront-scroll-positions",
   legacyAuthToken: "online-store.auth-token",
   legacyAuthUser: "online-store.auth-user",
   legacyAuthRole: "online-store.auth-role",

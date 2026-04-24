@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -17,6 +17,7 @@ import {
   isProductInStock,
   normalizeProductDto,
 } from "../../utils/products.js";
+import { buildScrollRestoreKey } from "../../utils/scrollRestoration.js";
 import "./ProductCard.css";
 
 function ProductCard({
@@ -27,6 +28,7 @@ function ProductCard({
   disableCartActions = false,
   linkSearch = "",
 }) {
+  const location = useLocation();
   const normalizedProduct = normalizeProductDto(product);
   const image = resolveAssetUrl(getProductImage(normalizedProduct));
   const price = getProductDisplayPrice(normalizedProduct);
@@ -40,10 +42,21 @@ function ProductCard({
     resolvedStoreSlug && normalizedProduct.id
       ? `/market/${resolvedStoreSlug}/product/${normalizedProduct.id}`
       : "";
+  const currentSearch = location.search || "";
+  const returnSearch = currentSearch || linkSearch || "";
+  const detailSearch = linkSearch || currentSearch;
   const detailTarget = detailPath
-    ? linkSearch
-      ? { pathname: detailPath, search: linkSearch }
-      : detailPath
+    ? {
+        pathname: detailPath,
+        search: detailSearch,
+        state: {
+          returnTo: `${location.pathname}${returnSearch}`,
+          scrollRestoreKey: buildScrollRestoreKey(
+            location.pathname,
+            returnSearch,
+          ),
+        },
+      }
     : undefined;
   const categoryLabel =
     normalizedProduct.categoryName || normalizedProduct.sectionName || "";

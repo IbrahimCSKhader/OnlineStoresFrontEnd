@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link as RouterLink, useParams } from "react-router-dom";
+import {
+  Link as RouterLink,
+  matchPath,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
@@ -61,8 +66,27 @@ function getProductImages(product) {
   return [];
 }
 
+function getPathnameFromReturnTo(returnTo = "") {
+  if (!returnTo) {
+    return "";
+  }
+
+  const [pathname] = String(returnTo).split("?");
+  return pathname || "";
+}
+
+function isCatalogReturnTarget(returnTo = "") {
+  const pathname = getPathnameFromReturnTo(returnTo);
+
+  return Boolean(
+    matchPath("/market/:slug", pathname) ||
+      matchPath("/market/:slug/category/:categoryId", pathname),
+  );
+}
+
 export default function ProductDetails() {
   const { slug, productId } = useParams();
+  const location = useLocation();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
   const [uiState, setUiState] = useState({
@@ -163,6 +187,21 @@ export default function ProductDetails() {
       ? pathname
       : new URL(pathname, window.location.origin).toString();
   }, [product?.id, store?.slug]);
+  const requestedReturnTo =
+    typeof location.state?.returnTo === "string" ? location.state.returnTo : "";
+  const hasCatalogReturnTarget = isCatalogReturnTarget(requestedReturnTo);
+  const backTarget = hasCatalogReturnTarget
+    ? requestedReturnTo
+    : buildStorePreviewPath(`/market/${slug}`);
+  const backTargetState =
+    hasCatalogReturnTarget &&
+    typeof location.state?.scrollRestoreKey === "string" &&
+    location.state.scrollRestoreKey
+      ? {
+          restoreScroll: true,
+          scrollRestoreKey: location.state.scrollRestoreKey,
+        }
+      : undefined;
 
   useEffect(() => {
     if (!productId || !isPublicProduct || storeMismatch) {
@@ -286,7 +325,8 @@ export default function ProductDetails() {
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center">
               <AppButton
                 component={RouterLink}
-                to={slug ? `/market/${slug}` : "/market"}
+                to={backTarget}
+                state={backTargetState}
                 variant="contained"
               >
                 العودة إلى المتجر
@@ -321,7 +361,8 @@ export default function ProductDetails() {
             >
               <AppButton
                 component={RouterLink}
-                to={buildStorePreviewPath(`/market/${slug}`)}
+                to={backTarget}
+                state={backTargetState}
                 variant="text"
               >
                 {store.name}
@@ -348,7 +389,8 @@ export default function ProductDetails() {
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             <AppButton
               component={RouterLink}
-              to={buildStorePreviewPath(`/market/${slug}`)}
+              to={backTarget}
+              state={backTargetState}
               variant="outlined"
               startIcon={<ArrowBackRoundedIcon fontSize="small" />}
             >

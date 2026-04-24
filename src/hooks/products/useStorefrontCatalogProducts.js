@@ -8,8 +8,10 @@ import {
   normalizeProductList,
 } from "../../utils/products.js";
 import { queryKeys } from "../../utils/queryKeys.js";
+import useProductPricingScope from "./useProductPricingScope.js";
 
 export default function useStorefrontCatalogProducts(categories = [], options = {}) {
+  const pricingScope = useProductPricingScope();
   const categoryIds = useMemo(
     () =>
       categories
@@ -20,7 +22,7 @@ export default function useStorefrontCatalogProducts(categories = [], options = 
 
   const queryResults = useQueries({
     queries: categoryIds.map((categoryId) => ({
-      queryKey: queryKeys.products.byCategory(categoryId),
+      queryKey: queryKeys.products.byCategory(categoryId, pricingScope),
       queryFn: () => productApi.getProductsByCategory(categoryId),
       enabled: categoryIds.length > 0 && (options.enabled ?? true),
       staleTime: options.staleTime ?? 30000,

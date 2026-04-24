@@ -1,3 +1,7 @@
+function withOptionalScope(queryKey, scope) {
+  return scope ? [...queryKey, scope] : queryKey;
+}
+
 export const queryKeys = {
   auth: {
     me: ["auth", "me"],
@@ -19,11 +23,15 @@ export const queryKeys = {
   },
   products: {
     byStore: (storeId, params = {}) => ["products", "store", storeId, params],
-    featured: (storeId) => ["products", "featured", storeId],
-    detail: (id) => ["products", id],
-    slug: (slug) => ["products", "slug", slug],
-    byCategory: (categoryId) => ["products", "category", categoryId],
-    bySection: (sectionId) => ["products", "section", sectionId],
+    featured: (storeId, scope) =>
+      withOptionalScope(["products", "featured", storeId], scope),
+    detail: (id, scope) => withOptionalScope(["products", id], scope),
+    slug: (slug, scope) =>
+      withOptionalScope(["products", "slug", slug], scope),
+    byCategory: (categoryId, scope) =>
+      withOptionalScope(["products", "category", categoryId], scope),
+    bySection: (sectionId, scope) =>
+      withOptionalScope(["products", "section", sectionId], scope),
     visitCount: (id) => ["products", id, "visit-count"],
   },
   cart: {

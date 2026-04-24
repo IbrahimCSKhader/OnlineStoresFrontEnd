@@ -660,7 +660,8 @@ export default function Navbar() {
   };
 
   const renderGuestButtons = (drawer = false) => (
-    <>
+    activeStoreSlug ? (
+      <>
       {drawer ? renderCartButton(true) : null}
       <AppButton
         component={NavLink}
@@ -683,7 +684,8 @@ export default function Navbar() {
       >
         إنشاء حساب
       </AppButton>
-    </>
+      </>
+    ) : null
   );
 
   const renderPlatformButtons = (drawer = false) => (

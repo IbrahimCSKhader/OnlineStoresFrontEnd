@@ -1,5 +1,10 @@
-import { useEffect, useLayoutEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import { Outlet, useLocation, useNavigationType } from "react-router-dom";
+import {
+  buildScrollRestoreKey,
+  restoreSavedScrollPosition,
+  saveCurrentScrollPosition,
+} from "../utils/scrollRestoration.js";
 
 function scrollToPageTop() {
   if (typeof window === "undefined") {
@@ -19,6 +24,12 @@ function scrollToPageTop() {
 
 export default function RouteFrame() {
   const location = useLocation();
+  const navigationType = useNavigationType();
+  const isFirstRender = useRef(true);
+  const scrollRestoreKey = buildScrollRestoreKey(
+    location.pathname,
+    location.search,
+  );
 
   useEffect(() => {
     if (typeof window === "undefined" || !("scrollRestoration" in window.history)) {
@@ -33,9 +44,46 @@ export default function RouteFrame() {
     };
   }, []);
 
+  useEffect(
+    () => () => {
+      saveCurrentScrollPosition(scrollRestoreKey);
+    },
+    [scrollRestoreKey],
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    const handlePageHide = () => {
+      saveCurrentScrollPosition(scrollRestoreKey);
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, [scrollRestoreKey]);
+
   useLayoutEffect(() => {
+    const isInitialRender = isFirstRender.current;
+    isFirstRender.current = false;
+    const requestedRestoreKey =
+      typeof location.state?.scrollRestoreKey === "string" &&
+      location.state.scrollRestoreKey
+        ? location.state.scrollRestoreKey
+        : scrollRestoreKey;
+    const shouldRestore =
+      Boolean(location.state?.restoreScroll && requestedRestoreKey) ||
+      (!isInitialRender && navigationType === "POP");
+
+    if (shouldRestore && restoreSavedScrollPosition(requestedRestoreKey)) {
+      return;
+    }
+
     scrollToPageTop();
-  }, [location.pathname, location.search]);
+  }, [location.pathname, location.search, location.state, navigationType, scrollRestoreKey]);
 
   return <Outlet />;
 }
