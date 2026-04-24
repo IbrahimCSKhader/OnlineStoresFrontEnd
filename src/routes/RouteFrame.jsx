@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef } from "react";
 import { Outlet, useLocation, useNavigationType } from "react-router-dom";
 import {
   buildScrollRestoreKey,
+  hasSavedScrollPosition,
   restoreSavedScrollPosition,
   saveCurrentScrollPosition,
 } from "../utils/scrollRestoration.js";
@@ -26,6 +27,7 @@ export default function RouteFrame() {
   const location = useLocation();
   const navigationType = useNavigationType();
   const isFirstRender = useRef(true);
+  const previousScrollRestoreKeyRef = useRef("");
   const scrollRestoreKey = buildScrollRestoreKey(
     location.pathname,
     location.search,
@@ -44,12 +46,18 @@ export default function RouteFrame() {
     };
   }, []);
 
-  useEffect(
-    () => () => {
-      saveCurrentScrollPosition(scrollRestoreKey);
-    },
-    [scrollRestoreKey],
-  );
+  useLayoutEffect(() => {
+    const previousScrollRestoreKey = previousScrollRestoreKeyRef.current;
+
+    if (
+      previousScrollRestoreKey &&
+      previousScrollRestoreKey !== scrollRestoreKey
+    ) {
+      saveCurrentScrollPosition(previousScrollRestoreKey);
+    }
+
+    previousScrollRestoreKeyRef.current = scrollRestoreKey;
+  }, [scrollRestoreKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -69,14 +77,18 @@ export default function RouteFrame() {
   useLayoutEffect(() => {
     const isInitialRender = isFirstRender.current;
     isFirstRender.current = false;
+    const explicitRestoreRequested = Boolean(location.state?.restoreScroll);
     const requestedRestoreKey =
+      explicitRestoreRequested &&
       typeof location.state?.scrollRestoreKey === "string" &&
       location.state.scrollRestoreKey
         ? location.state.scrollRestoreKey
         : scrollRestoreKey;
+    const hasSavedScrollForCurrentRoute = hasSavedScrollPosition(scrollRestoreKey);
     const shouldRestore =
-      Boolean(location.state?.restoreScroll && requestedRestoreKey) ||
-      (!isInitialRender && navigationType === "POP");
+      Boolean(explicitRestoreRequested && requestedRestoreKey) ||
+      (!isInitialRender &&
+        (navigationType === "POP" || hasSavedScrollForCurrentRoute));
 
     if (shouldRestore && restoreSavedScrollPosition(requestedRestoreKey)) {
       return;

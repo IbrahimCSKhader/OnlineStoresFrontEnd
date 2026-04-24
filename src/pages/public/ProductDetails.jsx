@@ -616,7 +616,11 @@ export default function ProductDetails() {
         </Box>
       </Box>
 
-      <Box className="storefront-section">
+      <Box
+        className="storefront-section"
+        id="related-products"
+        data-scroll-section
+      >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">منتجات</span>
@@ -634,6 +638,7 @@ export default function ProductDetails() {
             addingProductId={relatedAddToCartUi.activeKey}
             disableCartActions={isOwnerPreview}
             linkSearch={previewSearch}
+            scrollAnchorScope="related-products"
           />
         ) : (
           <EmptyState title="لا توجد منتجات مشابهة" />

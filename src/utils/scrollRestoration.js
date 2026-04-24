@@ -1,9 +1,128 @@
 import { getStorageJson, setStorageJson, storageKeys } from "./storage.js";
 
 const MAX_SCROLL_ENTRIES = 40;
+const ANCHOR_PRESERVE_WINDOW_MS = 1500;
+const RESTORE_TOLERANCE_PX = 4;
 
 function isBrowser() {
   return typeof window !== "undefined" && typeof document !== "undefined";
+}
+
+function toNumber(value, fallback = 0) {
+  const normalizedValue = Number(value);
+  return Number.isFinite(normalizedValue) ? normalizedValue : fallback;
+}
+
+function toNullableNumber(value) {
+  const normalizedValue = Number(value);
+  return Number.isFinite(normalizedValue) ? normalizedValue : null;
+}
+
+function toStringValue(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeScrollSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") {
+    return null;
+  }
+
+  return {
+    left: toNumber(snapshot.left, 0),
+    top: toNumber(snapshot.top, 0),
+    updatedAt: toNumber(snapshot.updatedAt, 0),
+    anchorId: toStringValue(snapshot.anchorId),
+    anchorViewportOffsetTop: toNullableNumber(snapshot.anchorViewportOffsetTop),
+    sectionId: toStringValue(snapshot.sectionId),
+    sectionViewportOffsetTop: toNullableNumber(snapshot.sectionViewportOffsetTop),
+    anchorRecordedAt: toNumber(snapshot.anchorRecordedAt, 0),
+  };
+}
+
+function hasRestoreTarget(snapshot) {
+  return Boolean(snapshot?.anchorId || snapshot?.sectionId);
+}
+
+function shouldPreserveRestoreTarget(snapshot, now = Date.now()) {
+  return (
+    hasRestoreTarget(snapshot) &&
+    now - toNumber(snapshot?.anchorRecordedAt, 0) <= ANCHOR_PRESERVE_WINDOW_MS
+  );
+}
+
+function removeRestoreTarget(snapshot) {
+  return {
+    ...(snapshot || {}),
+    anchorId: "",
+    anchorViewportOffsetTop: null,
+    sectionId: "",
+    sectionViewportOffsetTop: null,
+    anchorRecordedAt: 0,
+  };
+}
+
+function getDocumentScrollHeight() {
+  if (!isBrowser()) {
+    return 0;
+  }
+
+  return Math.max(
+    document.documentElement?.scrollHeight ?? 0,
+    document.body?.scrollHeight ?? 0,
+  );
+}
+
+function getMaxScrollableTop() {
+  return Math.max(getDocumentScrollHeight() - window.innerHeight, 0);
+}
+
+function clampScrollTop(top) {
+  return Math.min(Math.max(toNumber(top, 0), 0), getMaxScrollableTop());
+}
+
+function scrollWindowTo(top, left = 0) {
+  const targetTop = clampScrollTop(top);
+
+  window.scrollTo({
+    top: targetTop,
+    left: toNumber(left, 0),
+    behavior: "auto",
+  });
+
+  return targetTop;
+}
+
+function resolveRestoreElement(elementId) {
+  if (!isBrowser() || !elementId) {
+    return null;
+  }
+
+  return document.getElementById(elementId);
+}
+
+function attemptAnchorRestore(element, desiredOffsetTop, left) {
+  const elementRect = element.getBoundingClientRect();
+  const absoluteElementTop = window.scrollY + elementRect.top;
+  const targetTop = scrollWindowTo(absoluteElementTop - desiredOffsetTop, left);
+  const currentOffsetTop = element.getBoundingClientRect().top;
+
+  return {
+    stable: Math.abs(currentOffsetTop - desiredOffsetTop) <= RESTORE_TOLERANCE_PX,
+    targetTop,
+  };
+}
+
+function attemptPositionRestore(snapshot) {
+  const targetTop = scrollWindowTo(snapshot.top, snapshot.left);
+  const canReachSavedPosition =
+    getMaxScrollableTop() + RESTORE_TOLERANCE_PX >= toNumber(snapshot.top, 0);
+
+  return {
+    stable:
+      canReachSavedPosition &&
+      Math.abs(window.scrollY - targetTop) <= RESTORE_TOLERANCE_PX,
+    targetTop,
+  };
 }
 
 function getScrollPositions() {
@@ -36,22 +155,92 @@ export function buildScrollRestoreKey(pathname = "", search = "") {
   return `${String(pathname || "")}${String(search || "")}` || "/";
 }
 
-export function saveCurrentScrollPosition(key) {
+export function sanitizeScrollAnchorSegment(value, fallback = "item") {
+  const normalizedValue = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return normalizedValue || fallback;
+}
+
+export function buildProductScrollAnchorId({
+  scope = "products",
+  productId = "",
+  index = 0,
+} = {}) {
+  const normalizedScope = sanitizeScrollAnchorSegment(scope, "products");
+  const normalizedProductId = sanitizeScrollAnchorSegment(
+    productId,
+    `item-${toNumber(index, 0)}`,
+  );
+
+  return `product-card-${normalizedScope}-${normalizedProductId}-${toNumber(index, 0)}`;
+}
+
+export function saveCurrentScrollPosition(key, snapshot = {}) {
   if (!isBrowser() || !key) {
-    return;
+    return null;
   }
 
   const positions = getScrollPositions();
+  const now = Date.now();
+  const existingSnapshot = normalizeScrollSnapshot(positions[key]);
+  const nextSnapshotBase = shouldPreserveRestoreTarget(existingSnapshot, now)
+    ? { ...existingSnapshot }
+    : removeRestoreTarget(existingSnapshot);
+  const hasIncomingRestoreTarget = Boolean(
+    toStringValue(snapshot.anchorId) || toStringValue(snapshot.sectionId),
+  );
   const nextPositions = pruneScrollPositions({
     ...positions,
     [key]: {
-      left: Number(window.scrollX ?? 0) || 0,
-      top: Number(window.scrollY ?? 0) || 0,
-      updatedAt: Date.now(),
+      ...nextSnapshotBase,
+      left: toNumber(snapshot.left, Number(window.scrollX ?? 0) || 0),
+      top: toNumber(snapshot.top, Number(window.scrollY ?? 0) || 0),
+      updatedAt: now,
+      ...(hasIncomingRestoreTarget
+        ? {
+            anchorId: toStringValue(snapshot.anchorId),
+            anchorViewportOffsetTop: toNullableNumber(
+              snapshot.anchorViewportOffsetTop,
+            ),
+            sectionId: toStringValue(snapshot.sectionId),
+            sectionViewportOffsetTop: toNullableNumber(
+              snapshot.sectionViewportOffsetTop,
+            ),
+            anchorRecordedAt: now,
+          }
+        : {}),
     },
   });
 
   saveScrollPositions(nextPositions);
+  return nextPositions[key];
+}
+
+export function captureElementScrollSnapshot(
+  key,
+  { element, anchorId = "", sectionId = "" } = {},
+) {
+  if (!isBrowser() || !key || !element) {
+    return null;
+  }
+
+  const anchorElement =
+    typeof element.getBoundingClientRect === "function" ? element : null;
+  const resolvedAnchorId = toStringValue(anchorId || anchorElement?.id);
+  const resolvedSectionId = toStringValue(sectionId);
+  const sectionElement = resolveRestoreElement(resolvedSectionId);
+
+  return saveCurrentScrollPosition(key, {
+    anchorId: resolvedAnchorId,
+    anchorViewportOffsetTop: anchorElement?.getBoundingClientRect().top ?? null,
+    sectionId: resolvedSectionId,
+    sectionViewportOffsetTop:
+      sectionElement?.getBoundingClientRect().top ?? null,
+  });
 }
 
 export function getSavedScrollPosition(key) {
@@ -59,21 +248,16 @@ export function getSavedScrollPosition(key) {
     return null;
   }
 
-  const position = getScrollPositions()[key];
+  return normalizeScrollSnapshot(getScrollPositions()[key]);
+}
 
-  if (!position || typeof position !== "object") {
-    return null;
-  }
-
-  return {
-    left: Number(position.left ?? 0) || 0,
-    top: Number(position.top ?? 0) || 0,
-  };
+export function hasSavedScrollPosition(key) {
+  return Boolean(getSavedScrollPosition(key));
 }
 
 export function restoreSavedScrollPosition(
   key,
-  { maxAttempts = 12, delayMs = 80 } = {},
+  { maxWaitMs = 2600, delayMs = 90, stablePasses = 2 } = {},
 ) {
   if (!isBrowser() || !key) {
     return false;
@@ -85,31 +269,104 @@ export function restoreSavedScrollPosition(
     return false;
   }
 
-  let attempt = 0;
+  let completed = false;
+  let timeoutId = 0;
+  let animationFrameId = 0;
+  let stableRestorePasses = 0;
+  let runScheduled = false;
+  const startedAt = Date.now();
 
-  const restore = () => {
-    const root = document.documentElement;
-    const maxTop = Math.max((root?.scrollHeight ?? 0) - window.innerHeight, 0);
-    const targetTop = Math.min(savedPosition.top, maxTop);
+  const cleanup = () => {
+    completed = true;
+    runScheduled = false;
 
-    window.scrollTo({
-      top: targetTop,
-      left: savedPosition.left,
-      behavior: "auto",
-    });
+    if (timeoutId) {
+      window.clearTimeout(timeoutId);
+    }
 
-    attempt += 1;
+    if (animationFrameId) {
+      window.cancelAnimationFrame(animationFrameId);
+    }
 
-    const reachedTarget = Math.abs(window.scrollY - targetTop) <= 2;
-    const reachedSavedPosition = maxTop >= savedPosition.top && reachedTarget;
+    if (mutationObserver) {
+      mutationObserver.disconnect();
+    }
 
-    if (reachedSavedPosition || attempt >= maxAttempts) {
+    window.removeEventListener("load", handleLoad);
+  };
+
+  const runRestoreAttempt = () => {
+    if (completed) {
       return;
     }
 
-    window.setTimeout(restore, delayMs);
+    const anchorElement = resolveRestoreElement(savedPosition.anchorId);
+    const sectionElement = anchorElement
+      ? null
+      : resolveRestoreElement(savedPosition.sectionId);
+    const restoreResult =
+      anchorElement && savedPosition.anchorViewportOffsetTop !== null
+        ? attemptAnchorRestore(
+            anchorElement,
+            savedPosition.anchorViewportOffsetTop,
+            savedPosition.left,
+          )
+        : sectionElement && savedPosition.sectionViewportOffsetTop !== null
+          ? attemptAnchorRestore(
+              sectionElement,
+              savedPosition.sectionViewportOffsetTop,
+              savedPosition.left,
+            )
+          : attemptPositionRestore(savedPosition);
+
+    stableRestorePasses = restoreResult.stable ? stableRestorePasses + 1 : 0;
+
+    if (
+      stableRestorePasses >= Math.max(toNumber(stablePasses, 2), 1) ||
+      Date.now() - startedAt >= Math.max(toNumber(maxWaitMs, 2600), delayMs)
+    ) {
+      cleanup();
+      return;
+    }
+
+    scheduleRestoreAttempt(delayMs);
   };
 
-  restore();
+  const scheduleRestoreAttempt = (nextDelayMs = delayMs) => {
+    if (completed || runScheduled) {
+      return;
+    }
+
+    runScheduled = true;
+    timeoutId = window.setTimeout(() => {
+      animationFrameId = window.requestAnimationFrame(() => {
+        runScheduled = false;
+        runRestoreAttempt();
+      });
+    }, Math.max(toNumber(nextDelayMs, delayMs), 0));
+  };
+
+  const handleLoad = () => {
+    stableRestorePasses = 0;
+    scheduleRestoreAttempt(16);
+  };
+
+  const mutationObserver =
+    typeof MutationObserver === "undefined"
+      ? null
+      : new MutationObserver(() => {
+          stableRestorePasses = 0;
+          scheduleRestoreAttempt(40);
+        });
+
+  if (mutationObserver && document.body) {
+    mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  window.addEventListener("load", handleLoad, { once: true });
+  runRestoreAttempt();
   return true;
 }

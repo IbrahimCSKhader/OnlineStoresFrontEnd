@@ -9,6 +9,7 @@ export default function ProductGrid({
   disableCartActions = false,
   linkSearch = "",
   className = "",
+  scrollAnchorScope = "products",
 }) {
   return (
     <Box
@@ -16,7 +17,7 @@ export default function ProductGrid({
         .filter(Boolean)
         .join(" ")}
     >
-      {products.map((product) => (
+      {products.map((product, index) => (
         <ProductCard
           key={product.id ?? `${product.name}-${product.slug}`}
           product={product}
@@ -25,6 +26,8 @@ export default function ProductGrid({
           adding={addingProductId === product.id}
           disableCartActions={disableCartActions}
           linkSearch={linkSearch}
+          scrollAnchorScope={scrollAnchorScope}
+          scrollAnchorIndex={index}
         />
       ))}
     </Box>

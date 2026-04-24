@@ -452,6 +452,8 @@ export default function Login() {
       const apiBaseUrl = (
         import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
       ).replace(/\/+$/, "");
+      const frontendOrigin =
+        typeof window !== "undefined" ? window.location.origin : "";
       const googleParams = new URLSearchParams();
       const googleStoreSlug = resolvedGoogleStoreSlug;
       const googleStoreId = resolvedGoogleStoreId;
@@ -477,9 +479,14 @@ export default function Login() {
         googleParams.set("redirectTo", redirectTo);
       }
 
+      if (frontendOrigin) {
+        googleParams.set("frontendOrigin", frontendOrigin);
+      }
+
       logAuthFlow("Starting Google store login redirect", {
         pathname: location.pathname,
         apiBaseUrl,
+        frontendOrigin,
         routeStoreSlug,
         routeStoreId: routeStore?.id || "",
         stateStoreId: location.state?.storeId || "",

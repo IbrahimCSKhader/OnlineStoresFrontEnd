@@ -17,7 +17,11 @@ import {
   isProductInStock,
   normalizeProductDto,
 } from "../../utils/products.js";
-import { buildScrollRestoreKey } from "../../utils/scrollRestoration.js";
+import {
+  buildProductScrollAnchorId,
+  buildScrollRestoreKey,
+  captureElementScrollSnapshot,
+} from "../../utils/scrollRestoration.js";
 import "./ProductCard.css";
 
 function ProductCard({
@@ -27,6 +31,8 @@ function ProductCard({
   adding,
   disableCartActions = false,
   linkSearch = "",
+  scrollAnchorScope = "products",
+  scrollAnchorIndex = 0,
 }) {
   const location = useLocation();
   const normalizedProduct = normalizeProductDto(product);
@@ -45,16 +51,23 @@ function ProductCard({
   const currentSearch = location.search || "";
   const returnSearch = currentSearch || linkSearch || "";
   const detailSearch = linkSearch || currentSearch;
+  const scrollRestoreKey = buildScrollRestoreKey(
+    location.pathname,
+    returnSearch,
+  );
+  const scrollAnchorId = buildProductScrollAnchorId({
+    scope: scrollAnchorScope,
+    productId:
+      normalizedProduct.id || normalizedProduct.slug || normalizedProduct.name,
+    index: scrollAnchorIndex,
+  });
   const detailTarget = detailPath
     ? {
         pathname: detailPath,
         search: detailSearch,
         state: {
           returnTo: `${location.pathname}${returnSearch}`,
-          scrollRestoreKey: buildScrollRestoreKey(
-            location.pathname,
-            returnSearch,
-          ),
+          scrollRestoreKey,
         },
       }
     : undefined;
@@ -73,12 +86,33 @@ function ProductCard({
         ? "عرض"
         : "";
 
+  const handleNavigateToDetails = () => {
+    if (typeof document === "undefined" || !detailTarget) {
+      return;
+    }
+
+    const cardElement = document.getElementById(scrollAnchorId);
+    const sectionElement = cardElement?.closest("[data-scroll-section]");
+
+    captureElementScrollSnapshot(scrollRestoreKey, {
+      element: cardElement,
+      anchorId: scrollAnchorId,
+      sectionId: sectionElement?.id || "",
+    });
+  };
+
   return (
-    <SurfaceCard interactive className="product-card">
+    <SurfaceCard
+      interactive
+      className="product-card"
+      id={scrollAnchorId}
+      data-scroll-anchor={scrollAnchorId}
+    >
       <Box
         component={detailTarget ? RouterLink : "div"}
         to={detailTarget}
         className="product-card__link"
+        onClickCapture={handleNavigateToDetails}
       >
         <Box className="product-card__media">
           {image ? (
@@ -180,6 +214,7 @@ function ProductCard({
             variant="text"
             endIcon={<OpenInNewRoundedIcon fontSize="small" />}
             className="product-card__detail-button"
+            onClick={handleNavigateToDetails}
           >
             عرض
           </AppButton>
@@ -213,5 +248,7 @@ export default memo(ProductCard, (previousProps, nextProps) => (
   previousProps.storeSlug === nextProps.storeSlug &&
   previousProps.adding === nextProps.adding &&
   previousProps.disableCartActions === nextProps.disableCartActions &&
-  previousProps.linkSearch === nextProps.linkSearch
+  previousProps.linkSearch === nextProps.linkSearch &&
+  previousProps.scrollAnchorScope === nextProps.scrollAnchorScope &&
+  previousProps.scrollAnchorIndex === nextProps.scrollAnchorIndex
 ));

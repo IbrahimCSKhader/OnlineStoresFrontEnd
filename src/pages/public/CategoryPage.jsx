@@ -231,7 +231,11 @@ export default function CategoryPage() {
         </Box>
 
         <Box className="storefront-grid__span-8">
-          <SurfaceCard className="page-category__results">
+          <SurfaceCard
+            className="page-category__results"
+            id="category-results"
+            data-scroll-section
+          >
             <Box className="storefront-section__head">
               <Box className="storefront-section__copy">
                 <span className="storefront-eyebrow">النتائج</span>
@@ -260,6 +264,7 @@ export default function CategoryPage() {
                 disableCartActions={isOwnerPreview}
                 linkSearch={previewSearch}
                 className="page-category__products-grid"
+                scrollAnchorScope="category-results"
               />
             ) : (
               <EmptyState

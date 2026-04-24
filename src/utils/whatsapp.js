@@ -1,6 +1,6 @@
 import { normalizeWhatsAppIdentifier } from "./storeContacts.js";
 
-export const DEVELOPER_SUPPORT_NUMBER = "972522377931";
+export const DEVELOPER_SUPPORT_NUMBER = "972515087853";
 export const DEVELOPER_SUPPORT_DEFAULT_MESSAGE =
   "مرحبًا، أحتاج مساعدة بخصوص المتجر";
 

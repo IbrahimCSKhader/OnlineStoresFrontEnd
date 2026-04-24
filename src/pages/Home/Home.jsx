@@ -141,7 +141,11 @@ export default function Home() {
         </Box>
       </SurfaceCard>
 
-      <Box className="storefront-section">
+      <Box
+        className="storefront-section"
+        id="home-featured-products"
+        data-scroll-section
+      >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">منتجات</span>
@@ -150,7 +154,10 @@ export default function Home() {
         </Box>
 
         {featuredProducts.length ? (
-          <ProductGrid products={featuredProducts} />
+          <ProductGrid
+            products={featuredProducts}
+            scrollAnchorScope="home-featured-products"
+          />
         ) : (
           <EmptyState
             title="لا توجد منتجات بارزة بعد"

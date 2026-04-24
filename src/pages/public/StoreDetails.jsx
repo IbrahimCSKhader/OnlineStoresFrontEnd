@@ -251,7 +251,11 @@ export default function StoreDetails() {
         )}
       </Box>
 
-      <Box className="storefront-section page-store-details__featured">
+      <Box
+        className="storefront-section page-store-details__featured"
+        id="store-featured-products"
+        data-scroll-section
+      >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">منتجات</span>
@@ -269,6 +273,7 @@ export default function StoreDetails() {
             addingProductId={addToCartUi.activeKey}
             disableCartActions={isOwnerPreview}
             linkSearch={previewSearch}
+            scrollAnchorScope="store-featured-products"
           />
         ) : (
           <EmptyState title="لا توجد منتجات مختارة" />
@@ -278,6 +283,7 @@ export default function StoreDetails() {
       <Box
         className="storefront-section page-store-details__catalog"
         id="store-catalog"
+        data-scroll-section
       >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
@@ -305,6 +311,7 @@ export default function StoreDetails() {
               addingProductId={addToCartUi.activeKey}
               disableCartActions={isOwnerPreview}
               linkSearch={previewSearch}
+              scrollAnchorScope="store-catalog"
             />
           ) : (
             <EmptyState
