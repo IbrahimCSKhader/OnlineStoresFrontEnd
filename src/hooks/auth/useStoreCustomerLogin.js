@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import authApi from "../../API/auth.api.js";
 import storeCustomerAuthApi from "../../API/storeCustomerAuth.api.js";
 import useAuthStore from "../../store/authStore.js";
 import { queryKeys } from "../../utils/queryKeys.js";
@@ -13,11 +14,172 @@ import {
   setStoredPlatformUser,
   setStorefrontAuthSession,
 } from "../../utils/token.js";
+import { isOwnerRole } from "../../utils/roles.js";
 import {
   applyStoreScopeToUser,
   assertStoreScopedAuthResult,
   resolveStoreScopedAuthResult,
 } from "../../utils/storeCustomerAuth.js";
+
+function normalizeValue(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim();
+}
+
+function normalizeSlug(value) {
+  return normalizeValue(value).toLowerCase();
+}
+
+function normalizeErrorSignal(value) {
+  return normalizeSlug(value).replace(/[\s_-]+/g, " ");
+}
+
+function hasOwnerConflictSignal(error) {
+  const responseData = error?.response?.data;
+  const signals = [
+    error?.code,
+    responseData?.code,
+    responseData?.errorCode,
+    responseData?.error,
+    responseData?.message,
+    responseData?.title,
+  ]
+    .map(normalizeErrorSignal)
+    .filter(Boolean);
+
+  return signals.some(
+    (signal) =>
+      signal.includes("owner customer conflict") ||
+      signal.includes("belongs to the store owner") ||
+      signal.includes("store owner flow") ||
+      signal.includes("storefront customer flow") ||
+      signal.includes("platform owner authentication flow") ||
+      (signal.includes("store owner") && signal.includes("platform")),
+  );
+}
+
+function buildOwnerPlatformFallbackError(code, message) {
+  const error = new Error(message);
+  error.code = code;
+  error.platformOwnerFallback = true;
+  return error;
+}
+
+function tagOwnerPlatformFallbackError(error) {
+  if (error && typeof error === "object") {
+    error.platformOwnerFallback = true;
+  }
+
+  return error;
+}
+
+function resolveOwnerStoreScope(authResult, fallback = {}) {
+  return {
+    storeId: normalizeValue(
+      authResult?.responseStoreId ||
+        authResult?.user?.storeId ||
+        authResult?.user?.StoreId ||
+        authResult?.user?.store?.id ||
+        fallback.storeId,
+    ),
+    storeSlug: normalizeSlug(
+      authResult?.responseStoreSlug ||
+        authResult?.user?.storeSlug ||
+        authResult?.user?.StoreSlug ||
+        authResult?.user?.store?.slug ||
+        fallback.storeSlug,
+    ),
+    storeName: normalizeValue(
+      authResult?.responseStoreName ||
+        authResult?.user?.storeName ||
+        authResult?.user?.StoreName ||
+        authResult?.user?.store?.name ||
+        fallback.storeName,
+    ),
+  };
+}
+
+function doesOwnerMatchRequestedStore(ownerStoreScope, requestedStoreScope) {
+  const requestedStoreId = normalizeValue(requestedStoreScope?.storeId);
+  const requestedStoreSlug = normalizeSlug(requestedStoreScope?.storeSlug);
+
+  if (!requestedStoreId && !requestedStoreSlug) {
+    return true;
+  }
+
+  return (
+    (requestedStoreId && ownerStoreScope.storeId === requestedStoreId) ||
+    (requestedStoreSlug && ownerStoreScope.storeSlug === requestedStoreSlug)
+  );
+}
+
+async function loginOwnerViaPlatformFallback({
+  storeId = "",
+  storeSlug = "",
+  storeName = "",
+  email = "",
+  password = "",
+} = {}) {
+  const platformData = await authApi.login({ email, password });
+  const authResult = resolveStoreScopedAuthResult(platformData, storeId);
+  const ownerStoreScope = resolveOwnerStoreScope(authResult, {
+    storeId,
+    storeSlug,
+    storeName,
+  });
+  const isOwnerAccount =
+    authResult.isOwner || isOwnerRole(authResult.role || authResult.user?.accountType);
+
+  if (!isOwnerAccount) {
+    throw buildOwnerPlatformFallbackError(
+      "OWNER_ACCOUNT_REQUIRED",
+      "The authenticated account is not a store owner.",
+    );
+  }
+
+  if (!ownerStoreScope.storeId && !ownerStoreScope.storeSlug) {
+    throw buildOwnerPlatformFallbackError(
+      "OWNER_STORE_SCOPE_UNRESOLVED",
+      "The owner store scope could not be verified from the platform response.",
+    );
+  }
+
+  if (
+    !doesOwnerMatchRequestedStore(ownerStoreScope, {
+      storeId,
+      storeSlug,
+    })
+  ) {
+    throw buildOwnerPlatformFallbackError(
+      "OWNER_STORE_SCOPE_MISMATCH",
+      "The authenticated owner does not belong to the current store.",
+    );
+  }
+
+  return {
+    ...platformData,
+    storeId: ownerStoreScope.storeId || normalizeValue(storeId),
+    storeSlug: ownerStoreScope.storeSlug || normalizeSlug(storeSlug),
+    storeName: ownerStoreScope.storeName || normalizeValue(storeName),
+    dashboard:
+      normalizeValue(
+        platformData?.dashboard ||
+          platformData?.Dashboard ||
+          platformData?.data?.dashboard ||
+          platformData?.data?.Dashboard,
+      ) || "owner",
+    sessionScope:
+      normalizeValue(
+        platformData?.sessionScope ||
+          platformData?.SessionScope ||
+          platformData?.data?.sessionScope ||
+          platformData?.data?.SessionScope,
+      ) || "platform",
+  };
+}
 
 export default function useStoreCustomerLogin(options = {}) {
   const queryClient = useQueryClient();
@@ -57,6 +219,50 @@ export default function useStoreCustomerLogin(options = {}) {
 
         return data;
       } catch (error) {
+        if (storeId && hasOwnerConflictSignal(error)) {
+          logAuthFlow("Store login detected owner conflict, retrying platform auth", {
+            requestStoreId: String(storeId || ""),
+            requestStoreSlug: String(payload?.storeSlug || ""),
+            email: String(payload?.email || "").trim(),
+          });
+
+          try {
+            const platformOwnerData = await loginOwnerViaPlatformFallback({
+              storeId,
+              storeSlug: payload?.storeSlug,
+              storeName: payload?.storeName,
+              email: String(payload?.email || "").trim(),
+              password: String(payload?.password || ""),
+            });
+            const ownerAuthResult = resolveStoreScopedAuthResult(
+              platformOwnerData,
+              storeId,
+            );
+
+            assertStoreScopedAuthResult(ownerAuthResult);
+            logAuthFlow("Store login owner fallback succeeded", {
+              requestStoreId: String(storeId || ""),
+              responseStoreId: ownerAuthResult.responseStoreId,
+              responseStoreSlug: ownerAuthResult.responseStoreSlug,
+              role: ownerAuthResult.role,
+              user: serializeAuthFlowUser(ownerAuthResult.user),
+            });
+
+            return platformOwnerData;
+          } catch (platformOwnerError) {
+            const taggedFallbackError =
+              tagOwnerPlatformFallbackError(platformOwnerError);
+
+            logAuthFlow("Store login owner fallback failed", {
+              requestStoreId: String(storeId || ""),
+              email: String(payload?.email || "").trim(),
+              error: serializeAuthFlowError(taggedFallbackError),
+            });
+
+            throw taggedFallbackError;
+          }
+        }
+
         logAuthFlow("Store login request failed", {
           requestStoreId: String(storeId || ""),
           email: String(payload?.email || "").trim(),

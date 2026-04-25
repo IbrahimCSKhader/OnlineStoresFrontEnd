@@ -557,6 +557,20 @@ export default function Login() {
     );
   }
 
+  function navigateToPlatformVerifyEmail(verificationEmail, message) {
+    setPendingVerificationEmail(verificationEmail);
+    navigate("/auth/verify-email", {
+      replace: true,
+      state: {
+        email: verificationEmail,
+        redirectTo: "/owner",
+        message:
+          message ||
+          "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+      },
+    });
+  }
+
   function saveResolvedStoreScopedSessionFromAuthResponse(data) {
     const authResult = resolveCurrentStoreAuthResult(data);
     const user = applyStoreScopeToUser(authResult.user, {
@@ -642,6 +656,21 @@ export default function Login() {
       return;
     }
 
+    if (error?.code === "OWNER_STORE_SCOPE_UNRESOLVED") {
+      setLocalError("تعذر التأكد أن هذا الحساب يخص مالك هذا المتجر. حاول مرة أخرى.");
+      return;
+    }
+
+    if (error?.code === "OWNER_STORE_SCOPE_MISMATCH") {
+      setLocalError("هذا الحساب لا يخص مالك هذا المتجر.");
+      return;
+    }
+
+    if (error?.code === "OWNER_ACCOUNT_REQUIRED") {
+      setLocalError("هذا الحساب ليس حساب مالك متجر.");
+      return;
+    }
+
     const responseData = error?.response?.data;
     const statusCode = Number(error?.response?.status || 0);
     const needsVerification =
@@ -650,6 +679,15 @@ export default function Login() {
 
     if (needsVerification) {
       const verificationEmail = responseData?.email || email;
+      if (error?.platformOwnerFallback) {
+        navigateToPlatformVerifyEmail(
+          verificationEmail,
+          responseData?.message ||
+            "لا يمكنك تسجيل الدخول كمالك قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+        );
+        return;
+      }
+
       setPendingVerificationEmail(verificationEmail);
       navigate(storeVerifyEmailPath, {
         replace: true,
