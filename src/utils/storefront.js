@@ -31,8 +31,6 @@ export function sortProducts(products, sortValue) {
       return list.sort((left, right) => getProductDisplayPrice(left) - getProductDisplayPrice(right));
     case "price-desc":
       return list.sort((left, right) => getProductDisplayPrice(right) - getProductDisplayPrice(left));
-    case "popular":
-      return list.sort((left, right) => Number(right.visitCount ?? 0) - Number(left.visitCount ?? 0));
     case "newest":
       return list.sort(
         (left, right) =>

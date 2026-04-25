@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Link as RouterLink,
   matchPath,
@@ -15,8 +15,6 @@ import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
-import productApi from "../../API/product.api.js";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
@@ -202,16 +200,6 @@ export default function ProductDetails() {
           scrollRestoreKey: location.state.scrollRestoreKey,
         }
       : undefined;
-
-  useEffect(() => {
-    if (!productId || !isPublicProduct || storeMismatch) {
-      return;
-    }
-
-    productApi.visitProduct(productId).catch(() => {
-      // Ignore visit-count failures on the public page.
-    });
-  }, [isPublicProduct, productId, storeMismatch]);
 
   const updateUiState = (updates) => {
     if (!product?.id) return;
@@ -507,11 +495,6 @@ export default function ProductDetails() {
                       : "غير متوفر حالياً"
                   }
                   color={isAvailable ? "default" : "warning"}
-                  variant="outlined"
-                />
-                <Chip
-                  icon={<VisibilityRoundedIcon fontSize="small" />}
-                  label={`${product.visitCount ?? 0} زيارة`}
                   variant="outlined"
                 />
               </Stack>

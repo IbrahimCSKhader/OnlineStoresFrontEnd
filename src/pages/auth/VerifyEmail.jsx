@@ -53,9 +53,7 @@ import {
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
-  setStorefrontAuthToken,
-  setStoredStorefrontRole,
-  setStoredStorefrontUser,
+  setStorefrontAuthSession,
 } from "../../utils/token.js";
 import "./Login.css";
 
@@ -184,21 +182,24 @@ export default function VerifyEmail() {
       storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
       storeName: storeCustomerAuthState?.storeName || routeStore?.name,
     });
-
-    if (token) {
-      setStorefrontAuthToken(token);
-    }
-
-    if (scopedUser) {
-      setStoredStorefrontUser(scopedUser);
-    }
-
-    if (resolvedRole) {
-      setStoredStorefrontRole(resolvedRole);
-    }
+    const storefrontScope = {
+      storeId: storeCustomerAuthState?.storeId || scopedUser?.storeId,
+      storeSlug:
+        storeCustomerAuthState?.storeSlug || routeStoreSlug || scopedUser?.storeSlug,
+    };
 
     if (token || scopedUser || resolvedRole) {
-      setStorefrontSession({ token, user: scopedUser, role: resolvedRole });
+      setStorefrontAuthSession(storefrontScope, {
+        token,
+        user: scopedUser,
+        role: resolvedRole,
+      });
+      setStorefrontSession({
+        token,
+        user: scopedUser,
+        role: resolvedRole,
+        ...storefrontScope,
+      });
     }
   }
 

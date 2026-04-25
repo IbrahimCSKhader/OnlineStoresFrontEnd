@@ -1,27 +1,53 @@
 import useAuthStore from "../store/authStore.js";
 import { extractStorefrontCustomer } from "./authSession.js";
 import { isStoreCustomerRole } from "./roles.js";
-
-function normalizeStoreId(storeId) {
-  return storeId ? String(storeId) : "";
-}
-
-function normalizeStoreSlug(storeSlug) {
-  return storeSlug ? String(storeSlug).trim().toLowerCase() : "";
-}
+import {
+  doesStorefrontSessionMatchScope,
+  findStorefrontAuthSessionInCollection,
+  normalizeStoreScope,
+  normalizeStorefrontAuthSession,
+} from "./token.js";
 
 function hasMatchingRole(checkRole, role, accountType) {
   return checkRole(role) || checkRole(accountType);
 }
 
-function resolveSessionStoreId(user) {
-  return normalizeStoreId(user?.storeId || user?.StoreId || user?.store?.id);
+function resolveSessionStoreId(user, session) {
+  return normalizeStoreScope({
+    storeId: session?.storeId || user?.storeId || user?.StoreId || user?.store?.id,
+  }).storeId;
 }
 
-function resolveSessionStoreSlug(user) {
-  return normalizeStoreSlug(
-    user?.storeSlug || user?.StoreSlug || user?.store?.slug,
+function resolveSessionStoreSlug(user, session) {
+  return normalizeStoreScope({
+    storeSlug:
+      session?.storeSlug ||
+      user?.storeSlug ||
+      user?.StoreSlug ||
+      user?.store?.slug,
+  }).storeSlug;
+}
+
+function resolveScopedStorefrontSession(authState, normalizedScope) {
+  const authStorefrontSession = normalizeStorefrontAuthSession(
+    authState?.storefrontSession,
+    normalizedScope,
   );
+  const matchedStoredSession =
+    findStorefrontAuthSessionInCollection(
+      authState?.storefrontSessions,
+      normalizedScope,
+    )?.[1] || null;
+
+  if (matchedStoredSession) {
+    return normalizeStorefrontAuthSession(matchedStoredSession, normalizedScope);
+  }
+
+  if (doesStorefrontSessionMatchScope(authStorefrontSession, normalizedScope)) {
+    return authStorefrontSession;
+  }
+
+  return normalizeStorefrontAuthSession({}, normalizedScope);
 }
 
 export function getStorefrontSessionState(
@@ -29,76 +55,72 @@ export function getStorefrontSessionState(
   storeSlug = "",
   authState = useAuthStore.getState(),
 ) {
-  const normalizedStoreId = normalizeStoreId(storeId);
-  const normalizedStoreSlug = normalizeStoreSlug(storeSlug);
-  const storefrontSession = authState?.storefrontSession ?? {};
-  const role = authState?.storefrontRole || storefrontSession?.role;
+  const normalizedScope = normalizeStoreScope({ storeId, storeSlug });
+  const storefrontSession = resolveScopedStorefrontSession(
+    authState,
+    normalizedScope,
+  );
+  const role = storefrontSession?.role || storefrontSession?.user?.accountType;
   const user =
-    authState?.storefrontCustomer ||
-    extractStorefrontCustomer(authState?.storefrontUser) ||
-    authState?.storefrontUser ||
-    extractStorefrontCustomer(storefrontSession?.user) ||
-    storefrontSession?.user;
-  const accountType =
-    user?.accountType ||
-    authState?.storefrontUser?.accountType ||
-    storefrontSession?.user?.accountType;
-  const storefrontCustomer = extractStorefrontCustomer(user);
+    extractStorefrontCustomer(storefrontSession?.user, storefrontSession?.token) ||
+    storefrontSession?.user ||
+    null;
+  const accountType = user?.accountType || storefrontSession?.user?.accountType;
+  const storefrontCustomer = extractStorefrontCustomer(
+    user,
+    storefrontSession?.token,
+  );
   const isRegisteredStoreCustomer =
     Boolean(storefrontCustomer) ||
     hasMatchingRole(isStoreCustomerRole, role, accountType);
   const isGuestSession = false;
   const hasStorefrontCustomerSession = isRegisteredStoreCustomer;
-  const sessionStoreId = resolveSessionStoreId(storefrontCustomer || user);
-  const sessionStoreSlug = resolveSessionStoreSlug(storefrontCustomer || user);
+  const sessionStoreId = resolveSessionStoreId(storefrontCustomer || user, storefrontSession);
+  const sessionStoreSlug = resolveSessionStoreSlug(
+    storefrontCustomer || user,
+    storefrontSession,
+  );
   const hasRequestedStoreScope = Boolean(
-    normalizedStoreId || normalizedStoreSlug,
+    normalizedScope.storeId || normalizedScope.storeSlug,
   );
   const hasMatchingStoreId =
-    Boolean(normalizedStoreId) &&
+    Boolean(normalizedScope.storeId) &&
     Boolean(sessionStoreId) &&
-    sessionStoreId === normalizedStoreId;
+    sessionStoreId === normalizedScope.storeId;
   const hasMatchingStoreSlug =
-    Boolean(normalizedStoreSlug) &&
+    Boolean(normalizedScope.storeSlug) &&
     Boolean(sessionStoreSlug) &&
-    sessionStoreSlug === normalizedStoreSlug;
+    sessionStoreSlug === normalizedScope.storeSlug;
   const hasScopedStorefrontSession =
+    storefrontSession.isAuthenticated &&
     hasStorefrontCustomerSession &&
     (hasRequestedStoreScope
       ? hasMatchingStoreId || hasMatchingStoreSlug
       : !sessionStoreId && !sessionStoreSlug);
-  const hasConflictingStoreCustomerSession =
-    isRegisteredStoreCustomer &&
-    (
-      (Boolean(normalizedStoreId) &&
-        Boolean(sessionStoreId) &&
-        sessionStoreId !== normalizedStoreId) ||
-      (Boolean(normalizedStoreSlug) &&
-        Boolean(sessionStoreSlug) &&
-        sessionStoreSlug !== normalizedStoreSlug)
-    );
 
   return {
-    normalizedStoreId,
-    normalizedStoreSlug,
+    normalizedStoreId: normalizedScope.storeId,
+    normalizedStoreSlug: normalizedScope.storeSlug,
     sessionStoreId,
     sessionStoreSlug,
-    storefrontCustomer: extractStorefrontCustomer(user) || null,
+    storefrontSession,
+    storefrontCustomer: storefrontCustomer || null,
     isRegisteredStoreCustomer,
     isGuestSession,
     hasStorefrontCustomerSession,
     hasScopedStorefrontSession,
-    hasConflictingStoreCustomerSession,
+    hasConflictingStoreCustomerSession: false,
     canAutoCreateGuestSession: false,
-    useLocalGuestCart:
-      hasRequestedStoreScope && !hasScopedStorefrontSession,
+    useLocalGuestCart: hasRequestedStoreScope && !hasScopedStorefrontSession,
   };
 }
 
 export async function ensureStorefrontGuestSession(storeId, storeSlug = "") {
-  const normalizedStoreId = normalizeStoreId(storeId);
-  const normalizedStoreSlug = normalizeStoreSlug(storeSlug);
-  return normalizedStoreId || normalizedStoreSlug
-    ? getStorefrontSessionState(normalizedStoreId, normalizedStoreSlug)
+  const normalizedScope = normalizeStoreScope({ storeId, storeSlug });
+  return normalizedScope.storeId || normalizedScope.storeSlug
+    ? getStorefrontSessionState(
+        normalizedScope.storeId,
+        normalizedScope.storeSlug,
+      )
     : null;
 }

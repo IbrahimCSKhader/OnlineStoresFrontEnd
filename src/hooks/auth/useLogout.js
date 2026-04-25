@@ -14,12 +14,13 @@ export default function useLogout(options = {}) {
     authContext,
     clearPlatformSession,
     clearStorefrontSession,
+    storefrontScope,
   } = useAuth();
 
   function clearCurrentSession() {
     if (authContext === "storefront") {
-      clearStorefrontAuthSession();
-      clearStorefrontSession();
+      clearStorefrontAuthSession(storefrontScope);
+      clearStorefrontSession(storefrontScope);
       logAuthFlow("Logout cleared storefront session");
       return;
     }

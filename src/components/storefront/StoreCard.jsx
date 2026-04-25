@@ -4,7 +4,6 @@ import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import SurfaceCard from "../common/cards/SurfaceCard.jsx";
 import { resolveAssetUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
 import "./StoreCard.css";
@@ -75,10 +74,6 @@ export default function StoreCard({ store }) {
             size="small"
             variant="outlined"
           />
-          <Box className="store-card__views">
-            <VisibilityRoundedIcon fontSize="small" />
-            <span>{store.visitCount ?? 0}</span>
-          </Box>
         </Box>
 
         <Box className="store-card__action">

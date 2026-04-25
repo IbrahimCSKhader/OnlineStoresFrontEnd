@@ -2,6 +2,7 @@ export const storageKeys = {
   platformAuthToken: "online-store.platform-auth-token",
   platformAuthUser: "online-store.platform-auth-user",
   platformAuthRole: "online-store.platform-auth-role",
+  storefrontAuthSessions: "online-store.storefront-auth-sessions",
   storefrontAuthToken: "online-store.storefront-auth-token",
   storefrontAuthUser: "online-store.storefront-auth-user",
   storefrontAuthRole: "online-store.storefront-auth-role",

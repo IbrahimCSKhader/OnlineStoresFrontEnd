@@ -17,6 +17,7 @@ import { SITE_BRAND_ASSET_PATH } from "../../constants/siteBranding.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useStores from "../../hooks/stores/useStores.js";
 import { normalizeListResponse } from "../../utils/collections.js";
+import { isProductActive, normalizeProductList } from "../../utils/products.js";
 import { getLandingPath } from "../../utils/roles.js";
 import "./Home.css";
 
@@ -29,9 +30,10 @@ export default function Home() {
     [storesQuery.data],
   );
   const featuredStores = stores.slice(0, 5);
+  const featuredProductStores = stores.slice(0, 10);
 
   const featuredProductQueries = useQueries({
-    queries: featuredStores.map((store) => ({
+    queries: featuredProductStores.map((store) => ({
       queryKey: ["home", "featured-products", store.id],
       queryFn: () => productApi.getFeaturedProducts(store.id),
       enabled: Boolean(store.id),
@@ -42,16 +44,23 @@ export default function Home() {
   const featuredProducts = useMemo(
     () =>
       featuredProductQueries
-        .flatMap((query, index) =>
-          normalizeListResponse(query.data)
-            .slice(0, 2)
-            .map((product) => ({
-              ...product,
-              storeSlug: featuredStores[index]?.slug,
-            })),
-        )
+        .map((query, index) => {
+          const featuredProduct = normalizeProductList(query.data).find((product) =>
+            isProductActive(product),
+          );
+
+          if (!featuredProduct) {
+            return null;
+          }
+
+          return {
+            ...featuredProduct,
+            storeSlug: featuredProductStores[index]?.slug,
+          };
+        })
+        .filter(Boolean)
         .slice(0, 10),
-    [featuredProductQueries, featuredStores],
+    [featuredProductQueries, featuredProductStores],
   );
 
   const storeCategories = useMemo(() => {
@@ -71,7 +80,7 @@ export default function Home() {
   const heroStats = [
     { label: "متجر", value: stores.length },
     { label: "فئة", value: storeCategories.length },
-    { label: "منتج مختار", value: featuredProducts.length || 6 },
+    { label: "منتج مختار", value: featuredProducts.length },
   ];
 
   if (storesQuery.isLoading) {
@@ -156,6 +165,7 @@ export default function Home() {
         {featuredProducts.length ? (
           <ProductGrid
             products={featuredProducts}
+            className="page-home__featured-grid"
             scrollAnchorScope="home-featured-products"
           />
         ) : (

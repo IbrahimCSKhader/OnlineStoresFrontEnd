@@ -48,7 +48,6 @@ const STATUS_OPTIONS = [
 const SORT_OPTIONS = [
   { value: "newest", label: "الأحدث أولًا" },
   { value: "oldest", label: "الأقدم أولًا" },
-  { value: "visits-desc", label: "الأكثر زيارة" },
   { value: "customers-desc", label: "الأكثر عملاء" },
   { value: "name-asc", label: "الاسم أ - ي" },
 ];
@@ -120,8 +119,6 @@ function sortStores(stores, sortBy) {
     switch (sortBy) {
       case "oldest":
         return new Date(left.createdAt || 0) - new Date(right.createdAt || 0);
-      case "visits-desc":
-        return Number(right.visitCount ?? 0) - Number(left.visitCount ?? 0);
       case "customers-desc":
         return Number(right.customerCount ?? 0) - Number(left.customerCount ?? 0);
       case "name-asc":
@@ -515,7 +512,6 @@ export default function Stores() {
       render: (store) => <AdminStatusChip active={store.isActive !== false} />,
     },
     { key: "customerCount", title: "العملاء" },
-    { key: "visitCount", title: "الزيارات" },
     {
       key: "createdAt",
       title: "تاريخ الإنشاء",
@@ -562,7 +558,6 @@ export default function Stores() {
       ),
     },
   ];
-
   return (
     <Box className="super-admin-page">
       <Box className="super-admin-page__toolbar">

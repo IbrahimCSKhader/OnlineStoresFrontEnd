@@ -37,7 +37,7 @@ export default function CategoryPage() {
     useOwnerStorePreview();
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
-  const [sortValue, setSortValue] = useState("popular");
+  const [sortValue, setSortValue] = useState("newest");
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [priceInputs, setPriceInputs] = useState({ min: "", max: "" });
 
@@ -171,7 +171,6 @@ export default function CategoryPage() {
               onChange={(event) => setSortValue(event.target.value)}
               SelectProps={{ native: true }}
             >
-              <option value="popular">الأكثر مشاهدة</option>
               <option value="price-asc">السعر: من الأقل</option>
               <option value="price-desc">السعر: من الأعلى</option>
               <option value="newest">الأحدث</option>

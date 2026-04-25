@@ -10,7 +10,6 @@ import Typography from "@mui/material/Typography";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import useCreateStore from "../../hooks/stores/useCreateStore.js";
 import useDeleteStore from "../../hooks/stores/useDeleteStore.js";
 import useStores from "../../hooks/stores/useStores.js";
@@ -77,10 +76,6 @@ function AdminStoreCard({ store, onDelete, deleting, deleteDisabled }) {
 
         <Box className="admin-store-card__meta">
           <Chip label={store.businessType || "متجر عام"} size="small" variant="outlined" />
-          <Box className="admin-store-card__views">
-            <VisibilityRoundedIcon fontSize="small" />
-            <span>{store.visitCount ?? 0}</span>
-          </Box>
         </Box>
 
         <Box className="admin-store-card__details">

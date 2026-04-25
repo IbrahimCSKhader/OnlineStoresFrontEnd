@@ -42,15 +42,14 @@ import {
   getPlatformAuthToken,
   getStoredPlatformRole,
   getStoredPlatformUser,
-  getStoredStorefrontRole,
-  getStoredStorefrontUser,
-  getStorefrontAuthToken,
+  getStorefrontAuthSession,
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
-  setStorefrontAuthToken,
-  setStoredStorefrontRole,
-  setStoredStorefrontUser,
+  normalizeStoreScope,
+  normalizeStorefrontAuthSession,
+  doesStorefrontSessionMatchScope,
+  setStorefrontAuthSession,
 } from "../../utils/token.js";
 
 const DEFAULT_PLATFORM_REDIRECT_PATH = "/";
@@ -405,20 +404,22 @@ function GoogleCallbackPage() {
           storeSlug,
           storeName,
         });
+        const storefrontScope = normalizeStoreScope({
+          storeId: storeId || scopedUser?.storeId,
+          storeSlug: storeSlug || scopedUser?.storeSlug,
+        });
 
-        if (token) {
-          setStorefrontAuthToken(token);
-        }
-
-        if (scopedUser) {
-          setStoredStorefrontUser(scopedUser);
-        }
-
-        if (role) {
-          setStoredStorefrontRole(role);
-        }
-
-        setStorefrontSession({ token, user: scopedUser, role });
+        setStorefrontAuthSession(storefrontScope, {
+          token,
+          user: scopedUser,
+          role,
+        });
+        setStorefrontSession({
+          token,
+          user: scopedUser,
+          role,
+          ...storefrontScope,
+        });
       };
 
       const safeMergeGuestCart = async () => {
@@ -537,6 +538,16 @@ function GoogleCallbackPage() {
 
       if (!token) {
         const currentAuthState = useAuthStore.getState();
+        const callbackStoreScope = normalizeStoreScope({
+          storeId: effectiveStoreId,
+          storeSlug: effectiveStoreSlug,
+        });
+        const activeStorefrontSession = normalizeStorefrontAuthSession(
+          currentAuthState?.storefrontSession,
+          callbackStoreScope,
+        );
+        const storedScopedStorefrontSession =
+          getStorefrontAuthSession(callbackStoreScope) || null;
         const persistedPlatformSession = {
           token:
             currentAuthState?.platformSession?.token || getPlatformAuthToken(),
@@ -547,14 +558,26 @@ function GoogleCallbackPage() {
         };
         const persistedStorefrontSession = {
           token:
-            currentAuthState?.storefrontSession?.token ||
-            getStorefrontAuthToken(),
+            (doesStorefrontSessionMatchScope(
+              activeStorefrontSession,
+              callbackStoreScope,
+            )
+              ? activeStorefrontSession.token
+              : "") || storedScopedStorefrontSession?.token || "",
           user:
-            currentAuthState?.storefrontSession?.user ||
-            getStoredStorefrontUser(),
+            (doesStorefrontSessionMatchScope(
+              activeStorefrontSession,
+              callbackStoreScope,
+            )
+              ? activeStorefrontSession.user
+              : null) || storedScopedStorefrontSession?.user || null,
           role:
-            currentAuthState?.storefrontSession?.role ||
-            getStoredStorefrontRole(),
+            (doesStorefrontSessionMatchScope(
+              activeStorefrontSession,
+              callbackStoreScope,
+            )
+              ? activeStorefrontSession.role
+              : "") || storedScopedStorefrontSession?.role || "",
         };
         const persistedStorefrontUser =
           persistedStorefrontSession.user ||
@@ -652,10 +675,21 @@ function GoogleCallbackPage() {
               role: persistedRole,
             });
           } else {
+            const persistedStorefrontScope = normalizeStoreScope({
+              storeId:
+                effectiveStoreId ||
+                persistedUser?.storeId ||
+                storedScopedStorefrontSession?.storeId,
+              storeSlug:
+                effectiveStoreSlug ||
+                persistedUser?.storeSlug ||
+                storedScopedStorefrontSession?.storeSlug,
+            });
             setStorefrontSession({
               token: persistedSession.token,
               user: persistedUser,
               role: persistedRole,
+              ...persistedStorefrontScope,
             });
           }
 

@@ -11,9 +11,7 @@ import {
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
-  setStorefrontAuthToken,
-  setStoredStorefrontRole,
-  setStoredStorefrontUser,
+  setStorefrontAuthSession,
 } from "../../utils/token.js";
 import {
   applyStoreScopeToUser,
@@ -41,7 +39,7 @@ export default function useStoreCustomerLogin(options = {}) {
   }
 
   return useMutation({
-    mutationFn: async ({ storeId, storeSlug, storeName, ...payload }) => {
+    mutationFn: async ({ storeId, ...payload }) => {
       logAuthFlow("Store login request", {
         requestStoreId: String(storeId || ""),
         email: String(payload?.email || "").trim(),
@@ -112,20 +110,15 @@ export default function useStoreCustomerLogin(options = {}) {
         return;
       }
 
-      if (token) {
-        setStorefrontAuthToken(token);
-      }
-
-      if (user) {
-        setStoredStorefrontUser(user);
-      }
-
-      if (role) {
-        setStoredStorefrontRole(role);
-      }
+      const storefrontScope = {
+        storeId: authResult.responseStoreId || variables?.storeId || user?.storeId,
+        storeSlug:
+          variables?.storeSlug || authResult.responseStoreSlug || user?.storeSlug,
+      };
 
       if (token || user || role) {
-        setStorefrontSession({ token, user, role });
+        setStorefrontAuthSession(storefrontScope, { token, user, role });
+        setStorefrontSession({ token, user, role, ...storefrontScope });
       }
 
       options.onSuccess?.(data, variables, context);

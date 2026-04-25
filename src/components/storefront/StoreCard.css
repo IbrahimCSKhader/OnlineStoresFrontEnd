@@ -128,17 +128,10 @@
   white-space: nowrap;
 }
 
-.store-card__views,
 .store-card__action {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-}
-
-.store-card__views {
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 0.82rem;
 }
 
 .store-card__action {

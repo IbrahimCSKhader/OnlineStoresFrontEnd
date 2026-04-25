@@ -2,7 +2,10 @@ import {
   clearPlatformAuthSession,
   clearStorefrontAuthSession,
   getPlatformAuthToken,
-  getStorefrontAuthToken,
+  doesStorefrontSessionMatchScope,
+  findStorefrontAuthSessionInCollection,
+  normalizeStoreScope,
+  normalizeStorefrontAuthSession,
 } from "../utils/token.js";
 import useAuthStore from "../store/authStore.js";
 
@@ -228,33 +231,123 @@ function isPlatformProtectedPath(pathname, method) {
   return isPlatformProtectedEmailPath(pathname);
 }
 
-function resolveSessionStoreId(user) {
-  return String(user?.storeId || user?.StoreId || user?.store?.id || "").trim();
+function parseRequestPayload(data) {
+  if (!data) {
+    return {};
+  }
+
+  if (typeof FormData !== "undefined" && data instanceof FormData) {
+    return {
+      storeId: data.get("storeId") || data.get("StoreId") || "",
+      storeSlug: data.get("storeSlug") || data.get("StoreSlug") || "",
+    };
+  }
+
+  if (typeof data === "string") {
+    try {
+      return JSON.parse(data);
+    } catch {
+      return {};
+    }
+  }
+
+  return typeof data === "object" ? data : {};
 }
 
-function extractPathStoreId(pathname) {
-  const storeCartMatch = pathname.match(/^\/api\/cart\/([^/]+)$/);
-  if (storeCartMatch) {
-    return storeCartMatch[1];
+function extractPathStoreScope(pathname) {
+  const patterns = [
+    /^\/api\/cart\/([^/]+)$/i,
+    /^\/api\/cart\/clear\/([^/]+)$/i,
+    /^\/api\/product\/store\/([^/]+)$/i,
+    /^\/api\/store-customer-auth\/store\/([^/]+)\/set-password-from-auth-user$/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = pathname.match(pattern);
+
+    if (match?.[1]) {
+      return normalizeStoreScope({ storeId: match[1] });
+    }
   }
 
-  const productStoreMatch = pathname.match(/^\/api\/product\/store\/([^/]+)$/);
-  if (productStoreMatch) {
-    return productStoreMatch[1];
-  }
-
-  return "";
+  return normalizeStoreScope();
 }
 
-function shouldAttachStorefrontToken(pathname, storefrontUser) {
-  if (!isOptionalStorefrontCatalogPath(pathname, "get")) {
-    return true;
+function extractPayloadStoreScope(config) {
+  const payload = parseRequestPayload(config?.data);
+
+  return normalizeStoreScope({
+    storeId: payload?.storeId || payload?.StoreId,
+    storeSlug: payload?.storeSlug || payload?.StoreSlug,
+  });
+}
+
+function extractBrowserStoreScope() {
+  if (typeof window === "undefined") {
+    return normalizeStoreScope();
   }
 
-  const requestStoreId = extractPathStoreId(pathname);
-  const sessionStoreId = resolveSessionStoreId(storefrontUser);
+  const pathname = String(window.location.pathname || "");
+  const marketMatch = pathname.match(/^\/market\/([^/]+)/i);
 
-  return !requestStoreId || !sessionStoreId || requestStoreId === sessionStoreId;
+  return normalizeStoreScope({
+    storeSlug: marketMatch?.[1] ? decodeURIComponent(marketMatch[1]) : "",
+  });
+}
+
+function resolveRequestStoreScope(config) {
+  const pathname = normalizePathname(config);
+  const pathScope = extractPathStoreScope(pathname);
+
+  if (pathScope.storeId || pathScope.storeSlug) {
+    return pathScope;
+  }
+
+  const payloadScope = extractPayloadStoreScope(config);
+
+  if (payloadScope.storeId || payloadScope.storeSlug) {
+    return payloadScope;
+  }
+
+  return extractBrowserStoreScope();
+}
+
+function resolveStorefrontSessionForRequest(config, authStore) {
+  const requestStoreScope = resolveRequestStoreScope(config);
+  const activeStorefrontSession = normalizeStorefrontAuthSession(
+    authStore?.storefrontSession,
+    requestStoreScope,
+  );
+  const matchedStoredSession =
+    findStorefrontAuthSessionInCollection(
+      authStore?.storefrontSessions,
+      requestStoreScope,
+    )?.[1] || null;
+
+  if (matchedStoredSession) {
+    return {
+      requestStoreScope,
+      storefrontSession: normalizeStorefrontAuthSession(
+        matchedStoredSession,
+        requestStoreScope,
+      ),
+    };
+  }
+
+  if (doesStorefrontSessionMatchScope(activeStorefrontSession, requestStoreScope)) {
+    return {
+      requestStoreScope,
+      storefrontSession: activeStorefrontSession,
+    };
+  }
+
+  return {
+    requestStoreScope,
+    storefrontSession:
+      requestStoreScope.storeId || requestStoreScope.storeSlug
+        ? null
+        : activeStorefrontSession,
+  };
 }
 
 function resolveAuthContext(config) {
@@ -280,15 +373,17 @@ function attachAuthHeader(config) {
   const pathname = normalizePathname(config);
   const authContext = resolveAuthContext(config);
   const authStore = useAuthStore.getState();
-  const storefrontUser = authStore?.storefrontSession?.user;
   const platformToken = getPlatformAuthToken();
-  const storefrontToken = getStorefrontAuthToken();
+  const { requestStoreScope, storefrontSession } =
+    resolveStorefrontSessionForRequest(config, authStore);
+  const storefrontToken = storefrontSession?.token || "";
   const hasExplicitAuthorization = Boolean(config?.headers?.Authorization);
 
   config.headers = config.headers ?? {};
   config.metadata = {
     ...(config.metadata || {}),
     authContext: hasExplicitAuthorization ? "manual" : "none",
+    storefrontScope: requestStoreScope,
   };
 
   if (
@@ -306,8 +401,7 @@ function attachAuthHeader(config) {
 
   if (
     authContext === "storefront" &&
-    storefrontToken &&
-    shouldAttachStorefrontToken(pathname, storefrontUser)
+    storefrontToken
   ) {
     config.headers.Authorization = `Bearer ${storefrontToken}`;
     config.metadata.authContext = "storefront";
@@ -326,6 +420,7 @@ function unwrapResponse(response) {
 
 function handleResponseError(error) {
   const requestAuthContext = error?.config?.metadata?.authContext;
+  const storefrontScope = error?.config?.metadata?.storefrontScope;
 
   if (error?.response?.status === 401 && requestAuthContext === "platform") {
     clearPlatformAuthSession();
@@ -333,8 +428,8 @@ function handleResponseError(error) {
   }
 
   if (error?.response?.status === 401 && requestAuthContext === "storefront") {
-    clearStorefrontAuthSession();
-    useAuthStore.getState().clearStorefrontSession();
+    clearStorefrontAuthSession(storefrontScope);
+    useAuthStore.getState().clearStorefrontSession(storefrontScope);
   }
 
   return Promise.reject(error);

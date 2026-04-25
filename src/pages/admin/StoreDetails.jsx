@@ -604,7 +604,7 @@ export default function StoreDetails() {
                 <Stack spacing={0.35}>
                   <Typography variant="subtitle1">{store.name || "متجر"}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    الزيارات: {store.visitCount ?? 0} - العملاء: {store.customerCount ?? 0}
+                    العملاء: {store.customerCount ?? 0}
                   </Typography>
                 </Stack>
               </Box>

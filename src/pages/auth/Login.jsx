@@ -72,9 +72,7 @@ import {
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
-  setStorefrontAuthToken,
-  setStoredStorefrontRole,
-  setStoredStorefrontUser,
+  setStorefrontAuthSession,
 } from "../../utils/token.js";
 import endpoints from "../../API/endpoints.js";
 import "./Login.css";
@@ -570,20 +568,27 @@ export default function Login() {
       };
     }
 
-    if (token) {
-      setStorefrontAuthToken(token);
-    }
-
-    if (user) {
-      setStoredStorefrontUser(user);
-    }
-
-    if (resolvedRole) {
-      setStoredStorefrontRole(resolvedRole);
-    }
+    const storefrontScope = {
+      storeId: authResult.responseStoreId || storeCustomerAuthState?.storeId || user?.storeId,
+      storeSlug:
+        storeCustomerAuthState?.storeSlug ||
+        routeStoreSlug ||
+        authResult.responseStoreSlug ||
+        user?.storeSlug,
+    };
 
     if (token || user || resolvedRole) {
-      setStorefrontSession({ token, user, role: resolvedRole });
+      setStorefrontAuthSession(storefrontScope, {
+        token,
+        user,
+        role: resolvedRole,
+      });
+      setStorefrontSession({
+        token,
+        user,
+        role: resolvedRole,
+        ...storefrontScope,
+      });
     }
 
     return {

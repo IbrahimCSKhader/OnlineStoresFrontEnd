@@ -8,9 +8,7 @@ import {
 } from "../../utils/authSession.js";
 import { applyStoreScopeToUser } from "../../utils/storeCustomerAuth.js";
 import {
-  setStorefrontAuthToken,
-  setStoredStorefrontRole,
-  setStoredStorefrontUser,
+  setStorefrontAuthSession,
 } from "../../utils/token.js";
 
 export default function useStoreCustomerRegister(options = {}) {
@@ -19,7 +17,7 @@ export default function useStoreCustomerRegister(options = {}) {
   );
 
   return useMutation({
-    mutationFn: ({ storeId, storeSlug, storeName, ...payload }) =>
+    mutationFn: ({ storeId, ...payload }) =>
       storeId
         ? storeCustomerAuthApi.registerByStore(storeId, payload)
         : storeCustomerAuthApi.register(payload),
@@ -33,18 +31,13 @@ export default function useStoreCustomerRegister(options = {}) {
           storeName: variables?.storeName,
         });
         const role = extractRole(data, token, user);
+        const storefrontScope = {
+          storeId: variables?.storeId || user?.storeId,
+          storeSlug: variables?.storeSlug || user?.storeSlug,
+        };
 
-        setStorefrontAuthToken(token);
-
-        if (user) {
-          setStoredStorefrontUser(user);
-        }
-
-        if (role) {
-          setStoredStorefrontRole(role);
-        }
-
-        setStorefrontSession({ token, user, role });
+        setStorefrontAuthSession(storefrontScope, { token, user, role });
+        setStorefrontSession({ token, user, role, ...storefrontScope });
       }
 
       options.onSuccess?.(data, variables, context);

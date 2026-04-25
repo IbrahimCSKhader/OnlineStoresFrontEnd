@@ -8,6 +8,12 @@ import {
 } from "../../utils/pendingGoogleAuthContext.js";
 import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import { STORE_CUSTOMER_AUTH_MODE } from "../../utils/storeCustomerAuth.js";
+import {
+  doesStorefrontSessionMatchScope,
+  findStorefrontAuthSessionInCollection,
+  normalizeStoreScope,
+  normalizeStorefrontAuthSession,
+} from "../../utils/token.js";
 
 function isStorefrontRoute(pathname) {
   return Boolean(
@@ -44,6 +50,80 @@ function shouldPreferStorefrontSession(location) {
     location.pathname.startsWith("/auth/") &&
     location.state?.authMode === STORE_CUSTOMER_AUTH_MODE
   );
+}
+
+function resolveRequestedStoreScope(location) {
+  const storeRouteMatch =
+    matchPath("/market/:slug/*", location.pathname) ||
+    matchPath("/market/:slug", location.pathname);
+  const routeStoreSlug = storeRouteMatch?.params?.slug || "";
+  const pendingGoogleContext = getPendingGoogleAuthContext();
+  const pendingGoogleCallbackResult = getPendingGoogleCallbackResult();
+  const prefersStoreScopedAuth =
+    location.state?.authMode === STORE_CUSTOMER_AUTH_MODE ||
+    isStoreScopedPendingGoogleAuthContext(pendingGoogleContext) ||
+    pendingGoogleCallbackResult?.sessionType === "storefront" ||
+    pendingGoogleCallbackResult?.sessionType === "pending";
+
+  return normalizeStoreScope({
+    storeId:
+      location.state?.storeId ||
+      (prefersStoreScopedAuth ? pendingGoogleContext?.storeId : "") ||
+      pendingGoogleCallbackResult?.storeId ||
+      "",
+    storeSlug:
+      routeStoreSlug ||
+      location.state?.storeSlug ||
+      (prefersStoreScopedAuth ? pendingGoogleContext?.storeSlug : "") ||
+      pendingGoogleCallbackResult?.storeSlug ||
+      "",
+  });
+}
+
+function resolveScopedStorefrontSession(
+  location,
+  storefrontSession,
+  storefrontSessions,
+) {
+  const requestedStoreScope = resolveRequestedStoreScope(location);
+  const fallbackStorefrontSession = normalizeStorefrontAuthSession(
+    storefrontSession,
+    requestedStoreScope,
+  );
+  const matchedSession =
+    findStorefrontAuthSessionInCollection(
+      storefrontSessions,
+      requestedStoreScope,
+    )?.[1] || null;
+
+  if (matchedSession) {
+    return {
+      storefrontSession: normalizeStorefrontAuthSession(
+        matchedSession,
+        requestedStoreScope,
+      ),
+      storefrontScope: requestedStoreScope,
+    };
+  }
+
+  if (doesStorefrontSessionMatchScope(fallbackStorefrontSession, requestedStoreScope)) {
+    return {
+      storefrontSession: fallbackStorefrontSession,
+      storefrontScope: requestedStoreScope,
+    };
+  }
+
+  if (requestedStoreScope.storeId || requestedStoreScope.storeSlug) {
+    return {
+      storefrontSession: normalizeStorefrontAuthSession({}, requestedStoreScope),
+      storefrontScope: requestedStoreScope,
+    };
+  }
+
+  return {
+    storefrontSession: fallbackStorefrontSession,
+    storefrontScope: normalizeStoreScope(fallbackStorefrontSession),
+  };
 }
 
 function resolveActiveSession(location, platformSession, storefrontSession) {
@@ -91,7 +171,8 @@ function resolveActiveSession(location, platformSession, storefrontSession) {
 export default function useAuth() {
   const location = useLocation();
   const platformSession = useAuthStore((state) => state.platformSession);
-  const storefrontSession = useAuthStore((state) => state.storefrontSession);
+  const rawStorefrontSession = useAuthStore((state) => state.storefrontSession);
+  const storefrontSessions = useAuthStore((state) => state.storefrontSessions);
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
   const clearPlatformSession = useAuthStore(
     (state) => state.clearPlatformSession,
@@ -103,6 +184,11 @@ export default function useAuth() {
     (state) => state.clearStorefrontSession,
   );
   const clearAllSessions = useAuthStore((state) => state.clearAllSessions);
+  const { storefrontSession, storefrontScope } = resolveScopedStorefrontSession(
+    location,
+    rawStorefrontSession,
+    storefrontSessions,
+  );
   const activeSession = resolveActiveSession(
     location,
     platformSession,
@@ -116,7 +202,10 @@ export default function useAuth() {
     storefrontSession.role || storefrontSession.user?.accountType;
   const platformRole =
     platformSession.role || platformSession.user?.accountType;
-  const storefrontCustomer = extractStorefrontCustomer(storefrontSession.user);
+  const storefrontCustomer = extractStorefrontCustomer(
+    storefrontSession.user,
+    storefrontSession.token,
+  );
   const isStoreCustomer = Boolean(storefrontCustomer);
   const isGuestSession = false;
   const hasStorefrontCustomerSession = isStoreCustomer;
@@ -136,7 +225,9 @@ export default function useAuth() {
     role,
     isAuthenticated,
     platformSession,
+    storefrontSessions,
     storefrontSession,
+    storefrontScope,
     platformToken: platformSession.token,
     platformRole,
     platformUser,

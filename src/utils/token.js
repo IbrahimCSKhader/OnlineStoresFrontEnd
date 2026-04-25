@@ -21,6 +21,18 @@ function logAuthToken(action, scope, token = "") {
   });
 }
 
+function normalizeValue(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  return String(value).trim();
+}
+
+function normalizeStoreSlug(value) {
+  return normalizeValue(value).toLowerCase();
+}
+
 function serializeRole(role) {
   if (Array.isArray(role)) {
     return role.find(Boolean) ?? "";
@@ -78,36 +90,291 @@ function inferLegacySessionScope(role, user) {
   return AUTH_SESSION_SCOPE.PLATFORM;
 }
 
+export function normalizeStoreScope(scope = {}, storeSlug = "") {
+  if (
+    typeof scope === "string" ||
+    typeof scope === "number" ||
+    typeof scope === "boolean"
+  ) {
+    return {
+      storeId: normalizeValue(scope),
+      storeSlug: normalizeStoreSlug(storeSlug),
+    };
+  }
+
+  return {
+    storeId: normalizeValue(scope?.storeId || scope?.StoreId),
+    storeSlug: normalizeStoreSlug(scope?.storeSlug || scope?.StoreSlug),
+  };
+}
+
+export function resolveStorefrontScopeFromUser(user) {
+  return normalizeStoreScope({
+    storeId: user?.storeId || user?.StoreId || user?.store?.id,
+    storeSlug: user?.storeSlug || user?.StoreSlug || user?.store?.slug,
+  });
+}
+
+export function buildStorefrontSessionKey(scope = {}, storeSlug = "") {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+
+  if (normalizedScope.storeId) {
+    return `store:${normalizedScope.storeId}`;
+  }
+
+  if (normalizedScope.storeSlug) {
+    return `slug:${normalizedScope.storeSlug}`;
+  }
+
+  return "";
+}
+
+export function normalizeStorefrontAuthSession(session = {}, fallbackScope = {}) {
+  const normalizedFallbackScope = normalizeStoreScope(fallbackScope);
+  const user = session?.user ?? null;
+  const userScope = resolveStorefrontScopeFromUser(user);
+  const storeId = normalizeValue(
+    session?.storeId || normalizedFallbackScope.storeId || userScope.storeId,
+  );
+  const storeSlug = normalizeStoreSlug(
+    session?.storeSlug || normalizedFallbackScope.storeSlug || userScope.storeSlug,
+  );
+  const token = normalizeValue(session?.token);
+  const role = serializeRole(session?.role);
+
+  return {
+    token,
+    user,
+    role,
+    storeId,
+    storeSlug,
+    isAuthenticated: Boolean(token),
+  };
+}
+
+export function doesStorefrontSessionMatchScope(
+  session = {},
+  scope = {},
+  storeSlug = "",
+) {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+  const normalizedSession = normalizeStorefrontAuthSession(session);
+
+  if (!normalizedScope.storeId && !normalizedScope.storeSlug) {
+    return false;
+  }
+
+  return (
+    (Boolean(normalizedScope.storeId) &&
+      Boolean(normalizedSession.storeId) &&
+      normalizedSession.storeId === normalizedScope.storeId) ||
+    (Boolean(normalizedScope.storeSlug) &&
+      Boolean(normalizedSession.storeSlug) &&
+      normalizedSession.storeSlug === normalizedScope.storeSlug)
+  );
+}
+
+function normalizeStorefrontAuthSessionsMap(sessions = {}) {
+  if (!sessions || typeof sessions !== "object") {
+    return {};
+  }
+
+  const normalizedEntries = Object.values(sessions).reduce((acc, session) => {
+    const normalizedSession = normalizeStorefrontAuthSession(session);
+    const key = buildStorefrontSessionKey(normalizedSession);
+
+    if (
+      !key ||
+      (!normalizedSession.token &&
+        !normalizedSession.user &&
+        !normalizedSession.role)
+    ) {
+      return acc;
+    }
+
+    acc[key] = normalizedSession;
+    return acc;
+  }, {});
+
+  return normalizedEntries;
+}
+
+export function findStorefrontAuthSessionInCollection(
+  sessions = {},
+  scope = {},
+  storeSlug = "",
+) {
+  const normalizedSessions = normalizeStorefrontAuthSessionsMap(sessions);
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+  const exactKey = buildStorefrontSessionKey(normalizedScope);
+
+  if (exactKey && normalizedSessions[exactKey]) {
+    return [exactKey, normalizedSessions[exactKey]];
+  }
+
+  return (
+    Object.entries(normalizedSessions).find(([, session]) =>
+      doesStorefrontSessionMatchScope(session, normalizedScope),
+    ) || null
+  );
+}
+
+export function getAllStorefrontAuthSessions() {
+  return normalizeStorefrontAuthSessionsMap(
+    getStorageJson(storageKeys.storefrontAuthSessions, {}),
+  );
+}
+
+export function setAllStorefrontAuthSessions(sessions = {}) {
+  const normalizedSessions = normalizeStorefrontAuthSessionsMap(sessions);
+
+  if (!Object.keys(normalizedSessions).length) {
+    removeStorageItem(storageKeys.storefrontAuthSessions);
+    return;
+  }
+
+  setStorageJson(storageKeys.storefrontAuthSessions, normalizedSessions);
+}
+
+function clearLegacyStorefrontSessionFields() {
+  removeStorageItem(storageKeys.storefrontAuthToken);
+  removeStorageItem(storageKeys.storefrontAuthUser);
+  removeStorageItem(storageKeys.storefrontAuthRole);
+}
+
+export function getStorefrontAuthSession(scope = {}, storeSlug = "") {
+  return (
+    findStorefrontAuthSessionInCollection(
+      getAllStorefrontAuthSessions(),
+      scope,
+      storeSlug,
+    )?.[1] || null
+  );
+}
+
+export function setStorefrontAuthSession(scope = {}, session = {}) {
+  const normalizedSession = normalizeStorefrontAuthSession(session, scope);
+  const key = buildStorefrontSessionKey(normalizedSession);
+  const nextSessions = {
+    ...getAllStorefrontAuthSessions(),
+  };
+
+  Object.entries(nextSessions).forEach(([existingKey, existingSession]) => {
+    if (
+      doesStorefrontSessionMatchScope(existingSession, normalizedSession) ||
+      existingKey === key
+    ) {
+      delete nextSessions[existingKey];
+    }
+  });
+
+  if (
+    key &&
+    (normalizedSession.token || normalizedSession.user || normalizedSession.role)
+  ) {
+    nextSessions[key] = normalizedSession;
+  }
+
+  setAllStorefrontAuthSessions(nextSessions);
+  clearLegacyStorefrontSessionFields();
+
+  return normalizedSession;
+}
+
+export function clearStorefrontAuthSession(scope = {}, storeSlug = "") {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+
+  if (!normalizedScope.storeId && !normalizedScope.storeSlug) {
+    removeStorageItem(storageKeys.storefrontAuthSessions);
+    clearLegacyStorefrontSessionFields();
+    return;
+  }
+
+  const nextSessions = {
+    ...getAllStorefrontAuthSessions(),
+  };
+
+  Object.entries(nextSessions).forEach(([key, session]) => {
+    if (
+      key === buildStorefrontSessionKey(normalizedScope) ||
+      doesStorefrontSessionMatchScope(session, normalizedScope)
+    ) {
+      delete nextSessions[key];
+    }
+  });
+
+  setAllStorefrontAuthSessions(nextSessions);
+  clearLegacyStorefrontSessionFields();
+}
+
 export function migrateLegacyAuthSession() {
   const legacyToken = getStorageItem(storageKeys.legacyAuthToken, "");
   const legacyUser = getStorageJson(storageKeys.legacyAuthUser, null);
   const legacyRole = getStorageItem(storageKeys.legacyAuthRole, "");
   const hasLegacySession = Boolean(legacyToken || legacyUser || legacyRole);
 
-  if (!hasLegacySession) {
-    return;
+  if (hasLegacySession) {
+    const scope = inferLegacySessionScope(legacyRole, legacyUser);
+    const currentToken = getSessionToken(scope);
+    const currentUser = getStoredSessionUser(scope);
+    const currentRole = getStoredSessionRole(scope);
+
+    if (scope === AUTH_SESSION_SCOPE.STOREFRONT) {
+      const legacyStoreScope = resolveStorefrontScopeFromUser(legacyUser);
+      const hasExistingScopedSessions =
+        Object.keys(getAllStorefrontAuthSessions()).length > 0;
+
+      if (
+        !hasExistingScopedSessions &&
+        (legacyStoreScope.storeId || legacyStoreScope.storeSlug)
+      ) {
+        setStorefrontAuthSession(legacyStoreScope, {
+          token: legacyToken,
+          user: legacyUser,
+          role: legacyRole,
+        });
+      }
+    } else {
+      if (!currentToken && legacyToken) {
+        setSessionToken(scope, legacyToken);
+      }
+
+      if (!currentUser && legacyUser) {
+        setStoredSessionUser(scope, legacyUser);
+      }
+
+      if (!currentRole && legacyRole) {
+        setStoredSessionRole(scope, legacyRole);
+      }
+    }
+
+    removeStorageItem(storageKeys.legacyAuthToken);
+    removeStorageItem(storageKeys.legacyAuthUser);
+    removeStorageItem(storageKeys.legacyAuthRole);
   }
 
-  const scope = inferLegacySessionScope(legacyRole, legacyUser);
-  const currentToken = getSessionToken(scope);
-  const currentUser = getStoredSessionUser(scope);
-  const currentRole = getStoredSessionRole(scope);
+  const legacyStorefrontToken = getStorageItem(storageKeys.storefrontAuthToken, "");
+  const legacyStorefrontUser = getStorageJson(storageKeys.storefrontAuthUser, null);
+  const legacyStorefrontRole = getStorageItem(storageKeys.storefrontAuthRole, "");
+  const hasLegacyStorefrontSession = Boolean(
+    legacyStorefrontToken || legacyStorefrontUser || legacyStorefrontRole,
+  );
+  const hasScopedStorefrontSessions =
+    Object.keys(getAllStorefrontAuthSessions()).length > 0;
 
-  if (!currentToken && legacyToken) {
-    setSessionToken(scope, legacyToken);
+  if (!hasScopedStorefrontSessions && hasLegacyStorefrontSession) {
+    const legacyScope = resolveStorefrontScopeFromUser(legacyStorefrontUser);
+
+    if (legacyScope.storeId || legacyScope.storeSlug) {
+      setStorefrontAuthSession(legacyScope, {
+        token: legacyStorefrontToken,
+        user: legacyStorefrontUser,
+        role: legacyStorefrontRole,
+      });
+    }
   }
 
-  if (!currentUser && legacyUser) {
-    setStoredSessionUser(scope, legacyUser);
-  }
-
-  if (!currentRole && legacyRole) {
-    setStoredSessionRole(scope, legacyRole);
-  }
-
-  removeStorageItem(storageKeys.legacyAuthToken);
-  removeStorageItem(storageKeys.legacyAuthUser);
-  removeStorageItem(storageKeys.legacyAuthRole);
+  clearLegacyStorefrontSessionFields();
 }
 
 export function getSessionToken(scope) {
@@ -200,7 +467,7 @@ export function clearStoredSession(scope) {
 
 export function clearAllAuthSessions() {
   clearStoredSession(AUTH_SESSION_SCOPE.PLATFORM);
-  clearStoredSession(AUTH_SESSION_SCOPE.STOREFRONT);
+  clearStorefrontAuthSession();
 }
 
 export function getPlatformAuthToken() {
@@ -243,44 +510,108 @@ export function clearPlatformAuthSession() {
   clearStoredSession(AUTH_SESSION_SCOPE.PLATFORM);
 }
 
-export function getStorefrontAuthToken() {
-  return getSessionToken(AUTH_SESSION_SCOPE.STOREFRONT);
+export function getStorefrontAuthToken(scope = {}, storeSlug = "") {
+  return getStorefrontAuthSession(scope, storeSlug)?.token || "";
 }
 
-export function setStorefrontAuthToken(token) {
-  setSessionToken(AUTH_SESSION_SCOPE.STOREFRONT, token);
+export function setStorefrontAuthToken(token, scope = {}, storeSlug = "") {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+  const currentSession = getStorefrontAuthSession(normalizedScope) || {};
+
+  setStorefrontAuthSession(normalizedScope, {
+    ...currentSession,
+    token,
+  });
 }
 
-export function clearStorefrontAuthToken() {
-  clearSessionToken(AUTH_SESSION_SCOPE.STOREFRONT);
+export function clearStorefrontAuthToken(scope = {}, storeSlug = "") {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+
+  if (!normalizedScope.storeId && !normalizedScope.storeSlug) {
+    clearStorefrontAuthSession();
+    return;
+  }
+
+  const currentSession = getStorefrontAuthSession(normalizedScope);
+
+  setStorefrontAuthSession(normalizedScope, {
+    ...currentSession,
+    token: "",
+  });
 }
 
-export function getStoredStorefrontUser() {
-  return getStoredSessionUser(AUTH_SESSION_SCOPE.STOREFRONT);
+export function getStoredStorefrontUser(scope = {}, storeSlug = "") {
+  return getStorefrontAuthSession(scope, storeSlug)?.user || null;
 }
 
-export function setStoredStorefrontUser(user) {
-  setStoredSessionUser(AUTH_SESSION_SCOPE.STOREFRONT, user);
+export function setStoredStorefrontUser(user, scope = {}, storeSlug = "") {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+  const resolvedScope =
+    normalizedScope.storeId || normalizedScope.storeSlug
+      ? normalizedScope
+      : resolveStorefrontScopeFromUser(user);
+
+  if (!resolvedScope.storeId && !resolvedScope.storeSlug) {
+    return;
+  }
+
+  const currentSession = getStorefrontAuthSession(resolvedScope) || {};
+
+  setStorefrontAuthSession(resolvedScope, {
+    ...currentSession,
+    user,
+  });
 }
 
-export function clearStoredStorefrontUser() {
-  clearStoredSessionUser(AUTH_SESSION_SCOPE.STOREFRONT);
+export function clearStoredStorefrontUser(scope = {}, storeSlug = "") {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+
+  if (!normalizedScope.storeId && !normalizedScope.storeSlug) {
+    clearStorefrontAuthSession();
+    return;
+  }
+
+  const currentSession = getStorefrontAuthSession(normalizedScope);
+
+  setStorefrontAuthSession(normalizedScope, {
+    ...currentSession,
+    user: null,
+  });
 }
 
-export function getStoredStorefrontRole() {
-  return getStoredSessionRole(AUTH_SESSION_SCOPE.STOREFRONT);
+export function getStoredStorefrontRole(scope = {}, storeSlug = "") {
+  return getStorefrontAuthSession(scope, storeSlug)?.role || "";
 }
 
-export function setStoredStorefrontRole(role) {
-  setStoredSessionRole(AUTH_SESSION_SCOPE.STOREFRONT, role);
+export function setStoredStorefrontRole(role, scope = {}, storeSlug = "") {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
+
+  if (!normalizedScope.storeId && !normalizedScope.storeSlug) {
+    return;
+  }
+
+  const currentSession = getStorefrontAuthSession(normalizedScope) || {};
+
+  setStorefrontAuthSession(normalizedScope, {
+    ...currentSession,
+    role,
+  });
 }
 
-export function clearStoredStorefrontRole() {
-  clearStoredSessionRole(AUTH_SESSION_SCOPE.STOREFRONT);
-}
+export function clearStoredStorefrontRole(scope = {}, storeSlug = "") {
+  const normalizedScope = normalizeStoreScope(scope, storeSlug);
 
-export function clearStorefrontAuthSession() {
-  clearStoredSession(AUTH_SESSION_SCOPE.STOREFRONT);
+  if (!normalizedScope.storeId && !normalizedScope.storeSlug) {
+    clearStorefrontAuthSession();
+    return;
+  }
+
+  const currentSession = getStorefrontAuthSession(normalizedScope);
+
+  setStorefrontAuthSession(normalizedScope, {
+    ...currentSession,
+    role: "",
+  });
 }
 
 export const getAuthToken = getPlatformAuthToken;

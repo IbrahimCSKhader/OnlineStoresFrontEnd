@@ -23,7 +23,6 @@ import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import SellRoundedIcon from "@mui/icons-material/SellRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
@@ -1969,10 +1968,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             </Typography>
 
             <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Chip
-                icon={<VisibilityRoundedIcon fontSize="small" />}
-                label={`${store.visitCount ?? 0} زيارة`}
-              />
               <Chip
                 label={`${productsRaw.length} منتج منشور`}
                 variant="outlined"
