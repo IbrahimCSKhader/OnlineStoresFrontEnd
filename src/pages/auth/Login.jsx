@@ -59,6 +59,7 @@ import {
 import { clearPendingGoogleCallbackResult } from "../../utils/pendingGoogleCallbackResult.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
+import { isOwnerSessionScopedToStore } from "../../utils/storeOwnerScope.js";
 import {
   STORE_CUSTOMER_AUTH_MODE,
   applyStoreScopeToUser,
@@ -188,7 +189,13 @@ export default function Login() {
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
   const location = useLocation();
-  const { isPlatformAuthenticated, role, storeCustomer } = useAuth();
+  const {
+    isPlatformAuthenticated,
+    platformRole,
+    platformUser,
+    role,
+    storeCustomer,
+  } = useAuth();
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
   const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
   const mergeGuestCart = useMergeGuestCart();
@@ -386,12 +393,27 @@ export default function Login() {
     );
   }
 
+  const isScopedOwnerForCurrentStore = isOwnerSessionScopedToStore({
+    isPlatformAuthenticated,
+    platformRole,
+    platformUser,
+    storeId: storeCustomerAuthState?.storeId,
+    storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+  });
   const shouldRedirectAuthenticatedUser = isStoreCustomerMode
-    ? Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession
+    ? (
+        (Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession) ||
+        isScopedOwnerForCurrentStore
+      )
     : isPlatformAuthenticated;
+  const authenticatedRedirectTarget = isStoreCustomerMode
+    ? isScopedOwnerForCurrentStore
+      ? "/owner"
+      : redirectTo || getLandingPath(role)
+    : redirectTo || getLandingPath(role);
 
   if (shouldRedirectAuthenticatedUser) {
-    return <Navigate to={redirectTo || getLandingPath(role)} replace />;
+    return <Navigate to={authenticatedRedirectTarget} replace />;
   }
 
   function resetAlerts() {

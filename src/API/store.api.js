@@ -66,7 +66,15 @@ export const storeApi = {
       },
     ),
   getStoreById: (id) => axiosInstance.get(endpoints.stores.detail(id)),
+  getStoreByIdWithAuth: (id, token) =>
+    axiosInstance.get(endpoints.stores.detail(id), {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    }),
   getStoreBySlug: (slug) => axiosInstance.get(endpoints.stores.slug(slug)),
+  getStoreBySlugWithAuth: (slug, token) =>
+    axiosInstance.get(endpoints.stores.slug(slug), {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    }),
   getStoreSubscription: (id) =>
     axiosInstance.get(endpoints.stores.subscription(id)),
   changeStoreSubscription: (id, payload) =>

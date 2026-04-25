@@ -41,6 +41,7 @@ import {
   setPendingVerificationEmail,
 } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
+import { isOwnerSessionScopedToStore } from "../../utils/storeOwnerScope.js";
 import {
   applyStoreScopeToUser,
   assertStoreScopedAuthResult,
@@ -61,7 +62,14 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { slug: routeStoreSlug = "" } = useParams();
-  const { isPlatformUser, role, storeCustomer } = useAuth();
+  const {
+    isPlatformAuthenticated,
+    isPlatformUser,
+    platformRole,
+    platformUser,
+    role,
+    storeCustomer,
+  } = useAuth();
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
   const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
   const mergeGuestCart = useMergeGuestCart();
@@ -144,12 +152,27 @@ export default function VerifyEmail() {
     );
   }
 
+  const isScopedOwnerForCurrentStore = isOwnerSessionScopedToStore({
+    isPlatformAuthenticated,
+    platformRole,
+    platformUser,
+    storeId: storeCustomerAuthState?.storeId,
+    storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+  });
   const shouldRedirectAuthenticatedUser = isStoreCustomerMode
-    ? Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession
+    ? (
+        (Boolean(storeCustomer) && storefrontSession.hasScopedStorefrontSession) ||
+        isScopedOwnerForCurrentStore
+      )
     : isPlatformUser;
+  const authenticatedRedirectTarget = isStoreCustomerMode
+    ? isScopedOwnerForCurrentStore
+      ? "/owner"
+      : redirectTo || getLandingPath(role)
+    : redirectTo || getLandingPath(role);
 
   if (shouldRedirectAuthenticatedUser) {
-    return <Navigate to={redirectTo || getLandingPath(role)} replace />;
+    return <Navigate to={authenticatedRedirectTarget} replace />;
   }
 
   function resolveCurrentStoreAuthResult(data) {

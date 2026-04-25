@@ -48,6 +48,7 @@ import {
   isOwnerRole,
   isSuperAdminRole,
 } from "../../utils/roles.js";
+import { getOwnerSessionStoreScope } from "../../utils/storeOwnerScope.js";
 import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import "./Navbar.css";
@@ -224,26 +225,45 @@ export default function Navbar() {
   );
   const isOwnerPlatformUser =
     isPlatformAuthenticated && isOwnerRole(platformRole);
-  const ownerUserStoreId = String(
-    platformUser?.storeId || platformUser?.StoreId || platformUser?.store?.id || "",
-  ).trim();
+  const ownerSessionScope = getOwnerSessionStoreScope(platformUser);
+  const ownerUserStoreId = ownerSessionScope.storeId;
+  const ownerUserStoreSlug = ownerSessionScope.storeSlug;
   const ownerStoreQuery = useOwnerStore({
-    enabled:
-      isOwnerPlatformUser &&
-      (isOwnerDashboardRoute || (Boolean(activeStoreSlug) && !ownerUserStoreId)),
+    enabled: isOwnerPlatformUser && isOwnerDashboardRoute,
     staleTime: 60000,
   });
   const ownerStore = ownerStoreQuery.ownerStore;
   const isScopedOwnerDashboard =
     isOwnerDashboardRoute && isOwnerPlatformUser;
   const ownerScopedStoreId = String(
-    ownerStore?.id || ownerUserStoreId || "",
+    ownerUserStoreId || (isOwnerDashboardRoute ? ownerStore?.id : "") || "",
   ).trim();
+  const ownerScopedStoreSlug = String(
+    ownerUserStoreSlug || (isOwnerDashboardRoute ? ownerStore?.slug : "") || "",
+  )
+    .trim()
+    .toLowerCase();
   const activeStoreId = String(activeStore?.id || "").trim();
+  const normalizedActiveStoreSlug = String(activeStoreSlug || "")
+    .trim()
+    .toLowerCase();
   const isViewingOwnedStore =
-    Boolean(activeStoreId) &&
-    Boolean(ownerScopedStoreId) &&
-    activeStoreId === ownerScopedStoreId;
+    (
+      Boolean(activeStoreId) &&
+      Boolean(ownerScopedStoreId) &&
+      activeStoreId === ownerScopedStoreId
+    ) ||
+    (
+      Boolean(normalizedActiveStoreSlug) &&
+      Boolean(ownerScopedStoreSlug) &&
+      normalizedActiveStoreSlug === ownerScopedStoreSlug
+    );
+  const shouldTreatPlatformUserAsGuestOnStorefront =
+    Boolean(activeStoreSlug) &&
+    isPlatformAuthenticated &&
+    !isSuperAdminRole(platformRole) &&
+    !isViewingOwnedStore &&
+    !isScopedOwnerDashboard;
   const canShowPlatformDashboardButton =
     isPlatformAuthenticated &&
     (isSuperAdminRole(platformRole) || isViewingOwnedStore);
@@ -741,6 +761,10 @@ export default function Navbar() {
       return renderOwnerDashboardButtons();
     }
 
+    if (shouldTreatPlatformUserAsGuestOnStorefront) {
+      return renderGuestButtons();
+    }
+
     if (isPlatformAuthenticated) {
       return canShowPlatformDashboardButton
         ? renderPlatformButtons()
@@ -783,6 +807,15 @@ export default function Navbar() {
         <>
           {contactButton}
           {renderOwnerDashboardButtons(true)}
+        </>
+      );
+    }
+
+    if (shouldTreatPlatformUserAsGuestOnStorefront) {
+      return (
+        <>
+          {contactButton}
+          {renderGuestButtons(true)}
         </>
       );
     }
