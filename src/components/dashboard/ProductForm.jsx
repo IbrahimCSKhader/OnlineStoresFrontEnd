@@ -264,24 +264,6 @@ export default function ProductForm({
           </Box>
         ) : null}
 
-        <TextField
-          label="عنوان مختصر لمحركات البحث"
-          value={form.metaTitle}
-          size="small"
-          className="owner-form__wide"
-          onChange={(event) => onChange("metaTitle", event.target.value)}
-        />
-
-        <TextField
-          label="وصف مختصر لمحركات البحث"
-          value={form.metaDescription}
-          size="small"
-          multiline
-          minRows={2}
-          className="owner-form__wide"
-          onChange={(event) => onChange("metaDescription", event.target.value)}
-        />
-
         <Stack direction="row" spacing={1} className="owner-form__actions">
           <AppButton type="submit" variant="contained" loading={loading}>
             {isEdit ? "حفظ المنتج" : "إضافة المنتج"}
