@@ -94,6 +94,9 @@ export default function StoreDetails() {
 
   const coverImage = resolveStoreCoverUrl(store);
   const logoImage = resolveAssetUrl(store.logoUrl);
+  const shouldHideStoreNameOnCover = String(slug || store?.slug || "")
+    .toLowerCase()
+    .trim() === "glamour";
   const products = catalogProductsQuery.data;
   const keyword = deferredSearchText.toLowerCase().trim();
   const filteredProducts = keyword
@@ -172,12 +175,14 @@ export default function StoreDetails() {
               )}
 
               <Box className="storefront-stack">
-                <Typography
-                  variant="h1"
-                  className="storefront-title page-store-details__title"
-                >
-                  {store.name}
-                </Typography>
+                {shouldHideStoreNameOnCover ? null : (
+                  <Typography
+                    variant="h1"
+                    className="storefront-title page-store-details__title"
+                  >
+                    {store.name}
+                  </Typography>
+                )}
                 <Typography variant="body1" className="storefront-subtitle">
                   {store.description || ""}
                 </Typography>
