@@ -24,10 +24,7 @@ import {
   normalizeListResponse,
 } from "../../utils/collections.js";
 import { buildProductSnapshot } from "../../utils/guestCart.js";
-import {
-  isProductActive,
-  normalizeProductList,
-} from "../../utils/products.js";
+import { isProductActive, normalizeProductList } from "../../utils/products.js";
 import { buildCategorySummary } from "../../utils/storefront.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./StoreDetails.css";
@@ -94,24 +91,24 @@ export default function StoreDetails() {
 
   const coverImage = resolveStoreCoverUrl(store);
   const logoImage = resolveAssetUrl(store.logoUrl);
-  const shouldHideStoreNameOnCover = String(slug || store?.slug || "")
-    .toLowerCase()
-    .trim() === "glamour";
+  const shouldHideStoreNameOnCover =
+    String(slug || store?.slug || "")
+      .toLowerCase()
+      .trim() === "glamour";
   const products = catalogProductsQuery.data;
   const keyword = deferredSearchText.toLowerCase().trim();
   const filteredProducts = keyword
     ? products.filter((product) =>
-        [
-          product.name,
-          product.description,
-          product.shortDescription,
-        ]
+        [product.name, product.description, product.shortDescription]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(keyword)),
       )
     : products;
 
-  const categorySummary = buildCategorySummary(products, categories).slice(0, 8);
+  const categorySummary = buildCategorySummary(products, categories).slice(
+    0,
+    8,
+  );
 
   const handleAddToCart = (product) => {
     if (isOwnerPreview || !store?.id || !product?.id) return;
@@ -183,9 +180,11 @@ export default function StoreDetails() {
                     {store.name}
                   </Typography>
                 )}
-                <Typography variant="body1" className="storefront-subtitle">
-                  {store.description || ""}
-                </Typography>
+                {shouldHideStoreNameOnCover ? null : (
+                  <Typography variant="body1" className="storefront-subtitle">
+                    {store.description || ""}
+                  </Typography>
+                )}
               </Box>
             </Box>
 
