@@ -1,8 +1,12 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
-import { Outlet, useLocation, useNavigationType } from "react-router-dom";
+import {
+  Outlet,
+  matchPath,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 import {
   buildScrollRestoreKey,
-  hasSavedScrollPosition,
   restoreSavedScrollPosition,
   saveCurrentScrollPosition,
 } from "../utils/scrollRestoration.js";
@@ -23,15 +27,24 @@ function scrollToPageTop() {
   }
 }
 
+function isProductCatalogRoute(pathname = "") {
+  return Boolean(
+    matchPath("/market/:slug", pathname) ||
+      matchPath("/market/:slug/category/:categoryId", pathname),
+  );
+}
+
 export default function RouteFrame() {
   const location = useLocation();
   const navigationType = useNavigationType();
   const isFirstRender = useRef(true);
   const previousScrollRestoreKeyRef = useRef("");
+  const previousPathnameRef = useRef("");
   const scrollRestoreKey = buildScrollRestoreKey(
     location.pathname,
     location.search,
   );
+  const isProductCatalogPage = isProductCatalogRoute(location.pathname);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("scrollRestoration" in window.history)) {
@@ -48,19 +61,22 @@ export default function RouteFrame() {
 
   useLayoutEffect(() => {
     const previousScrollRestoreKey = previousScrollRestoreKeyRef.current;
+    const previousPathname = previousPathnameRef.current;
 
     if (
       previousScrollRestoreKey &&
-      previousScrollRestoreKey !== scrollRestoreKey
+      previousScrollRestoreKey !== scrollRestoreKey &&
+      isProductCatalogRoute(previousPathname)
     ) {
       saveCurrentScrollPosition(previousScrollRestoreKey);
     }
 
     previousScrollRestoreKeyRef.current = scrollRestoreKey;
-  }, [scrollRestoreKey]);
+    previousPathnameRef.current = location.pathname;
+  }, [location.pathname, scrollRestoreKey]);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || !isProductCatalogPage) {
       return undefined;
     }
 
@@ -72,30 +88,36 @@ export default function RouteFrame() {
     return () => {
       window.removeEventListener("pagehide", handlePageHide);
     };
-  }, [scrollRestoreKey]);
+  }, [isProductCatalogPage, scrollRestoreKey]);
 
   useLayoutEffect(() => {
     const isInitialRender = isFirstRender.current;
     isFirstRender.current = false;
-    const explicitRestoreRequested = Boolean(location.state?.restoreScroll);
+    const explicitRestoreRequested =
+      isProductCatalogPage && Boolean(location.state?.restoreScroll);
     const requestedRestoreKey =
       explicitRestoreRequested &&
       typeof location.state?.scrollRestoreKey === "string" &&
       location.state.scrollRestoreKey
         ? location.state.scrollRestoreKey
         : scrollRestoreKey;
-    const hasSavedScrollForCurrentRoute = hasSavedScrollPosition(scrollRestoreKey);
     const shouldRestore =
-      Boolean(explicitRestoreRequested && requestedRestoreKey) ||
-      (!isInitialRender &&
-        (navigationType === "POP" || hasSavedScrollForCurrentRoute));
+      explicitRestoreRequested ||
+      (!isInitialRender && isProductCatalogPage && navigationType === "POP");
 
     if (shouldRestore && restoreSavedScrollPosition(requestedRestoreKey)) {
       return;
     }
 
     scrollToPageTop();
-  }, [location.pathname, location.search, location.state, navigationType, scrollRestoreKey]);
+  }, [
+    isProductCatalogPage,
+    location.pathname,
+    location.search,
+    location.state,
+    navigationType,
+    scrollRestoreKey,
+  ]);
 
   return <Outlet />;
 }
