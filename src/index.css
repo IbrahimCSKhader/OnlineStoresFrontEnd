@@ -549,8 +549,8 @@ input[type="password"] {
   }
 
   .storefront-products-grid {
-    gap: 12px;
-    width: min(100%, 432px);
+    gap: 10px;
+    width: 100%;
   }
 
   .storefront-products-grid > * {

@@ -24,6 +24,7 @@ import {
   serializeOrderCartError,
 } from "../../utils/orderCartDebug.js";
 import { normalizeOrderDetails } from "../../utils/orders.js";
+import { getOrderStatusLabel, ORDER_STATUS } from "../../utils/orderStatus.js";
 import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
@@ -547,7 +548,7 @@ export default function Checkout() {
         debugSource: "customer-checkout-after-order",
       });
       setSubmitSuccess(
-        `تم إنشاء الطلب ومسح السلة بنجاح. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
+        `تم إنشاء الطلب ومسح السلة بنجاح. حالة الطلب الآن ${getOrderStatusLabel(ORDER_STATUS.PENDING)} بانتظار تأكيد صاحب المتجر. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
       );
     } catch (error) {
       logOrderCartFlow("Checkout Cart Clear Failed After Order", {
@@ -557,7 +558,7 @@ export default function Checkout() {
         error: serializeOrderCartError(error),
       });
       setSubmitSuccess(
-        `تم إنشاء الطلب بنجاح. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
+        `تم إنشاء الطلب بنجاح. حالة الطلب الآن ${getOrderStatusLabel(ORDER_STATUS.PENDING)} بانتظار تأكيد صاحب المتجر. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
       );
     }
 
@@ -584,7 +585,7 @@ export default function Checkout() {
             <Typography variant="h2">إرسال الطلب عبر واتساب - {store.name}</Typography>
             <Typography variant="body1" className="storefront-subtitle">
               يمكنك مراجعة السلة كضيف، لكن إرسال الطلب نفسه يتطلب تسجيل الدخول أولًا.
-              بعد إنشاء الطلب سيفتح واتساب مع ملخص واضح للخصومات المطبقة.
+              بعد إنشاء الطلب ستصبح حالته معلقة حتى يؤكدها صاحب المتجر، ثم سيفتح واتساب مع ملخص واضح للخصومات المطبقة.
             </Typography>
           </Box>
 

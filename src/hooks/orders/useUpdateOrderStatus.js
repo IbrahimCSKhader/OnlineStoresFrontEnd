@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import orderApi from "../../API/order.api.js";
+import { normalizeOrderStatusPayload } from "../../utils/orderStatus.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 
 export default function useUpdateOrderStatus(storeId, options = {}) {
@@ -7,7 +8,7 @@ export default function useUpdateOrderStatus(storeId, options = {}) {
 
   return useMutation({
     mutationFn: ({ orderId, payload }) =>
-      orderApi.updateOrderStatus(orderId, payload),
+      orderApi.updateOrderStatus(orderId, normalizeOrderStatusPayload(payload)),
     ...options,
     onSuccess: (data, variables, context) => {
       const resolvedStoreId = data?.storeId || storeId;

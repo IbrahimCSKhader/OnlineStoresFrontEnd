@@ -181,19 +181,33 @@
 
 @media (max-width: 639px) {
   .product-card {
-    --product-card-media-height: 164px;
+    --product-card-media-height: 148px;
   }
 
   .product-card__body {
-    padding-top: 8px;
+    padding: 9px 10px 8px;
+  }
+
+  .product-card__copy {
+    gap: 4px;
+  }
+
+  .product-card__eyebrow {
+    font-size: 0.62rem !important;
   }
 
   .product-card__title {
-    font-size: 0.8rem !important;
+    font-size: 0.76rem !important;
+    line-height: 1.32 !important;
   }
 
   .product-card__price {
-    font-size: 0.82rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .product-card__compare,
+  .product-card__price-note {
+    font-size: 0.62rem !important;
   }
 
   .product-card__badge {
@@ -214,21 +228,37 @@
     flex-direction: row;
     align-items: center;
     flex-wrap: nowrap;
-    gap: 4px;
+    gap: 3px;
+    padding: 0 10px 10px;
   }
 
   .product-card__detail-button {
     min-width: 0;
     flex: 1 1 auto;
-    justify-content: flex-start !important;
-    font-size: 0.74rem !important;
+    min-height: 30px !important;
+    justify-content: center !important;
+    padding-inline: 6px !important;
+    font-size: 0.68rem !important;
+    gap: 3px;
   }
 
   .product-card__add-button {
-    min-width: 0;
+    min-width: 54px;
     width: auto;
-    min-height: 34px !important;
-    padding-inline: 10px !important;
+    min-height: 30px !important;
+    padding-inline: 8px !important;
+    font-size: 0.68rem !important;
     flex-shrink: 0;
+    gap: 3px;
+  }
+
+  .product-card__detail-button .MuiButton-endIcon,
+  .product-card__add-button .MuiButton-startIcon {
+    margin: 0 !important;
+  }
+
+  .product-card__detail-button .MuiSvgIcon-root,
+  .product-card__add-button .MuiSvgIcon-root {
+    font-size: 0.9rem !important;
   }
 }

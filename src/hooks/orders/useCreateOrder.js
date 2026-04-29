@@ -7,19 +7,23 @@ import {
   logOrderCartFlow,
   serializeOrderCartError,
 } from "../../utils/orderCartDebug.js";
+import {
+  buildOrderStatusPayload,
+  ORDER_STATUS,
+} from "../../utils/orderStatus.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 import useAuth from "../auth/useAuth.js";
 import useStorefrontSession from "../auth/useStorefrontSession.js";
 
 function buildCreateOrderPayload(payload, storeId) {
-  return {
+  return buildOrderStatusPayload(ORDER_STATUS.PENDING, {
     storeId: storeId || payload?.storeId,
     couponCode: String(payload?.couponCode || "").trim() || undefined,
     customerNotes: String(payload?.customerNotes || "").trim() || undefined,
     deliveryAddress: String(payload?.deliveryAddress || "").trim(),
     deliveryCity: String(payload?.deliveryCity || "").trim(),
     deliveryPhone: String(payload?.deliveryPhone || "").trim(),
-  };
+  });
 }
 
 export default function useCreateOrder(storeId, options = {}) {
