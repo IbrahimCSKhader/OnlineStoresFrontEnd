@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Link as RouterLink,
   matchPath,
@@ -22,6 +22,7 @@ import QuantityStepper from "../../components/common/inputs/QuantityStepper.jsx"
 import ProductGallery from "../../components/product/ProductGallery.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
 import ProductVariantPicker from "../../components/product/ProductVariantPicker.jsx";
+import productApi from "../../API/product.api.js";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useProductDetails from "../../hooks/products/useProductDetails.js";
 import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
@@ -200,6 +201,16 @@ export default function ProductDetails() {
           scrollRestoreKey: location.state.scrollRestoreKey,
         }
       : undefined;
+
+  useEffect(() => {
+    if (!productId || !isPublicProduct || storeMismatch) {
+      return;
+    }
+
+    productApi.visitProduct(productId).catch(() => {
+      // Ignore visit tracking errors on the public storefront.
+    });
+  }, [isPublicProduct, productId, storeMismatch]);
 
   const updateUiState = (updates) => {
     if (!product?.id) return;
