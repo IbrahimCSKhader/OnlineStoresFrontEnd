@@ -165,6 +165,8 @@ export default function StoreDetails() {
   const logoImage = resolveAssetUrl(store.logoUrl);
   const resolvedStoreSlug = store.slug || slug;
   const storeDescription = buildStoreDescription(store);
+  const shouldHideStoreHeader =
+    String(store?.name || "").trim().toLowerCase() === "glamour";
 
   return (
     <Box className="storefront-page page-store-details">
@@ -197,7 +199,7 @@ export default function StoreDetails() {
 
         <Box className="page-store-details__hero-grid">
           <Box className="storefront-stack page-store-details__hero-main">
-            <span className="storefront-eyebrow">المتجر</span>
+            
 
             <Box className="page-store-details__brand-row">
               {logoImage ? (
@@ -214,15 +216,19 @@ export default function StoreDetails() {
               )}
 
               <Box className="storefront-stack">
-                <Typography
-                  variant="h1"
-                  className="storefront-title page-store-details__title"
-                >
-                  {store.name}
-                </Typography>
-                <Typography variant="body1" className="storefront-subtitle">
-                  {storeDescription}
-                </Typography>
+                {!shouldHideStoreHeader ? (
+                  <>
+                    <Typography
+                      variant="h1"
+                      className="storefront-title page-store-details__title"
+                    >
+                      {store.name}
+                    </Typography>
+                    <Typography variant="body1" className="storefront-subtitle">
+                      {storeDescription}
+                    </Typography>
+                  </>
+                ) : null}
 
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                   {store.businessType ? (
