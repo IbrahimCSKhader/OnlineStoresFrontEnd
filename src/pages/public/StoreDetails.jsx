@@ -1,11 +1,15 @@
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
+import Accordion from "@mui/material/Accordion";
+import AccordionDetails from "@mui/material/AccordionDetails";
+import AccordionSummary from "@mui/material/AccordionSummary";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
+import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
@@ -45,9 +49,53 @@ function buildStoreDescription(store) {
   );
 }
 
+function buildCategoryProductGroups(products, categories) {
+  const groups = categories.map((category) => ({
+    ...category,
+    groupId: String(category.id),
+    products: [],
+    count: 0,
+    isVirtual: false,
+  }));
+  const groupsById = new Map(
+    groups.map((group) => [String(group.id), group]),
+  );
+  const uncategorizedProducts = [];
+
+  products.forEach((product) => {
+    const matchingGroup = groupsById.get(String(product?.categoryId || ""));
+
+    if (matchingGroup) {
+      matchingGroup.products.push(product);
+      matchingGroup.count += 1;
+      return;
+    }
+
+    uncategorizedProducts.push(product);
+  });
+
+  const nonEmptyGroups = groups.filter((group) => group.products.length > 0);
+
+  if (uncategorizedProducts.length) {
+    nonEmptyGroups.push({
+      id: "uncategorized",
+      groupId: "uncategorized",
+      name: "منتجات أخرى",
+      description: "منتجات غير مرتبطة بفئة محددة.",
+      products: uncategorizedProducts,
+      count: uncategorizedProducts.length,
+      isVirtual: true,
+    });
+  }
+
+  return nonEmptyGroups;
+}
+
 export default function StoreDetails() {
   const { slug = "" } = useParams();
   const [searchText, setSearchText] = useState("");
+  const [catalogView, setCatalogView] = useState("grid");
+  const [expandedCategoryIds, setExpandedCategoryIds] = useState([]);
   const deferredSearchText = useDeferredValue(searchText);
   const recordedVisitRef = useRef("");
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
@@ -89,7 +137,7 @@ export default function StoreDetails() {
     [featuredProductsQuery.data],
   );
   const products = useMemo(
-    () => catalogProductsQuery.data || [],
+    () => normalizeProductList(catalogProductsQuery.data),
     [catalogProductsQuery.data],
   );
   const keyword = deferredSearchText.toLowerCase().trim();
@@ -107,6 +155,14 @@ export default function StoreDetails() {
   const categorySummary = useMemo(
     () => buildCategorySummary(products, categories).slice(0, 8),
     [categories, products],
+  );
+  const catalogProductGroups = useMemo(
+    () => buildCategoryProductGroups(filteredProducts, categories),
+    [categories, filteredProducts],
+  );
+  const catalogProductGroupIds = useMemo(
+    () => catalogProductGroups.map((group) => String(group.groupId || group.id)),
+    [catalogProductGroups],
   );
   const availableProductsCount = useMemo(
     () => products.filter((product) => isProductInStock(product)).length,
@@ -126,6 +182,12 @@ export default function StoreDetails() {
     });
   }, [isOwnerPreview, store?.id]);
 
+  useEffect(() => {
+    setExpandedCategoryIds((currentIds) =>
+      currentIds.filter((groupId) => catalogProductGroupIds.includes(groupId)),
+    );
+  }, [catalogProductGroupIds]);
+
   const handleAddToCart = (product) => {
     if (isOwnerPreview || !store?.id || !product?.id) {
       return;
@@ -142,10 +204,18 @@ export default function StoreDetails() {
     });
   };
 
+  const handleCategoryExpansion = (groupId) => (_, isExpanded) => {
+    setExpandedCategoryIds((currentIds) =>
+      isExpanded
+        ? [...new Set([...currentIds, groupId])]
+        : currentIds.filter((currentId) => currentId !== groupId),
+    );
+  };
+
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-details">
-        <EmptyState title="جارٍ تحميل المتجر..." />
+        <EmptyState title="جاري تحميل المتجر..." />
       </Box>
     );
   }
@@ -199,8 +269,6 @@ export default function StoreDetails() {
 
         <Box className="page-store-details__hero-grid">
           <Box className="storefront-stack page-store-details__hero-main">
-            
-
             <Box className="page-store-details__brand-row">
               {logoImage ? (
                 <img
@@ -320,7 +388,7 @@ export default function StoreDetails() {
         </Box>
 
         {categoriesQuery.isLoading && !categorySummary.length ? (
-          <EmptyState title="جارٍ تحميل التصنيفات..." />
+          <EmptyState title="جاري تحميل التصنيفات..." />
         ) : categorySummary.length ? (
           <Box className="storefront-cards-grid page-store-details__categories-grid">
             {categorySummary.map((category) => (
@@ -364,7 +432,7 @@ export default function StoreDetails() {
         </Box>
 
         {featuredProductsQuery.isLoading && !featuredProducts.length ? (
-          <EmptyState title="جارٍ تحميل المنتجات المختارة..." />
+          <EmptyState title="جاري تحميل المنتجات المختارة..." />
         ) : featuredProducts.length ? (
           <ProductGrid
             products={featuredProducts}
@@ -391,33 +459,122 @@ export default function StoreDetails() {
             <Typography variant="h3">جميع المنتجات</Typography>
           </Box>
 
-          <Box className="page-store-details__search">
-            <SearchInput
-              value={searchText}
-              onChange={setSearchText}
-              placeholder="ابحث داخل هذا المتجر"
-            />
+          <Box className="page-store-details__catalog-toolbar">
+            <Stack
+              direction="row"
+              spacing={1}
+              useFlexGap
+              flexWrap="wrap"
+              className="page-store-details__view-toggle"
+            >
+              <AppButton
+                variant={catalogView === "grid" ? "contained" : "outlined"}
+                onClick={() => setCatalogView("grid")}
+              >
+                عرض شبكي
+              </AppButton>
+              <AppButton
+                variant={catalogView === "grouped" ? "contained" : "outlined"}
+                onClick={() => setCatalogView("grouped")}
+              >
+                حسب الفئات
+              </AppButton>
+            </Stack>
+
+            <Box className="page-store-details__search">
+              <SearchInput
+                value={searchText}
+                onChange={setSearchText}
+                placeholder="ابحث داخل هذا المتجر"
+              />
+            </Box>
           </Box>
         </Box>
 
         <Box className="page-store-details__catalog-body">
           {catalogProductsQuery.isLoading ? (
-            <EmptyState title="جارٍ تحميل المنتجات..." />
+            <EmptyState title="جاري تحميل المنتجات..." />
           ) : catalogProductsQuery.error ? (
             <EmptyState
               title="تعذر تحميل المنتجات"
               description="حاول تحديث الصفحة أو افتح المتجر مرة أخرى."
             />
           ) : filteredProducts.length ? (
-            <ProductGrid
-              products={filteredProducts}
-              storeSlug={resolvedStoreSlug}
-              onAddToCart={handleAddToCart}
-              addingProductId={addToCartUi.activeKey}
-              disableCartActions={isOwnerPreview}
-              linkSearch={previewSearch}
-              scrollAnchorScope="store-catalog"
-            />
+            catalogView === "grouped" ? (
+              <Box className="page-store-details__category-accordions">
+                {catalogProductGroups.map((group) => {
+                  const groupId = String(group.groupId || group.id);
+
+                  return (
+                    <Accordion
+                      key={groupId}
+                      expanded={expandedCategoryIds.includes(groupId)}
+                      onChange={handleCategoryExpansion(groupId)}
+                      disableGutters
+                      className="page-store-details__category-accordion"
+                    >
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreRoundedIcon />}
+                        aria-controls={`store-category-panel-${groupId}`}
+                        id={`store-category-header-${groupId}`}
+                      >
+                        <Box className="page-store-details__category-accordion-summary">
+                          <Box className="page-store-details__category-accordion-copy">
+                            <Typography variant="h6">{group.name}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {group.description || "استعرض منتجات هذه الفئة من هنا."}
+                            </Typography>
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            className="page-store-details__category-accordion-count"
+                          >
+                            {group.count} منتج
+                          </Typography>
+                        </Box>
+                      </AccordionSummary>
+
+                      <AccordionDetails>
+                        {!group.isVirtual ? (
+                          <Box className="page-store-details__category-accordion-actions">
+                            <AppButton
+                              component={RouterLink}
+                              to={buildStorePreviewPath(
+                                `/market/${resolvedStoreSlug}/category/${group.id}`,
+                              )}
+                              variant="text"
+                            >
+                              فتح صفحة الفئة
+                            </AppButton>
+                          </Box>
+                        ) : null}
+
+                        <ProductGrid
+                          products={group.products}
+                          storeSlug={resolvedStoreSlug}
+                          onAddToCart={handleAddToCart}
+                          addingProductId={addToCartUi.activeKey}
+                          disableCartActions={isOwnerPreview}
+                          linkSearch={previewSearch}
+                          className="page-store-details__grouped-products-grid"
+                          scrollAnchorScope={`store-category-${groupId}`}
+                        />
+                      </AccordionDetails>
+                    </Accordion>
+                  );
+                })}
+              </Box>
+            ) : (
+              <ProductGrid
+                products={filteredProducts}
+                storeSlug={resolvedStoreSlug}
+                onAddToCart={handleAddToCart}
+                addingProductId={addToCartUi.activeKey}
+                disableCartActions={isOwnerPreview}
+                linkSearch={previewSearch}
+                scrollAnchorScope="store-catalog"
+              />
+            )
           ) : (
             <EmptyState
               title="لا توجد نتائج"
