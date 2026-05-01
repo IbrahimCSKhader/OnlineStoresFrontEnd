@@ -96,6 +96,7 @@ export default function ProductDetails() {
     selectedVariantId: "",
   });
   const [toast, setToast] = useState({
+    id: 0,
     open: false,
     severity: "success",
     message: "",
@@ -270,13 +271,18 @@ export default function ProductDetails() {
     });
   };
 
+  const showToast = (message, severity = "success") => {
+    setToast({
+      id: Date.now(),
+      open: true,
+      severity,
+      message,
+    });
+  };
+
   const handleCopyProductLink = async () => {
     if (!productShareUrl) {
-      setToast({
-        open: true,
-        severity: "error",
-        message: "تعذر تجهيز رابط المنتج الآن.",
-      });
+      showToast("تعذر تجهيز رابط المنتج الآن.", "error");
       return;
     }
 
@@ -286,27 +292,15 @@ export default function ProductDetails() {
       }
 
       await navigator.clipboard.writeText(productShareUrl);
-      setToast({
-        open: true,
-        severity: "success",
-        message: "تم نسخ رابط المنتج.",
-      });
+      showToast("تم نسخ رابط المنتج.", "success");
     } catch {
-      setToast({
-        open: true,
-        severity: "error",
-        message: "تعذر نسخ الرابط الآن.",
-      });
+      showToast("تعذر نسخ الرابط الآن.", "error");
     }
   };
 
   const handleShareProduct = async () => {
     if (!productShareUrl) {
-      setToast({
-        open: true,
-        severity: "error",
-        message: "تعذر تجهيز رابط المنتج الآن.",
-      });
+      showToast("تعذر تجهيز رابط المنتج الآن.", "error");
       return;
     }
 
