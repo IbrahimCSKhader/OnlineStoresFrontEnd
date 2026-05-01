@@ -122,7 +122,7 @@ export default function StoreDetails() {
       ),
     [categoriesQuery.data],
   );
-  const catalogProductsQuery = useStorefrontCatalogProducts(categories, {
+  const catalogProductsQuery = useStorefrontCatalogProducts(store?.id, {
     enabled: Boolean(store?.id),
     staleTime: 30000,
   });

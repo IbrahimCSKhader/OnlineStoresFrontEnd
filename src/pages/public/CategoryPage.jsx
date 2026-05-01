@@ -12,7 +12,6 @@ import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
-import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
 import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
@@ -59,10 +58,7 @@ export default function CategoryPage() {
       ),
     [categoriesQuery.data],
   );
-  const productsQuery = useProductsByCategory(categoryId, {
-    enabled: Boolean(categoryId),
-  });
-  const catalogProductsQuery = useStorefrontCatalogProducts(categories, {
+  const catalogProductsQuery = useStorefrontCatalogProducts(store?.id, {
     enabled: Boolean(store?.id),
     staleTime: 30000,
   });
@@ -72,7 +68,7 @@ export default function CategoryPage() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-category">
-        <EmptyState title="جارٍ تحميل الصفحة..." />
+        <EmptyState title="جاري تحميل الصفحة..." />
       </Box>
     );
   }
@@ -90,8 +86,10 @@ export default function CategoryPage() {
 
   const activeCategory =
     categories.find((category) => String(category.id) === String(categoryId)) || null;
-  const products = normalizeProductList(productsQuery.data);
-  const allStoreProducts = catalogProductsQuery.data;
+  const allStoreProducts = normalizeProductList(catalogProductsQuery.data);
+  const products = allStoreProducts.filter(
+    (product) => String(product?.categoryId || "") === String(categoryId),
+  );
   const availablePrices = products.map((product) => getProductDisplayPrice(product));
   const maxPrice = Math.max(...availablePrices, 0);
   const minFilter = Number(priceInputs.min || 0);
@@ -252,8 +250,8 @@ export default function CategoryPage() {
               </AppButton>
             </Box>
 
-            {productsQuery.isLoading ? (
-              <EmptyState title="جارٍ تحميل المنتجات..." />
+            {catalogProductsQuery.isLoading ? (
+              <EmptyState title="جاري تحميل المنتجات..." />
             ) : filteredProducts.length ? (
               <ProductGrid
                 products={filteredProducts}

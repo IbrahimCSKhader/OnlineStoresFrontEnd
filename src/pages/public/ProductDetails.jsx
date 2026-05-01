@@ -17,6 +17,7 @@ import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
+import AppFeedbackSnackbar from "../../components/common/feedback/AppFeedbackSnackbar.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import QuantityStepper from "../../components/common/inputs/QuantityStepper.jsx";
 import ProductGallery from "../../components/product/ProductGallery.jsx";
@@ -93,6 +94,11 @@ export default function ProductDetails() {
     selectedImageIndex: 0,
     quantity: 1,
     selectedVariantId: "",
+  });
+  const [toast, setToast] = useState({
+    open: false,
+    severity: "success",
+    message: "",
   });
 
   const storeQuery = useStoreBySlug(slug);
@@ -266,7 +272,11 @@ export default function ProductDetails() {
 
   const handleCopyProductLink = async () => {
     if (!productShareUrl) {
-      window.alert("تعذر تجهيز رابط المنتج الآن.");
+      setToast({
+        open: true,
+        severity: "error",
+        message: "تعذر تجهيز رابط المنتج الآن.",
+      });
       return;
     }
 
@@ -276,15 +286,27 @@ export default function ProductDetails() {
       }
 
       await navigator.clipboard.writeText(productShareUrl);
-      window.alert("تم نسخ رابط المنتج.");
+      setToast({
+        open: true,
+        severity: "success",
+        message: "تم نسخ رابط المنتج.",
+      });
     } catch {
-      window.alert("تعذر نسخ الرابط الآن.");
+      setToast({
+        open: true,
+        severity: "error",
+        message: "تعذر نسخ الرابط الآن.",
+      });
     }
   };
 
   const handleShareProduct = async () => {
     if (!productShareUrl) {
-      window.alert("تعذر تجهيز رابط المنتج الآن.");
+      setToast({
+        open: true,
+        severity: "error",
+        message: "تعذر تجهيز رابط المنتج الآن.",
+      });
       return;
     }
 
@@ -304,6 +326,10 @@ export default function ProductDetails() {
     }
 
     await handleCopyProductLink();
+  };
+
+  const handleToastClose = () => {
+    setToast((current) => ({ ...current, open: false }));
   };
 
   if (storeQuery.isLoading || productQuery.isLoading) {
@@ -339,6 +365,8 @@ export default function ProductDetails() {
 
   return (
     <Box className="storefront-page page-product-details">
+      <AppFeedbackSnackbar toast={toast} onClose={handleToastClose} />
+
       {addToCartMutation.isError ? (
         <Alert severity="error">تعذر إضافة المنتج إلى السلة. حاول مرة أخرى.</Alert>
       ) : null}
