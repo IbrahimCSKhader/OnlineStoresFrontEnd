@@ -302,18 +302,15 @@ function extractBrowserStoreScope() {
 function resolveRequestStoreScope(config) {
   const pathname = normalizePathname(config);
   const pathScope = extractPathStoreScope(pathname);
-
-  if (pathScope.storeId || pathScope.storeSlug) {
-    return pathScope;
-  }
-
   const payloadScope = extractPayloadStoreScope(config);
+  const browserScope = extractBrowserStoreScope();
 
-  if (payloadScope.storeId || payloadScope.storeSlug) {
-    return payloadScope;
-  }
-
-  return extractBrowserStoreScope();
+  return normalizeStoreScope({
+    storeId:
+      pathScope.storeId || payloadScope.storeId || browserScope.storeId,
+    storeSlug:
+      pathScope.storeSlug || payloadScope.storeSlug || browserScope.storeSlug,
+  });
 }
 
 function resolveStorefrontSessionForRequest(config, authStore) {
