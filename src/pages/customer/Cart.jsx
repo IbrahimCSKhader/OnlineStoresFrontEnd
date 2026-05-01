@@ -54,7 +54,7 @@ export default function Cart() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-cart">
-        <EmptyState title="ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط§ظ„ط³ظ„ط©..." />
+        <EmptyState title="جارٍ تحميل السلة..." />
       </Box>
     );
   }
@@ -63,8 +63,8 @@ export default function Cart() {
     return (
       <Box className="storefront-page page-cart">
         <EmptyState
-          title="طھط¹ط°ط± ظپطھط­ ط§ظ„ط³ظ„ط©"
-          description="ظ„ظ… ظ†طھظ…ظƒظ† ظ…ظ† ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ط§ظ„ظ…طھط¬ط± ط§ظ„ظ…ط±طھط¨ط· ط¨ظ‡ط°ظ‡ ط§ظ„ط³ظ„ط©."
+          title="تعذر فتح السلة"
+          description="لم نتمكن من العثور على المتجر المرتبط بهذه السلة."
         />
       </Box>
     );
@@ -74,15 +74,15 @@ export default function Cart() {
     return (
       <Box className="storefront-page page-cart">
         <EmptyState
-          title="ظٹظ„ط²ظ… طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±"
-          description="ط§ظ„ط¬ظ„ط³ط© ط§ظ„ط­ط§ظ„ظٹط© ظ…ط±طھط¨ط·ط© ط¨ظ…طھط¬ط± ط¢ط®ط±طŒ ظ„ط°ط§ ظ„ط§ ظٹظ…ظƒظ† طھط­ظ…ظٹظ„ ط³ظ„ط© ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±."
+          title="يلزم تسجيل الدخول لهذا المتجر"
+          description="الجلسة الحالية مرتبطة بمتجر آخر، لذا لا يمكن تحميل سلة هذا المتجر."
           action={
             <AppButton
               component={RouterLink}
               to={`/market/${slug}/login`}
               variant="contained"
             >
-              طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±
+              تسجيل الدخول لهذا المتجر
             </AppButton>
           }
         />
@@ -96,44 +96,45 @@ export default function Cart() {
     <Box className="storefront-page page-cart">
       {storefrontSession.useLocalGuestCart && !activeStoreCustomer ? (
         <Alert severity="info">
-          طھظ‚ط¯ط± طھط³طھط¹ط±ط¶ ط³ظ„طھظƒ ظƒط²ط§ط¦ط±. ط¹ظ†ط¯ ط¥ط±ط³ط§ظ„ ط§ظ„ط·ظ„ط¨ ط³ظٹط·ظ„ط¨ ظ…ظ†ظƒ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±.
+          يمكنك استعراض السلة كزائر، لكن عند إتمام الطلب سيُطلب منك تسجيل الدخول لهذا
+          المتجر.
         </Alert>
       ) : null}
 
       {updateCartItemMutation.isError ? (
         <Alert severity="error">
-          {extractApiError(updateCartItemMutation.error, "طھط¹ط°ط± طھط­ط¯ظٹط« ظƒظ…ظٹط© ط§ظ„ط¹ظ†طµط±.")}
+          {extractApiError(updateCartItemMutation.error, "تعذر تحديث كمية العنصر.")}
         </Alert>
       ) : null}
 
       {removeCartItemMutation.isError ? (
         <Alert severity="error">
-          {extractApiError(removeCartItemMutation.error, "طھط¹ط°ط± ط­ط°ظپ ط§ظ„ط¹ظ†طµط± ظ…ظ† ط§ظ„ط³ظ„ط©.")}
+          {extractApiError(removeCartItemMutation.error, "تعذر حذف العنصر من السلة.")}
         </Alert>
       ) : null}
 
       {clearCartMutation.isError ? (
         <Alert severity="error">
-          {extractApiError(clearCartMutation.error, "طھط¹ط°ط± طھظپط±ظٹط؛ ط§ظ„ط³ظ„ط©.")}
+          {extractApiError(clearCartMutation.error, "تعذر تفريغ السلة.")}
         </Alert>
       ) : null}
 
       {clearCartMutation.isSuccess ? (
         <Alert severity="success">
-          {clearCartMutation.data?.message || "طھظ… طھظپط±ظٹط؛ ط§ظ„ط³ظ„ط© ط¨ظ†ط¬ط§ط­."}
+          {clearCartMutation.data?.message || "تم تفريغ السلة بنجاح."}
         </Alert>
       ) : null}
 
       <SurfaceCard className="page-cart__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">ط§ظ„ط³ظ„ط©</span>
-            <Typography variant="h2">ط³ظ„ط© {store.name}</Typography>
+            <span className="storefront-eyebrow">السلة</span>
+            <Typography variant="h2">سلة {store.name}</Typography>
           </Box>
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             <AppButton component={RouterLink} to={`/market/${slug}`} variant="outlined">
-              ظ…طھط§ط¨ط¹ط© ط§ظ„طھط³ظˆظ‚
+              متابعة التسوق
             </AppButton>
             <AppButton
               variant="text"
@@ -143,21 +144,21 @@ export default function Cart() {
               }
               disabled={clearCartMutation.isPending || !cart.items.length}
             >
-              طھظپط±ظٹط؛ ط§ظ„ط³ظ„ط©
+              تفريغ السلة
             </AppButton>
           </Stack>
         </Box>
       </SurfaceCard>
 
       {cartQuery.isLoading ? (
-        <EmptyState title="ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط¹ظ†ط§طµط± ط§ظ„ط³ظ„ط©..." />
+        <EmptyState title="جارٍ تحميل عناصر السلة..." />
       ) : !cart.items.length ? (
         <EmptyState
-          title="ط§ظ„ط³ظ„ط© ظپط§ط±ط؛ط©"
-          description="ط§ط¨ط¯ط£ ظ…ظ† طµظپط­ط© ط§ظ„ظ…طھط¬ط± ظˆط£ط¶ظپ ط§ظ„ظ…ظ†طھط¬ط§طھ ط§ظ„طھظٹ طھط±ظٹط¯ظ‡ط§ ط«ظ… ط¹ط¯ ظ‡ظ†ط§ ظ„ظ„ظ…ط±ط§ط¬ط¹ط©."
+          title="السلة فارغة"
+          description="ابدأ من صفحة المتجر وأضف المنتجات التي تريدها ثم عد هنا للمراجعة."
           action={
             <AppButton component={RouterLink} to={`/market/${slug}`} variant="contained">
-              ط§ظ„ط¹ظˆط¯ط© ط¥ظ„ظ‰ ط§ظ„ظ…طھط¬ط±
+              العودة إلى المتجر
             </AppButton>
           }
         />
@@ -173,11 +174,11 @@ export default function Cart() {
 
                       <Box className="page-cart__item-meta">
                         <Box className="page-cart__item-stat">
-                          <span>ط§ظ„ط³ط¹ط±</span>
+                          <span>السعر</span>
                           <strong>{formatCurrency(row.unitPrice)}</strong>
                         </Box>
                         <Box className="page-cart__item-stat">
-                          <span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</span>
+                          <span>الإجمالي</span>
                           <strong>{formatCurrency(row.totalPrice)}</strong>
                         </Box>
                       </Box>
@@ -208,7 +209,7 @@ export default function Cart() {
                             })
                           }
                         >
-                          ط­ط°ظپ
+                          حذف
                         </AppButton>
                       </Box>
                     </SurfaceCard>
@@ -221,17 +222,17 @@ export default function Cart() {
                   columns={[
                     {
                       key: "product",
-                      title: "ط§ظ„ظ…ظ†طھط¬",
+                      title: "المنتج",
                       render: (row) => <CartItem item={row} storeSlug={slug} />,
                     },
                     {
                       key: "price",
-                      title: "ط§ظ„ط³ط¹ط±",
+                      title: "السعر",
                       render: (row) => formatCurrency(row.unitPrice),
                     },
                     {
                       key: "quantity",
-                      title: "ط§ظ„ظƒظ…ظٹط©",
+                      title: "الكمية",
                       render: (row) => (
                         <QuantityStepper
                           value={row.quantity}
@@ -249,12 +250,12 @@ export default function Cart() {
                     },
                     {
                       key: "total",
-                      title: "ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ",
+                      title: "الإجمالي",
                       render: (row) => formatCurrency(row.totalPrice),
                     },
                     {
                       key: "actions",
-                      title: "ط¥ط¬ط±ط§ط،",
+                      title: "إجراء",
                       render: (row) => (
                         <AppButton
                           variant="text"
@@ -266,7 +267,7 @@ export default function Cart() {
                             })
                           }
                         >
-                          ط­ط°ظپ
+                          حذف
                         </AppButton>
                       ),
                     },

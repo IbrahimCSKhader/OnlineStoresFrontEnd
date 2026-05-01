@@ -73,7 +73,7 @@ export default function ProductForm({
         />
 
         <TextField
-          label="ط³ط¹ط± ط§ظ„ط¬ظ…ظ„ط©"
+          label="سعر الجملة"
           value={form.wholesalePrice}
           size="small"
           type="number"

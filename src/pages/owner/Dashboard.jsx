@@ -2177,7 +2177,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           {formatCurrency(row.price)}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          ط§ظ„ط¬ظ…ظ„ط©: {formatCurrency(row.wholesalePrice || 0)}
+                          الجملة: {formatCurrency(row.wholesalePrice || 0)}
                         </Typography>
                         {row.compareAtPrice ? (
                           <Typography variant="caption" color="text.secondary">
