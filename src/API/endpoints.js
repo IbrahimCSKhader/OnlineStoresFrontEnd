@@ -55,6 +55,7 @@ export const endpoints = {
   products: {
     create: withPrefix("/Product"),
     byStore: (storeId) => withPrefix(`/Product/store/${storeId}`),
+    manageByStore: (storeId) => withPrefix(`/Product/store/${storeId}/manage`),
     featured: (storeId) => withPrefix(`/Product/featured/${storeId}`),
     byCategory: (categoryId) => withPrefix(`/Product/category/${categoryId}`),
     bySection: (sectionId) => withPrefix(`/Product/section/${sectionId}`),

@@ -122,6 +122,10 @@ function isPlatformProtectedSectionPath(pathname, method) {
 }
 
 function isPlatformProtectedProductPath(pathname, method) {
+  if (/^\/api\/product\/store\/[^/]+\/manage$/.test(pathname) && method === "get") {
+    return true;
+  }
+
   if (pathname === "/api/product" && method === "post") {
     return true;
   }

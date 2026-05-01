@@ -54,7 +54,7 @@ export default function Cart() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-cart">
-        <EmptyState title="جاري تحميل السلة..." />
+        <EmptyState title="ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط§ظ„ط³ظ„ط©..." />
       </Box>
     );
   }
@@ -63,28 +63,8 @@ export default function Cart() {
     return (
       <Box className="storefront-page page-cart">
         <EmptyState
-          title="تعذر فتح السلة"
-          description="لم نتمكن من العثور على المتجر المرتبط بهذه السلة."
-        />
-      </Box>
-    );
-  }
-
-  if (!activeStoreCustomer) {
-    return (
-      <Box className="storefront-page page-cart">
-        <EmptyState
-          title="يلزم تسجيل الدخول"
-          description="سجّل دخولك لهذا المتجر حتى تظهر السلة الخاصة به وتتابع طلباتك."
-          action={
-            <AppButton
-              component={RouterLink}
-              to={`/market/${slug}/login`}
-              variant="contained"
-            >
-              تسجيل الدخول
-            </AppButton>
-          }
+          title="طھط¹ط°ط± ظپطھط­ ط§ظ„ط³ظ„ط©"
+          description="ظ„ظ… ظ†طھظ…ظƒظ† ظ…ظ† ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ط§ظ„ظ…طھط¬ط± ط§ظ„ظ…ط±طھط¨ط· ط¨ظ‡ط°ظ‡ ط§ظ„ط³ظ„ط©."
         />
       </Box>
     );
@@ -94,15 +74,15 @@ export default function Cart() {
     return (
       <Box className="storefront-page page-cart">
         <EmptyState
-          title="يلزم تسجيل الدخول لهذا المتجر"
-          description="الجلسة الحالية مرتبطة بمتجر آخر، لذا لا يمكن تحميل سلة هذا المتجر."
+          title="ظٹظ„ط²ظ… طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±"
+          description="ط§ظ„ط¬ظ„ط³ط© ط§ظ„ط­ط§ظ„ظٹط© ظ…ط±طھط¨ط·ط© ط¨ظ…طھط¬ط± ط¢ط®ط±طŒ ظ„ط°ط§ ظ„ط§ ظٹظ…ظƒظ† طھط­ظ…ظٹظ„ ط³ظ„ط© ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±."
           action={
             <AppButton
               component={RouterLink}
               to={`/market/${slug}/login`}
               variant="contained"
             >
-              تسجيل الدخول لهذا المتجر
+              طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±
             </AppButton>
           }
         />
@@ -114,40 +94,46 @@ export default function Cart() {
 
   return (
     <Box className="storefront-page page-cart">
+      {storefrontSession.useLocalGuestCart && !activeStoreCustomer ? (
+        <Alert severity="info">
+          طھظ‚ط¯ط± طھط³طھط¹ط±ط¶ ط³ظ„طھظƒ ظƒط²ط§ط¦ط±. ط¹ظ†ط¯ ط¥ط±ط³ط§ظ„ ط§ظ„ط·ظ„ط¨ ط³ظٹط·ظ„ط¨ ظ…ظ†ظƒ طھط³ط¬ظٹظ„ ط§ظ„ط¯ط®ظˆظ„ ظ„ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±.
+        </Alert>
+      ) : null}
+
       {updateCartItemMutation.isError ? (
         <Alert severity="error">
-          {extractApiError(updateCartItemMutation.error, "تعذر تحديث كمية العنصر.")}
+          {extractApiError(updateCartItemMutation.error, "طھط¹ط°ط± طھط­ط¯ظٹط« ظƒظ…ظٹط© ط§ظ„ط¹ظ†طµط±.")}
         </Alert>
       ) : null}
 
       {removeCartItemMutation.isError ? (
         <Alert severity="error">
-          {extractApiError(removeCartItemMutation.error, "تعذر حذف العنصر من السلة.")}
+          {extractApiError(removeCartItemMutation.error, "طھط¹ط°ط± ط­ط°ظپ ط§ظ„ط¹ظ†طµط± ظ…ظ† ط§ظ„ط³ظ„ط©.")}
         </Alert>
       ) : null}
 
       {clearCartMutation.isError ? (
         <Alert severity="error">
-          {extractApiError(clearCartMutation.error, "تعذر تفريغ السلة.")}
+          {extractApiError(clearCartMutation.error, "طھط¹ط°ط± طھظپط±ظٹط؛ ط§ظ„ط³ظ„ط©.")}
         </Alert>
       ) : null}
 
       {clearCartMutation.isSuccess ? (
         <Alert severity="success">
-          {clearCartMutation.data?.message || "تم تفريغ السلة بنجاح."}
+          {clearCartMutation.data?.message || "طھظ… طھظپط±ظٹط؛ ط§ظ„ط³ظ„ط© ط¨ظ†ط¬ط§ط­."}
         </Alert>
       ) : null}
 
       <SurfaceCard className="page-cart__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">السلة</span>
-            <Typography variant="h2">سلة {store.name}</Typography>
+            <span className="storefront-eyebrow">ط§ظ„ط³ظ„ط©</span>
+            <Typography variant="h2">ط³ظ„ط© {store.name}</Typography>
           </Box>
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             <AppButton component={RouterLink} to={`/market/${slug}`} variant="outlined">
-              متابعة التسوق
+              ظ…طھط§ط¨ط¹ط© ط§ظ„طھط³ظˆظ‚
             </AppButton>
             <AppButton
               variant="text"
@@ -157,21 +143,21 @@ export default function Cart() {
               }
               disabled={clearCartMutation.isPending || !cart.items.length}
             >
-              تفريغ السلة
+              طھظپط±ظٹط؛ ط§ظ„ط³ظ„ط©
             </AppButton>
           </Stack>
         </Box>
       </SurfaceCard>
 
       {cartQuery.isLoading ? (
-        <EmptyState title="جاري تحميل عناصر السلة..." />
+        <EmptyState title="ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط¹ظ†ط§طµط± ط§ظ„ط³ظ„ط©..." />
       ) : !cart.items.length ? (
         <EmptyState
-          title="السلة فارغة"
-          description="ابدأ من صفحة المتجر وأضف المنتجات التي تريدها ثم عد هنا للمراجعة."
+          title="ط§ظ„ط³ظ„ط© ظپط§ط±ط؛ط©"
+          description="ط§ط¨ط¯ط£ ظ…ظ† طµظپط­ط© ط§ظ„ظ…طھط¬ط± ظˆط£ط¶ظپ ط§ظ„ظ…ظ†طھط¬ط§طھ ط§ظ„طھظٹ طھط±ظٹط¯ظ‡ط§ ط«ظ… ط¹ط¯ ظ‡ظ†ط§ ظ„ظ„ظ…ط±ط§ط¬ط¹ط©."
           action={
             <AppButton component={RouterLink} to={`/market/${slug}`} variant="contained">
-              العودة إلى المتجر
+              ط§ظ„ط¹ظˆط¯ط© ط¥ظ„ظ‰ ط§ظ„ظ…طھط¬ط±
             </AppButton>
           }
         />
@@ -187,11 +173,11 @@ export default function Cart() {
 
                       <Box className="page-cart__item-meta">
                         <Box className="page-cart__item-stat">
-                          <span>السعر</span>
+                          <span>ط§ظ„ط³ط¹ط±</span>
                           <strong>{formatCurrency(row.unitPrice)}</strong>
                         </Box>
                         <Box className="page-cart__item-stat">
-                          <span>الإجمالي</span>
+                          <span>ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ</span>
                           <strong>{formatCurrency(row.totalPrice)}</strong>
                         </Box>
                       </Box>
@@ -222,7 +208,7 @@ export default function Cart() {
                             })
                           }
                         >
-                          حذف
+                          ط­ط°ظپ
                         </AppButton>
                       </Box>
                     </SurfaceCard>
@@ -235,17 +221,17 @@ export default function Cart() {
                   columns={[
                     {
                       key: "product",
-                      title: "المنتج",
+                      title: "ط§ظ„ظ…ظ†طھط¬",
                       render: (row) => <CartItem item={row} storeSlug={slug} />,
                     },
                     {
                       key: "price",
-                      title: "السعر",
+                      title: "ط§ظ„ط³ط¹ط±",
                       render: (row) => formatCurrency(row.unitPrice),
                     },
                     {
                       key: "quantity",
-                      title: "الكمية",
+                      title: "ط§ظ„ظƒظ…ظٹط©",
                       render: (row) => (
                         <QuantityStepper
                           value={row.quantity}
@@ -263,12 +249,12 @@ export default function Cart() {
                     },
                     {
                       key: "total",
-                      title: "الإجمالي",
+                      title: "ط§ظ„ط¥ط¬ظ…ط§ظ„ظٹ",
                       render: (row) => formatCurrency(row.totalPrice),
                     },
                     {
                       key: "actions",
-                      title: "إجراء",
+                      title: "ط¥ط¬ط±ط§ط،",
                       render: (row) => (
                         <AppButton
                           variant="text"
@@ -280,7 +266,7 @@ export default function Cart() {
                             })
                           }
                         >
-                          حذف
+                          ط­ط°ظپ
                         </AppButton>
                       ),
                     },

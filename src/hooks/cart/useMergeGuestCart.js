@@ -24,16 +24,20 @@ function hasCartShape(value) {
   return Array.isArray(entity?.items) || Array.isArray(entity?.cartItems);
 }
 
-function resolveStockLimit(...items) {
-  const candidates = items
-    .map((item) => toNumber(item?.availableStock, NaN))
-    .filter((value) => Number.isFinite(value) && value >= 0);
+function resolveStockLimit(primaryItem, fallbackItem = null) {
+  const primaryStock = toNumber(primaryItem?.availableStock, NaN);
 
-  if (!candidates.length) {
-    return Number.POSITIVE_INFINITY;
+  if (Number.isFinite(primaryStock) && primaryStock >= 0) {
+    return primaryStock;
   }
 
-  return Math.max(0, Math.min(...candidates));
+  const fallbackStock = toNumber(fallbackItem?.availableStock, NaN);
+
+  if (Number.isFinite(fallbackStock) && fallbackStock >= 0) {
+    return fallbackStock;
+  }
+
+  return Number.POSITIVE_INFINITY;
 }
 
 function clampQuantity(quantity, stockLimit) {
@@ -131,7 +135,9 @@ export default function useMergeGuestCart() {
           const matchingServerItem =
             serverCart.items.find((item) => getCartItemKey(item) === getCartItemKey(localItem)) || null;
           const currentServerQuantity = toNumber(matchingServerItem?.quantity, 0);
-          const stockLimit = resolveStockLimit(localItem, matchingServerItem);
+          const stockLimit = matchingServerItem
+            ? resolveStockLimit(matchingServerItem, localItem)
+            : resolveStockLimit(localItem);
           const targetQuantity = clampQuantity(
             currentServerQuantity + localQuantity,
             stockLimit,

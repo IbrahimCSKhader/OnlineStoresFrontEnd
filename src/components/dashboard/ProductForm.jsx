@@ -73,6 +73,15 @@ export default function ProductForm({
         />
 
         <TextField
+          label="ط³ط¹ط± ط§ظ„ط¬ظ…ظ„ط©"
+          value={form.wholesalePrice}
+          size="small"
+          type="number"
+          inputProps={{ min: 0, step: "0.01" }}
+          onChange={(event) => onChange("wholesalePrice", event.target.value)}
+        />
+
+        <TextField
           label="السعر قبل التخفيض"
           value={form.compareAtPrice}
           size="small"

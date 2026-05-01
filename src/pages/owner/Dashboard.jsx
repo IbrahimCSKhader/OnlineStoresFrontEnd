@@ -223,6 +223,7 @@ function buildProductForm(defaultCategoryId = "", defaultSectionId = "") {
     shortDescription: "",
     description: "",
     price: "",
+    wholesalePrice: "0",
     compareAtPrice: "",
     costPrice: "",
     stockQuantity: "",
@@ -723,6 +724,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const shouldLoadOrders = isOverviewTab || activeTab === "orders";
   const productsQuery = useProducts(storeId, undefined, {
     enabled: Boolean(storeId) && shouldLoadProducts,
+    management: true,
     staleTime: 30000,
   });
   const categoriesQuery = useCategories(storeId, {
@@ -1149,6 +1151,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       product?.Price !== undefined
         ? String(getProductOriginalPrice(product))
         : "",
+    wholesalePrice:
+      product?.wholesalePrice !== undefined && product?.wholesalePrice !== null
+        ? String(product.wholesalePrice)
+        : product?.WholesalePrice !== undefined && product?.WholesalePrice !== null
+          ? String(product.WholesalePrice)
+          : "0",
     compareAtPrice: getProductComparePrice(product)
       ? String(getProductComparePrice(product))
       : "",
@@ -1513,6 +1521,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       ShortDescription: productForm.shortDescription || undefined,
       Description: productForm.description || undefined,
       Price: Number(productForm.price),
+      WholesalePrice: Number(productForm.wholesalePrice || 0),
       CompareAtPrice: productForm.compareAtPrice
         ? Number(productForm.compareAtPrice)
         : undefined,
@@ -1535,6 +1544,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             ShortDescription: payload.ShortDescription,
             Description: payload.Description,
             Price: payload.Price,
+            WholesalePrice: payload.WholesalePrice,
             CompareAtPrice: payload.CompareAtPrice,
             CostPrice: payload.CostPrice,
             StockQuantity: payload.StockQuantity,
@@ -2165,6 +2175,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       <Stack spacing={0.25}>
                         <Typography variant="body2" fontWeight={700}>
                           {formatCurrency(row.price)}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          ط§ظ„ط¬ظ…ظ„ط©: {formatCurrency(row.wholesalePrice || 0)}
                         </Typography>
                         {row.compareAtPrice ? (
                           <Typography variant="caption" color="text.secondary">

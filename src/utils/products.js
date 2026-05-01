@@ -174,6 +174,9 @@ export function normalizeProductDto(product) {
     finalPrice,
     originalPrice,
     compareAtPrice,
+    wholesalePrice: firstDefined(entity?.wholesalePrice, entity?.WholesalePrice) !== undefined
+      ? firstNumber(entity?.wholesalePrice, entity?.WholesalePrice)
+      : null,
     costPrice: firstDefined(entity?.costPrice, entity?.CostPrice) !== undefined
       ? firstNumber(entity?.costPrice, entity?.CostPrice)
       : null,
