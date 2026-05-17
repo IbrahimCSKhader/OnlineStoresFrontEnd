@@ -19,6 +19,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
+import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
 import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
@@ -70,7 +71,7 @@ function buildNavItems(activeStoreSlug) {
   ];
 }
 
-const themeOptions = [
+const allThemeOptions = [
   {
     value: "light",
     label: "الوضع الفاتح",
@@ -86,6 +87,11 @@ const themeOptions = [
     label: "الوضع الأخضر",
     icon: <ParkRoundedIcon />,
   },
+  {
+    value: "pink",
+    label: "الوضع الوردي",
+    icon: <FavoriteRoundedIcon />,
+  },
 ];
 
 function getCustomerInitials(user) {
@@ -97,11 +103,17 @@ function getCustomerInitials(user) {
     .toUpperCase();
 }
 
-function ThemeToggleButton({ variant, onSelect, className }) {
+function ThemeToggleButton({ variant, onSelect, options, className }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
   const activeTheme =
-    themeOptions.find((option) => option.value === variant) ?? themeOptions[0];
+    allThemeOptions.find((option) => option.value === variant) ??
+    options[0] ??
+    allThemeOptions[0];
+
+  if (!options.length || options.length <= 1) {
+    return null;
+  }
 
   return (
     <>
@@ -132,7 +144,7 @@ function ThemeToggleButton({ variant, onSelect, className }) {
         }}
       >
         <Box className="store-navbar__theme-options">
-          {themeOptions.map((option) => (
+          {options.map((option) => (
             <IconButton
               key={option.value}
               className={[
@@ -193,7 +205,7 @@ export default function Navbar() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
-  const { variant, setVariant } = useAppThemeVariant();
+  const { variant, setVariant, availableVariants } = useAppThemeVariant();
   const {
     isAuthenticated,
     isPlatformAuthenticated,
@@ -288,6 +300,19 @@ export default function Navbar() {
   const navItems = useMemo(
     () => (isScopedOwnerDashboard ? [] : buildNavItems(activeStoreSlug)),
     [activeStoreSlug, isScopedOwnerDashboard],
+  );
+  const activeThemeStoreSlug = isScopedOwnerDashboard
+    ? ownerScopedStoreSlug
+    : String(activeStoreSlug || currentBrandStore?.slug || "")
+        .trim()
+        .toLowerCase();
+  const shouldHideThemeToggle = activeThemeStoreSlug === "resin_bon";
+  const themeOptions = useMemo(
+    () =>
+      allThemeOptions.filter((option) =>
+        availableVariants.includes(option.value),
+      ),
+    [availableVariants],
   );
   const loginPath = activeStoreSlug
     ? `/market/${activeStoreSlug}/login`
@@ -870,7 +895,13 @@ export default function Navbar() {
         )}
 
         <Box className="store-navbar__actions">
-          <ThemeToggleButton variant={variant} onSelect={setVariant} />
+          {!shouldHideThemeToggle ? (
+            <ThemeToggleButton
+              variant={variant}
+              onSelect={setVariant}
+              options={themeOptions}
+            />
+          ) : null}
           {renderCartButton()}
           {!isMobile ? (
             <ContactDeveloperButton
@@ -915,7 +946,13 @@ export default function Navbar() {
           </Box>
 
           <Box className="store-navbar__drawer-head-actions">
-            <ThemeToggleButton variant={variant} onSelect={setVariant} />
+            {!shouldHideThemeToggle ? (
+              <ThemeToggleButton
+                variant={variant}
+                onSelect={setVariant}
+                options={themeOptions}
+              />
+            ) : null}
             <IconButton
               className="store-navbar__icon-button"
               onClick={() => setDrawerOpen(false)}

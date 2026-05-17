@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useAppThemeVariant } from "./AppThemeProvider.jsx";
 
 let activeStoreBrandingHooks = 0;
+const defaultStoreThemeVariants = ["light", "dark", "nature"];
+const pinkStoreThemeVariants = ["pink"];
 
 function normalizeStoreThemeTemplate(value) {
   return String(value ?? "")
@@ -9,24 +11,42 @@ function normalizeStoreThemeTemplate(value) {
     .toLowerCase();
 }
 
-function resolveStoreThemeVariant(store) {
+function resolveStoreThemeConfig(store) {
   const normalizedTemplate = normalizeStoreThemeTemplate(
     store?.themeTemplate ?? store?.ThemeTemplate,
   );
 
   switch (normalizedTemplate) {
+    case "p":
+    case "pink":
+      return {
+        defaultVariant: "pink",
+        availableVariants: pinkStoreThemeVariants,
+      };
     case "f":
     case "forest":
-      return "nature";
+      return {
+        defaultVariant: "nature",
+        availableVariants: defaultStoreThemeVariants,
+      };
     case "d":
     case "dark":
     case "darl":
-      return "dark";
+      return {
+        defaultVariant: "dark",
+        availableVariants: defaultStoreThemeVariants,
+      };
     case "l":
     case "light":
-      return "light";
+      return {
+        defaultVariant: "light",
+        availableVariants: defaultStoreThemeVariants,
+      };
     default:
-      return "light";
+      return {
+        defaultVariant: "light",
+        availableVariants: defaultStoreThemeVariants,
+      };
   }
 }
 
@@ -55,9 +75,14 @@ export default function useStoreBranding(store) {
       return;
     }
 
+    const themeConfig = resolveStoreThemeConfig(store);
+
     setStoreDefaultVariant(
-      resolveStoreThemeVariant(store),
+      themeConfig.defaultVariant,
       resolveStoreThemeKey(store),
+      {
+        availableVariants: themeConfig.availableVariants,
+      },
     );
   }, [
     setStoreDefaultVariant,

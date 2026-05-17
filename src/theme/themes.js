@@ -98,7 +98,6 @@ function resolveBrandedPalette(preset, branding = null) {
 export function buildThemeProfile(variant = "light", branding = null) {
   const preset = themeCatalog[variant] ?? themeCatalog.light;
   const palette = resolveBrandedPalette(preset, branding);
-  const isDark = preset.mode === "dark";
 
   const cssVars = {
     "--primary": palette.primary,

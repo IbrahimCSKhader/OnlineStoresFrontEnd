@@ -30,10 +30,28 @@ const cacheLtr = createCache({
 });
 
 const defaultVariant = "light";
+const storeOnlyVariant = "pink";
+const defaultAvailableVariants = THEME_VARIANTS.filter(
+  (variant) => variant !== storeOnlyVariant,
+);
 const noop = () => {};
 
-function normalizeThemeVariant(value, fallback = null) {
-  return THEME_VARIANTS.includes(value) ? value : fallback;
+function resolveAllowedThemeVariants(values, fallback = defaultAvailableVariants) {
+  const normalized = [...new Set(Array.isArray(values) ? values : [])].filter((value) =>
+    THEME_VARIANTS.includes(value),
+  );
+
+  return normalized.length ? normalized : fallback;
+}
+
+function normalizeThemeVariant(
+  value,
+  fallback = null,
+  allowedVariants = THEME_VARIANTS,
+) {
+  return resolveAllowedThemeVariants(allowedVariants, THEME_VARIANTS).includes(value)
+    ? value
+    : fallback;
 }
 
 function normalizeStoreThemeKey(value) {
@@ -44,6 +62,7 @@ function resolveStoredThemeVariant() {
   return normalizeThemeVariant(
     getStorageItem(storageKeys.themeVariant, null),
     null,
+    defaultAvailableVariants,
   );
 }
 
@@ -57,6 +76,7 @@ const ThemeVariantContext = createContext({
   setVariant: noop,
   themeProfile: buildThemeProfile(defaultVariant),
   hasStoredPreference: false,
+  availableVariants: defaultAvailableVariants,
   setStoreDefaultVariant: noop,
   clearStoreDefaultVariant: noop,
   setThemeBranding: noop,
@@ -85,15 +105,37 @@ export default function AppThemeProvider({ children }) {
   const [storeThemeScope, setStoreThemeScope] = useState({
     storeKey: "",
     defaultVariant,
+    availableVariants: defaultAvailableVariants,
   });
 
   const scopedStoreKey = normalizeStoreThemeKey(storeThemeScope.storeKey);
+  const scopedAvailableVariants = scopedStoreKey
+    ? resolveAllowedThemeVariants(
+        storeThemeScope.availableVariants,
+        defaultAvailableVariants,
+      )
+    : defaultAvailableVariants;
   const scopedUserVariant = scopedStoreKey
-    ? normalizeThemeVariant(storeThemeVariants[scopedStoreKey], null)
+    ? normalizeThemeVariant(
+        storeThemeVariants[scopedStoreKey],
+        null,
+        scopedAvailableVariants,
+      )
     : null;
+  const resolvedGlobalUserVariant = normalizeThemeVariant(
+    globalUserVariant,
+    null,
+    defaultAvailableVariants,
+  );
   const variant = scopedStoreKey
-    ? scopedUserVariant ?? storeThemeScope.defaultVariant ?? defaultVariant
-    : globalUserVariant ?? defaultVariant;
+    ? scopedUserVariant ??
+      normalizeThemeVariant(
+        storeThemeScope.defaultVariant,
+        scopedAvailableVariants[0] ?? defaultVariant,
+        scopedAvailableVariants,
+      ) ??
+      defaultVariant
+    : resolvedGlobalUserVariant ?? defaultVariant;
   const themeProfile = useMemo(() => buildThemeProfile(variant), [variant]);
   const theme = useMemo(() => createAppTheme(themeProfile), [themeProfile]);
 
@@ -112,7 +154,17 @@ export default function AppThemeProvider({ children }) {
 
   const setVariant = useCallback(
     (nextVariant) => {
-      const normalizedVariant = normalizeThemeVariant(nextVariant, defaultVariant);
+      const normalizedVariant = scopedStoreKey
+        ? normalizeThemeVariant(
+            nextVariant,
+            scopedAvailableVariants[0] ?? defaultVariant,
+            scopedAvailableVariants,
+          )
+        : normalizeThemeVariant(
+            nextVariant,
+            defaultVariant,
+            defaultAvailableVariants,
+          );
 
       if (scopedStoreKey) {
         setStoreThemeVariants((current) => {
@@ -130,16 +182,25 @@ export default function AppThemeProvider({ children }) {
       setGlobalUserVariant(normalizedVariant);
       setStorageItem(storageKeys.themeVariant, normalizedVariant);
     },
-    [persistStoreThemeVariants, scopedStoreKey],
+    [persistStoreThemeVariants, scopedAvailableVariants, scopedStoreKey],
   );
 
-  const setStoreDefaultVariant = useCallback((nextVariant, storeKey = "") => {
-    const normalizedVariant = normalizeThemeVariant(nextVariant, defaultVariant);
+  const setStoreDefaultVariant = useCallback((nextVariant, storeKey = "", options = {}) => {
     const normalizedStoreKey = normalizeStoreThemeKey(storeKey);
+    const availableVariants = resolveAllowedThemeVariants(
+      options.availableVariants,
+      defaultAvailableVariants,
+    );
+    const normalizedVariant = normalizeThemeVariant(
+      nextVariant,
+      availableVariants[0] ?? defaultVariant,
+      availableVariants,
+    );
 
     setStoreThemeScope({
       storeKey: normalizedStoreKey,
       defaultVariant: normalizedVariant,
+      availableVariants,
     });
   }, []);
 
@@ -147,6 +208,7 @@ export default function AppThemeProvider({ children }) {
     setStoreThemeScope({
       storeKey: "",
       defaultVariant,
+      availableVariants: defaultAvailableVariants,
     });
   }, []);
 
@@ -163,7 +225,12 @@ export default function AppThemeProvider({ children }) {
       variant,
       setVariant,
       themeProfile,
-      hasStoredPreference: Boolean(scopedStoreKey ? scopedUserVariant : globalUserVariant),
+      hasStoredPreference: Boolean(
+        scopedStoreKey ? scopedUserVariant : resolvedGlobalUserVariant,
+      ),
+      availableVariants: scopedStoreKey
+        ? scopedAvailableVariants
+        : defaultAvailableVariants,
       setStoreDefaultVariant,
       clearStoreDefaultVariant,
       setThemeBranding: noop,
@@ -171,7 +238,8 @@ export default function AppThemeProvider({ children }) {
     }),
     [
       clearStoreDefaultVariant,
-      globalUserVariant,
+      resolvedGlobalUserVariant,
+      scopedAvailableVariants,
       scopedStoreKey,
       scopedUserVariant,
       setStoreDefaultVariant,
