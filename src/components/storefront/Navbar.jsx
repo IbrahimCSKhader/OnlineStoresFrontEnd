@@ -103,6 +103,13 @@ function getCustomerInitials(user) {
     .toUpperCase();
 }
 
+function normalizeComparableStoreSlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+}
+
 function ThemeToggleButton({ variant, onSelect, options, className }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
@@ -301,11 +308,19 @@ export default function Navbar() {
     () => (isScopedOwnerDashboard ? [] : buildNavItems(activeStoreSlug)),
     [activeStoreSlug, isScopedOwnerDashboard],
   );
-  const activeThemeStoreSlug = isScopedOwnerDashboard
-    ? ownerScopedStoreSlug
-    : String(activeStoreSlug || currentBrandStore?.slug || "")
-        .trim()
-        .toLowerCase();
+  const activeThemeStoreSlug = normalizeComparableStoreSlug(
+    isScopedOwnerDashboard
+      ? ownerScopedStoreSlug ||
+          ownerStore?.slug ||
+          ownerStore?.Slug ||
+          currentBrandStore?.slug ||
+          currentBrandStore?.Slug
+      : activeStoreSlug ||
+          activeStore?.slug ||
+          activeStore?.Slug ||
+          currentBrandStore?.slug ||
+          currentBrandStore?.Slug,
+  );
   const shouldHideThemeToggle = activeThemeStoreSlug === "resin_bon";
   const themeOptions = useMemo(
     () =>
