@@ -308,13 +308,6 @@ export default function ProductForm({
                       disabled={isReadOnly}
                       onChange={(event) => onChangeVariant(index, "stockQuantity", event.target.value)}
                     />
-                    <TextField
-                      label="رابط الصورة"
-                      value={variant.imageUrl || ""}
-                      size="small"
-                      disabled={isReadOnly}
-                      onChange={(event) => onChangeVariant(index, "imageUrl", event.target.value)}
-                    />
                     <Box className="owner-variant-image">
                       <Typography variant="caption" color="text.secondary">
                         صورة النسخة

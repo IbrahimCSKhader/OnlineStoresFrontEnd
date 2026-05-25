@@ -332,7 +332,6 @@ function isVariantDraftEmpty(variant) {
     variant?.sku,
     variant?.price,
     variant?.compareAtPrice,
-    variant?.imageUrl,
     variant?.imageFile,
   ].some((value) => String(value ?? "").trim()) &&
     (!stockValue || stockValue === "0");
@@ -351,7 +350,6 @@ function buildVariantPayload(variant) {
         ? Number(variant.compareAtPrice)
         : undefined,
     StockQuantity: Number(variant?.stockQuantity || 0),
-    ImageUrl: String(variant?.imageUrl || "").trim() || undefined,
     SortOrder:
       String(variant?.sortOrder ?? "").trim() !== ""
         ? Number(variant.sortOrder)
