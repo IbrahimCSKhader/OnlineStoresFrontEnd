@@ -99,6 +99,32 @@ function getProductImagesForVariant(product, variant) {
   return mergedImages;
 }
 
+function isPlaceholderDefaultVariant(variant) {
+  if (!variant?.isDefault) {
+    return false;
+  }
+
+  const name = String(variant.name || variant.Name || "").trim().toLowerCase();
+  const hasPlaceholderName = !name || name === "default" || name === "افتراضي";
+  const hasDescription = Boolean(
+    String(variant.description || variant.Description || "").trim(),
+  );
+  const hasDirectImage = Boolean(
+    String(variant.imageUrl || variant.ImageUrl || "").trim(),
+  );
+  const hasImages = Array.isArray(variant.images) && variant.images.length > 0;
+  const hasAttributes =
+    Array.isArray(variant.attributeValues) && variant.attributeValues.length > 0;
+
+  return (
+    hasPlaceholderName &&
+    !hasDescription &&
+    !hasDirectImage &&
+    !hasImages &&
+    !hasAttributes
+  );
+}
+
 function getPathnameFromReturnTo(returnTo = "") {
   if (!returnTo) {
     return "";
@@ -174,9 +200,15 @@ export default function ProductDetails() {
     variants.length > 1 ||
     variants.some((variant) => variant.isActive !== false && !variant.isDefault);
   const selectableVariants = useMemo(() => {
-    const ownerVariants = variants.filter((variant) => !variant.isDefault);
+    if (!productHasVariants) {
+      return variants;
+    }
 
-    return productHasVariants && ownerVariants.length ? ownerVariants : variants;
+    const visibleVariants = variants.filter(
+      (variant) => !isPlaceholderDefaultVariant(variant),
+    );
+
+    return visibleVariants.length ? visibleVariants : variants;
   }, [productHasVariants, variants]);
   const defaultVariantId = useMemo(() => {
     if (!variants.length) {
