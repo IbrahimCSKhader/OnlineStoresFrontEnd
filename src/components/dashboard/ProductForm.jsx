@@ -30,8 +30,10 @@ function getVariantImages(variant) {
 }
 
 function getVariantDisplayImage(variant, preview) {
-  if (preview?.url) {
-    return preview.url;
+  const previewItem = Array.isArray(preview) ? preview[0] : preview;
+
+  if (previewItem?.url) {
+    return previewItem.url;
   }
 
   const images = getVariantImages(variant);
@@ -166,7 +168,7 @@ export default function ProductForm({
         </TextField>
 
         <TextField
-          label="وصف قصير"
+          label="ملخص عام للمنتج (اختياري)"
           value={form.shortDescription}
           size="small"
           onChange={(event) => onChange("shortDescription", event.target.value)}
@@ -255,6 +257,11 @@ export default function ProductForm({
                 const isExistingVariant = Boolean(variant.id);
                 const variantKey = getVariantFormKey(variant, index);
                 const variantPreview = variantImagePreviews[variantKey];
+                const variantPreviewItems = Array.isArray(variantPreview)
+                  ? variantPreview
+                  : variantPreview
+                    ? [variantPreview]
+                    : [];
                 const variantImages = getVariantImages(variant);
                 const variantImage = getVariantDisplayImage(
                   variant,
@@ -273,7 +280,7 @@ export default function ProductForm({
                       onChange={(event) => onChangeVariant(index, "name", event.target.value)}
                     />
                     <TextField
-                      label="وصف الصنف"
+                      label="الوصف القصير للصنف"
                       value={variant.description || ""}
                       size="small"
                       multiline
@@ -326,20 +333,21 @@ export default function ProductForm({
                           <input
                             className="owner-form__file owner-variant-image__input"
                             type="file"
+                            multiple
                             accept=".jpg,.jpeg,.png,.webp"
                             disabled={isVariantImageUploading}
                             onChange={(event) => {
                               onChangeVariantImageFile?.(
                                 index,
-                                event.target.files?.[0] || null,
+                                Array.from(event.target.files || []),
                               );
                               event.target.value = "";
                             }}
                           />
-                          {variantPreview ? (
+                          {variantPreviewItems.length ? (
                             <Stack direction="row" spacing={0.5} alignItems="center">
                               <Typography variant="caption" color="text.secondary">
-                                {variantPreview.name}
+                                {variantPreviewItems.map((item) => item.name).join("، ")}
                               </Typography>
                               <IconButton
                                 size="small"
@@ -351,7 +359,7 @@ export default function ProductForm({
                             </Stack>
                           ) : (
                             <Typography variant="caption" color="text.secondary">
-                              اختر صورة واحفظ المنتج
+                              اختر صورة أو أكثر واحفظ الصنف
                             </Typography>
                           )}
                         </Box>

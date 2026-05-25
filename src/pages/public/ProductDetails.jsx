@@ -36,6 +36,8 @@ import { formatCurrency } from "../../utils/formatCurrency.js";
 import { buildProductSnapshot } from "../../utils/guestCart.js";
 import {
   getProductComparePrice,
+  getActiveProductVariants,
+  getProductDisplayVariant,
   getProductDisplayPrice,
   getProductOriginalPrice,
   getVariantAttributeLabel,
@@ -171,16 +173,8 @@ export default function ProductDetails() {
 
   const variants = useMemo(
     () =>
-      (product?.variants || [])
-        .filter((variant) => variant.isActive !== false)
-        .sort((left, right) => {
-          if (left.isDefault !== right.isDefault) {
-            return Number(right.isDefault) - Number(left.isDefault);
-          }
-
-          return Number(left.sortOrder ?? 0) - Number(right.sortOrder ?? 0);
-        }),
-    [product?.variants],
+      getActiveProductVariants(product),
+    [product],
   );
   const productHasVariants =
     Boolean(product?.hasVariants) ||
@@ -208,17 +202,21 @@ export default function ProductDetails() {
       : defaultVariantId;
   const selectedVariant =
     variants.find((item) => String(item.id) === String(selectedVariantId)) || null;
+  const selectedShortDescription =
+    selectedVariant?.description ||
+    product?.shortDescription ||
+    "";
   const images = useMemo(
-    () => getProductImagesForVariant(product, productHasVariants ? selectedVariant : null),
-    [product, productHasVariants, selectedVariant],
+    () => getProductImagesForVariant(product, selectedVariant),
+    [product, selectedVariant],
   );
   const productDisplayPrice = getProductDisplayPrice(product);
   const displayPrice =
-    productHasVariants && selectedVariant
+    selectedVariant
       ? getVariantEffectivePrice(selectedVariant, product)
       : productDisplayPrice;
   const comparePrice =
-    productHasVariants && selectedVariant
+    selectedVariant
       ? getVariantEffectiveComparePrice(selectedVariant, product)
       : getProductComparePrice(product);
   const originalPrice = getProductOriginalPrice(product);
@@ -230,16 +228,16 @@ export default function ProductDetails() {
   const attributes = product?.attributeValues || [];
   const selectedVariantAttributes = getVariantAttributeLabel(selectedVariant);
   const selectedSku =
-    productHasVariants && selectedVariant?.sku ? selectedVariant.sku : product?.sku;
-  const isAvailable = productHasVariants
+    selectedVariant?.sku ? selectedVariant.sku : product?.sku;
+  const isAvailable = selectedVariant
     ? Boolean(selectedVariant) &&
       (!product.trackInventory || isProductInStock(product, selectedVariant))
     : isProductInStock(product);
-  const availableStock = productHasVariants && selectedVariant
+  const availableStock = selectedVariant
     ? Number(selectedVariant.stockQuantity ?? 0)
     : Number(product.effectiveStockQuantity ?? product.stockQuantity ?? 0);
   const quantityMax = product.trackInventory
-    ? productHasVariants && selectedVariant
+    ? selectedVariant
       ? selectedVariant.stockQuantity
       : product.effectiveStockQuantity ?? product.stockQuantity
     : undefined;
@@ -341,9 +339,9 @@ export default function ProductDetails() {
       productId: product.id,
       quantity,
       storeId: effectiveStoreId,
-      variantId: productHasVariants ? selectedVariantId : null,
+      variantId: selectedVariant?.id || null,
       productSnapshot: buildProductSnapshot(product, {
-        variant: productHasVariants ? selectedVariant : null,
+        variant: selectedVariant,
       }),
       debugSource: "product-details-page-main",
     });
@@ -352,13 +350,17 @@ export default function ProductDetails() {
   const handleRelatedAddToCart = (relatedProduct) => {
     if (isOwnerPreview || !effectiveStoreId || !relatedProduct?.id) return;
 
+    const relatedVariant = getProductDisplayVariant(relatedProduct);
+
     relatedAddToCartUi.markBusy(relatedProduct.id);
     addToCartMutation.mutate({
       productId: relatedProduct.id,
       quantity: 1,
       storeId: effectiveStoreId,
-      variantId: null,
-      productSnapshot: buildProductSnapshot(relatedProduct),
+      variantId: relatedVariant?.id || null,
+      productSnapshot: buildProductSnapshot(relatedProduct, {
+        variant: relatedVariant,
+      }),
       debugSource: "product-details-page-related",
     });
   };
@@ -550,7 +552,7 @@ export default function ProductDetails() {
                   color="text.secondary"
                   className="page-product-details__lead"
                 >
-                  {product.shortDescription || product.description || ""}
+                  {selectedShortDescription}
                 </Typography>
               </Box>
 
@@ -694,7 +696,7 @@ export default function ProductDetails() {
                 </Stack>
               </Box>
 
-              {product.description && product.description !== product.shortDescription ? (
+              {product.description ? (
                 <>
                   <Divider />
                   <Box className="page-product-details__description">

@@ -334,8 +334,43 @@ export function isProductActive(product) {
   return firstNumber(product?.status, product?.Status, 1) === 1;
 }
 
-export function getProductDisplayPrice(product) {
+export function getActiveProductVariants(product) {
+  return (Array.isArray(product?.variants) ? product.variants : [])
+    .filter((variant) => variant?.isActive !== false)
+    .sort((left, right) => {
+      if (left?.isDefault !== right?.isDefault) {
+        return Number(Boolean(right?.isDefault)) - Number(Boolean(left?.isDefault));
+      }
+
+      return Number(left?.sortOrder ?? 0) - Number(right?.sortOrder ?? 0);
+    });
+}
+
+export function getProductDisplayVariant(product) {
+  const variants = getActiveProductVariants(product);
+
+  if (!variants.length) {
+    return null;
+  }
+
+  const defaultVariantId = firstString(product?.defaultVariantId, product?.DefaultVariantId);
+  const backendDefault = defaultVariantId
+    ? variants.find((variant) => String(variant.id) === String(defaultVariantId))
+    : null;
+
+  return backendDefault || variants.find((variant) => variant.isDefault) || variants[0] || null;
+}
+
+function getProductBaseDisplayPrice(product) {
   return firstNumber(product?.finalPrice, product?.FinalPrice, product?.price, product?.Price);
+}
+
+export function getProductDisplayPrice(product) {
+  const defaultVariant = getProductDisplayVariant(product);
+
+  return defaultVariant
+    ? getVariantEffectivePrice(defaultVariant, product)
+    : getProductBaseDisplayPrice(product);
 }
 
 export function getProductOriginalPrice(product) {
@@ -349,10 +384,14 @@ export function getProductOriginalPrice(product) {
 }
 
 export function getProductComparePrice(product) {
-  return firstNumber(product?.compareAtPrice, product?.CompareAtPrice);
+  const defaultVariant = getProductDisplayVariant(product);
+
+  return defaultVariant
+    ? getVariantEffectiveComparePrice(defaultVariant, product)
+    : firstNumber(product?.compareAtPrice, product?.CompareAtPrice);
 }
 
-export function getProductImage(product) {
+function getProductBaseImage(product) {
   return firstString(
     product?.thumbnailUrl,
     product?.ThumbnailUrl,
@@ -361,6 +400,14 @@ export function getProductImage(product) {
     product?.images?.find?.((image) => image?.isPrimary)?.url,
     product?.images?.[0]?.url,
   );
+}
+
+export function getProductImage(product) {
+  const defaultVariant = getProductDisplayVariant(product);
+
+  return defaultVariant
+    ? getVariantEffectiveImage(defaultVariant, product)
+    : getProductBaseImage(product);
 }
 
 export function getVariantAttributeLabel(variant) {
@@ -384,7 +431,7 @@ export function getVariantEffectivePrice(variant, product) {
     variant?.Price,
     variant?.priceOverride,
     variant?.PriceOverride,
-    getProductDisplayPrice(product),
+    getProductBaseDisplayPrice(product),
   );
 }
 
@@ -406,17 +453,27 @@ export function getVariantEffectiveImage(variant, product) {
     variant?.imageUrl,
     variant?.ImageUrl,
     variant?.images?.[0]?.url,
-    getProductImage(product),
+    getProductBaseImage(product),
   );
 }
 
 export function isProductInStock(product, variant = null) {
   if (variant) {
+    if (product?.trackInventory === false || product?.TrackInventory === false) {
+      return true;
+    }
+
     const variantStockQuantity = firstNumber(variant?.stockQuantity, variant?.StockQuantity);
     return toBoolean(
       variant?.isInStock ?? variant?.IsInStock,
       variantStockQuantity > 0,
     );
+  }
+
+  const defaultVariant = getProductDisplayVariant(product);
+
+  if (defaultVariant) {
+    return isProductInStock(product, defaultVariant);
   }
 
   return toBoolean(

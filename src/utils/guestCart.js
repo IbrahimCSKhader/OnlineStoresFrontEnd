@@ -4,6 +4,7 @@ import {
   getVariantEffectiveImage,
   getVariantEffectivePrice,
   getProductDisplayPrice,
+  getProductDisplayVariant,
   getProductImage,
   isProductInStock,
 } from "./products.js";
@@ -250,7 +251,7 @@ export function clearAllGuestCarts() {
 }
 
 export function buildProductSnapshot(product, options = {}) {
-  const variant = options.variant || null;
+  const variant = options.variant || getProductDisplayVariant(product);
   const unitPrice = variant
     ? getVariantEffectivePrice(variant, product)
     : getProductDisplayPrice(product);

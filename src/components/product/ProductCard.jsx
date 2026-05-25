@@ -12,6 +12,7 @@ import { formatCurrency } from "../../utils/formatCurrency.js";
 import {
   getProductComparePrice,
   getProductDisplayPrice,
+  getProductDisplayVariant,
   getProductImage,
   getProductOriginalPrice,
   isProductInStock,
@@ -36,6 +37,7 @@ function ProductCard({
 }) {
   const location = useLocation();
   const normalizedProduct = normalizeProductDto(product);
+  const displayVariant = getProductDisplayVariant(normalizedProduct);
   const image = resolveAssetUrl(getProductImage(normalizedProduct));
   const price = getProductDisplayPrice(normalizedProduct);
   const comparePrice = getProductComparePrice(normalizedProduct);
@@ -73,7 +75,13 @@ function ProductCard({
     : undefined;
   const categoryLabel =
     normalizedProduct.categoryName || normalizedProduct.sectionName || "";
-  const stockQuantity = Number(normalizedProduct.stockQuantity ?? 0);
+  const stockQuantity = displayVariant
+    ? Number(displayVariant.stockQuantity ?? 0)
+    : Number(normalizedProduct.effectiveStockQuantity ?? normalizedProduct.stockQuantity ?? 0);
+  const cardDescription =
+    displayVariant?.description ||
+    normalizedProduct.shortDescription ||
+    "";
   const availabilityLabel = isAvailable
     ? normalizedProduct.trackInventory && stockQuantity > 0
       ? `متوفر ${stockQuantity}`
@@ -190,8 +198,7 @@ function ProductCard({
               color="text.secondary"
               className="product-card__description"
             >
-              {normalizedProduct.shortDescription ||
-                normalizedProduct.description ||
+              {cardDescription ||
                 "قطعة واضحة التفاصيل مع صورة تركز على المنتج نفسه."}
             </Typography>
 

@@ -279,6 +279,7 @@ function buildVariantDraft(sortOrder = 0) {
     stockQuantity: "0",
     imageUrl: "",
     imageFile: null,
+    imageFiles: [],
     images: [],
     effectiveImageUrl: "",
     sortOrder: String(sortOrder),
@@ -314,6 +315,11 @@ function normalizeVariantFormValue(variant, index = 0) {
       variant?.ImageUrl ||
       "",
     imageFile: variant?.imageFile || null,
+    imageFiles: Array.isArray(variant?.imageFiles)
+      ? variant.imageFiles
+      : variant?.imageFile
+        ? [variant.imageFile]
+        : [],
     images: Array.isArray(variant?.images)
       ? variant.images
       : Array.isArray(variant?.Images)
@@ -347,6 +353,7 @@ function isVariantDraftEmpty(variant) {
     variant?.price,
     variant?.compareAtPrice,
     variant?.imageFile,
+    ...(Array.isArray(variant?.imageFiles) ? variant.imageFiles : []),
   ].some((value) => String(value ?? "").trim()) &&
     (!stockValue || stockValue === "0");
 }
@@ -378,7 +385,7 @@ function buildVariantPayload(variant) {
 
 function appendImageToVariant(variant, image) {
   if (!image) {
-    return { ...variant, imageFile: null };
+    return { ...variant, imageFile: null, imageFiles: [] };
   }
 
   const nextImages = [...getVariantImages(variant), image];
@@ -386,6 +393,7 @@ function appendImageToVariant(variant, image) {
   return {
     ...variant,
     imageFile: null,
+    imageFiles: [],
     images: nextImages,
     effectiveImageUrl: variant.effectiveImageUrl || image.url || "",
   };
@@ -1000,14 +1008,20 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     const previews = {};
 
     productForm.variants.forEach((variant, index) => {
-      if (!variant?.imageFile) {
+      const files = Array.isArray(variant?.imageFiles)
+        ? variant.imageFiles
+        : variant?.imageFile
+          ? [variant.imageFile]
+          : [];
+
+      if (!files.length) {
         return;
       }
 
-      previews[getVariantFormKey(variant, index)] = {
-        name: variant.imageFile.name,
-        url: URL.createObjectURL(variant.imageFile),
-      };
+      previews[getVariantFormKey(variant, index)] = files.map((file) => ({
+        name: file.name,
+        url: URL.createObjectURL(file),
+      }));
     });
 
     return previews;
@@ -1021,9 +1035,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   );
   useEffect(
     () => () => {
-      Object.values(variantImagePreviews).forEach((image) =>
-        URL.revokeObjectURL(image.url),
-      );
+      Object.values(variantImagePreviews)
+        .flat()
+        .forEach((image) => URL.revokeObjectURL(image.url));
     },
     [variantImagePreviews],
   );
@@ -1674,23 +1688,66 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     }));
   };
 
-  const handleVariantImageFileChange = (index, file) => {
-    if (!file) {
+  const handleVariantImageFileChange = (index, files) => {
+    const selectedFiles = Array.isArray(files)
+      ? files
+      : files
+        ? [files]
+        : [];
+
+    if (!selectedFiles.length) {
       handleVariantFormChange(index, "imageFile", null);
+      handleVariantFormChange(index, "imageFiles", []);
       return;
     }
 
-    if (!isValidImageFile(file)) {
+    if (selectedFiles.some((file) => !isValidImageFile(file))) {
       setProductFormError(IMAGE_FILE_ERROR);
       return;
     }
 
     setProductFormError("");
-    handleVariantFormChange(index, "imageFile", file);
+    setProductForm((previous) => ({
+      ...previous,
+      variants: previous.variants.map((variant, currentIndex) =>
+        currentIndex === index
+          ? {
+              ...variant,
+              imageFile: selectedFiles[0] || null,
+              imageFiles: [
+                ...(Array.isArray(variant.imageFiles) ? variant.imageFiles : []),
+                ...selectedFiles,
+              ],
+            }
+          : variant,
+      ),
+    }));
   };
 
-  const handleRemoveVariantImageFile = (index) => {
-    handleVariantFormChange(index, "imageFile", null);
+  const handleRemoveVariantImageFile = (index, fileIndex = null) => {
+    setProductForm((previous) => ({
+      ...previous,
+      variants: previous.variants.map((variant, currentIndex) => {
+        if (currentIndex !== index) {
+          return variant;
+        }
+
+        const files = Array.isArray(variant.imageFiles)
+          ? variant.imageFiles
+          : variant.imageFile
+            ? [variant.imageFile]
+            : [];
+        const nextFiles = fileIndex === null
+          ? []
+          : files.filter((_, currentFileIndex) => currentFileIndex !== fileIndex);
+
+        return {
+          ...variant,
+          imageFile: nextFiles[0] || null,
+          imageFiles: nextFiles,
+        };
+      }),
+    }));
   };
 
   const handleRemoveVariantRow = async (index) => {
@@ -1753,7 +1810,20 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             payload,
             localId: variant.localId,
           });
-      const normalizedVariant = normalizeVariantFormValue(savedVariant, index);
+      let normalizedVariant = normalizeVariantFormValue(savedVariant, index);
+      const pendingVariantImages = Array.isArray(variant.imageFiles)
+        ? variant.imageFiles
+        : variant.imageFile
+          ? [variant.imageFile]
+          : [];
+
+      if (pendingVariantImages.length && normalizedVariant.id) {
+        normalizedVariant = await uploadVariantImages({
+          productId: productForm.id,
+          variant: normalizedVariant,
+          files: pendingVariantImages,
+        });
+      }
 
       setProductForm((previous) => ({
         ...previous,
@@ -1763,23 +1833,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             : item,
         ),
       }));
-
-      if (variant.imageFile && normalizedVariant.id) {
-        const uploadedImage = await uploadVariantImage({
-          productId: productForm.id,
-          variant: normalizedVariant,
-          file: variant.imageFile,
-        });
-
-        setProductForm((previous) => ({
-          ...previous,
-          variants: previous.variants.map((item) =>
-            item.id === normalizedVariant.id
-              ? appendImageToVariant(item, uploadedImage)
-              : item,
-          ),
-        }));
-      }
     } catch {
       // Error is surfaced through the shared error alert.
     }
@@ -1892,6 +1945,27 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     });
   };
 
+  const uploadVariantImages = async ({ productId, variant, files }) => {
+    const selectedFiles = Array.isArray(files) ? files : [];
+    let nextVariant = variant;
+
+    for (const file of selectedFiles) {
+      const uploadedImage = await uploadVariantImage({
+        productId,
+        variant: nextVariant,
+        file,
+      });
+
+      nextVariant = appendImageToVariant(nextVariant, uploadedImage);
+    }
+
+    return {
+      ...nextVariant,
+      imageFile: null,
+      imageFiles: [],
+    };
+  };
+
   const handleSubmitProduct = async (event) => {
     event.preventDefault();
 
@@ -1923,7 +1997,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       .filter((variant) => !variant.id && !isVariantDraftEmpty(variant))
       .map(buildVariantPayload);
     const variantDraftsWithImages = productForm.variants.filter(
-      (variant) => !variant.id && !isVariantDraftEmpty(variant) && variant.imageFile,
+      (variant) =>
+        !variant.id &&
+        !isVariantDraftEmpty(variant) &&
+        (Array.isArray(variant.imageFiles)
+          ? variant.imageFiles.length
+          : Boolean(variant.imageFile)),
     );
     const invalidVariant = variantPayloads.find((variant) => !variant.Name);
 
@@ -1971,14 +2050,20 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         }
 
         for (const variant of productForm.variants) {
-          if (!variant.id || !variant.imageFile) {
+          const pendingVariantImages = Array.isArray(variant.imageFiles)
+            ? variant.imageFiles
+            : variant.imageFile
+              ? [variant.imageFile]
+              : [];
+
+          if (!variant.id || !pendingVariantImages.length) {
             continue;
           }
 
-          await uploadVariantImage({
+          await uploadVariantImages({
             productId: productForm.id,
             variant,
-            file: variant.imageFile,
+            files: pendingVariantImages,
           });
         }
 
@@ -2036,10 +2121,16 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
           usedVariantIds.add(String(createdVariant.id));
 
-          await uploadVariantImage({
+          const pendingVariantImages = Array.isArray(draftVariant.imageFiles)
+            ? draftVariant.imageFiles
+            : draftVariant.imageFile
+              ? [draftVariant.imageFile]
+              : [];
+
+          await uploadVariantImages({
             productId: createdProductId,
             variant: createdVariant,
-            file: draftVariant.imageFile,
+            files: pendingVariantImages,
           });
         }
       }
