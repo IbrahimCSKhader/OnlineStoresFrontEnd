@@ -64,6 +64,7 @@ export const endpoints = {
     visit: (id) => withPrefix(`/Product/${id}/visit`),
     visitCount: (id) => withPrefix(`/Product/${id}/visit-count`),
     createVariant: (productId) => withPrefix(`/Product/${productId}/variant`),
+    updateVariant: (variantId) => withPrefix(`/Product/variant/${variantId}`),
     deleteVariant: (variantId) => withPrefix(`/Product/variant/${variantId}`),
     uploadImage: withPrefix("/Product/image"),
     deleteImage: (imageId) => withPrefix(`/Product/image/${imageId}`),

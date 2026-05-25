@@ -253,7 +253,6 @@ export default function ProductForm({
             <Box className="owner-variants__list">
               {variants.map((variant, index) => {
                 const isExistingVariant = Boolean(variant.id);
-                const isReadOnly = isEdit && isExistingVariant;
                 const variantKey = getVariantFormKey(variant, index);
                 const variantPreview = variantImagePreviews[variantKey];
                 const variantImages = getVariantImages(variant);
@@ -271,8 +270,18 @@ export default function ProductForm({
                       label="اسم النسخة"
                       value={variant.name || ""}
                       size="small"
-                      disabled={isReadOnly}
                       onChange={(event) => onChangeVariant(index, "name", event.target.value)}
+                    />
+                    <TextField
+                      label="وصف الصنف"
+                      value={variant.description || ""}
+                      size="small"
+                      multiline
+                      minRows={2}
+                      className="owner-variant-description"
+                      onChange={(event) =>
+                        onChangeVariant(index, "description", event.target.value)
+                      }
                     />
                     <TextField
                       label="السعر الاختياري"
@@ -280,7 +289,6 @@ export default function ProductForm({
                       size="small"
                       type="number"
                       inputProps={{ min: 0, step: "0.01" }}
-                      disabled={isReadOnly}
                       onChange={(event) => onChangeVariant(index, "price", event.target.value)}
                     />
                     <TextField
@@ -289,7 +297,6 @@ export default function ProductForm({
                       size="small"
                       type="number"
                       inputProps={{ min: 0, step: "0.01" }}
-                      disabled={isReadOnly}
                       onChange={(event) => onChangeVariant(index, "compareAtPrice", event.target.value)}
                     />
                     <TextField
@@ -298,7 +305,6 @@ export default function ProductForm({
                       size="small"
                       type="number"
                       inputProps={{ min: 0, step: "1" }}
-                      disabled={isReadOnly}
                       onChange={(event) => onChangeVariant(index, "stockQuantity", event.target.value)}
                     />
                     <Box className="owner-variant-image">
@@ -372,20 +378,19 @@ export default function ProductForm({
                       size="small"
                       type="number"
                       inputProps={{ min: 0, step: "1" }}
-                      disabled={isReadOnly}
                       onChange={(event) => onChangeVariant(index, "sortOrder", event.target.value)}
                     />
                     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                      {isEdit && !isExistingVariant ? (
+                      {isEdit ? (
                         <AppButton
                           type="button"
                           size="small"
                           variant="contained"
                           startIcon={<SaveRoundedIcon fontSize="small" />}
-                          loading={variantActionLoading === variant.localId}
+                          loading={variantActionLoading === (variant.id || variant.localId)}
                           onClick={() => onSaveVariant(index)}
                         >
-                          حفظ النسخة
+                          {isExistingVariant ? "حفظ تعديل الصنف" : "حفظ الصنف"}
                         </AppButton>
                       ) : null}
                       <AppButton

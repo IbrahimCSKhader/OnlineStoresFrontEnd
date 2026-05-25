@@ -23,6 +23,7 @@ import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import SellRoundedIcon from "@mui/icons-material/SellRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
@@ -58,6 +59,7 @@ import useDeleteProduct from "../../hooks/products/useDeleteProduct.js";
 import useDeleteProductImage from "../../hooks/products/useDeleteProductImage.js";
 import useProducts from "../../hooks/products/useProducts.js";
 import useUpdateProduct from "../../hooks/products/useUpdateProduct.js";
+import useUpdateVariant from "../../hooks/products/useUpdateVariant.js";
 import useUploadProductImage from "../../hooks/products/useUploadProductImage.js";
 import useCreateSection from "../../hooks/sections/useCreateSection.js";
 import useSections from "../../hooks/sections/useSections.js";
@@ -271,6 +273,7 @@ function buildVariantDraft(sortOrder = 0) {
     localId: `variant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: "",
     sku: "",
+    description: "",
     price: "",
     compareAtPrice: "",
     stockQuantity: "0",
@@ -289,6 +292,7 @@ function normalizeVariantFormValue(variant, index = 0) {
     localId: variant?.localId || "",
     name: variant?.name || variant?.Name || "",
     sku: variant?.sku || variant?.SKU || "",
+    description: variant?.description || variant?.Description || "",
     price:
       variant?.price !== undefined && variant?.price !== null
         ? String(variant.price)
@@ -318,7 +322,17 @@ function normalizeVariantFormValue(variant, index = 0) {
     sortOrder: String(variant?.sortOrder ?? variant?.SortOrder ?? index),
     attributeValueIds: Array.isArray(variant?.attributeValueIds)
       ? variant.attributeValueIds
-      : [],
+      : Array.isArray(variant?.AttributeValueIds)
+        ? variant.AttributeValueIds
+        : Array.isArray(variant?.attributeValues)
+          ? variant.attributeValues
+              .map((item) => item?.attributeValueId || item?.AttributeValueId)
+              .filter(Boolean)
+          : Array.isArray(variant?.AttributeValues)
+            ? variant.AttributeValues
+                .map((item) => item?.attributeValueId || item?.AttributeValueId)
+                .filter(Boolean)
+            : [],
     isDefault: Boolean(variant?.isDefault ?? variant?.IsDefault),
     isActive: (variant?.isActive ?? variant?.IsActive) !== false,
   };
@@ -329,6 +343,7 @@ function isVariantDraftEmpty(variant) {
 
   return ![
     variant?.name,
+    variant?.description,
     variant?.price,
     variant?.compareAtPrice,
     variant?.imageFile,
@@ -339,15 +354,18 @@ function isVariantDraftEmpty(variant) {
 function buildVariantPayload(variant) {
   return {
     Name: String(variant?.name || "").trim(),
+    SKU: String(variant?.sku || "").trim() || null,
+    Description: String(variant?.description || "").trim() || null,
     Price:
       String(variant?.price ?? "").trim() !== ""
         ? Number(variant.price)
-        : undefined,
+        : null,
     CompareAtPrice:
       String(variant?.compareAtPrice ?? "").trim() !== ""
         ? Number(variant.compareAtPrice)
-        : undefined,
+        : null,
     StockQuantity: Number(variant?.stockQuantity || 0),
+    ImageUrl: String(variant?.imageUrl || "").trim() || null,
     SortOrder:
       String(variant?.sortOrder ?? "").trim() !== ""
         ? Number(variant.sortOrder)
@@ -917,6 +935,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const uploadProductImageMutation = useUploadProductImage(storeId);
   const deleteProductImageMutation = useDeleteProductImage(storeId);
   const addVariantMutation = useAddVariant(storeId);
+  const updateVariantMutation = useUpdateVariant(storeId);
   const deleteVariantMutation = useDeleteVariant(storeId);
 
   const createCategoryMutation = useCreateCategory(storeId);
@@ -1240,6 +1259,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const pendingOrdersCount = ordersAll.filter(
     (item) => Number(item.status) === 0,
   ).length;
+  const storeVisitCount = Number(store?.visitCount ?? store?.VisitCount ?? 0);
   const overviewStats = [
     {
       label: "المنتجات المنشورة",
@@ -1261,6 +1281,13 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       help: "شجرة الكاتيجوريز الحالية",
       icon: <CategoryRoundedIcon fontSize="small" />,
       tone: "neutral",
+    },
+    {
+      label: "زيارات المتجر",
+      value: formatUiNumber(storeVisitCount),
+      help: "عدد مرات فتح رابط المتجر",
+      icon: <VisibilityRoundedIcon fontSize="small" />,
+      tone: "cool",
     },
   ];
 
@@ -1305,6 +1332,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     uploadProductImageMutation.error,
     deleteProductImageMutation.error,
     addVariantMutation.error,
+    updateVariantMutation.error,
     deleteVariantMutation.error,
     createCategoryMutation.error,
     updateCategoryMutation.error,
@@ -1714,11 +1742,17 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
     try {
       setProductFormError("");
-      const savedVariant = await addVariantMutation.mutateAsync({
-        productId: productForm.id,
-        payload,
-        localId: variant.localId,
-      });
+      const savedVariant = variant.id
+        ? await updateVariantMutation.mutateAsync({
+            variantId: variant.id,
+            productId: productForm.id,
+            payload,
+          })
+        : await addVariantMutation.mutateAsync({
+            productId: productForm.id,
+            payload,
+            localId: variant.localId,
+          });
       const normalizedVariant = normalizeVariantFormValue(savedVariant, index);
 
       setProductForm((previous) => ({
@@ -2493,6 +2527,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               loading={
                 createProductMutation.isPending ||
                 updateProductMutation.isPending ||
+                updateVariantMutation.isPending ||
                 uploadProductImageMutation.isPending
               }
               categories={categoryOptions}
@@ -2525,9 +2560,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               variantActionLoading={
                 addVariantMutation.isPending
                   ? addVariantMutation.variables?.localId
-                  : deleteVariantMutation.isPending
-                    ? deleteVariantMutation.variables?.variantId
-                    : null
+                  : updateVariantMutation.isPending
+                    ? updateVariantMutation.variables?.variantId
+                    : deleteVariantMutation.isPending
+                      ? deleteVariantMutation.variables?.variantId
+                      : null
               }
               onReset={resetProductForm}
               onSubmit={handleSubmitProduct}
@@ -2644,6 +2681,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         </Typography>
                       </Stack>
                     ),
+                  },
+                  {
+                    key: "visitCount",
+                    title: "الزيارات",
+                    render: (row) => formatUiNumber(row.visitCount ?? 0),
                   },
                   { key: "stockQuantity", title: "المخزون" },
                   {

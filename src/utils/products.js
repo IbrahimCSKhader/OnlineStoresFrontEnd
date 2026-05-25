@@ -143,6 +143,7 @@ export function normalizeProductVariantDto(variant, index = 0) {
     id: firstString(entity?.id, entity?.Id, `variant-${index + 1}`),
     name: firstString(entity?.name, entity?.Name, `خيار ${index + 1}`),
     sku: firstString(entity?.sku, entity?.SKU),
+    description: firstString(entity?.description, entity?.Description),
     price,
     compareAtPrice,
     effectivePrice,

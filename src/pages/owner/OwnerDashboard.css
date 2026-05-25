@@ -301,6 +301,10 @@
   gap: 0.55rem;
 }
 
+.owner-variant-description {
+  grid-column: 1 / -1;
+}
+
 .owner-variant-image__row {
   display: grid;
   grid-template-columns: 76px minmax(0, 1fr);

@@ -94,6 +94,8 @@ export const productApi = {
     axiosInstance.get(endpoints.products.visitCount(id)),
   createVariant: (productId, payload) =>
     axiosInstance.post(endpoints.products.createVariant(productId), payload),
+  updateVariant: (variantId, payload) =>
+    axiosInstance.put(endpoints.products.updateVariant(variantId), payload),
   deleteVariant: (variantId) =>
     axiosInstance.delete(endpoints.products.deleteVariant(variantId)),
   uploadProductImage: (payload) =>
