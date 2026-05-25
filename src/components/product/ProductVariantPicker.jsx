@@ -2,10 +2,12 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import {
   getVariantAttributeLabel,
   getVariantEffectiveComparePrice,
+  getVariantEffectiveImage,
   getVariantEffectivePrice,
 } from "../../utils/products.js";
 
@@ -30,7 +32,7 @@ export default function ProductVariantPicker({
   return (
     <Box className="product-variants">
       <Typography variant="subtitle1" className="product-details__block-title">
-        الخيارات المتاحة
+        الأصناف المتاحة
       </Typography>
 
       <Box className="product-variants__grid">
@@ -42,6 +44,7 @@ export default function ProductVariantPicker({
           const compareAtPrice = getVariantEffectiveComparePrice(variant, product);
           const hasCompareAtPrice = compareAtPrice > price;
           const attributesLabel = getVariantAttributeLabel(variant);
+          const imageUrl = resolveAssetUrl(getVariantEffectiveImage(variant, product));
           const handleClick = () => {
             if (!isAvailable) {
               return;
@@ -60,46 +63,67 @@ export default function ProductVariantPicker({
               aria-pressed={isActive}
               aria-disabled={!isAvailable}
             >
-              <Stack spacing={0.65}>
-                <Stack direction="row" justifyContent="space-between" gap={1}>
-                  <Typography variant="subtitle2">{variant.name}</Typography>
-                  <Chip
-                    size="small"
-                    label={
-                      isAvailable
-                        ? `${variant.stockQuantity ?? 0} متوفر`
-                        : "غير متوفر"
-                    }
-                    variant="outlined"
-                  />
-                </Stack>
+              <Stack
+                direction="row"
+                spacing={1.25}
+                className="product-variants__item-content"
+              >
+                <Box className="product-variants__thumb">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={variant.name || product?.name || "صنف"}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">
+                      صورة
+                    </Typography>
+                  )}
+                </Box>
 
-                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                  <Typography variant="body2" color="text.secondary">
-                    {formatCurrency(price)}
-                  </Typography>
-                  {hasCompareAtPrice ? (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ textDecoration: "line-through" }}
-                    >
-                      {formatCurrency(compareAtPrice)}
+                <Stack spacing={0.65} className="product-variants__meta">
+                  <Stack direction="row" justifyContent="space-between" gap={1}>
+                    <Typography variant="subtitle2">{variant.name}</Typography>
+                    <Chip
+                      size="small"
+                      label={
+                        isAvailable
+                          ? `${variant.stockQuantity ?? 0} متوفر`
+                          : "غير متوفر"
+                      }
+                      variant="outlined"
+                    />
+                  </Stack>
+
+                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                    <Typography variant="body2" color="text.secondary">
+                      {formatCurrency(price)}
+                    </Typography>
+                    {hasCompareAtPrice ? (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ textDecoration: "line-through" }}
+                      >
+                        {formatCurrency(compareAtPrice)}
+                      </Typography>
+                    ) : null}
+                  </Stack>
+
+                  {attributesLabel ? (
+                    <Typography variant="body2" color="text.secondary">
+                      {attributesLabel}
+                    </Typography>
+                  ) : null}
+
+                  {variant.sku ? (
+                    <Typography variant="body2" color="text.secondary">
+                      SKU: {variant.sku}
                     </Typography>
                   ) : null}
                 </Stack>
-
-                {attributesLabel ? (
-                  <Typography variant="body2" color="text.secondary">
-                    {attributesLabel}
-                  </Typography>
-                ) : null}
-
-                {variant.sku ? (
-                  <Typography variant="body2" color="text.secondary">
-                    SKU: {variant.sku}
-                  </Typography>
-                ) : null}
               </Stack>
             </button>
           );
