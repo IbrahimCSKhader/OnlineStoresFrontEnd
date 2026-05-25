@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import AppButton from "../common/buttons/AppButton.jsx";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import {
@@ -15,6 +16,8 @@ export default function ProductVariantPicker({
   variants,
   selectedVariantId,
   product,
+  allowClear = false,
+  onClear,
   onChange,
 }) {
   if (!variants?.length) {
@@ -31,9 +34,21 @@ export default function ProductVariantPicker({
 
   return (
     <Box className="product-variants">
-      <Typography variant="subtitle1" className="product-details__block-title">
-        الأصناف المتاحة
-      </Typography>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="space-between"
+        gap={1}
+      >
+        <Typography variant="subtitle1" className="product-details__block-title">
+          الأصناف المتاحة
+        </Typography>
+        {allowClear ? (
+          <AppButton type="button" variant="text" size="small" onClick={onClear}>
+            عرض صور المنتج
+          </AppButton>
+        ) : null}
+      </Stack>
 
       <Box className="product-variants__grid">
         {activeVariants.map((variant) => {

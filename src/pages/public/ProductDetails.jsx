@@ -42,7 +42,6 @@ import {
   getProductOriginalPrice,
   getVariantAttributeLabel,
   getVariantEffectiveComparePrice,
-  getVariantEffectiveImage,
   getVariantEffectivePrice,
   isProductActive,
   isProductInStock,
@@ -80,24 +79,18 @@ function getProductImagesForVariant(product, variant) {
   }
 
   const variantImages = Array.isArray(variant.images) ? variant.images : [];
-  const effectiveImageUrl = getVariantEffectiveImage(variant, product);
   const mergedImages = [];
+  const directVariantImageUrl = variant.imageUrl || variant.ImageUrl || "";
 
-  if (effectiveImageUrl) {
+  if (directVariantImageUrl) {
     mergedImages.push({
-      id: `variant-effective-${variant.id}`,
-      url: effectiveImageUrl,
+      id: `variant-primary-${variant.id}`,
+      url: directVariantImageUrl,
       altText: `${product?.name || ""} ${variant.name || ""}`.trim(),
     });
   }
 
   variantImages.forEach((image) => {
-    if (!mergedImages.some((item) => item.url && item.url === image.url)) {
-      mergedImages.push(image);
-    }
-  });
-
-  productImages.forEach((image) => {
     if (!mergedImages.some((item) => item.url && item.url === image.url)) {
       mergedImages.push(image);
     }
@@ -180,6 +173,11 @@ export default function ProductDetails() {
     Boolean(product?.hasVariants) ||
     variants.length > 1 ||
     variants.some((variant) => variant.isActive !== false && !variant.isDefault);
+  const selectableVariants = useMemo(() => {
+    const ownerVariants = variants.filter((variant) => !variant.isDefault);
+
+    return productHasVariants && ownerVariants.length ? ownerVariants : variants;
+  }, [productHasVariants, variants]);
   const defaultVariantId = useMemo(() => {
     if (!variants.length) {
       return "";
@@ -197,20 +195,27 @@ export default function ProductDetails() {
   const quantity = uiState.productId === product?.id ? uiState.quantity : 1;
   const selectedVariantId =
     uiState.productId === product?.id &&
-    variants.some((item) => String(item.id) === String(uiState.selectedVariantId))
+    (productHasVariants ? selectableVariants : variants).some(
+      (item) => String(item.id) === String(uiState.selectedVariantId),
+    )
       ? uiState.selectedVariantId
-      : defaultVariantId;
+      : productHasVariants
+        ? ""
+        : defaultVariantId;
   const selectedVariant =
-    variants.find((item) => String(item.id) === String(selectedVariantId)) || null;
+    (productHasVariants ? selectableVariants : variants).find(
+      (item) => String(item.id) === String(selectedVariantId),
+    ) || null;
   const selectedShortDescription =
-    selectedVariant?.description ||
-    product?.shortDescription ||
-    "";
+    selectedVariant?.description || product?.shortDescription || "";
   const images = useMemo(
-    () => getProductImagesForVariant(product, selectedVariant),
-    [product, selectedVariant],
+    () => getProductImagesForVariant(product, productHasVariants ? selectedVariant : null),
+    [product, productHasVariants, selectedVariant],
   );
-  const productDisplayPrice = getProductDisplayPrice(product);
+  const baseDisplayPrice = Number(product?.finalPrice ?? product?.price ?? 0);
+  const productDisplayPrice = productHasVariants
+    ? baseDisplayPrice
+    : getProductDisplayPrice(product);
   const displayPrice =
     selectedVariant
       ? getVariantEffectivePrice(selectedVariant, product)
@@ -218,7 +223,9 @@ export default function ProductDetails() {
   const comparePrice =
     selectedVariant
       ? getVariantEffectiveComparePrice(selectedVariant, product)
-      : getProductComparePrice(product);
+      : productHasVariants
+        ? Number(product?.compareAtPrice ?? 0)
+        : getProductComparePrice(product);
   const originalPrice = getProductOriginalPrice(product);
   const hasComparePrice = comparePrice > Number(displayPrice);
   const hasOriginalPrice =
@@ -229,13 +236,23 @@ export default function ProductDetails() {
   const selectedVariantAttributes = getVariantAttributeLabel(selectedVariant);
   const selectedSku =
     selectedVariant?.sku ? selectedVariant.sku : product?.sku;
+  const selectableStockQuantity = selectableVariants.reduce(
+    (sum, variant) => sum + Number(variant.stockQuantity || 0),
+    0,
+  );
+  const baseStockQuantity =
+    productHasVariants && selectableVariants.length
+      ? selectableStockQuantity
+      : Number(product.effectiveStockQuantity ?? product.stockQuantity ?? 0);
   const isAvailable = selectedVariant
     ? Boolean(selectedVariant) &&
       (!product.trackInventory || isProductInStock(product, selectedVariant))
-    : isProductInStock(product);
+    : productHasVariants
+      ? !product.trackInventory || baseStockQuantity > 0
+      : isProductInStock(product);
   const availableStock = selectedVariant
     ? Number(selectedVariant.stockQuantity ?? 0)
-    : Number(product.effectiveStockQuantity ?? product.stockQuantity ?? 0);
+    : baseStockQuantity;
   const quantityMax = product.trackInventory
     ? selectedVariant
       ? selectedVariant.stockQuantity
@@ -309,7 +326,7 @@ export default function ProductDetails() {
               productId: product.id,
               selectedImageIndex: 0,
               quantity: 1,
-              selectedVariantId: defaultVariantId,
+              selectedVariantId: productHasVariants ? "" : defaultVariantId,
             };
 
       return {
@@ -629,10 +646,24 @@ export default function ProductDetails() {
               <Divider />
 
               <ProductVariantPicker
-                variants={productHasVariants ? variants : []}
+                variants={productHasVariants ? selectableVariants : []}
                 selectedVariantId={selectedVariantId}
                 product={product}
-                onChange={(variantId) => updateUiState({ selectedVariantId: variantId, quantity: 1 })}
+                allowClear={Boolean(selectedVariant)}
+                onClear={() =>
+                  updateUiState({
+                    selectedVariantId: "",
+                    selectedImageIndex: 0,
+                    quantity: 1,
+                  })
+                }
+                onChange={(variantId) =>
+                  updateUiState({
+                    selectedVariantId: variantId,
+                    selectedImageIndex: 0,
+                    quantity: 1,
+                  })
+                }
               />
 
               {productHasVariants && selectedVariant && !isAvailable ? (

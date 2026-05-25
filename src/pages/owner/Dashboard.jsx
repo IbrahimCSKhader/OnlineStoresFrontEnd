@@ -83,9 +83,7 @@ import {
 import { normalizeOrderDetails } from "../../utils/orders.js";
 import {
   getProductComparePrice,
-  getProductDisplayPrice,
   getProductOriginalPrice,
-  isProductInStock,
   normalizeProductDto,
   normalizeProductList,
 } from "../../utils/products.js";
