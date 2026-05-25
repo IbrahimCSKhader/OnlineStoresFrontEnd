@@ -8,6 +8,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import MusicVideoRoundedIcon from "@mui/icons-material/MusicVideoRounded";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import CameraAltRoundedIcon from "@mui/icons-material/CameraAltRounded";
+import YouTubeIcon from "@mui/icons-material/YouTube";
 import {
   buildStoreContactUrl,
   getStoreContactEntries,
@@ -63,6 +64,16 @@ const PLATFORM_VISUALS = {
     cardBorder: "rgba(37, 211, 102, 0.26)",
     cardText: "#ffffff",
     cardMuted: "rgba(255, 255, 255, 0.82)",
+  },
+  YouTube: {
+    icon: <YouTubeIcon fontSize="small" />,
+    color: "#ffffff",
+    accent: "rgba(255, 255, 255, 0.18)",
+    cardBackground:
+      "linear-gradient(135deg, rgba(255, 0, 0, 0.96) 0%, rgba(185, 28, 28, 0.98) 100%)",
+    cardBorder: "rgba(255, 255, 255, 0.24)",
+    cardText: "#ffffff",
+    cardMuted: "rgba(255, 255, 255, 0.84)",
   },
 };
 

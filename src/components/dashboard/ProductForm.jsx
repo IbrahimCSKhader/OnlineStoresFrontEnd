@@ -21,6 +21,28 @@ const PRODUCT_STATUS_OPTIONS = [
   { value: "3", label: "نفد" },
 ];
 
+function getVariantFormKey(variant, index) {
+  return String(variant?.id || variant?.localId || index);
+}
+
+function getVariantImages(variant) {
+  return Array.isArray(variant?.images) ? variant.images : [];
+}
+
+function getVariantDisplayImage(variant, preview) {
+  if (preview?.url) {
+    return preview.url;
+  }
+
+  const images = getVariantImages(variant);
+  return resolveAssetUrl(
+    variant?.effectiveImageUrl ||
+      variant?.imageUrl ||
+      images[0]?.url ||
+      "",
+  );
+}
+
 export default function ProductForm({
   form,
   isEdit,
@@ -41,6 +63,10 @@ export default function ProductForm({
   onRemoveVariant,
   onSaveVariant,
   variantActionLoading,
+  variantImagePreviews = {},
+  variantImageUploadingId,
+  onChangeVariantImageFile,
+  onRemoveVariantImageFile,
   onReset,
   onSubmit,
 }) {
@@ -228,6 +254,16 @@ export default function ProductForm({
               {variants.map((variant, index) => {
                 const isExistingVariant = Boolean(variant.id);
                 const isReadOnly = isEdit && isExistingVariant;
+                const variantKey = getVariantFormKey(variant, index);
+                const variantPreview = variantImagePreviews[variantKey];
+                const variantImages = getVariantImages(variant);
+                const variantImage = getVariantDisplayImage(
+                  variant,
+                  variantPreview,
+                );
+                const isVariantImageUploading =
+                  variantImageUploadingId &&
+                  String(variantImageUploadingId) === String(variant.id);
 
                 return (
                   <Box key={variant.id || variant.localId || index} className="owner-variants__item">
@@ -279,6 +315,71 @@ export default function ProductForm({
                       disabled={isReadOnly}
                       onChange={(event) => onChangeVariant(index, "imageUrl", event.target.value)}
                     />
+                    <Box className="owner-variant-image">
+                      <Typography variant="caption" color="text.secondary">
+                        صورة النسخة
+                      </Typography>
+                      <Box className="owner-variant-image__row">
+                        <Box className="owner-variant-image__preview">
+                          {variantImage ? (
+                            <img
+                              src={variantImage}
+                              alt={variant.name || form.name || "variant"}
+                            />
+                          ) : (
+                            <ImageRoundedIcon fontSize="small" />
+                          )}
+                        </Box>
+                        <Box className="owner-variant-image__controls">
+                          <input
+                            className="owner-form__file owner-variant-image__input"
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.webp"
+                            disabled={isVariantImageUploading}
+                            onChange={(event) => {
+                              onChangeVariantImageFile?.(
+                                index,
+                                event.target.files?.[0] || null,
+                              );
+                              event.target.value = "";
+                            }}
+                          />
+                          {variantPreview ? (
+                            <Stack direction="row" spacing={0.5} alignItems="center">
+                              <Typography variant="caption" color="text.secondary">
+                                {variantPreview.name}
+                              </Typography>
+                              <IconButton
+                                size="small"
+                                color="error"
+                                onClick={() => onRemoveVariantImageFile?.(index)}
+                              >
+                                <DeleteOutlineRoundedIcon fontSize="small" />
+                              </IconButton>
+                            </Stack>
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              اختر صورة واحفظ المنتج
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+
+                      {variantImages.length ? (
+                        <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                          {variantImages.map((image) => (
+                            <Chip
+                              key={image.id || image.url}
+                              size="small"
+                              icon={<ImageRoundedIcon />}
+                              label={image.isPrimary ? "صورة رئيسية" : "صورة محفوظة"}
+                              onDelete={() => onDeleteExistingImage?.(image)}
+                              disabled={deletingImageId === image.id}
+                            />
+                          ))}
+                        </Stack>
+                      ) : null}
+                    </Box>
                     <TextField
                       label="الترتيب"
                       value={variant.sortOrder ?? ""}

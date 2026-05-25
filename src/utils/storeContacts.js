@@ -4,6 +4,7 @@ const STORE_CONTACT_PLATFORMS = {
   Facebook: "Facebook",
   Snapchat: "Snapchat",
   WhatsApp: "WhatsApp",
+  YouTube: "YouTube",
 };
 
 function normalizePlatform(platform) {
@@ -23,6 +24,10 @@ function normalizePlatform(platform) {
     case "whatsapp":
     case "whats app":
       return STORE_CONTACT_PLATFORMS.WhatsApp;
+    case "youtube":
+    case "you tube":
+    case "yt":
+      return STORE_CONTACT_PLATFORMS.YouTube;
     default:
       return "";
   }
@@ -63,6 +68,23 @@ export function normalizeStoreContactUsername(platform, username) {
     return normalizeWhatsAppIdentifier(rawValue);
   }
 
+  if (normalizedPlatform === STORE_CONTACT_PLATFORMS.YouTube) {
+    const youtubeValue = rawValue
+      .replace(/^https?:\/\/(www\.)?/i, "")
+      .replace(/^m\.youtube\.com\//i, "")
+      .replace(/^youtube\.com\//i, "")
+      .replace(/^youtu\.be\//i, "")
+      .split(/[?#]/)[0]
+      .replace(/^\/+|\/+$/g, "")
+      .trim();
+
+    if (/^(channel|c|user)\//i.test(youtubeValue)) {
+      return youtubeValue;
+    }
+
+    return youtubeValue.replace(/^@/, "");
+  }
+
   return rawValue
     .replace(/^https?:\/\/(www\.)?/i, "")
     .replace(/^instagram\.com\//i, "")
@@ -94,6 +116,10 @@ export function buildStoreContactUrl(platform, username) {
       return `https://www.snapchat.com/add/${normalizedUsername}`;
     case STORE_CONTACT_PLATFORMS.WhatsApp:
       return `https://wa.me/${normalizedUsername}`;
+    case STORE_CONTACT_PLATFORMS.YouTube:
+      return /^(channel|c|user)\//i.test(normalizedUsername)
+        ? `https://www.youtube.com/${normalizedUsername}`
+        : `https://www.youtube.com/@${normalizedUsername.replace(/^@/, "")}`;
     default:
       return "";
   }
@@ -109,6 +135,13 @@ export function formatStoreContactValue(platform, username) {
 
   if (normalizedPlatform === STORE_CONTACT_PLATFORMS.WhatsApp) {
     return `+${normalizedUsername}`;
+  }
+
+  if (
+    normalizedPlatform === STORE_CONTACT_PLATFORMS.YouTube &&
+    /^(channel|c|user)\//i.test(normalizedUsername)
+  ) {
+    return normalizedUsername;
   }
 
   return `@${normalizedUsername}`;

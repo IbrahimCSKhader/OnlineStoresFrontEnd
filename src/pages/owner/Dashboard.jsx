@@ -244,6 +244,28 @@ function buildProductForm(defaultCategoryId = "", defaultSectionId = "") {
   };
 }
 
+const IMAGE_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
+const IMAGE_FILE_MAX_SIZE = 5 * 1024 * 1024;
+const IMAGE_FILE_ERROR =
+  "يجب أن تكون الصورة بصيغة JPG أو JPEG أو PNG أو WEBP، وبحجم لا يتجاوز 5MB.";
+
+function isValidImageFile(file) {
+  const fileName = String(file?.name || "").toLowerCase();
+  const isValidExtension = IMAGE_FILE_EXTENSIONS.some((extension) =>
+    fileName.endsWith(extension),
+  );
+
+  return isValidExtension && Number(file?.size || 0) <= IMAGE_FILE_MAX_SIZE;
+}
+
+function getVariantFormKey(variant, index) {
+  return String(variant?.id || variant?.localId || index);
+}
+
+function getVariantImages(variant) {
+  return Array.isArray(variant?.images) ? variant.images : [];
+}
+
 function buildVariantDraft(sortOrder = 0) {
   return {
     localId: `variant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -253,6 +275,9 @@ function buildVariantDraft(sortOrder = 0) {
     compareAtPrice: "",
     stockQuantity: "0",
     imageUrl: "",
+    imageFile: null,
+    images: [],
+    effectiveImageUrl: "",
     sortOrder: String(sortOrder),
     attributeValueIds: [],
   };
@@ -278,6 +303,18 @@ function normalizeVariantFormValue(variant, index = 0) {
           : "",
     stockQuantity: String(variant?.stockQuantity ?? variant?.StockQuantity ?? 0),
     imageUrl: variant?.imageUrl || variant?.ImageUrl || "",
+    effectiveImageUrl:
+      variant?.effectiveImageUrl ||
+      variant?.EffectiveImageUrl ||
+      variant?.imageUrl ||
+      variant?.ImageUrl ||
+      "",
+    imageFile: variant?.imageFile || null,
+    images: Array.isArray(variant?.images)
+      ? variant.images
+      : Array.isArray(variant?.Images)
+        ? variant.Images
+        : [],
     sortOrder: String(variant?.sortOrder ?? variant?.SortOrder ?? index),
     attributeValueIds: Array.isArray(variant?.attributeValueIds)
       ? variant.attributeValueIds
@@ -296,6 +333,7 @@ function isVariantDraftEmpty(variant) {
     variant?.price,
     variant?.compareAtPrice,
     variant?.imageUrl,
+    variant?.imageFile,
   ].some((value) => String(value ?? "").trim()) &&
     (!stockValue || stockValue === "0");
 }
@@ -322,6 +360,54 @@ function buildVariantPayload(variant) {
       ? variant.attributeValueIds
       : [],
   };
+}
+
+function appendImageToVariant(variant, image) {
+  if (!image) {
+    return { ...variant, imageFile: null };
+  }
+
+  const nextImages = [...getVariantImages(variant), image];
+
+  return {
+    ...variant,
+    imageFile: null,
+    images: nextImages,
+    effectiveImageUrl: variant.effectiveImageUrl || image.url || "",
+  };
+}
+
+function findCreatedVariantForDraft(draft, createdVariants, usedVariantIds) {
+  const candidates = createdVariants.filter(
+    (variant) => variant?.id && !usedVariantIds.has(String(variant.id)),
+  );
+  const draftSku = String(draft?.sku || "").trim().toLowerCase();
+  const draftName = String(draft?.name || "").trim().toLowerCase();
+  const draftSortOrder = Number(draft?.sortOrder);
+
+  return (
+    (draftSku &&
+      candidates.find(
+        (variant) => String(variant?.sku || "").trim().toLowerCase() === draftSku,
+      )) ||
+    (draftName &&
+      Number.isFinite(draftSortOrder) &&
+      candidates.find(
+        (variant) =>
+          String(variant?.name || "").trim().toLowerCase() === draftName &&
+          Number(variant?.sortOrder ?? 0) === draftSortOrder,
+      )) ||
+    (draftName &&
+      candidates.find(
+        (variant) => String(variant?.name || "").trim().toLowerCase() === draftName,
+      )) ||
+    (Number.isFinite(draftSortOrder) &&
+      candidates.find(
+        (variant) => Number(variant?.sortOrder ?? 0) === draftSortOrder,
+      )) ||
+    candidates[0] ||
+    null
+  );
 }
 
 function buildCategoryForm() {
@@ -895,12 +981,36 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       })),
     [productForm.newImages],
   );
+  const variantImagePreviews = useMemo(() => {
+    const previews = {};
+
+    productForm.variants.forEach((variant, index) => {
+      if (!variant?.imageFile) {
+        return;
+      }
+
+      previews[getVariantFormKey(variant, index)] = {
+        name: variant.imageFile.name,
+        url: URL.createObjectURL(variant.imageFile),
+      };
+    });
+
+    return previews;
+  }, [productForm.variants]);
 
   useEffect(
     () => () => {
       newImagePreviews.forEach((image) => URL.revokeObjectURL(image.url));
     },
     [newImagePreviews],
+  );
+  useEffect(
+    () => () => {
+      Object.values(variantImagePreviews).forEach((image) =>
+        URL.revokeObjectURL(image.url),
+      );
+    },
+    [variantImagePreviews],
   );
 
   useEffect(() => {
@@ -1540,6 +1650,25 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     }));
   };
 
+  const handleVariantImageFileChange = (index, file) => {
+    if (!file) {
+      handleVariantFormChange(index, "imageFile", null);
+      return;
+    }
+
+    if (!isValidImageFile(file)) {
+      setProductFormError(IMAGE_FILE_ERROR);
+      return;
+    }
+
+    setProductFormError("");
+    handleVariantFormChange(index, "imageFile", file);
+  };
+
+  const handleRemoveVariantImageFile = (index) => {
+    handleVariantFormChange(index, "imageFile", null);
+  };
+
   const handleRemoveVariantRow = async (index) => {
     const variant = productForm.variants[index];
 
@@ -1594,15 +1723,33 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         payload,
         localId: variant.localId,
       });
+      const normalizedVariant = normalizeVariantFormValue(savedVariant, index);
 
       setProductForm((previous) => ({
         ...previous,
         variants: previous.variants.map((item, currentIndex) =>
           currentIndex === index
-            ? normalizeVariantFormValue(savedVariant, currentIndex)
+            ? normalizedVariant
             : item,
         ),
       }));
+
+      if (variant.imageFile && normalizedVariant.id) {
+        const uploadedImage = await uploadVariantImage({
+          productId: productForm.id,
+          variant: normalizedVariant,
+          file: variant.imageFile,
+        });
+
+        setProductForm((previous) => ({
+          ...previous,
+          variants: previous.variants.map((item) =>
+            item.id === normalizedVariant.id
+              ? appendImageToVariant(item, uploadedImage)
+              : item,
+          ),
+        }));
+      }
     } catch {
       // Error is surfaced through the shared error alert.
     }
@@ -1619,14 +1766,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const handleAppendImages = (files) => {
     if (!files.length) return;
 
-    const invalidFile = files.find((file) => {
-      const fileName = String(file?.name || "").toLowerCase();
-      const isValidExtension = [".jpg", ".jpeg", ".png", ".webp"].some(
-        (extension) => fileName.endsWith(extension),
-      );
-
-      return !isValidExtension || Number(file?.size || 0) > 5 * 1024 * 1024;
-    });
+    const invalidFile = files.find((file) => !isValidImageFile(file));
 
     if (invalidFile) {
       setProductFormError(
@@ -1676,11 +1816,50 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   isPrimary: index === 0,
                 }))
               : remainingImages,
+          variants: prev.variants.map((variant) => {
+            const variantImages = getVariantImages(variant);
+
+            if (!variantImages.some((item) => item.id === image.id)) {
+              return variant;
+            }
+
+            const remainingVariantImages = variantImages.filter(
+              (item) => item.id !== image.id,
+            );
+
+            return {
+              ...variant,
+              images: remainingVariantImages,
+              effectiveImageUrl:
+                variant.effectiveImageUrl === image.url
+                  ? remainingVariantImages[0]?.url || variant.imageUrl || ""
+                  : variant.effectiveImageUrl,
+            };
+          }),
         };
       });
     } catch {
       // Error is surfaced through the shared error alert.
     }
+  };
+
+  const uploadVariantImage = async ({ productId, variant, file }) => {
+    const variantId = variant?.id || variant?.Id;
+
+    if (!productId || !variantId || !file) {
+      return null;
+    }
+
+    return uploadProductImageMutation.mutateAsync({
+      ProductId: productId,
+      VariantId: variantId,
+      Image: file,
+      AltText: [productForm.name, variant?.name || variant?.Name]
+        .filter(Boolean)
+        .join(" "),
+      DisplayOrder: getVariantImages(variant).length + 1,
+      IsPrimary: getVariantImages(variant).length === 0,
+    });
   };
 
   const handleSubmitProduct = async (event) => {
@@ -1714,6 +1893,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     const variantPayloads = productForm.variants
       .filter((variant) => !variant.id && !isVariantDraftEmpty(variant))
       .map(buildVariantPayload);
+    const variantDraftsWithImages = productForm.variants.filter(
+      (variant) => !variant.id && !isVariantDraftEmpty(variant) && variant.imageFile,
+    );
     const invalidVariant = variantPayloads.find((variant) => !variant.Name);
 
     if (invalidVariant) {
@@ -1759,6 +1941,18 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           });
         }
 
+        for (const variant of productForm.variants) {
+          if (!variant.id || !variant.imageFile) {
+            continue;
+          }
+
+          await uploadVariantImage({
+            productId: productForm.id,
+            variant,
+            file: variant.imageFile,
+          });
+        }
+
         resetProductForm();
         return;
       }
@@ -1782,6 +1976,43 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             IsFeatured: Boolean(productForm.isFeatured),
           },
         });
+      }
+
+      if (createdProductId && variantDraftsWithImages.length) {
+        let productWithVariants = createdProductEntity;
+
+        if (!Array.isArray(productWithVariants?.variants) || !productWithVariants.variants.length) {
+          productWithVariants = normalizeProductDto(
+            await productApi.getProductById(createdProductId),
+          );
+        }
+
+        const createdVariants = Array.isArray(productWithVariants?.variants)
+          ? productWithVariants.variants.map((variant, index) =>
+              normalizeVariantFormValue(variant, index),
+            )
+          : [];
+        const usedVariantIds = new Set();
+
+        for (const draftVariant of variantDraftsWithImages) {
+          const createdVariant = findCreatedVariantForDraft(
+            draftVariant,
+            createdVariants,
+            usedVariantIds,
+          );
+
+          if (!createdVariant?.id) {
+            continue;
+          }
+
+          usedVariantIds.add(String(createdVariant.id));
+
+          await uploadVariantImage({
+            productId: createdProductId,
+            variant: createdVariant,
+            file: draftVariant.imageFile,
+          });
+        }
       }
 
       resetProductForm();
@@ -2288,6 +2519,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               onChangeVariant={handleVariantFormChange}
               onRemoveVariant={handleRemoveVariantRow}
               onSaveVariant={handleSaveVariantRow}
+              variantImagePreviews={variantImagePreviews}
+              variantImageUploadingId={
+                uploadProductImageMutation.isPending
+                  ? uploadProductImageMutation.variables?.VariantId
+                  : null
+              }
+              onChangeVariantImageFile={handleVariantImageFileChange}
+              onRemoveVariantImageFile={handleRemoveVariantImageFile}
               variantActionLoading={
                 addVariantMutation.isPending
                   ? addVariantMutation.variables?.localId

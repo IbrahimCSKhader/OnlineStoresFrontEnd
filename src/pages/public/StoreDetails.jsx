@@ -13,6 +13,7 @@ import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
@@ -91,11 +92,20 @@ function buildCategoryProductGroups(products, categories) {
   return nonEmptyGroups;
 }
 
+function normalizeVisitCount(value) {
+  const count = Number(value);
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
 export default function StoreDetails() {
   const { slug = "" } = useParams();
   const [searchText, setSearchText] = useState("");
   const [catalogView, setCatalogView] = useState("grid");
   const [expandedCategoryIds, setExpandedCategoryIds] = useState([]);
+  const [recordedVisit, setRecordedVisit] = useState({
+    storeId: "",
+    count: null,
+  });
   const deferredSearchText = useDeferredValue(searchText);
   const recordedVisitRef = useRef("");
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
@@ -168,19 +178,40 @@ export default function StoreDetails() {
     () => products.filter((product) => isProductInStock(product)).length,
     [products],
   );
+  const currentStoreId = String(store?.id || "").trim();
+  const displayedVisitCount = useMemo(
+    () => {
+      const hasRecordedVisit =
+        recordedVisit.storeId === currentStoreId && recordedVisit.count !== null;
+
+      return normalizeVisitCount(
+        hasRecordedVisit ? recordedVisit.count : store?.visitCount,
+      );
+    },
+    [currentStoreId, recordedVisit, store?.visitCount],
+  );
 
   useEffect(() => {
-    const storeId = String(store?.id || "").trim();
+    const storeId = currentStoreId;
 
     if (!storeId || isOwnerPreview || recordedVisitRef.current === storeId) {
       return;
     }
 
     recordedVisitRef.current = storeId;
-    storeApi.visitStore(storeId).catch(() => {
-      // Ignore visit tracking errors on the public storefront.
-    });
-  }, [isOwnerPreview, store?.id]);
+    storeApi
+      .visitStore(storeId)
+      .then((response) => {
+        const nextVisitCount = normalizeVisitCount(response?.visitCount);
+
+        if (nextVisitCount) {
+          setRecordedVisit({ storeId, count: nextVisitCount });
+        }
+      })
+      .catch(() => {
+        // Ignore visit tracking errors on the public storefront.
+      });
+  }, [currentStoreId, isOwnerPreview]);
 
   useEffect(() => {
     setExpandedCategoryIds((currentIds) =>
@@ -332,6 +363,14 @@ export default function StoreDetails() {
                 <span className="storefront-metric__label">المتوفر الآن</span>
                 <strong className="storefront-metric__value">
                   {availableProductsCount}
+                </strong>
+              </Box>
+
+              <Box className="storefront-metric">
+                <VisibilityRoundedIcon fontSize="small" />
+                <span className="storefront-metric__label">الزيارات</span>
+                <strong className="storefront-metric__value">
+                  {displayedVisitCount.toLocaleString("ar")}
                 </strong>
               </Box>
             </Box>
