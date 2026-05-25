@@ -3,13 +3,27 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import {
+  getVariantAttributeLabel,
+  getVariantEffectiveComparePrice,
+  getVariantEffectivePrice,
+} from "../../utils/products.js";
 
 export default function ProductVariantPicker({
   variants,
   selectedVariantId,
+  product,
   onChange,
 }) {
   if (!variants?.length) {
+    return null;
+  }
+
+  const activeVariants = variants.filter(
+    (variant) => variant.isActive === true || variant.isActive === undefined,
+  );
+
+  if (!activeVariants.length) {
     return null;
   }
 
@@ -20,20 +34,31 @@ export default function ProductVariantPicker({
       </Typography>
 
       <Box className="product-variants__grid">
-        {variants.map((variant) => {
-          const isActive = variant.id === selectedVariantId;
-          const isAvailable = Boolean(variant.isInStock);
-          const hasPriceOverride =
-            variant.priceOverride !== undefined && variant.priceOverride !== null;
+        {activeVariants.map((variant) => {
+          const isActive = String(variant.id) === String(selectedVariantId);
+          const isAvailable =
+            !product?.trackInventory || Number(variant.stockQuantity ?? 0) > 0;
+          const price = getVariantEffectivePrice(variant, product);
+          const compareAtPrice = getVariantEffectiveComparePrice(variant, product);
+          const hasCompareAtPrice = compareAtPrice > price;
+          const attributesLabel = getVariantAttributeLabel(variant);
+          const handleClick = () => {
+            if (!isAvailable) {
+              return;
+            }
+
+            onChange(variant.id);
+          };
 
           return (
             <button
               key={variant.id ?? variant.name}
               type="button"
               className={`product-variants__item${isActive ? " product-variants__item--active" : ""}${!isAvailable ? " product-variants__item--disabled" : ""}`}
-              onClick={() => onChange(variant.id)}
+              onClick={handleClick}
               disabled={!isAvailable}
               aria-pressed={isActive}
+              aria-disabled={!isAvailable}
             >
               <Stack spacing={0.65}>
                 <Stack direction="row" justifyContent="space-between" gap={1}>
@@ -49,15 +74,32 @@ export default function ProductVariantPicker({
                   />
                 </Stack>
 
-                {hasPriceOverride ? (
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                   <Typography variant="body2" color="text.secondary">
-                    سعر هذا الخيار: {formatCurrency(variant.priceOverride)}
+                    {formatCurrency(price)}
                   </Typography>
-                ) : (
+                  {hasCompareAtPrice ? (
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ textDecoration: "line-through" }}
+                    >
+                      {formatCurrency(compareAtPrice)}
+                    </Typography>
+                  ) : null}
+                </Stack>
+
+                {attributesLabel ? (
                   <Typography variant="body2" color="text.secondary">
-                    يستخدم السعر الأساسي للمنتج
+                    {attributesLabel}
                   </Typography>
-                )}
+                ) : null}
+
+                {variant.sku ? (
+                  <Typography variant="body2" color="text.secondary">
+                    SKU: {variant.sku}
+                  </Typography>
+                ) : null}
               </Stack>
             </button>
           );

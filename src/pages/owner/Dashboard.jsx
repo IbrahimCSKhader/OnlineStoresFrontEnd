@@ -51,7 +51,9 @@ import useUpdateCustomerStore from "../../hooks/customerStores/useUpdateCustomer
 import productApi from "../../API/product.api.js";
 import useStoreOrders from "../../hooks/orders/useStoreOrders.js";
 import useUpdateOrderStatus from "../../hooks/orders/useUpdateOrderStatus.js";
+import useAddVariant from "../../hooks/products/useAddVariant.js";
 import useCreateProduct from "../../hooks/products/useCreateProduct.js";
+import useDeleteVariant from "../../hooks/products/useDeleteVariant.js";
 import useDeleteProduct from "../../hooks/products/useDeleteProduct.js";
 import useDeleteProductImage from "../../hooks/products/useDeleteProductImage.js";
 import useProducts from "../../hooks/products/useProducts.js";
@@ -239,6 +241,86 @@ function buildProductForm(defaultCategoryId = "", defaultSectionId = "") {
     existingImages: [],
     variants: [],
     attributeValues: [],
+  };
+}
+
+function buildVariantDraft(sortOrder = 0) {
+  return {
+    localId: `variant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: "",
+    sku: "",
+    price: "",
+    compareAtPrice: "",
+    stockQuantity: "0",
+    imageUrl: "",
+    sortOrder: String(sortOrder),
+    attributeValueIds: [],
+  };
+}
+
+function normalizeVariantFormValue(variant, index = 0) {
+  return {
+    id: variant?.id || variant?.Id || "",
+    localId: variant?.localId || "",
+    name: variant?.name || variant?.Name || "",
+    sku: variant?.sku || variant?.SKU || "",
+    price:
+      variant?.price !== undefined && variant?.price !== null
+        ? String(variant.price)
+        : variant?.Price !== undefined && variant?.Price !== null
+          ? String(variant.Price)
+          : "",
+    compareAtPrice:
+      variant?.compareAtPrice !== undefined && variant?.compareAtPrice !== null
+        ? String(variant.compareAtPrice)
+        : variant?.CompareAtPrice !== undefined && variant?.CompareAtPrice !== null
+          ? String(variant.CompareAtPrice)
+          : "",
+    stockQuantity: String(variant?.stockQuantity ?? variant?.StockQuantity ?? 0),
+    imageUrl: variant?.imageUrl || variant?.ImageUrl || "",
+    sortOrder: String(variant?.sortOrder ?? variant?.SortOrder ?? index),
+    attributeValueIds: Array.isArray(variant?.attributeValueIds)
+      ? variant.attributeValueIds
+      : [],
+    isDefault: Boolean(variant?.isDefault ?? variant?.IsDefault),
+    isActive: (variant?.isActive ?? variant?.IsActive) !== false,
+  };
+}
+
+function isVariantDraftEmpty(variant) {
+  const stockValue = String(variant?.stockQuantity ?? "").trim();
+
+  return ![
+    variant?.name,
+    variant?.sku,
+    variant?.price,
+    variant?.compareAtPrice,
+    variant?.imageUrl,
+  ].some((value) => String(value ?? "").trim()) &&
+    (!stockValue || stockValue === "0");
+}
+
+function buildVariantPayload(variant) {
+  return {
+    Name: String(variant?.name || "").trim(),
+    SKU: String(variant?.sku || "").trim() || undefined,
+    Price:
+      String(variant?.price ?? "").trim() !== ""
+        ? Number(variant.price)
+        : undefined,
+    CompareAtPrice:
+      String(variant?.compareAtPrice ?? "").trim() !== ""
+        ? Number(variant.compareAtPrice)
+        : undefined,
+    StockQuantity: Number(variant?.stockQuantity || 0),
+    ImageUrl: String(variant?.imageUrl || "").trim() || undefined,
+    SortOrder:
+      String(variant?.sortOrder ?? "").trim() !== ""
+        ? Number(variant.sortOrder)
+        : undefined,
+    AttributeValueIds: Array.isArray(variant?.attributeValueIds)
+      ? variant.attributeValueIds
+      : [],
   };
 }
 
@@ -752,6 +834,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const deleteProductMutation = useDeleteProduct(storeId);
   const uploadProductImageMutation = useUploadProductImage(storeId);
   const deleteProductImageMutation = useDeleteProductImage(storeId);
+  const addVariantMutation = useAddVariant(storeId);
+  const deleteVariantMutation = useDeleteVariant(storeId);
 
   const createCategoryMutation = useCreateCategory(storeId);
   const updateCategoryMutation = useUpdateCategory(storeId);
@@ -1114,6 +1198,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     deleteProductMutation.error,
     uploadProductImageMutation.error,
     deleteProductImageMutation.error,
+    addVariantMutation.error,
+    deleteVariantMutation.error,
     createCategoryMutation.error,
     updateCategoryMutation.error,
     createSectionMutation.error,
@@ -1175,7 +1261,11 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     metaDescription: product?.metaDescription || "",
     newImages: [],
     existingImages: Array.isArray(product?.images) ? product.images : [],
-    variants: Array.isArray(product?.variants) ? product.variants : [],
+    variants: Array.isArray(product?.variants)
+      ? product.variants.map((variant, index) =>
+          normalizeVariantFormValue(variant, index),
+        )
+      : [],
     attributeValues: Array.isArray(product?.attributeValues)
       ? product.attributeValues
       : [],
@@ -1431,6 +1521,93 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     setProductForm((previous) => ({ ...previous, [key]: value }));
   };
 
+  const handleAddVariantRow = () => {
+    setProductForm((previous) => ({
+      ...previous,
+      variants: [
+        ...previous.variants,
+        buildVariantDraft(previous.variants.length),
+      ],
+    }));
+  };
+
+  const handleVariantFormChange = (index, key, value) => {
+    setProductForm((previous) => ({
+      ...previous,
+      variants: previous.variants.map((variant, currentIndex) =>
+        currentIndex === index ? { ...variant, [key]: value } : variant,
+      ),
+    }));
+  };
+
+  const handleRemoveVariantRow = async (index) => {
+    const variant = productForm.variants[index];
+
+    if (!variant) {
+      return;
+    }
+
+    if (productForm.mode === "edit" && variant.id) {
+      if (!window.confirm("هل تريد تعطيل هذه النسخة؟")) return;
+
+      try {
+        await deleteVariantMutation.mutateAsync({
+          variantId: variant.id,
+          productId: productForm.id,
+        });
+
+        setProductForm((previous) => ({
+          ...previous,
+          variants: previous.variants.filter((_, currentIndex) => currentIndex !== index),
+        }));
+      } catch {
+        // Error is surfaced through the shared error alert.
+      }
+
+      return;
+    }
+
+    setProductForm((previous) => ({
+      ...previous,
+      variants: previous.variants.filter((_, currentIndex) => currentIndex !== index),
+    }));
+  };
+
+  const handleSaveVariantRow = async (index) => {
+    const variant = productForm.variants[index];
+
+    if (productForm.mode !== "edit" || !productForm.id || !variant) {
+      return;
+    }
+
+    const payload = buildVariantPayload(variant);
+
+    if (!payload.Name) {
+      setProductFormError("يرجى إدخال اسم النسخة قبل حفظها.");
+      return;
+    }
+
+    try {
+      setProductFormError("");
+      const savedVariant = await addVariantMutation.mutateAsync({
+        productId: productForm.id,
+        payload,
+        localId: variant.localId,
+      });
+
+      setProductForm((previous) => ({
+        ...previous,
+        variants: previous.variants.map((item, currentIndex) =>
+          currentIndex === index
+            ? normalizeVariantFormValue(savedVariant, currentIndex)
+            : item,
+        ),
+      }));
+    } catch {
+      // Error is surfaced through the shared error alert.
+    }
+  };
+
   const handleCategoryFormChange = (key, value) => {
     setCategoryForm((previous) => ({ ...previous, [key]: value }));
   };
@@ -1534,6 +1711,20 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       MetaTitle: productForm.metaTitle.trim() || undefined,
       MetaDescription: productForm.metaDescription.trim() || undefined,
     };
+    const variantPayloads = productForm.variants
+      .filter((variant) => !variant.id && !isVariantDraftEmpty(variant))
+      .map(buildVariantPayload);
+    const invalidVariant = variantPayloads.find((variant) => !variant.Name);
+
+    if (invalidVariant) {
+      setProductFormError("يرجى إدخال اسم لكل نسخة تمت إضافتها.");
+      return;
+    }
+
+    if (productForm.mode === "edit" && variantPayloads.length) {
+      setProductFormError("احفظ النسخ الجديدة من زر حفظ النسخة قبل حفظ المنتج.");
+      return;
+    }
 
     try {
       if (productForm.mode === "edit" && productForm.id) {
@@ -1574,6 +1765,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
       const createdProduct = await createProductMutation.mutateAsync({
         ...payload,
+        Variants: variantPayloads.length ? variantPayloads : undefined,
         Images: productForm.newImages.length
           ? productForm.newImages
           : undefined,
@@ -2091,6 +2283,17 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 deleteProductImageMutation.isPending
                   ? deleteProductImageMutation.variables?.imageId
                   : null
+              }
+              onAddVariant={handleAddVariantRow}
+              onChangeVariant={handleVariantFormChange}
+              onRemoveVariant={handleRemoveVariantRow}
+              onSaveVariant={handleSaveVariantRow}
+              variantActionLoading={
+                addVariantMutation.isPending
+                  ? addVariantMutation.variables?.localId
+                  : deleteVariantMutation.isPending
+                    ? deleteVariantMutation.variables?.variantId
+                    : null
               }
               onReset={resetProductForm}
               onSubmit={handleSubmitProduct}

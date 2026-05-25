@@ -1,4 +1,11 @@
 .page-checkout__hero,
-.page-checkout__form-card {
+.page-checkout__form-card,
+.page-checkout__cart-card {
   padding: var(--panel-padding);
+}
+
+.page-checkout__cart-card {
+  display: grid;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
 }

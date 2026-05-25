@@ -2,10 +2,13 @@ import { useMemo, useState } from "react";
 import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
+import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
+import CartItem from "../../components/cart/CartItem.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import CheckoutForm from "../../components/order/CheckoutForm.jsx";
 import useAuth from "../../hooks/auth/useAuth.js";
@@ -121,6 +124,8 @@ function buildWhatsAppOrderMessage({ store, cart, form, order }) {
           item.raw?.product?.name ||
           `منتج #${index + 1}`,
         variantName: item.variantName || "",
+        variantSku: item.variantSku || "",
+        variantAttributes: item.variantAttributes || "",
         quantity: Number(item.quantity ?? 1) || 1,
         unitPrice: Number(item.unitPrice ?? 0) || 0,
         totalPrice:
@@ -148,7 +153,12 @@ function buildWhatsAppOrderMessage({ store, cart, form, order }) {
   const couponDiscountLabel = buildCouponDiscountLabel(normalizedOrder, couponCode);
 
   const orderItems = normalizedItems.map((item, index) => {
-    const variantLabel = item.variantName ? ` (${item.variantName})` : "";
+    const variantDetails = [
+      item.variantName,
+      item.variantAttributes,
+      item.variantSku ? `SKU: ${item.variantSku}` : "",
+    ].filter(Boolean);
+    const variantLabel = variantDetails.length ? ` (${variantDetails.join("، ")})` : "";
 
     return [
       `- ${index + 1}. ${item.productName}${variantLabel}`,
@@ -621,6 +631,15 @@ export default function Checkout() {
         </Box>
 
         <Box className="storefront-grid__span-4">
+          <SurfaceCard className="page-checkout__cart-card">
+            <Typography variant="h6">عناصر السلة</Typography>
+            <Stack spacing={1.5} divider={<Divider flexItem />}>
+              {cart.items.map((item) => (
+                <CartItem key={item.id} item={item} storeSlug={slug} />
+              ))}
+            </Stack>
+          </SurfaceCard>
+
           <CartSummary
             subtotal={cart.subtotal}
             totalAmount={cart.totalAmount}

@@ -38,6 +38,10 @@ import {
   getProductComparePrice,
   getProductDisplayPrice,
   getProductOriginalPrice,
+  getVariantAttributeLabel,
+  getVariantEffectiveComparePrice,
+  getVariantEffectiveImage,
+  getVariantEffectivePrice,
   isProductActive,
   isProductInStock,
   normalizeProductDto,
@@ -64,6 +68,40 @@ function getProductImages(product) {
   }
 
   return [];
+}
+
+function getProductImagesForVariant(product, variant) {
+  const productImages = getProductImages(product);
+
+  if (!variant) {
+    return productImages;
+  }
+
+  const variantImages = Array.isArray(variant.images) ? variant.images : [];
+  const effectiveImageUrl = getVariantEffectiveImage(variant, product);
+  const mergedImages = [];
+
+  if (effectiveImageUrl) {
+    mergedImages.push({
+      id: `variant-effective-${variant.id}`,
+      url: effectiveImageUrl,
+      altText: `${product?.name || ""} ${variant.name || ""}`.trim(),
+    });
+  }
+
+  variantImages.forEach((image) => {
+    if (!mergedImages.some((item) => item.url && item.url === image.url)) {
+      mergedImages.push(image);
+    }
+  });
+
+  productImages.forEach((image) => {
+    if (!mergedImages.some((item) => item.url && item.url === image.url)) {
+      mergedImages.push(image);
+    }
+  });
+
+  return mergedImages;
 }
 
 function getPathnameFromReturnTo(returnTo = "") {
@@ -131,36 +169,76 @@ export default function ProductDetails() {
   const addToCartUi = useTransientBusyState();
   const relatedAddToCartUi = useTransientBusyState();
 
-  const images = useMemo(() => getProductImages(product), [product]);
-  const variants = product?.variants || [];
+  const variants = useMemo(
+    () =>
+      (product?.variants || [])
+        .filter((variant) => variant.isActive !== false)
+        .sort((left, right) => {
+          if (left.isDefault !== right.isDefault) {
+            return Number(right.isDefault) - Number(left.isDefault);
+          }
+
+          return Number(left.sortOrder ?? 0) - Number(right.sortOrder ?? 0);
+        }),
+    [product?.variants],
+  );
+  const productHasVariants = Boolean(product?.hasVariants);
+  const defaultVariantId = useMemo(() => {
+    if (!variants.length) {
+      return "";
+    }
+
+    const backendDefault = variants.find(
+      (variant) => String(variant.id) === String(product?.defaultVariantId),
+    );
+    const localDefault = variants.find((variant) => variant.isDefault);
+
+    return (backendDefault || localDefault || variants[0])?.id || "";
+  }, [product?.defaultVariantId, variants]);
   const selectedImageIndex =
     uiState.productId === product?.id ? uiState.selectedImageIndex : 0;
   const quantity = uiState.productId === product?.id ? uiState.quantity : 1;
   const selectedVariantId =
-    uiState.productId === product?.id
+    uiState.productId === product?.id &&
+    variants.some((item) => String(item.id) === String(uiState.selectedVariantId))
       ? uiState.selectedVariantId
-      : variants[0]?.id || "";
+      : defaultVariantId;
   const selectedVariant =
     variants.find((item) => String(item.id) === String(selectedVariantId)) || null;
-  const isVariantPriceApplied =
-    selectedVariant?.priceOverride !== undefined &&
-    selectedVariant?.priceOverride !== null;
+  const images = useMemo(
+    () => getProductImagesForVariant(product, productHasVariants ? selectedVariant : null),
+    [product, productHasVariants, selectedVariant],
+  );
   const productDisplayPrice = getProductDisplayPrice(product);
-  const displayPrice = isVariantPriceApplied
-    ? Number(selectedVariant.priceOverride)
-    : productDisplayPrice;
-  const comparePrice = isVariantPriceApplied ? 0 : getProductComparePrice(product);
-  const originalPrice = isVariantPriceApplied ? 0 : getProductOriginalPrice(product);
+  const displayPrice =
+    productHasVariants && selectedVariant
+      ? getVariantEffectivePrice(selectedVariant, product)
+      : productDisplayPrice;
+  const comparePrice =
+    productHasVariants && selectedVariant
+      ? getVariantEffectiveComparePrice(selectedVariant, product)
+      : getProductComparePrice(product);
+  const originalPrice = getProductOriginalPrice(product);
   const hasComparePrice = comparePrice > Number(displayPrice);
   const hasOriginalPrice =
-    originalPrice > Number(displayPrice) && originalPrice !== comparePrice;
+    !productHasVariants &&
+    originalPrice > Number(displayPrice) &&
+    originalPrice !== comparePrice;
   const attributes = product?.attributeValues || [];
-  const isAvailable = isProductInStock(product, selectedVariant);
-  const availableStock = selectedVariant
+  const selectedVariantAttributes = getVariantAttributeLabel(selectedVariant);
+  const selectedSku =
+    productHasVariants && selectedVariant?.sku ? selectedVariant.sku : product?.sku;
+  const isAvailable = productHasVariants
+    ? Boolean(selectedVariant) &&
+      (!product.trackInventory || isProductInStock(product, selectedVariant))
+    : isProductInStock(product);
+  const availableStock = productHasVariants && selectedVariant
     ? Number(selectedVariant.stockQuantity ?? 0)
-    : Number(product.stockQuantity ?? 0);
+    : Number(product.effectiveStockQuantity ?? product.stockQuantity ?? 0);
   const quantityMax = product.trackInventory
-    ? selectedVariant?.stockQuantity ?? product.stockQuantity
+    ? productHasVariants && selectedVariant
+      ? selectedVariant.stockQuantity
+      : product.effectiveStockQuantity ?? product.stockQuantity
     : undefined;
   const storeMismatch =
     Boolean(store?.id) &&
@@ -230,7 +308,7 @@ export default function ProductDetails() {
               productId: product.id,
               selectedImageIndex: 0,
               quantity: 1,
-              selectedVariantId: variants[0]?.id || "",
+              selectedVariantId: defaultVariantId,
             };
 
       return {
@@ -242,7 +320,16 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (isOwnerPreview || !effectiveStoreId || !product?.id || !isAvailable) {
+    if (isOwnerPreview || !effectiveStoreId || !product?.id) {
+      return;
+    }
+
+    if (productHasVariants && !selectedVariant) {
+      showToast("يرجى اختيار نسخة المنتج قبل الإضافة إلى السلة.", "warning");
+      return;
+    }
+
+    if (!isAvailable) {
       return;
     }
 
@@ -251,8 +338,10 @@ export default function ProductDetails() {
       productId: product.id,
       quantity,
       storeId: effectiveStoreId,
-      variantId: selectedVariantId || null,
-      productSnapshot: buildProductSnapshot(product, { variant: selectedVariant }),
+      variantId: productHasVariants ? selectedVariantId : null,
+      productSnapshot: buildProductSnapshot(product, {
+        variant: productHasVariants ? selectedVariant : null,
+      }),
       debugSource: "product-details-page-main",
     });
   };
@@ -535,10 +624,24 @@ export default function ProductDetails() {
               <Divider />
 
               <ProductVariantPicker
-                variants={variants}
+                variants={productHasVariants ? variants : []}
                 selectedVariantId={selectedVariantId}
+                product={product}
                 onChange={(variantId) => updateUiState({ selectedVariantId: variantId, quantity: 1 })}
               />
+
+              {productHasVariants && selectedVariant && !isAvailable ? (
+                <Alert severity="warning">هذه النسخة غير متوفرة حالياً.</Alert>
+              ) : null}
+
+              {selectedSku || selectedVariantAttributes ? (
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  {selectedSku ? <Chip label={`SKU: ${selectedSku}`} variant="outlined" /> : null}
+                  {selectedVariantAttributes ? (
+                    <Chip label={selectedVariantAttributes} variant="outlined" />
+                  ) : null}
+                </Stack>
+              ) : null}
 
               <Box className="page-product-details__purchase">
                 <Typography variant="subtitle1" className="page-product-details__block-title">
@@ -549,7 +652,7 @@ export default function ProductDetails() {
                   value={quantity}
                   min={1}
                   max={quantityMax}
-                  disabled={isOwnerPreview}
+                  disabled={isOwnerPreview || !isAvailable}
                   onChange={(nextValue) => updateUiState({ quantity: nextValue })}
                 />
 
@@ -561,7 +664,7 @@ export default function ProductDetails() {
                     onClick={handleAddToCart}
                     startIcon={<LocalMallRoundedIcon fontSize="small" />}
                     sx={{ minWidth: { xs: "100%", sm: 220 } }}
-                    disabled={isOwnerPreview || !isAvailable}
+                    disabled={isOwnerPreview || !isAvailable || (productHasVariants && !selectedVariant)}
                   >
                     أضف إلى السلة
                   </AppButton>
@@ -574,7 +677,7 @@ export default function ProductDetails() {
                       component={RouterLink}
                       to={buildStorePreviewPath(`/market/${slug}/checkout`)}
                       variant="outlined"
-                      disabled={!isAvailable}
+                      disabled={!isAvailable || (productHasVariants && !selectedVariant)}
                     >
                       اذهب إلى الدفع
                     </AppButton>

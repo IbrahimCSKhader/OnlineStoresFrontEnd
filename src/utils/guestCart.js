@@ -1,5 +1,8 @@
 import { getStorageJson, removeStorageItem, setStorageJson, storageKeys } from "./storage.js";
 import {
+  getVariantAttributeLabel,
+  getVariantEffectiveImage,
+  getVariantEffectivePrice,
   getProductDisplayPrice,
   getProductImage,
   isProductInStock,
@@ -104,6 +107,12 @@ function resolveProductSnapshot(snapshot = {}, fallback = {}) {
     imageUrl: source.imageUrl || getProductImage(source) || backup.imageUrl || "",
     unitPrice,
     variantName: source.variantName || source.variant?.name || backup.variantName || "",
+    variantSku: source.variantSku || source.variantSKU || source.variant?.sku || backup.variantSku || "",
+    variantAttributes:
+      source.variantAttributes ||
+      getVariantAttributeLabel(source.variant) ||
+      backup.variantAttributes ||
+      "",
     availableStock: toNumber(
       source.availableStock,
       toNumber(
@@ -242,18 +251,27 @@ export function clearAllGuestCarts() {
 
 export function buildProductSnapshot(product, options = {}) {
   const variant = options.variant || null;
-  const unitPrice =
-    variant?.priceOverride ?? getProductDisplayPrice(product);
+  const unitPrice = variant
+    ? getVariantEffectivePrice(variant, product)
+    : getProductDisplayPrice(product);
 
   return {
     name: product?.name || "منتج",
     slug: product?.slug || "",
-    imageUrl: getProductImage(product),
+    imageUrl: variant ? getVariantEffectiveImage(variant, product) : getProductImage(product),
     unitPrice: toNumber(unitPrice),
     variantName: variant?.name || "",
-    availableStock: toNumber(
-      variant?.stockQuantity,
-      toNumber(product?.stockQuantity, isProductInStock(product, variant) ? 1 : 0),
-    ),
+    variantSku: variant?.sku || "",
+    variantAttributes: getVariantAttributeLabel(variant),
+    availableStock:
+      product?.trackInventory === false
+        ? 999999
+        : toNumber(
+            variant?.stockQuantity,
+            toNumber(
+              product?.effectiveStockQuantity,
+              toNumber(product?.stockQuantity, isProductInStock(product, variant) ? 1 : 0),
+            ),
+          ),
   };
 }

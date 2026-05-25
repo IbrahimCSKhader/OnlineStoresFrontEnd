@@ -48,25 +48,120 @@ function normalizeProductImage(image, index = 0) {
     altText: firstString(image?.altText, image?.AltText),
     displayOrder: firstNumber(image?.displayOrder, image?.DisplayOrder, index),
     isPrimary: toBoolean(image?.isPrimary ?? image?.IsPrimary, index === 0),
+    variantId: firstString(image?.variantId, image?.VariantId),
+  };
+}
+
+function toOptionalNumber(...values) {
+  const value = firstDefined(...values);
+
+  if (value === undefined) {
+    return null;
+  }
+
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function normalizeVariantAttributeValue(attribute, index = 0) {
+  const entity = normalizeEntityResponse(attribute) ?? attribute ?? {};
+  const attributeValue = entity?.attributeValue || entity?.AttributeValue || {};
+  const nestedAttribute =
+    entity?.attribute ||
+    entity?.Attribute ||
+    attributeValue?.attribute ||
+    attributeValue?.Attribute ||
+    {};
+
+  return {
+    ...entity,
+    id: firstString(
+      entity?.id,
+      entity?.Id,
+      entity?.attributeValueId,
+      entity?.AttributeValueId,
+      `variant-attribute-${index + 1}`,
+    ),
+    attributeValueId: firstString(
+      entity?.attributeValueId,
+      entity?.AttributeValueId,
+      attributeValue?.id,
+      attributeValue?.Id,
+    ),
+    attributeId: firstString(
+      entity?.attributeId,
+      entity?.AttributeId,
+      nestedAttribute?.id,
+      nestedAttribute?.Id,
+      attributeValue?.attributeId,
+      attributeValue?.AttributeId,
+    ),
+    attributeName: firstString(
+      entity?.attributeName,
+      entity?.AttributeName,
+      nestedAttribute?.name,
+      nestedAttribute?.Name,
+    ),
+    value: firstString(
+      entity?.value,
+      entity?.Value,
+      attributeValue?.value,
+      attributeValue?.Value,
+    ),
+    raw: entity,
   };
 }
 
 export function normalizeProductVariantDto(variant, index = 0) {
   const entity = normalizeEntityResponse(variant) ?? variant ?? {};
   const stockQuantity = firstNumber(entity?.stockQuantity, entity?.StockQuantity);
-  const priceOverride = firstDefined(entity?.priceOverride, entity?.PriceOverride);
+  const price = toOptionalNumber(entity?.price, entity?.Price);
+  const compareAtPrice = toOptionalNumber(entity?.compareAtPrice, entity?.CompareAtPrice);
+  const legacyPriceOverride = toOptionalNumber(entity?.priceOverride, entity?.PriceOverride);
+  const effectivePrice = toOptionalNumber(
+    entity?.effectivePrice,
+    entity?.EffectivePrice,
+    price,
+    legacyPriceOverride,
+  );
+  const effectiveCompareAtPrice = toOptionalNumber(
+    entity?.effectiveCompareAtPrice,
+    entity?.EffectiveCompareAtPrice,
+    compareAtPrice,
+  );
+  const images = normalizeListResponse(entity?.images || entity?.Images)
+    .map((image, imageIndex) => normalizeProductImage(image, imageIndex))
+    .sort((left, right) => left.displayOrder - right.displayOrder);
+  const attributeValues = normalizeListResponse(
+    entity?.attributeValues || entity?.AttributeValues,
+  ).map((attribute, attributeIndex) =>
+    normalizeVariantAttributeValue(attribute, attributeIndex),
+  );
 
   return {
     ...entity,
     id: firstString(entity?.id, entity?.Id, `variant-${index + 1}`),
     name: firstString(entity?.name, entity?.Name, `خيار ${index + 1}`),
     sku: firstString(entity?.sku, entity?.SKU),
-    priceOverride:
-      priceOverride !== undefined && priceOverride !== null && priceOverride !== ""
-        ? firstNumber(priceOverride)
-        : null,
+    price,
+    compareAtPrice,
+    effectivePrice,
+    effectiveCompareAtPrice,
+    priceOverride: legacyPriceOverride,
     stockQuantity,
     imageUrl: firstString(entity?.imageUrl, entity?.ImageUrl),
+    effectiveImageUrl: firstString(
+      entity?.effectiveImageUrl,
+      entity?.EffectiveImageUrl,
+      entity?.imageUrl,
+      entity?.ImageUrl,
+      images[0]?.url,
+    ),
+    isDefault: toBoolean(entity?.isDefault ?? entity?.IsDefault, false),
+    isActive: toBoolean(entity?.isActive ?? entity?.IsActive, true),
+    sortOrder: firstNumber(entity?.sortOrder, entity?.SortOrder, index),
+    attributeValues,
+    images,
     isInStock: toBoolean(entity?.isInStock ?? entity?.IsInStock, stockQuantity > 0),
     raw: entity,
   };
@@ -127,6 +222,15 @@ export function normalizeProductDto(product) {
       : 0,
   );
   const stockQuantity = firstNumber(entity?.stockQuantity, entity?.StockQuantity);
+  const effectiveStockQuantity = firstNumber(
+    entity?.effectiveStockQuantity,
+    entity?.EffectiveStockQuantity,
+    variants.length
+      ? variants
+          .filter((variant) => variant.isActive)
+          .reduce((sum, variant) => sum + Number(variant.stockQuantity || 0), 0)
+      : stockQuantity,
+  );
   const trackInventory = toBoolean(entity?.trackInventory ?? entity?.TrackInventory, false);
   const status = firstNumber(entity?.status, entity?.Status, 1);
   const isWholesalePriceApplied = toBoolean(
@@ -139,7 +243,7 @@ export function normalizeProductDto(product) {
   );
   const isInStock = toBoolean(
     entity?.isInStock ?? entity?.IsInStock,
-    status !== 3 && (!trackInventory || stockQuantity > 0),
+    status !== 3 && (!trackInventory || effectiveStockQuantity > 0),
   );
   const thumbnailUrl = firstString(
     entity?.thumbnailUrl,
@@ -170,6 +274,13 @@ export function normalizeProductDto(product) {
     images,
     variants,
     attributeValues,
+    hasVariants: toBoolean(
+      entity?.hasVariants ?? entity?.HasVariants,
+      variants.filter((variant) => variant.isActive).length > 1 ||
+        variants.some((variant) => variant.isActive && !variant.isDefault),
+    ),
+    defaultVariantId: firstString(entity?.defaultVariantId, entity?.DefaultVariantId),
+    effectiveStockQuantity,
     price: firstNumber(entity?.price, entity?.Price, finalPrice),
     finalPrice,
     originalPrice,
@@ -248,6 +359,53 @@ export function getProductImage(product) {
     product?.ImageUrl,
     product?.images?.find?.((image) => image?.isPrimary)?.url,
     product?.images?.[0]?.url,
+  );
+}
+
+export function getVariantAttributeLabel(variant) {
+  const attributeValues = Array.isArray(variant?.attributeValues)
+    ? variant.attributeValues
+    : [];
+
+  return attributeValues
+    .filter((item) => item?.value)
+    .map((item) =>
+      item.attributeName ? `${item.attributeName}: ${item.value}` : item.value,
+    )
+    .join("، ");
+}
+
+export function getVariantEffectivePrice(variant, product) {
+  return firstNumber(
+    variant?.effectivePrice,
+    variant?.EffectivePrice,
+    variant?.price,
+    variant?.Price,
+    variant?.priceOverride,
+    variant?.PriceOverride,
+    getProductDisplayPrice(product),
+  );
+}
+
+export function getVariantEffectiveComparePrice(variant, product) {
+  return firstNumber(
+    variant?.effectiveCompareAtPrice,
+    variant?.EffectiveCompareAtPrice,
+    variant?.compareAtPrice,
+    variant?.CompareAtPrice,
+    product?.compareAtPrice,
+    product?.CompareAtPrice,
+  );
+}
+
+export function getVariantEffectiveImage(variant, product) {
+  return firstString(
+    variant?.effectiveImageUrl,
+    variant?.EffectiveImageUrl,
+    variant?.imageUrl,
+    variant?.ImageUrl,
+    variant?.images?.[0]?.url,
+    getProductImage(product),
   );
 }
 

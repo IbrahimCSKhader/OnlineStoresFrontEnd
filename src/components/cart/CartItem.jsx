@@ -5,9 +5,15 @@ import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import "./CartItem.css";
 
 export default function CartItem({ item, storeSlug }) {
-  const imageUrl = resolveAssetUrl(item.imageUrl);
+  const imageUrl = resolveAssetUrl(
+    item.effectiveVariantImageUrl || item.variantImageUrl || item.imageUrl,
+  );
   const detailPath =
     storeSlug && item.productId ? `/market/${storeSlug}/product/${item.productId}` : "";
+  const variantMeta = [
+    item.variantAttributes,
+    item.variantSku ? `SKU: ${item.variantSku}` : "",
+  ].filter(Boolean);
 
   return (
     <Box className="cart-item">
@@ -30,6 +36,11 @@ export default function CartItem({ item, storeSlug }) {
         {item.variantName ? (
           <Typography variant="body2" color="text.secondary">
             {item.variantName}
+          </Typography>
+        ) : null}
+        {variantMeta.length ? (
+          <Typography variant="body2" color="text.secondary">
+            {variantMeta.join("، ")}
           </Typography>
         ) : null}
       </Box>

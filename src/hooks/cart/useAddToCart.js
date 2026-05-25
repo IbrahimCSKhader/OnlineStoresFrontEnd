@@ -60,6 +60,8 @@ function buildOptimisticCart(currentCart, payload, storeId) {
     productId: String(payload.productId),
     variantId,
     variantName: snapshot.variantName || existingItem?.variantName || "",
+    variantSku: snapshot.variantSku || existingItem?.variantSku || "",
+    variantAttributes: snapshot.variantAttributes || existingItem?.variantAttributes || "",
     name: snapshot.name || existingItem?.name || "منتج",
     slug: snapshot.slug || existingItem?.slug || "",
     imageUrl: snapshot.imageUrl || existingItem?.imageUrl || "",

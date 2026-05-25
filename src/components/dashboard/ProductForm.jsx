@@ -7,8 +7,10 @@ import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import ImageRoundedIcon from "@mui/icons-material/ImageRounded";
+import SaveRoundedIcon from "@mui/icons-material/SaveRounded";
 import AppButton from "../common/buttons/AppButton.jsx";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
 
@@ -34,10 +36,16 @@ export default function ProductForm({
   onRemoveNewImage,
   onDeleteExistingImage,
   deletingImageId,
+  onAddVariant,
+  onChangeVariant,
+  onRemoveVariant,
+  onSaveVariant,
+  variantActionLoading,
   onReset,
   onSubmit,
 }) {
   const hasRequirements = categories.length && sections.length;
+  const variants = Array.isArray(form.variants) ? form.variants : [];
 
   return (
     <Box className="owner-form-card">
@@ -187,6 +195,130 @@ export default function ProductForm({
             />
           </Box>
         )}
+
+        <Box className="owner-form__wide owner-variants">
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={1}
+            useFlexGap
+            flexWrap="wrap"
+          >
+            <Box>
+              <Typography variant="subtitle2" className="owner-gallery__title">
+                نسخ المنتج
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                أضف النسخ الأساسية مثل اللون والمقاس. TODO: ربط AttributeValueIds من واجهة خصائص مخصصة.
+              </Typography>
+            </Box>
+            <AppButton
+              type="button"
+              variant="outlined"
+              startIcon={<AddRoundedIcon fontSize="small" />}
+              onClick={onAddVariant}
+            >
+              إضافة نسخة
+            </AppButton>
+          </Stack>
+
+          {variants.length ? (
+            <Box className="owner-variants__list">
+              {variants.map((variant, index) => {
+                const isExistingVariant = Boolean(variant.id);
+                const isReadOnly = isEdit && isExistingVariant;
+
+                return (
+                  <Box key={variant.id || variant.localId || index} className="owner-variants__item">
+                    <TextField
+                      label="اسم النسخة"
+                      value={variant.name || ""}
+                      size="small"
+                      disabled={isReadOnly}
+                      onChange={(event) => onChangeVariant(index, "name", event.target.value)}
+                    />
+                    <TextField
+                      label="SKU"
+                      value={variant.sku || ""}
+                      size="small"
+                      disabled={isReadOnly}
+                      onChange={(event) => onChangeVariant(index, "sku", event.target.value)}
+                    />
+                    <TextField
+                      label="السعر الاختياري"
+                      value={variant.price ?? ""}
+                      size="small"
+                      type="number"
+                      inputProps={{ min: 0, step: "0.01" }}
+                      disabled={isReadOnly}
+                      onChange={(event) => onChangeVariant(index, "price", event.target.value)}
+                    />
+                    <TextField
+                      label="السعر قبل الخصم"
+                      value={variant.compareAtPrice ?? ""}
+                      size="small"
+                      type="number"
+                      inputProps={{ min: 0, step: "0.01" }}
+                      disabled={isReadOnly}
+                      onChange={(event) => onChangeVariant(index, "compareAtPrice", event.target.value)}
+                    />
+                    <TextField
+                      label="المخزون"
+                      value={variant.stockQuantity ?? ""}
+                      size="small"
+                      type="number"
+                      inputProps={{ min: 0, step: "1" }}
+                      disabled={isReadOnly}
+                      onChange={(event) => onChangeVariant(index, "stockQuantity", event.target.value)}
+                    />
+                    <TextField
+                      label="رابط الصورة"
+                      value={variant.imageUrl || ""}
+                      size="small"
+                      disabled={isReadOnly}
+                      onChange={(event) => onChangeVariant(index, "imageUrl", event.target.value)}
+                    />
+                    <TextField
+                      label="الترتيب"
+                      value={variant.sortOrder ?? ""}
+                      size="small"
+                      type="number"
+                      inputProps={{ min: 0, step: "1" }}
+                      disabled={isReadOnly}
+                      onChange={(event) => onChangeVariant(index, "sortOrder", event.target.value)}
+                    />
+                    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                      {isEdit && !isExistingVariant ? (
+                        <AppButton
+                          type="button"
+                          size="small"
+                          variant="contained"
+                          startIcon={<SaveRoundedIcon fontSize="small" />}
+                          loading={variantActionLoading === variant.localId}
+                          onClick={() => onSaveVariant(index)}
+                        >
+                          حفظ النسخة
+                        </AppButton>
+                      ) : null}
+                      <AppButton
+                        type="button"
+                        size="small"
+                        variant="text"
+                        color="error"
+                        startIcon={<DeleteOutlineRoundedIcon fontSize="small" />}
+                        loading={variantActionLoading === (variant.id || variant.localId)}
+                        onClick={() => onRemoveVariant(index)}
+                      >
+                        {isExistingVariant ? "تعطيل" : "إزالة"}
+                      </AppButton>
+                    </Stack>
+                  </Box>
+                );
+              })}
+            </Box>
+          ) : null}
+        </Box>
 
         <Box className="owner-form__file-wrap owner-form__wide">
           <input

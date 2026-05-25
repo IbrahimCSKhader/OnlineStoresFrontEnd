@@ -54,6 +54,12 @@ export function normalizeOrderItem(item, index = 0) {
     productName: firstString(item?.productName, item?.name, product?.name, `منتج ${index + 1}`),
     variantId: firstString(item?.variantId, variant?.id),
     variantName: firstString(item?.variantName, variant?.name),
+    variantSku: firstString(item?.variantSku, item?.variantSKU, variant?.sku),
+    variantAttributes: firstString(
+      item?.variantAttributes,
+      item?.variantAttributeValues,
+      item?.variantAttributesText,
+    ),
     quantity,
     unitPrice,
     totalPrice,

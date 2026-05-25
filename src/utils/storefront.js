@@ -3,6 +3,9 @@ import {
   getProductComparePrice,
   getProductDisplayPrice,
   getProductImage,
+  getVariantAttributeLabel,
+  getVariantEffectiveImage,
+  normalizeProductVariantDto,
   normalizeProductDto,
 } from "./products.js";
 
@@ -72,7 +75,14 @@ export function normalizeCartResponse(data) {
 
   const normalizedItems = items.map((item) => {
     const product = normalizeProductDto(item.product || {});
-    const variant = item.variant || {};
+    const rawVariant = item.variant || item.Variant || null;
+    const variant = rawVariant ? normalizeProductVariantDto(rawVariant) : {};
+    const variantAttributes = firstString(
+      item.variantAttributes,
+      item.variantAttributeValues,
+      item.variantAttributesText,
+      getVariantAttributeLabel(variant),
+    );
 
     return {
       id: firstString(item.id, item.cartItemId, product.id),
@@ -80,6 +90,10 @@ export function normalizeCartResponse(data) {
       name: firstString(item.productName, product.name, "منتج"),
       slug: firstString(product.slug),
       imageUrl: firstString(
+        item.effectiveVariantImageUrl,
+        item.variantImageUrl,
+        variant.effectiveImageUrl,
+        getVariantEffectiveImage(variant, product),
         item.productThumbnail,
         item.thumbnailUrl,
         product.thumbnailUrl,
@@ -98,7 +112,16 @@ export function normalizeCartResponse(data) {
       totalPrice: firstNumber(item.totalPrice, item.lineTotal, item.subtotal, item.totalAmount),
       variantId: firstString(item.variantId, variant.id),
       variantName: firstString(item.variantName, variant.name),
-      availableStock: firstNumber(item.availableStock, item.stockQuantity, product.stockQuantity),
+      variantSku: firstString(item.variantSku, item.variantSKU, variant.sku),
+      variantAttributes,
+      availableStock: firstNumber(
+        item.availableStock,
+        item.variantStockQuantity,
+        variant.stockQuantity,
+        item.stockQuantity,
+        product.effectiveStockQuantity,
+        product.stockQuantity,
+      ),
       raw: item,
     };
   });
