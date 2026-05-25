@@ -329,7 +329,6 @@ function isVariantDraftEmpty(variant) {
 
   return ![
     variant?.name,
-    variant?.sku,
     variant?.price,
     variant?.compareAtPrice,
     variant?.imageFile,
@@ -340,7 +339,6 @@ function isVariantDraftEmpty(variant) {
 function buildVariantPayload(variant) {
   return {
     Name: String(variant?.name || "").trim(),
-    SKU: String(variant?.sku || "").trim() || undefined,
     Price:
       String(variant?.price ?? "").trim() !== ""
         ? Number(variant.price)
@@ -1871,7 +1869,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     const payload = {
       Name: productForm.name.trim(),
       Slug: slugify(productForm.name),
-      SKU: productForm.mode === "create" ? productForm.sku.trim() || undefined : undefined,
       ShortDescription: productForm.shortDescription || undefined,
       Description: productForm.description || undefined,
       Price: Number(productForm.price),

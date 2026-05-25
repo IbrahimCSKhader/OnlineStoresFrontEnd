@@ -275,13 +275,6 @@ export default function ProductForm({
                       onChange={(event) => onChangeVariant(index, "name", event.target.value)}
                     />
                     <TextField
-                      label="SKU"
-                      value={variant.sku || ""}
-                      size="small"
-                      disabled={isReadOnly}
-                      onChange={(event) => onChangeVariant(index, "sku", event.target.value)}
-                    />
-                    <TextField
                       label="السعر الاختياري"
                       value={variant.price ?? ""}
                       size="small"
