@@ -182,7 +182,10 @@ export default function ProductDetails() {
         }),
     [product?.variants],
   );
-  const productHasVariants = Boolean(product?.hasVariants);
+  const productHasVariants =
+    Boolean(product?.hasVariants) ||
+    variants.length > 1 ||
+    variants.some((variant) => variant.isActive !== false && !variant.isDefault);
   const defaultVariantId = useMemo(() => {
     if (!variants.length) {
       return "";

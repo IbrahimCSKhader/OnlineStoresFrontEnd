@@ -63,6 +63,26 @@ function firstString(...values) {
   return values.find((value) => value !== undefined && value !== null && value !== "") || "";
 }
 
+function formatVariantAttributes(value) {
+  if (!Array.isArray(value)) {
+    return typeof value === "string" ? value : "";
+  }
+
+  return value
+    .map((item) => {
+      const attributeName = firstString(item?.attributeName, item?.AttributeName);
+      const attributeValue = firstString(item?.value, item?.Value);
+
+      if (!attributeValue) {
+        return "";
+      }
+
+      return attributeName ? `${attributeName}: ${attributeValue}` : attributeValue;
+    })
+    .filter(Boolean)
+    .join("، ");
+}
+
 export function normalizeCartResponse(data) {
   const entity = normalizeEntityResponse(data) ?? data ?? {};
   const items = normalizeListResponse(entity?.items || entity?.cartItems || entity?.data || entity);
@@ -77,16 +97,22 @@ export function normalizeCartResponse(data) {
     const product = normalizeProductDto(item.product || {});
     const rawVariant = item.variant || item.Variant || null;
     const variant = rawVariant ? normalizeProductVariantDto(rawVariant) : {};
+    const productId = firstString(item.productId, product.id);
+    const variantId = firstString(item.variantId, variant.id);
     const variantAttributes = firstString(
-      item.variantAttributes,
-      item.variantAttributeValues,
+      formatVariantAttributes(item.variantAttributes),
+      formatVariantAttributes(item.variantAttributeValues),
       item.variantAttributesText,
       getVariantAttributeLabel(variant),
     );
 
     return {
-      id: firstString(item.id, item.cartItemId, product.id),
-      productId: firstString(item.productId, product.id),
+      id: firstString(
+        item.id,
+        item.cartItemId,
+        productId && variantId ? `${productId}::${variantId}` : productId,
+      ),
+      productId,
       name: firstString(item.productName, product.name, "منتج"),
       slug: firstString(product.slug),
       imageUrl: firstString(
@@ -110,7 +136,7 @@ export function normalizeCartResponse(data) {
         product.price,
       ),
       totalPrice: firstNumber(item.totalPrice, item.lineTotal, item.subtotal, item.totalAmount),
-      variantId: firstString(item.variantId, variant.id),
+      variantId,
       variantName: firstString(item.variantName, variant.name),
       variantSku: firstString(item.variantSku, item.variantSKU, variant.sku),
       variantAttributes,

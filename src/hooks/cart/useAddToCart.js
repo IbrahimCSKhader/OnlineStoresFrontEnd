@@ -33,6 +33,10 @@ function clampQuantityToStock(quantity, availableStock) {
   return Math.min(normalizedQuantity, Math.max(1, Math.trunc(normalizedStock)));
 }
 
+function getCartLineKey(productId, variantId) {
+  return `${String(productId || "")}::${String(variantId || "default")}`;
+}
+
 function buildOptimisticCart(currentCart, payload, storeId) {
   if (!payload?.productId || !storeId) {
     return currentCart;
@@ -40,8 +44,12 @@ function buildOptimisticCart(currentCart, payload, storeId) {
 
   const normalizedCart = normalizeCartResponse(currentCart);
   const variantId = payload.variantId ? String(payload.variantId) : "";
-  const itemId = `${String(payload.productId)}::${variantId || "default"}`;
-  const existingItem = normalizedCart.items.find((item) => item.id === itemId);
+  const itemId = getCartLineKey(payload.productId, variantId);
+  const existingItem = normalizedCart.items.find(
+    (item) =>
+      item.id === itemId ||
+      getCartLineKey(item.productId, item.variantId) === itemId,
+  );
   const snapshot = payload.productSnapshot || {};
   const availableStock = toNumber(snapshot.availableStock, toNumber(existingItem?.availableStock, NaN));
   const unitPrice = toNumber(snapshot.unitPrice, toNumber(existingItem?.unitPrice));
@@ -56,7 +64,7 @@ function buildOptimisticCart(currentCart, payload, storeId) {
 
   const nextItem = {
     ...existingItem,
-    id: itemId,
+    id: existingItem?.id || itemId,
     productId: String(payload.productId),
     variantId,
     variantName: snapshot.variantName || existingItem?.variantName || "",
@@ -72,7 +80,9 @@ function buildOptimisticCart(currentCart, payload, storeId) {
   };
 
   const items = existingItem
-    ? normalizedCart.items.map((item) => (item.id === itemId ? nextItem : item))
+    ? normalizedCart.items.map((item) =>
+        item.id === existingItem.id ? nextItem : item,
+      )
     : [...normalizedCart.items, nextItem];
   const subtotal = items.reduce(
     (sum, item) => sum + toNumber(item.totalPrice, toNumber(item.unitPrice) * toNumber(item.quantity, 1)),
