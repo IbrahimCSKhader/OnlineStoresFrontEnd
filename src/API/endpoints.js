@@ -38,6 +38,7 @@ export const endpoints = {
     owned: withPrefix("/Store/owned"),
     detail: (id) => withPrefix(`/Store/${id}`),
     slug: (slug) => withPrefix(`/Store/slug/${slug}`),
+    resolve: withPrefix("/Store/resolve"),
     subscription: (id) => withPrefix(`/Store/${id}/subscription`),
     visit: (id) => withPrefix(`/Store/${id}/visit`),
     visitCount: (id) => withPrefix(`/Store/${id}/visit-count`),

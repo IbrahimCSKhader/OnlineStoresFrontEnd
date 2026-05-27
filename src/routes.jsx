@@ -1,11 +1,15 @@
 import { Suspense } from "react";
 import Box from "@mui/material/Box";
-import { Navigate, createBrowserRouter } from "react-router-dom";
+import { Navigate, createBrowserRouter, useLocation } from "react-router-dom";
 import AppRouteError from "./components/common/feedback/AppRouteError.jsx";
 import LoadingState from "./components/common/loaders/LoadingState.jsx";
 import MainLayout from "./layout/MainLayout.jsx";
 import StoreLayout from "./layout/StoreLayout.jsx";
 import RouteFrame from "./routes/RouteFrame.jsx";
+import {
+  isCustomDomainStorefront,
+  normalizeStorefrontPath,
+} from "./utils/customDomain.js";
 import lazyWithRetry from "./utils/lazyWithRetry.js";
 const Home = lazyWithRetry(() => import("./pages/Home/Home.jsx"), "home");
 const About = lazyWithRetry(() => import("./pages/About/About.jsx"), "about");
@@ -147,6 +151,36 @@ function withRouteSuspense(page) {
   );
 }
 
+function DomainAwareRootLayout() {
+  return isCustomDomainStorefront() ? <StoreLayout /> : <MainLayout />;
+}
+
+function DomainAwareElement({ platform, storefront }) {
+  return isCustomDomainStorefront() ? storefront : platform;
+}
+
+function CustomDomainElement({ children }) {
+  return isCustomDomainStorefront() ? children : withRouteSuspense(<NotFound />);
+}
+
+function StorefrontSlugLayout() {
+  const location = useLocation();
+
+  if (isCustomDomainStorefront()) {
+    return (
+      <Navigate
+        to={{
+          pathname: normalizeStorefrontPath(location.pathname),
+          search: location.search,
+        }}
+        replace
+      />
+    );
+  }
+
+  return <StoreLayout />;
+}
+
 const router = createBrowserRouter([
   {
     element: <RouteFrame />,
@@ -177,13 +211,94 @@ const router = createBrowserRouter([
       },
       {
         path: "/",
-        element: <MainLayout />,
+        element: <DomainAwareRootLayout />,
         errorElement: <AppRouteError />,
         children: [
-          { index: true, element: withRouteSuspense(<Home />) },
-          { path: "about", element: withRouteSuspense(<About />) },
+          {
+            index: true,
+            element: (
+              <DomainAwareElement
+                platform={withRouteSuspense(<Home />)}
+                storefront={withRouteSuspense(<StoreDetails />)}
+              />
+            ),
+          },
+          {
+            path: "about",
+            element: (
+              <DomainAwareElement
+                platform={withRouteSuspense(<About />)}
+                storefront={withRouteSuspense(<StoreAbout />)}
+              />
+            ),
+          },
           { path: "market", element: withRouteSuspense(<Market />) },
-          { path: "contact", element: withRouteSuspense(<Contact />) },
+          {
+            path: "contact",
+            element: (
+              <DomainAwareElement
+                platform={withRouteSuspense(<Contact />)}
+                storefront={withRouteSuspense(<StoreContact />)}
+              />
+            ),
+          },
+
+          {
+            path: "category/:categoryId",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<CategoryPage />)}
+              </CustomDomainElement>
+            ),
+          },
+          {
+            path: "product/:productId",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<ProductDetails />)}
+              </CustomDomainElement>
+            ),
+          },
+          {
+            path: "cart",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<Cart />)}
+              </CustomDomainElement>
+            ),
+          },
+          {
+            path: "checkout",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<Checkout />)}
+              </CustomDomainElement>
+            ),
+          },
+          {
+            path: "login",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<Login />)}
+              </CustomDomainElement>
+            ),
+          },
+          {
+            path: "register",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<Register />)}
+              </CustomDomainElement>
+            ),
+          },
+          {
+            path: "verify-email",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<VerifyEmail />)}
+              </CustomDomainElement>
+            ),
+          },
 
           { path: "auth/login", element: withRouteSuspense(<Login />) },
           { path: "auth/register", element: withRouteSuspense(<Register />) },
@@ -235,7 +350,7 @@ const router = createBrowserRouter([
       },
       {
         path: "/market/:slug",
-        element: <StoreLayout />,
+        element: <StorefrontSlugLayout />,
         errorElement: <AppRouteError />,
         children: [
           { index: true, element: withRouteSuspense(<StoreDetails />) },

@@ -32,6 +32,10 @@ import {
   getStoreCustomerRedirectPath,
   hasStoreCustomerAuthContext,
 } from "../../utils/storeCustomerAuth.js";
+import {
+  buildStorefrontPath,
+  getCurrentCustomDomainHost,
+} from "../../utils/customDomain.js";
 import "./Register.css";
 
 export default function Register() {
@@ -40,29 +44,33 @@ export default function Register() {
   const location = useLocation();
   const { storeCustomer } = useAuth();
   const registerMutation = useStoreCustomerRegister();
+  const customDomainHost = getCurrentCustomDomainHost();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
-    enabled: Boolean(routeStoreSlug),
+    enabled: Boolean(routeStoreSlug || customDomainHost),
     staleTime: 60000,
   });
   const routeStore = useMemo(
     () => normalizeEntityResponse(routeStoreQuery.data),
     [routeStoreQuery.data],
   );
+  const resolvedRouteStoreSlug = routeStoreSlug || routeStore?.slug || "";
   const stateStoreCustomerAuth = hasStoreCustomerAuthContext(location.state)
     ? location.state
     : null;
-  const routeStoreCustomerAuthState = routeStoreSlug
+  const routeStoreCustomerAuthState = resolvedRouteStoreSlug || routeStore?.id
     ? buildStoreCustomerAuthState({
         storeId: routeStore?.id || location.state?.storeId || "",
-        storeSlug: routeStoreSlug,
-        storeName: routeStore?.name || location.state?.storeName || routeStoreSlug,
-        redirectTo: location.state?.redirectTo || `/market/${routeStoreSlug}`,
+        storeSlug: resolvedRouteStoreSlug,
+        storeName: routeStore?.name || location.state?.storeName || resolvedRouteStoreSlug,
+        redirectTo:
+          location.state?.redirectTo ||
+          buildStorefrontPath(resolvedRouteStoreSlug),
       })
     : null;
   const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
   const storefrontSession = useStorefrontSession(
     storeCustomerAuthState?.storeId,
-    storeCustomerAuthState?.storeSlug || routeStoreSlug,
+    storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug,
   );
   const redirectTo = getStoreCustomerRedirectPath(storeCustomerAuthState);
   const storeLabel =
@@ -71,15 +79,15 @@ export default function Register() {
     "هذا المتجر";
   const storeHomePath =
     storeCustomerAuthState?.storeSlug
-      ? `/market/${storeCustomerAuthState.storeSlug}`
+      ? buildStorefrontPath(storeCustomerAuthState.storeSlug)
       : "/";
   const storeLoginPath =
     storeCustomerAuthState?.storeSlug
-      ? `/market/${storeCustomerAuthState.storeSlug}/login`
+      ? buildStorefrontPath(storeCustomerAuthState.storeSlug, "/login")
       : "/";
   const storeVerifyEmailPath =
     storeCustomerAuthState?.storeSlug
-      ? `/market/${storeCustomerAuthState.storeSlug}/verify-email`
+      ? buildStorefrontPath(storeCustomerAuthState.storeSlug, "/verify-email")
       : "/";
 
   const defaultValues = useMemo(
@@ -101,7 +109,7 @@ export default function Register() {
     formState: { errors },
   } = useForm({ defaultValues });
 
-  if (routeStoreSlug && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
+  if ((routeStoreSlug || customDomainHost) && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
     return (
       <Box className="page-register">
         <Box className="page-register__shell">
@@ -125,7 +133,7 @@ export default function Register() {
     const email = values.email.trim();
     const data = await registerMutation.mutateAsync({
       storeId: storeCustomerAuthState.storeId,
-      storeSlug: storeCustomerAuthState.storeSlug || routeStoreSlug,
+      storeSlug: storeCustomerAuthState.storeSlug || resolvedRouteStoreSlug,
       storeName: storeCustomerAuthState.storeName || routeStore?.name,
       firstName: values.firstName.trim(),
       lastName: values.lastName.trim(),

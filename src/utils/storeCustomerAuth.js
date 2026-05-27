@@ -1,4 +1,5 @@
 import { extractRole, extractToken, extractUser } from "./authSession.js";
+import { buildStorefrontPath } from "./customDomain.js";
 import { isOwnerRole, isStoreCustomerRole } from "./roles.js";
 
 export const STORE_CUSTOMER_AUTH_MODE = "store-customer";
@@ -149,7 +150,7 @@ export function buildStoreCustomerAuthState({
     storeId: storeId || "",
     storeSlug,
     storeName,
-    redirectTo: redirectTo || (storeSlug ? `/market/${storeSlug}` : "/"),
+    redirectTo: redirectTo || (storeSlug ? buildStorefrontPath(storeSlug) : "/"),
   };
 }
 
@@ -165,7 +166,7 @@ export function hasStoreCustomerAuthContext(state) {
 }
 
 export function getStoreCustomerRedirectPath(state) {
-  return state?.redirectTo || (state?.storeSlug ? `/market/${state.storeSlug}` : "/");
+  return state?.redirectTo || (state?.storeSlug ? buildStorefrontPath(state.storeSlug) : "/");
 }
 
 export function resolveStoreCustomerDashboard(data = {}, user = {}, role = "") {

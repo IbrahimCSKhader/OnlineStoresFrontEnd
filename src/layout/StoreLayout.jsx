@@ -6,17 +6,20 @@ import StoreFooter from "../components/layout/StoreFooter.jsx";
 import useStoreBySlug from "../hooks/stores/useStoreBySlug.js";
 import useOwnerStorePreview from "../hooks/stores/useOwnerStorePreview.js";
 import { normalizeEntityResponse } from "../utils/collections.js";
+import { getCurrentCustomDomainHost } from "../utils/customDomain.js";
 import useStoreBranding from "../theme/useStoreBranding.js";
 import "./StoreLayout.css";
 
 export default function StoreLayout() {
   const { slug = "" } = useParams();
+  const customDomainHost = getCurrentCustomDomainHost();
   const { isOwnerPreview } = useOwnerStorePreview();
   const storeQuery = useStoreBySlug(slug, {
-    enabled: Boolean(slug),
+    enabled: Boolean(slug || customDomainHost),
     staleTime: 60000,
   });
   const store = normalizeEntityResponse(storeQuery.data);
+  const effectiveSlug = slug || store?.slug || "";
 
   useStoreBranding(store);
 
@@ -32,7 +35,7 @@ export default function StoreLayout() {
         <Outlet />
       </Box>
       <Box className="store-layout__footer" id="store-footer">
-        <StoreFooter store={store} slug={slug} />
+        <StoreFooter store={store} slug={effectiveSlug} />
       </Box>
     </Box>
   );

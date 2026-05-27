@@ -51,6 +51,10 @@ import {
   resolveStoreScopedAuthResult,
 } from "../../utils/storeCustomerAuth.js";
 import {
+  buildStorefrontPath,
+  getCurrentCustomDomainHost,
+} from "../../utils/customDomain.js";
+import {
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
@@ -73,42 +77,47 @@ export default function VerifyEmail() {
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
   const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
   const mergeGuestCart = useMergeGuestCart();
+  const customDomainHost = getCurrentCustomDomainHost();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
-    enabled: Boolean(routeStoreSlug),
+    enabled: Boolean(routeStoreSlug || customDomainHost),
     staleTime: 60000,
   });
   const routeStore = useMemo(
     () => normalizeEntityResponse(routeStoreQuery.data),
     [routeStoreQuery.data],
   );
+  const resolvedRouteStoreSlug = routeStoreSlug || routeStore?.slug || "";
   const stateStoreCustomerAuth = hasStoreCustomerAuthContext(location.state)
     ? location.state
     : null;
-  const routeStoreCustomerAuthState = routeStoreSlug
+  const routeStoreCustomerAuthState = resolvedRouteStoreSlug || routeStore?.id
     ? buildStoreCustomerAuthState({
         storeId: routeStore?.id || location.state?.storeId || "",
-        storeSlug: routeStoreSlug,
-        storeName: routeStore?.name || location.state?.storeName || routeStoreSlug,
-        redirectTo: location.state?.redirectTo || `/market/${routeStoreSlug}`,
+        storeSlug: resolvedRouteStoreSlug,
+        storeName: routeStore?.name || location.state?.storeName || resolvedRouteStoreSlug,
+        redirectTo:
+          location.state?.redirectTo ||
+          buildStorefrontPath(resolvedRouteStoreSlug),
       })
     : null;
   const storeCustomerAuthState = routeStoreCustomerAuthState || stateStoreCustomerAuth;
-  const isStoreCustomerMode = Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
+  const isStoreCustomerMode =
+    Boolean(resolvedRouteStoreSlug || routeStore?.id) || Boolean(stateStoreCustomerAuth);
   const storefrontSession = useStorefrontSession(
     storeCustomerAuthState?.storeId,
-    storeCustomerAuthState?.storeSlug || routeStoreSlug,
+    storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug,
   );
   const redirectTo = isStoreCustomerMode
     ? getStoreCustomerRedirectPath(storeCustomerAuthState)
     : location.state?.redirectTo || "";
   const loginPath = isStoreCustomerMode
     ? storeCustomerAuthState?.storeSlug
-      ? `/market/${storeCustomerAuthState.storeSlug}/login`
+      ? buildStorefrontPath(storeCustomerAuthState.storeSlug, "/login")
       : "/"
     : "/auth/login";
   const registerPath = isStoreCustomerMode
     ? storeCustomerAuthState?.storeSlug
-      ? `/market/${storeCustomerAuthState.storeSlug}/register`
+      ? buildStorefrontPath(storeCustomerAuthState.storeSlug, "/register")
       : "/"
     : "/auth/register";
 
@@ -140,7 +149,7 @@ export default function VerifyEmail() {
     formState: { errors },
   } = useForm({ defaultValues });
 
-  if (isStoreCustomerMode && routeStoreSlug && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
+  if (isStoreCustomerMode && (routeStoreSlug || customDomainHost) && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
     return (
       <Box className="page-login">
         <Box className="page-login__shell" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
@@ -157,7 +166,7 @@ export default function VerifyEmail() {
     platformRole,
     platformUser,
     storeId: storeCustomerAuthState?.storeId,
-    storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+    storeSlug: storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug,
   });
   const shouldRedirectAuthenticatedUser = isStoreCustomerMode
     ? (
@@ -202,13 +211,13 @@ export default function VerifyEmail() {
   function persistStorefrontSession({ token, user, role: resolvedRole }) {
     const scopedUser = applyStoreScopeToUser(user, {
       storeId: storeCustomerAuthState?.storeId,
-      storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+      storeSlug: storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug,
       storeName: storeCustomerAuthState?.storeName || routeStore?.name,
     });
     const storefrontScope = {
       storeId: storeCustomerAuthState?.storeId || scopedUser?.storeId,
       storeSlug:
-        storeCustomerAuthState?.storeSlug || routeStoreSlug || scopedUser?.storeSlug,
+        storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug || scopedUser?.storeSlug,
     };
 
     if (token || scopedUser || resolvedRole) {
@@ -261,7 +270,7 @@ export default function VerifyEmail() {
       email,
       codeLength: code.length,
       requestStoreId: storeCustomerAuthState?.storeId || "",
-      storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug || "",
+      storeSlug: storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug || "",
       redirectTo,
     });
 

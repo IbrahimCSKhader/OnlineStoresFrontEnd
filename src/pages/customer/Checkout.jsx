@@ -32,6 +32,7 @@ import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
 import { buildWhatsAppLink } from "../../utils/whatsapp.js";
+import { buildStorefrontPath } from "../../utils/customDomain.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./Checkout.css";
 
@@ -273,10 +274,16 @@ export default function Checkout() {
 
   useStoreBranding(store);
 
+  const resolvedStoreSlug = store?.slug || slug || "";
+  const storeHomePath = buildStorefrontPath(resolvedStoreSlug);
+  const storeLoginPath = buildStorefrontPath(resolvedStoreSlug, "/login");
+  const storeCartPath = buildStorefrontPath(resolvedStoreSlug, "/cart");
+  const storeCheckoutPath = buildStorefrontPath(resolvedStoreSlug, "/checkout");
+
   const cartQuery = useCart(store?.id, {
     enabled: Boolean(store?.id),
   });
-  const storefrontSession = useStorefrontSession(store?.id, slug);
+  const storefrontSession = useStorefrontSession(store?.id, resolvedStoreSlug);
   const createOrderMutation = useCreateOrder(store?.id);
   const clearCartMutation = useClearCart(store?.id);
   const cart = normalizeCartResponse(cartQuery.data);
@@ -288,7 +295,7 @@ export default function Checkout() {
     auth,
     storefrontSession,
     storeId: store?.id,
-    slug,
+    slug: resolvedStoreSlug,
   });
 
   if (storeQuery.isLoading) {
@@ -319,7 +326,7 @@ export default function Checkout() {
           action={
             <AppButton
               component={RouterLink}
-              to={`/market/${slug}/login`}
+              to={storeLoginPath}
               variant="contained"
             >
               تسجيل الدخول لهذا المتجر
@@ -339,7 +346,7 @@ export default function Checkout() {
           action={
             <AppButton
               component={RouterLink}
-              to={`/market/${slug}`}
+              to={storeHomePath}
               variant="contained"
             >
               العودة إلى المتجر
@@ -351,12 +358,12 @@ export default function Checkout() {
   }
 
   const redirectToStoreLogin = () => {
-    navigate(`/market/${slug}/login`, {
+    navigate(storeLoginPath, {
       state: buildStoreCustomerAuthState({
         storeId: store?.id,
-        storeSlug: slug,
+        storeSlug: resolvedStoreSlug,
         storeName: store?.name,
-        redirectTo: `/market/${slug}/checkout`,
+        redirectTo: storeCheckoutPath,
       }),
     });
   };
@@ -601,7 +608,7 @@ export default function Checkout() {
 
           <AppButton
             component={RouterLink}
-            to={`/market/${slug}/cart`}
+            to={storeCartPath}
             variant="outlined"
           >
             العودة إلى السلة
@@ -635,7 +642,7 @@ export default function Checkout() {
             <Typography variant="h6">عناصر السلة</Typography>
             <Stack spacing={1.5} divider={<Divider flexItem />}>
               {cart.items.map((item) => (
-                <CartItem key={item.id} item={item} storeSlug={slug} />
+                <CartItem key={item.id} item={item} storeSlug={resolvedStoreSlug} />
               ))}
             </Stack>
           </SurfaceCard>
@@ -644,7 +651,7 @@ export default function Checkout() {
             subtotal={cart.subtotal}
             totalAmount={cart.totalAmount}
             itemCount={cart.itemCount}
-            checkoutPath={`/market/${slug}/cart`}
+            checkoutPath={storeCartPath}
             actionLabel="مراجعة السلة"
           />
         </Box>

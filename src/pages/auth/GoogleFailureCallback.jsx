@@ -14,6 +14,7 @@ import {
 import { clearPendingStoreGoogleAuth } from "../../utils/pendingStoreGoogleAuth.js";
 import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { getPendingGoogleCallbackResult } from "../../utils/pendingGoogleCallbackResult.js";
+import { buildStorefrontPath } from "../../utils/customDomain.js";
 
 const ERROR_MESSAGES = {
   missing_token:
@@ -88,7 +89,9 @@ export default function GoogleFailureCallback() {
     pendingGoogleContext?.storeSlug || pendingGoogleCallbackResult?.storeSlug || "";
   const retryStoreId =
     pendingGoogleContext?.storeId || pendingGoogleCallbackResult?.storeId || "";
-  const retryPath = retryStoreSlug ? `/market/${retryStoreSlug}/login` : "/auth/login";
+  const retryPath = retryStoreSlug
+    ? buildStorefrontPath(retryStoreSlug, "/login")
+    : "/auth/login";
   const retryState =
     retryStoreSlug || retryStoreId
       ? buildStoreCustomerAuthState({

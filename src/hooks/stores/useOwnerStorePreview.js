@@ -3,6 +3,7 @@ import useAuth from "../auth/useAuth.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { isOwnerRole } from "../../utils/roles.js";
 import { getOwnerSessionStoreScope } from "../../utils/storeOwnerScope.js";
+import { normalizeStorefrontPath } from "../../utils/customDomain.js";
 import useStoreBySlug from "./useStoreBySlug.js";
 
 export const OWNER_PREVIEW_PARAM = "preview";
@@ -10,7 +11,8 @@ export const OWNER_PREVIEW_VALUE = "owner";
 export const OWNER_PREVIEW_SEARCH = `?${OWNER_PREVIEW_PARAM}=${OWNER_PREVIEW_VALUE}`;
 
 export function buildPreviewPath(pathname, previewSearch = "") {
-  return previewSearch ? { pathname, search: previewSearch } : pathname;
+  const normalizedPathname = normalizeStorefrontPath(pathname);
+  return previewSearch ? { pathname: normalizedPathname, search: previewSearch } : normalizedPathname;
 }
 
 export default function useOwnerStorePreview() {

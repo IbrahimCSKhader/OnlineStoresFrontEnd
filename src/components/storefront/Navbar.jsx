@@ -52,14 +52,18 @@ import {
 import { getOwnerSessionStoreScope } from "../../utils/storeOwnerScope.js";
 import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
+import {
+  buildStorefrontPath,
+  getCurrentCustomDomainHost,
+} from "../../utils/customDomain.js";
 import "./Navbar.css";
 
 function buildNavItems(activeStoreSlug) {
   if (activeStoreSlug) {
     return [
-      { to: `/market/${activeStoreSlug}`, label: "الرئيسية", exact: true },
-      { to: `/market/${activeStoreSlug}/about`, label: "من نحن" },
-      { to: `/market/${activeStoreSlug}/contact`, label: "تواصل" },
+      { to: buildStorefrontPath(activeStoreSlug), label: "الرئيسية", exact: true },
+      { to: buildStorefrontPath(activeStoreSlug, "/about"), label: "من نحن" },
+      { to: buildStorefrontPath(activeStoreSlug, "/contact"), label: "تواصل" },
     ];
   }
 
@@ -233,15 +237,17 @@ export default function Navbar() {
       matchPath("/market/:slug", location.pathname),
     [location.pathname],
   );
-  const activeStoreSlug = storeRouteMatch?.params?.slug;
-  const storeQuery = useStoreBySlug(activeStoreSlug, {
-    enabled: Boolean(activeStoreSlug),
+  const routeStoreSlug = storeRouteMatch?.params?.slug || "";
+  const customDomainHost = getCurrentCustomDomainHost();
+  const storeQuery = useStoreBySlug(routeStoreSlug, {
+    enabled: Boolean(routeStoreSlug || customDomainHost),
     staleTime: 60000,
   });
   const activeStore = useMemo(
     () => normalizeEntityResponse(storeQuery.data),
     [storeQuery.data],
   );
+  const activeStoreSlug = routeStoreSlug || activeStore?.slug || "";
   const isOwnerPlatformUser =
     isPlatformAuthenticated && isOwnerRole(platformRole);
   const ownerSessionScope = getOwnerSessionStoreScope(platformUser);
@@ -294,7 +300,7 @@ export default function Navbar() {
   const brandHref = isScopedOwnerDashboard
     ? "/owner"
     : activeStoreSlug
-      ? buildStorePreviewPath(`/market/${activeStoreSlug}`)
+      ? buildStorePreviewPath(buildStorefrontPath(activeStoreSlug))
       : "/";
   const brandEyebrow = isScopedOwnerDashboard ? "لوحة المتجر" : "";
   const brandName = activeStore?.name || "السوق";
@@ -330,13 +336,13 @@ export default function Navbar() {
     [availableVariants],
   );
   const loginPath = activeStoreSlug
-    ? `/market/${activeStoreSlug}/login`
+    ? buildStorefrontPath(activeStoreSlug, "/login")
     : "/auth/login";
   const registerPath = activeStoreSlug
-    ? `/market/${activeStoreSlug}/register`
+    ? buildStorefrontPath(activeStoreSlug, "/register")
     : "/auth/register";
   const cartPath = activeStoreSlug
-    ? buildStorePreviewPath(`/market/${activeStoreSlug}/cart`)
+    ? buildStorePreviewPath(buildStorefrontPath(activeStoreSlug, "/cart"))
     : "/market";
   const { hasScopedStorefrontSession, useLocalGuestCart } =
     useStorefrontSession(activeStore?.id, activeStoreSlug);
@@ -353,10 +359,10 @@ export default function Navbar() {
     onSettled: () => {
       const nextPath = isScopedOwnerDashboard
         ? ownerStore?.slug
-          ? `/market/${ownerStore.slug}`
+          ? buildStorefrontPath(ownerStore.slug)
           : "/"
         : activeStoreSlug
-          ? `/market/${activeStoreSlug}`
+          ? buildStorefrontPath(activeStoreSlug)
           : "/";
       navigate(nextPath, { replace: true });
     },

@@ -152,6 +152,10 @@ const ORDER_STATUS_OPTIONS = [
   { value: 6, label: "مسترجع" },
 ];
 
+const OWNER_ORDER_STATUS_OPTIONS = ORDER_STATUS_OPTIONS.filter((option) =>
+  [0, 1, 5].includes(option.value),
+);
+
 const MOBILE_SIDEBAR_LAUNCHER_DEFAULT_TOP = 220;
 const MOBILE_SIDEBAR_LAUNCHER_MIN_TOP = 92;
 const MOBILE_SIDEBAR_LAUNCHER_HEIGHT = 56;
@@ -595,6 +599,20 @@ function getOrderStatusLabel(value) {
     ORDER_STATUS_OPTIONS.find((option) => option.value === Number(value))
       ?.label || "غير محددة"
   );
+}
+
+function getOwnerOrderStatusSelectValue(value) {
+  const normalizedValue = Number(value);
+
+  if (normalizedValue === 5 || normalizedValue === 6) {
+    return 5;
+  }
+
+  if (normalizedValue >= 1) {
+    return 1;
+  }
+
+  return 0;
 }
 
 function formatDateTimeLabel(value) {
@@ -1249,7 +1267,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         <TextField
           select
           size="small"
-          value={String(row.status ?? 0)}
+          value={String(getOwnerOrderStatusSelectValue(row.status))}
           onChange={(event) =>
             updateOrderStatusMutation.mutate({
               orderId: row.id,
@@ -1258,7 +1276,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           }
           sx={{ minWidth: 180 }}
         >
-          {ORDER_STATUS_OPTIONS.map((option) => (
+          {OWNER_ORDER_STATUS_OPTIONS.map((option) => (
             <MenuItem key={option.value} value={String(option.value)}>
               {option.label}
             </MenuItem>
@@ -2392,7 +2410,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         <TextField
           select
           size="small"
-          value={String(row.status ?? 0)}
+          value={String(getOwnerOrderStatusSelectValue(row.status))}
           onChange={(event) =>
             updateOrderStatusMutation.mutate({
               orderId: row.id,
@@ -2401,7 +2419,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           }
           sx={{ minWidth: 180 }}
         >
-          {ORDER_STATUS_OPTIONS.map((option) => (
+          {OWNER_ORDER_STATUS_OPTIONS.map((option) => (
             <MenuItem key={option.value} value={String(option.value)}>
               {option.label}
             </MenuItem>
@@ -3376,7 +3394,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         <TextField
                           select
                           size="small"
-                          value={String(row.status ?? 0)}
+                          value={String(getOwnerOrderStatusSelectValue(row.status))}
                           onChange={(event) =>
                             updateOrderStatusMutation.mutate({
                               orderId: row.id,
@@ -3385,7 +3403,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           }
                           sx={{ minWidth: 190 }}
                         >
-                          {ORDER_STATUS_OPTIONS.map((option) => (
+                          {OWNER_ORDER_STATUS_OPTIONS.map((option) => (
                             <MenuItem
                               key={option.value}
                               value={String(option.value)}

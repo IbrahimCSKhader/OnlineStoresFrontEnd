@@ -71,6 +71,7 @@ export const storeApi = {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     }),
   getStoreBySlug: (slug) => axiosInstance.get(endpoints.stores.slug(slug)),
+  resolveStore: (params) => axiosInstance.get(endpoints.stores.resolve, { params }),
   getStoreBySlugWithAuth: (slug, token) =>
     axiosInstance.get(endpoints.stores.slug(slug), {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,

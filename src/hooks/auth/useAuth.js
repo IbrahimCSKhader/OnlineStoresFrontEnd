@@ -14,11 +14,13 @@ import {
   normalizeStoreScope,
   normalizeStorefrontAuthSession,
 } from "../../utils/token.js";
+import { isCustomDomainStorefront } from "../../utils/customDomain.js";
 
 function isStorefrontRoute(pathname) {
   return Boolean(
     matchPath("/market/:slug/*", pathname) ||
-    matchPath("/market/:slug", pathname),
+    matchPath("/market/:slug", pathname) ||
+    isCustomDomainStorefront(),
   );
 }
 

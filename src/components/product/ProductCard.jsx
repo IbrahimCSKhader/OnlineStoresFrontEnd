@@ -23,6 +23,7 @@ import {
   buildScrollRestoreKey,
   captureElementScrollSnapshot,
 } from "../../utils/scrollRestoration.js";
+import { buildStorefrontPath } from "../../utils/customDomain.js";
 import "./ProductCard.css";
 
 function ProductCard({
@@ -48,7 +49,7 @@ function ProductCard({
   const resolvedStoreSlug = storeSlug || normalizedProduct.storeSlug;
   const detailPath =
     resolvedStoreSlug && normalizedProduct.id
-      ? `/market/${resolvedStoreSlug}/product/${normalizedProduct.id}`
+      ? buildStorefrontPath(resolvedStoreSlug, `/product/${normalizedProduct.id}`)
       : "";
   const currentSearch = location.search || "";
   const returnSearch = currentSearch || linkSearch || "";

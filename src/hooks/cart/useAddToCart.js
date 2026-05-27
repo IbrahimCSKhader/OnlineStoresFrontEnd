@@ -73,6 +73,13 @@ function buildOptimisticCart(currentCart, payload, storeId) {
     name: snapshot.name || existingItem?.name || "منتج",
     slug: snapshot.slug || existingItem?.slug || "",
     imageUrl: snapshot.imageUrl || existingItem?.imageUrl || "",
+    variantImageUrl: snapshot.variantImageUrl || existingItem?.variantImageUrl || "",
+    effectiveVariantImageUrl:
+      snapshot.effectiveVariantImageUrl ||
+      snapshot.variantImageUrl ||
+      existingItem?.effectiveVariantImageUrl ||
+      existingItem?.variantImageUrl ||
+      "",
     availableStock,
     unitPrice,
     quantity,

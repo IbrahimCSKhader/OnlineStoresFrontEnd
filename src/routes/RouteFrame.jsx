@@ -10,6 +10,7 @@ import {
   restoreSavedScrollPosition,
   saveCurrentScrollPosition,
 } from "../utils/scrollRestoration.js";
+import { isCustomDomainStorefront } from "../utils/customDomain.js";
 
 function scrollToPageTop() {
   if (typeof window === "undefined") {
@@ -30,7 +31,9 @@ function scrollToPageTop() {
 function isProductCatalogRoute(pathname = "") {
   return Boolean(
     matchPath("/market/:slug", pathname) ||
-      matchPath("/market/:slug/category/:categoryId", pathname),
+      matchPath("/market/:slug/category/:categoryId", pathname) ||
+      (isCustomDomainStorefront() &&
+        (pathname === "/" || matchPath("/category/:categoryId", pathname))),
   );
 }
 

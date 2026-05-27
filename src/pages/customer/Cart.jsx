@@ -25,6 +25,7 @@ import { normalizeEntityResponse } from "../../utils/collections.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 import extractApiError from "../../utils/extractApiError.js";
+import { buildStorefrontPath } from "../../utils/customDomain.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./Cart.css";
 
@@ -70,6 +71,11 @@ export default function Cart() {
     );
   }
 
+  const resolvedStoreSlug = store.slug || slug || "";
+  const storeHomePath = buildStorefrontPath(resolvedStoreSlug);
+  const storeLoginPath = buildStorefrontPath(resolvedStoreSlug, "/login");
+  const storeCheckoutPath = buildStorefrontPath(resolvedStoreSlug, "/checkout");
+
   if (storefrontSession.hasConflictingStoreCustomerSession) {
     return (
       <Box className="storefront-page page-cart">
@@ -79,7 +85,7 @@ export default function Cart() {
           action={
             <AppButton
               component={RouterLink}
-              to={`/market/${slug}/login`}
+              to={storeLoginPath}
               variant="contained"
             >
               تسجيل الدخول لهذا المتجر
@@ -133,7 +139,7 @@ export default function Cart() {
           </Box>
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            <AppButton component={RouterLink} to={`/market/${slug}`} variant="outlined">
+            <AppButton component={RouterLink} to={storeHomePath} variant="outlined">
               متابعة التسوق
             </AppButton>
             <AppButton
@@ -157,7 +163,7 @@ export default function Cart() {
           title="السلة فارغة"
           description="ابدأ من صفحة المتجر وأضف المنتجات التي تريدها ثم عد هنا للمراجعة."
           action={
-            <AppButton component={RouterLink} to={`/market/${slug}`} variant="contained">
+            <AppButton component={RouterLink} to={storeHomePath} variant="contained">
               العودة إلى المتجر
             </AppButton>
           }
@@ -170,7 +176,7 @@ export default function Cart() {
                 <Box className="page-cart__items">
                   {cart.items.map((row) => (
                     <SurfaceCard key={row.id} className="page-cart__item-card">
-                      <CartItem item={row} storeSlug={slug} />
+                      <CartItem item={row} storeSlug={resolvedStoreSlug} />
 
                       <Box className="page-cart__item-meta">
                         <Box className="page-cart__item-stat">
@@ -223,7 +229,7 @@ export default function Cart() {
                     {
                       key: "product",
                       title: "المنتج",
-                      render: (row) => <CartItem item={row} storeSlug={slug} />,
+                      render: (row) => <CartItem item={row} storeSlug={resolvedStoreSlug} />,
                     },
                     {
                       key: "price",
@@ -282,7 +288,7 @@ export default function Cart() {
               subtotal={cart.subtotal}
               totalAmount={cart.totalAmount}
               itemCount={cart.itemCount}
-              checkoutPath={`/market/${slug}/checkout`}
+              checkoutPath={storeCheckoutPath}
             />
           </Box>
         </Box>

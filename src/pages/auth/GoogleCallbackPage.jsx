@@ -51,6 +51,7 @@ import {
   doesStorefrontSessionMatchScope,
   setStorefrontAuthSession,
 } from "../../utils/token.js";
+import { buildStorefrontPath } from "../../utils/customDomain.js";
 
 const DEFAULT_PLATFORM_REDIRECT_PATH = "/";
 const DEFAULT_STOREFRONT_REDIRECT_PATH = "/";
@@ -460,7 +461,7 @@ function GoogleCallbackPage() {
       const effectiveStoreName =
         callbackStoreName || pendingGoogleContext?.storeName || "";
       const callbackStoreRedirect = effectiveStoreSlug
-        ? `/market/${effectiveStoreSlug}`
+        ? buildStorefrontPath(effectiveStoreSlug)
         : "";
       const redirectCandidate =
         hashParams.get("redirectTo") ||
@@ -642,7 +643,7 @@ function GoogleCallbackPage() {
           const fallbackPendingRedirect = pickSafeRedirect(
             pendingGoogleCallbackResult?.redirectTo,
             effectiveStoreSlug
-              ? `/market/${effectiveStoreSlug}/login`
+              ? buildStorefrontPath(effectiveStoreSlug, "/login")
               : "/auth/login",
           );
           clearPendingGoogleCallbackResult();
@@ -894,7 +895,7 @@ function GoogleCallbackPage() {
           redirectTo: storefrontRedirectPath,
         });
         const storeLoginPath = storeAuthState.storeSlug
-          ? `/market/${storeAuthState.storeSlug}/login`
+          ? buildStorefrontPath(storeAuthState.storeSlug, "/login")
           : "/auth/login";
 
         setPendingStoreGoogleAuth({

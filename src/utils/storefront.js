@@ -63,6 +63,14 @@ function firstString(...values) {
   return values.find((value) => value !== undefined && value !== null && value !== "") || "";
 }
 
+function firstNestedImageUrl(images) {
+  return normalizeListResponse(images)
+    .map((image) =>
+      firstString(image?.url, image?.Url, image?.imageUrl, image?.ImageUrl),
+    )
+    .find(Boolean) || "";
+}
+
 function formatVariantAttributes(value) {
   if (!Array.isArray(value)) {
     return typeof value === "string" ? value : "";
@@ -94,57 +102,105 @@ export function normalizeCartResponse(data) {
   );
 
   const normalizedItems = items.map((item) => {
-    const product = normalizeProductDto(item.product || {});
+    const product = normalizeProductDto(item.product || item.Product || {});
     const rawVariant = item.variant || item.Variant || null;
     const variant = rawVariant ? normalizeProductVariantDto(rawVariant) : {};
-    const productId = firstString(item.productId, product.id);
-    const variantId = firstString(item.variantId, variant.id);
+    const productId = firstString(item.productId, item.ProductId, product.id);
+    const variantId = firstString(item.variantId, item.VariantId, variant.id);
+    const variantImageUrl = firstString(
+      item.variantImageUrl,
+      item.VariantImageUrl,
+      variant.imageUrl,
+      variant.ImageUrl,
+      firstNestedImageUrl(variant.images),
+      firstNestedImageUrl(item.variantImages || item.VariantImages),
+    );
+    const effectiveVariantImageUrl = firstString(
+      item.effectiveVariantImageUrl,
+      item.EffectiveVariantImageUrl,
+      variant.effectiveImageUrl,
+      variant.EffectiveImageUrl,
+      variantImageUrl,
+      rawVariant ? getVariantEffectiveImage(variant, product) : "",
+    );
+    const productImageUrl = firstString(
+      item.productThumbnail,
+      item.ProductThumbnail,
+      item.thumbnailUrl,
+      item.ThumbnailUrl,
+      product.thumbnailUrl,
+      product.imageUrl,
+      firstNestedImageUrl(product.images),
+    );
     const variantAttributes = firstString(
       formatVariantAttributes(item.variantAttributes),
+      formatVariantAttributes(item.VariantAttributes),
       formatVariantAttributes(item.variantAttributeValues),
+      formatVariantAttributes(item.VariantAttributeValues),
       item.variantAttributesText,
+      item.VariantAttributesText,
       getVariantAttributeLabel(variant),
     );
 
     return {
       id: firstString(
         item.id,
+        item.Id,
         item.cartItemId,
+        item.CartItemId,
         productId && variantId ? `${productId}::${variantId}` : productId,
       ),
       productId,
-      name: firstString(item.productName, product.name, "منتج"),
+      name: firstString(item.productName, item.ProductName, product.name, "منتج"),
       slug: firstString(product.slug),
       imageUrl: firstString(
-        item.effectiveVariantImageUrl,
-        item.variantImageUrl,
-        variant.effectiveImageUrl,
-        getVariantEffectiveImage(variant, product),
-        item.productThumbnail,
-        item.thumbnailUrl,
-        product.thumbnailUrl,
-        product.imageUrl,
-        product.images?.[0]?.url,
+        effectiveVariantImageUrl,
+        variantImageUrl,
+        productImageUrl,
       ),
-      quantity: firstNumber(item.quantity, item.qty, 1),
+      variantImageUrl,
+      effectiveVariantImageUrl,
+      productThumbnail: productImageUrl,
+      quantity: firstNumber(item.quantity, item.Quantity, item.qty, item.Qty, 1),
       unitPrice: firstNumber(
         item.unitPrice,
+        item.UnitPrice,
         item.price,
+        item.Price,
         item.productPrice,
+        item.ProductPrice,
         product.finalPrice,
         product.originalPrice,
         product.price,
       ),
-      totalPrice: firstNumber(item.totalPrice, item.lineTotal, item.subtotal, item.totalAmount),
+      totalPrice: firstNumber(
+        item.totalPrice,
+        item.TotalPrice,
+        item.lineTotal,
+        item.LineTotal,
+        item.subtotal,
+        item.Subtotal,
+        item.totalAmount,
+        item.TotalAmount,
+      ),
       variantId,
-      variantName: firstString(item.variantName, variant.name),
-      variantSku: firstString(item.variantSku, item.variantSKU, variant.sku),
+      variantName: firstString(item.variantName, item.VariantName, variant.name),
+      variantSku: firstString(
+        item.variantSku,
+        item.variantSKU,
+        item.VariantSKU,
+        item.VariantSku,
+        variant.sku,
+      ),
       variantAttributes,
       availableStock: firstNumber(
         item.availableStock,
+        item.AvailableStock,
         item.variantStockQuantity,
+        item.VariantStockQuantity,
         variant.stockQuantity,
         item.stockQuantity,
+        item.StockQuantity,
         product.effectiveStockQuantity,
         product.stockQuantity,
       ),

@@ -70,6 +70,10 @@ import {
   resolveStoreScopedAuthResult,
 } from "../../utils/storeCustomerAuth.js";
 import {
+  buildStorefrontPath,
+  getCurrentCustomDomainHost,
+} from "../../utils/customDomain.js";
+import {
   setPlatformAuthToken,
   setStoredPlatformRole,
   setStoredPlatformUser,
@@ -199,30 +203,34 @@ export default function Login() {
   const setPlatformSession = useAuthStore((state) => state.setPlatformSession);
   const setStorefrontSession = useAuthStore((state) => state.setStorefrontSession);
   const mergeGuestCart = useMergeGuestCart();
+  const customDomainHost = getCurrentCustomDomainHost();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
-    enabled: Boolean(routeStoreSlug),
+    enabled: Boolean(routeStoreSlug || customDomainHost),
     staleTime: 60000,
   });
   const routeStore = useMemo(
     () => normalizeEntityResponse(routeStoreQuery.data),
     [routeStoreQuery.data],
   );
+  const resolvedRouteStoreSlug = routeStoreSlug || routeStore?.slug || "";
   const stateStoreCustomerAuth = hasStoreCustomerAuthContext(location.state)
     ? location.state
     : null;
-  const routeStoreCustomerAuthState = routeStoreSlug
+  const routeStoreCustomerAuthState = resolvedRouteStoreSlug || routeStore?.id
     ? buildStoreCustomerAuthState({
         storeId: routeStore?.id || location.state?.storeId || "",
-        storeSlug: routeStoreSlug,
-        storeName: routeStore?.name || location.state?.storeName || routeStoreSlug,
-        redirectTo: location.state?.redirectTo || `/market/${routeStoreSlug}`,
+        storeSlug: resolvedRouteStoreSlug,
+        storeName: routeStore?.name || location.state?.storeName || resolvedRouteStoreSlug,
+        redirectTo:
+          location.state?.redirectTo ||
+          buildStorefrontPath(resolvedRouteStoreSlug),
       })
     : null;
   const storeCustomerAuthState =
     routeStoreCustomerAuthState || stateStoreCustomerAuth;
   const resolvedGoogleStoreSlug =
     storeCustomerAuthState?.storeSlug ||
-    routeStoreSlug ||
+    resolvedRouteStoreSlug ||
     location.state?.storeSlug ||
     "";
   const resolvedGoogleStoreId =
@@ -233,10 +241,10 @@ export default function Login() {
     location.state?.storeName ||
     resolvedGoogleStoreSlug;
   const isStoreCustomerMode =
-    Boolean(routeStoreSlug) || Boolean(stateStoreCustomerAuth);
+    Boolean(resolvedRouteStoreSlug || routeStore?.id) || Boolean(stateStoreCustomerAuth);
   const storefrontSession = useStorefrontSession(
     storeCustomerAuthState?.storeId,
-    storeCustomerAuthState?.storeSlug || routeStoreSlug,
+    storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug,
   );
   const redirectTo = isStoreCustomerMode
     ? getStoreCustomerRedirectPath(storeCustomerAuthState)
@@ -251,13 +259,13 @@ export default function Login() {
     resolvedGoogleStoreSlug ||
     "هذا المتجر";
   const storeHomePath = storeCustomerAuthState?.storeSlug
-    ? `/market/${storeCustomerAuthState.storeSlug}`
+    ? buildStorefrontPath(storeCustomerAuthState.storeSlug)
     : "/";
   const storeRegisterPath = storeCustomerAuthState?.storeSlug
-    ? `/market/${storeCustomerAuthState.storeSlug}/register`
+    ? buildStorefrontPath(storeCustomerAuthState.storeSlug, "/register")
     : "/";
   const storeVerifyEmailPath = storeCustomerAuthState?.storeSlug
-    ? `/market/${storeCustomerAuthState.storeSlug}/verify-email`
+    ? buildStorefrontPath(storeCustomerAuthState.storeSlug, "/verify-email")
     : "/";
   const canStartStoreGoogleLogin = Boolean(
     resolvedGoogleStoreSlug || resolvedGoogleStoreId,
@@ -307,7 +315,7 @@ export default function Login() {
 
     const currentStoreId = storeCustomerAuthState?.storeId || "";
     const currentStoreSlug =
-      storeCustomerAuthState?.storeSlug || routeStoreSlug || "";
+      storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug || "";
     const matchesStoreId =
       pendingAuth.storeId && currentStoreId && pendingAuth.storeId === currentStoreId;
     const matchesStoreSlug =
@@ -329,7 +337,7 @@ export default function Login() {
     return pendingAuth;
   }, [
     isStoreCustomerMode,
-    routeStoreSlug,
+    resolvedRouteStoreSlug,
     storeCustomerAuthState?.storeId,
     storeCustomerAuthState?.storeSlug,
   ]);
@@ -366,19 +374,19 @@ export default function Login() {
     setValue("email", pendingStoreGoogleAuth.email || "");
     logAuthFlow("Google store auth resumed", {
       storeId: storeCustomerAuthState?.storeId || pendingStoreGoogleAuth.storeId || "",
-      storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug || "",
+      storeSlug: storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug || "",
       email: pendingStoreGoogleAuth.email || "",
       hasAppUserToken: Boolean(pendingStoreGoogleAuth.appUserToken),
     });
   }, [
     pendingStoreGoogleAuth,
-    routeStoreSlug,
+    resolvedRouteStoreSlug,
     setValue,
     storeCustomerAuthState?.storeId,
     storeCustomerAuthState?.storeSlug,
   ]);
 
-  if (routeStoreSlug && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
+  if ((routeStoreSlug || customDomainHost) && !storeCustomerAuthState?.storeId && routeStoreQuery.isLoading) {
     return (
       <Box className="page-login">
         <Box
@@ -398,7 +406,7 @@ export default function Login() {
     platformRole,
     platformUser,
     storeId: storeCustomerAuthState?.storeId,
-    storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+    storeSlug: storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug,
   });
   const shouldRedirectAuthenticatedUser = isStoreCustomerMode
     ? (
@@ -575,7 +583,7 @@ export default function Login() {
     const authResult = resolveCurrentStoreAuthResult(data);
     const user = applyStoreScopeToUser(authResult.user, {
       storeId: authResult.responseStoreId || storeCustomerAuthState?.storeId,
-      storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+      storeSlug: storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug,
       storeName: storeCustomerAuthState?.storeName || routeStore?.name,
     });
     const { token, role: resolvedRole, isOwner } = authResult;
@@ -608,7 +616,7 @@ export default function Login() {
       storeId: authResult.responseStoreId || storeCustomerAuthState?.storeId || user?.storeId,
       storeSlug:
         storeCustomerAuthState?.storeSlug ||
-        routeStoreSlug ||
+        resolvedRouteStoreSlug ||
         authResult.responseStoreSlug ||
         user?.storeSlug,
     };
@@ -745,7 +753,7 @@ export default function Login() {
         try {
           const data = await storeCustomerLoginMutation.mutateAsync({
             storeId: storeCustomerAuthState.storeId,
-            storeSlug: storeCustomerAuthState.storeSlug || routeStoreSlug,
+            storeSlug: storeCustomerAuthState.storeSlug || resolvedRouteStoreSlug,
             storeName: storeCustomerAuthState.storeName || routeStore?.name,
             email,
             password: values.password,
@@ -914,7 +922,7 @@ export default function Login() {
 
       const data = await storeCustomerLoginMutation.mutateAsync({
         storeId: resolvedStoreId,
-        storeSlug: storeCustomerAuthState?.storeSlug || routeStoreSlug,
+        storeSlug: storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug,
         storeName: storeCustomerAuthState?.storeName || routeStore?.name,
         email,
         password: values.newPassword,

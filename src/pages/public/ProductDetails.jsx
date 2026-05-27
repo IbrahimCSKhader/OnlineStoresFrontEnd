@@ -48,6 +48,7 @@ import {
   normalizeProductDto,
   normalizeProductList,
 } from "../../utils/products.js";
+import { buildStorefrontPath } from "../../utils/customDomain.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./ProductDetails.css";
 
@@ -222,18 +223,39 @@ export default function ProductDetails() {
 
     return (backendDefault || localDefault || variants[0])?.id || "";
   }, [product?.defaultVariantId, variants]);
+  const initialSelectedVariantId = useMemo(() => {
+    if (!productHasVariants) {
+      return defaultVariantId;
+    }
+
+    const selectableDefault = selectableVariants.find(
+      (variant) => String(variant.id) === String(defaultVariantId),
+    );
+
+    return (selectableDefault || selectableVariants[0])?.id || defaultVariantId;
+  }, [defaultVariantId, productHasVariants, selectableVariants]);
   const selectedImageIndex =
     uiState.productId === product?.id ? uiState.selectedImageIndex : 0;
   const quantity = uiState.productId === product?.id ? uiState.quantity : 1;
-  const selectedVariantId =
-    uiState.productId === product?.id &&
-    (productHasVariants ? selectableVariants : variants).some(
-      (item) => String(item.id) === String(uiState.selectedVariantId),
-    )
-      ? uiState.selectedVariantId
-      : productHasVariants
-        ? ""
-        : defaultVariantId;
+  const selectedVariantId = (() => {
+    const variantCandidates = productHasVariants ? selectableVariants : variants;
+
+    if (uiState.productId === product?.id) {
+      if (productHasVariants && uiState.selectedVariantId === "") {
+        return "";
+      }
+
+      if (
+        variantCandidates.some(
+          (item) => String(item.id) === String(uiState.selectedVariantId),
+        )
+      ) {
+        return uiState.selectedVariantId;
+      }
+    }
+
+    return initialSelectedVariantId;
+  })();
   const selectedVariant =
     (productHasVariants ? selectableVariants : variants).find(
       (item) => String(item.id) === String(selectedVariantId),
@@ -316,7 +338,7 @@ export default function ProductDetails() {
       return "";
     }
 
-    const pathname = `/market/${store.slug}/product/${product.id}`;
+    const pathname = buildStorefrontPath(store.slug, `/product/${product.id}`);
     return typeof window === "undefined"
       ? pathname
       : new URL(pathname, window.location.origin).toString();
@@ -358,7 +380,7 @@ export default function ProductDetails() {
               productId: product.id,
               selectedImageIndex: 0,
               quantity: 1,
-              selectedVariantId: productHasVariants ? "" : defaultVariantId,
+              selectedVariantId: initialSelectedVariantId,
             };
 
       return {

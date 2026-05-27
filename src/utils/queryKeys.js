@@ -10,6 +10,7 @@ export const queryKeys = {
     all: ["stores"],
     detail: (id) => ["stores", id],
     slug: (slug) => ["stores", "slug", slug],
+    resolve: (host, slug = "") => ["stores", "resolve", host || "", slug || ""],
     subscription: (id) => ["stores", id, "subscription"],
     visitCount: (id) => ["stores", id, "visit-count"],
   },

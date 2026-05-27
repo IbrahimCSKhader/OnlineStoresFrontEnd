@@ -23,6 +23,7 @@ import {
 import { buildProductSnapshot } from "../../utils/guestCart.js";
 import {
   getProductDisplayPrice,
+  getProductDisplayVariant,
   isProductInStock,
   normalizeProductList,
 } from "../../utils/products.js";
@@ -123,13 +124,17 @@ export default function CategoryPage() {
   const handleAddToCart = (product) => {
     if (isOwnerPreview || !store?.id || !product?.id) return;
 
+    const defaultVariant = getProductDisplayVariant(product);
+
     addToCartUi.markBusy(product.id);
     addToCartMutation.mutate({
       productId: product.id,
       quantity: 1,
       storeId: store.id,
-      variantId: null,
-      productSnapshot: buildProductSnapshot(product),
+      variantId: defaultVariant?.id || null,
+      productSnapshot: buildProductSnapshot(product, {
+        variant: defaultVariant,
+      }),
       debugSource: "category-page",
     });
   };

@@ -106,6 +106,21 @@ function resolveProductSnapshot(snapshot = {}, fallback = {}) {
     name: source.name || source.productName || backup.name || "منتج",
     slug: source.slug || backup.slug || "",
     imageUrl: source.imageUrl || getProductImage(source) || backup.imageUrl || "",
+    variantImageUrl:
+      source.variantImageUrl ||
+      source.effectiveVariantImageUrl ||
+      source.variant?.imageUrl ||
+      source.variant?.effectiveImageUrl ||
+      backup.variantImageUrl ||
+      "",
+    effectiveVariantImageUrl:
+      source.effectiveVariantImageUrl ||
+      source.variantImageUrl ||
+      source.variant?.effectiveImageUrl ||
+      source.variant?.imageUrl ||
+      backup.effectiveVariantImageUrl ||
+      backup.variantImageUrl ||
+      "",
     unitPrice,
     variantName: source.variantName || source.variant?.name || backup.variantName || "",
     variantSku: source.variantSku || source.variantSKU || source.variant?.sku || backup.variantSku || "",
@@ -260,6 +275,12 @@ export function buildProductSnapshot(product, options = {}) {
     name: product?.name || "منتج",
     slug: product?.slug || "",
     imageUrl: variant ? getVariantEffectiveImage(variant, product) : getProductImage(product),
+    variantImageUrl: variant
+      ? variant.imageUrl || variant.images?.[0]?.url || ""
+      : "",
+    effectiveVariantImageUrl: variant
+      ? getVariantEffectiveImage(variant, product)
+      : "",
     unitPrice: toNumber(unitPrice),
     variantName: variant?.name || "",
     variantSku: variant?.sku || "",
