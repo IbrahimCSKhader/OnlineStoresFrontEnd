@@ -138,7 +138,10 @@ function isPlatformProtectedProductPath(pathname, method) {
     return true;
   }
 
-  if (/^\/api\/product\/variant\/[^/]+$/.test(pathname) && method === "delete") {
+  if (
+    /^\/api\/product\/variant\/[^/]+$/.test(pathname) &&
+    ["put", "delete"].includes(method)
+  ) {
     return true;
   }
 
