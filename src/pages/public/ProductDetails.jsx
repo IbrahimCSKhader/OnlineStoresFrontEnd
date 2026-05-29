@@ -346,9 +346,10 @@ export default function ProductDetails() {
   const requestedReturnTo =
     typeof location.state?.returnTo === "string" ? location.state.returnTo : "";
   const hasCatalogReturnTarget = isCatalogReturnTarget(requestedReturnTo);
+  const resolvedStoreSlug = store?.slug || slug || "";
   const backTarget = hasCatalogReturnTarget
     ? requestedReturnTo
-    : buildStorePreviewPath(`/market/${slug}`);
+    : buildStorePreviewPath(`/market/${resolvedStoreSlug}`);
   const backTargetState =
     hasCatalogReturnTarget &&
     typeof location.state?.scrollRestoreKey === "string" &&
@@ -561,7 +562,7 @@ export default function ProductDetails() {
                   <AppButton
                     component={RouterLink}
                     to={buildStorePreviewPath(
-                      `/market/${slug}/category/${product.categoryId}`,
+                      `/market/${resolvedStoreSlug}/category/${product.categoryId}`,
                     )}
                     variant="text"
                   >
@@ -589,7 +590,7 @@ export default function ProductDetails() {
             ) : (
               <AppButton
                 component={RouterLink}
-                to={buildStorePreviewPath(`/market/${slug}/cart`)}
+                to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/cart`)}
                 variant="text"
               >
                 السلة
@@ -633,7 +634,7 @@ export default function ProductDetails() {
                   <Chip
                     component={RouterLink}
                     to={buildStorePreviewPath(
-                      `/market/${slug}/category/${product.categoryId}`,
+                      `/market/${resolvedStoreSlug}/category/${product.categoryId}`,
                     )}
                     clickable
                     label={product.categoryName}
@@ -765,7 +766,7 @@ export default function ProductDetails() {
                   ) : (
                     <AppButton
                       component={RouterLink}
-                      to={buildStorePreviewPath(`/market/${slug}/checkout`)}
+                      to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/checkout`)}
                       variant="outlined"
                       disabled={!isAvailable || (productHasVariants && !selectedVariant)}
                     >

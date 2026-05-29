@@ -62,6 +62,7 @@ export default function StoreAbout() {
   }
 
   const storyParagraphs = buildStoryParagraphs(store);
+  const resolvedStoreSlug = store.slug || slug || "";
 
   return (
     <Box className="storefront-page page-store-about">
@@ -80,14 +81,14 @@ export default function StoreAbout() {
           <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
             <AppButton
               component={RouterLink}
-              to={buildStorePreviewPath(`/market/${slug}`)}
+              to={buildStorePreviewPath(`/market/${resolvedStoreSlug}`)}
               variant="contained"
             >
               العودة لواجهة المتجر
             </AppButton>
             <AppButton
               component={RouterLink}
-              to={buildStorePreviewPath(`/market/${slug}/contact`)}
+              to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/contact`)}
               variant="outlined"
             >
               تواصل معنا

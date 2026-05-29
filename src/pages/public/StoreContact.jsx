@@ -35,6 +35,8 @@ export default function StoreContact() {
     );
   }
 
+  const resolvedStoreSlug = store.slug || slug || "";
+
   return (
     <Box className="storefront-page page-store-contact">
       <SurfaceCard variant="hero" className="page-store-contact__hero">
@@ -53,7 +55,7 @@ export default function StoreContact() {
           <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
             <AppButton
               component={RouterLink}
-              to={buildStorePreviewPath(`/market/${slug}`)}
+              to={buildStorePreviewPath(`/market/${resolvedStoreSlug}`)}
               variant="contained"
             >
               العودة لواجهة المتجر
