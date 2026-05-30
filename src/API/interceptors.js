@@ -18,6 +18,7 @@ const PUBLIC_AUTH_PATHS = [
   "/api/auth/reset-password",
   "/api/auth/google",
   "/api/auth/google-callback",
+  "/api/auth/create-owner",
   "/api/store-customer-auth/login",
   "/api/store-customer-auth/google",
   "/api/store-customer-auth/google-callback",

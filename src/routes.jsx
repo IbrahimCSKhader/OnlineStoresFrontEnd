@@ -35,6 +35,10 @@ const VerifyEmail = lazyWithRetry(
   () => import("./pages/auth/VerifyEmail.jsx"),
   "verify-email",
 );
+const StoreRegister = lazyWithRetry(
+  () => import("./pages/storeRegister/StoreRegister.jsx"),
+  "store-register",
+);
 const GoogleCallbackPage = lazyWithRetry(
   () => import("./pages/auth/GoogleCallbackPage.jsx"),
   "google-callback",
@@ -302,6 +306,7 @@ const router = createBrowserRouter([
 
           { path: "auth/login", element: withRouteSuspense(<Login />) },
           { path: "auth/register", element: withRouteSuspense(<Register />) },
+          { path: "storeRegister", element: withRouteSuspense(<StoreRegister />) },
           {
             path: "auth/verify-email",
             element: withRouteSuspense(<VerifyEmail />),

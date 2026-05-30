@@ -425,6 +425,28 @@ export default function VerifyEmail() {
 
             {localError ? <Alert severity="error">{localError}</Alert> : null}
 
+            {location.state?.storeLink ? (
+              <Alert severity="success">
+                <Stack spacing={0.5}>
+                  <span>
+                    {location.state?.storeName
+                      ? `رابط متجر ${location.state.storeName}`
+                      : "رابط المتجر"}
+                  </span>
+                  <Button
+                    component="a"
+                    href={location.state.storeLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    variant="text"
+                    sx={{ alignSelf: "flex-start", px: 0 }}
+                  >
+                    {location.state.storeLink}
+                  </Button>
+                </Stack>
+              </Alert>
+            ) : null}
+
             {resendVerificationCodeMutation.isSuccess ? (
               <Alert severity="success">
                 {resendVerificationCodeMutation.data?.message || "تم إرسال كود تحقق جديد."}
