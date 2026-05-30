@@ -354,6 +354,8 @@ export default function Navbar() {
     isStoreCustomer &&
     hasScopedStorefrontSession;
   const canAccessStoreCart = Boolean(activeStoreSlug) && !isOwnerPreview;
+  const shouldShowStoreRegisterLink =
+    !activeStoreSlug && !customDomainHost && !isScopedOwnerDashboard;
 
   const logoutMutation = useLogout({
     onSettled: () => {
@@ -794,6 +796,25 @@ export default function Navbar() {
     </AppButton>
   );
 
+  const renderStoreRegisterButton = (drawer = false) => {
+    if (!shouldShowStoreRegisterLink) {
+      return null;
+    }
+
+    return (
+      <AppButton
+        component={NavLink}
+        to="/storeRegister"
+        onClick={drawer ? () => setDrawerOpen(false) : undefined}
+        variant={drawer ? "contained" : "outlined"}
+        startIcon={<StorefrontRoundedIcon fontSize="small" />}
+        fullWidth={drawer}
+      >
+        أنشئ متجرك
+      </AppButton>
+    );
+  };
+
   const renderDesktopActions = () => {
     if (isOwnerPreview) {
       return renderPlatformButtons();
@@ -932,6 +953,8 @@ export default function Navbar() {
             />
           ) : null}
 
+          {!isMobile ? renderStoreRegisterButton() : null}
+
           {!isMobile ? (
             <Stack
               direction="row"
@@ -1002,7 +1025,10 @@ export default function Navbar() {
           <Typography variant="overline" className="storefront-eyebrow">
             الحساب
           </Typography>
-          <Stack spacing={1.25}>{renderDrawerAccountSection()}</Stack>
+          <Stack spacing={1.25}>
+            {renderStoreRegisterButton(true)}
+            {renderDrawerAccountSection()}
+          </Stack>
         </Box>
       </Drawer>
     </AppBar>

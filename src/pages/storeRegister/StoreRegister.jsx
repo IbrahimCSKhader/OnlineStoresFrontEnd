@@ -308,7 +308,7 @@ export default function StoreRegister() {
 
           <Box className="store-register__grid">
             <TextField
-              label="الاسم الأول"
+               label="الاسم الأول"
               placeholder="مثال: أحمد"
               value={form.firstName}
               onChange={(event) => updateForm("firstName", event.target.value)}
