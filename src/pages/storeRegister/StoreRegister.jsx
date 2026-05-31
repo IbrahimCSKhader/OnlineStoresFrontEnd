@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -19,6 +19,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import AlternateEmailRoundedIcon from "@mui/icons-material/AlternateEmailRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import LinkRoundedIcon from "@mui/icons-material/LinkRounded";
+import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import authApi from "../../API/auth.api.js";
 import storeApi from "../../API/store.api.js";
@@ -33,6 +34,8 @@ const CONTACT_PLATFORMS = [
   "WhatsApp",
   "YouTube",
 ];
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 const initialForm = {
   firstName: "",
@@ -151,7 +154,21 @@ function getContactError(contact) {
   return "";
 }
 
-function validateForm(form, contacts) {
+function getImageError(file, label) {
+  if (!file) return "";
+
+  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+    return `${label} يجب أن تكون بصيغة JPG أو PNG أو WEBP.`;
+  }
+
+  if (file.size > MAX_IMAGE_SIZE) {
+    return `${label} يجب ألا تتجاوز 5 ميجابايت.`;
+  }
+
+  return "";
+}
+
+function validateForm(form, contacts, brandingFiles) {
   const errors = {};
 
   if (!form.firstName.trim()) errors.firstName = "الاسم الأول مطلوب.";
@@ -162,6 +179,12 @@ function validateForm(form, contacts) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(form.slug.trim())) {
     errors.slug = "الرابط يقبل أحرف إنجليزية صغيرة، أرقام، وشرطة بين الكلمات.";
   }
+
+  const logoError = getImageError(brandingFiles.logoFile, "شعار المتجر");
+  const coverError = getImageError(brandingFiles.coverPageFile, "صورة الغلاف");
+
+  if (logoError) errors.logoFile = logoError;
+  if (coverError) errors.coverPageFile = coverError;
 
   const seenContacts = new Set();
   contacts.forEach((contact, index) => {
@@ -198,6 +221,10 @@ export default function StoreRegister() {
   const [createdOwner, setCreatedOwner] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [slugEdited, setSlugEdited] = useState(false);
+  const [brandingFiles, setBrandingFiles] = useState({
+    logoFile: null,
+    coverPageFile: null,
+  });
 
   const normalizedContacts = useMemo(
     () =>
@@ -211,6 +238,29 @@ export default function StoreRegister() {
         .filter((contact) => contact.username),
     [contacts],
   );
+  const logoPreviewUrl = useMemo(
+    () => (brandingFiles.logoFile ? URL.createObjectURL(brandingFiles.logoFile) : ""),
+    [brandingFiles.logoFile],
+  );
+  const coverPreviewUrl = useMemo(
+    () =>
+      brandingFiles.coverPageFile
+        ? URL.createObjectURL(brandingFiles.coverPageFile)
+        : "",
+    [brandingFiles.coverPageFile],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (logoPreviewUrl) URL.revokeObjectURL(logoPreviewUrl);
+    };
+  }, [logoPreviewUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl);
+    };
+  }, [coverPreviewUrl]);
 
   function updateForm(key, value) {
     setForm((current) => {
@@ -236,11 +286,23 @@ export default function StoreRegister() {
     );
   }
 
+  function updateBrandingFile(key, file) {
+    setBrandingFiles((current) => ({
+      ...current,
+      [key]: file,
+    }));
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+  }
+
   async function handleSubmit(event) {
     event.preventDefault();
     setApiError("");
 
-    const nextErrors = validateForm(form, contacts);
+    const nextErrors = validateForm(form, contacts, brandingFiles);
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
@@ -267,6 +329,8 @@ export default function StoreRegister() {
         description: form.description.trim(),
         businessType: form.businessType.trim(),
         whatsAppNumber: form.whatsAppNumber.trim(),
+        Logo: brandingFiles.logoFile || undefined,
+        CoverPage: brandingFiles.coverPageFile || undefined,
         ownerId: owner.id,
         contactAccounts: normalizedContacts,
       });
@@ -406,6 +470,81 @@ export default function StoreRegister() {
               className="store-register__wide"
               fullWidth
             />
+            <Box className="store-register__upload-card">
+              <Box className="store-register__upload-copy">
+                <PhotoCameraRoundedIcon fontSize="small" />
+                <Box>
+                  <Typography variant="subtitle2">شعار المتجر</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    ارفع صورة اللوغو مباشرة من جهازك. الصيغ المدعومة: JPG أو PNG أو WEBP، والحد الأقصى 5 ميجابايت.
+                  </Typography>
+                </Box>
+              </Box>
+              {logoPreviewUrl ? (
+                <Box className="store-register__image-preview store-register__image-preview--logo">
+                  <img src={logoPreviewUrl} alt="معاينة شعار المتجر" />
+                </Box>
+              ) : null}
+              <Button variant="outlined" component="label">
+                اختيار اللوغو
+                <input
+                  hidden
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  onChange={(event) =>
+                    updateBrandingFile("logoFile", event.target.files?.[0] || null)
+                  }
+                />
+              </Button>
+              {brandingFiles.logoFile ? (
+                <Typography variant="caption" color="text.secondary">
+                  {brandingFiles.logoFile.name}
+                </Typography>
+              ) : null}
+              {errors.logoFile ? (
+                <Typography variant="caption" color="error">
+                  {errors.logoFile}
+                </Typography>
+              ) : null}
+            </Box>
+
+            <Box className="store-register__upload-card">
+              <Box className="store-register__upload-copy">
+                <PhotoCameraRoundedIcon fontSize="small" />
+                <Box>
+                  <Typography variant="subtitle2">صورة غلاف المتجر</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    ارفع صورة الكفر/الغلاف التي تظهر بأعلى صفحة المتجر. يفضل أن تكون أفقية وواضحة.
+                  </Typography>
+                </Box>
+              </Box>
+              {coverPreviewUrl ? (
+                <Box className="store-register__image-preview store-register__image-preview--cover">
+                  <img src={coverPreviewUrl} alt="معاينة صورة غلاف المتجر" />
+                </Box>
+              ) : null}
+              <Button variant="outlined" component="label">
+                اختيار صورة الغلاف
+                <input
+                  hidden
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  onChange={(event) =>
+                    updateBrandingFile("coverPageFile", event.target.files?.[0] || null)
+                  }
+                />
+              </Button>
+              {brandingFiles.coverPageFile ? (
+                <Typography variant="caption" color="text.secondary">
+                  {brandingFiles.coverPageFile.name}
+                </Typography>
+              ) : null}
+              {errors.coverPageFile ? (
+                <Typography variant="caption" color="error">
+                  {errors.coverPageFile}
+                </Typography>
+              ) : null}
+            </Box>
           </Box>
 
           <Divider />
