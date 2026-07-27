@@ -56,4 +56,13 @@ describe("product card layout CSS", () => {
     expect(catalogGridRule).toContain("repeat(auto-fit, minmax(190px, 1fr))");
     expect(itemRule).toContain("max-width: none");
   });
+
+  it("centers product pagination controls", () => {
+    expect(cssRule(productCardCss, ".product-pagination")).toContain(
+      "justify-content: center",
+    );
+    expect(cssRule(productCardCss, ".product-pagination .MuiPagination-ul")).toContain(
+      "justify-content: center",
+    );
+  });
 });
