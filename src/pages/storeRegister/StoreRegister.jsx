@@ -23,6 +23,7 @@ import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import authApi from "../../API/auth.api.js";
 import storeApi from "../../API/store.api.js";
+import { STORE_THEME_TEMPLATES } from "../../constants/storeThemeTemplates.js";
 import extractApiError from "../../utils/extractApiError.js";
 import "./StoreRegister.css";
 
@@ -47,6 +48,7 @@ const initialForm = {
   description: "",
   businessType: "",
   whatsAppNumber: "",
+  themeTemplate: "D",
 };
 
 const emptyContact = () => ({
@@ -329,6 +331,7 @@ export default function StoreRegister() {
         description: form.description.trim(),
         businessType: form.businessType.trim(),
         whatsAppNumber: form.whatsAppNumber.trim(),
+        ThemeTemplate: form.themeTemplate || "D",
         Logo: brandingFiles.logoFile || undefined,
         CoverPage: brandingFiles.coverPageFile || undefined,
         ownerId: owner.id,
@@ -451,6 +454,27 @@ export default function StoreRegister() {
               helperText="اختياري، يساعد في وصف مجال المتجر."
               fullWidth
             />
+            <TextField
+              select
+              label="ثيم المتجر"
+              value={form.themeTemplate}
+              onChange={(event) => updateForm("themeTemplate", event.target.value)}
+              helperText="اختر شكل المتجر. الثيم الافتراضي هو نفس تصميم الموقع الحالي، وكل ثيم يدعم لايت ودارك مود."
+              fullWidth
+            >
+              {STORE_THEME_TEMPLATES.map((template) => (
+                <MenuItem key={template.value} value={template.value}>
+                  <Stack spacing={0.25}>
+                    <Typography variant="body2" fontWeight={700}>
+                      {template.label}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {template.description}
+                    </Typography>
+                  </Stack>
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               label="رقم واتساب المتجر"
               value={form.whatsAppNumber}

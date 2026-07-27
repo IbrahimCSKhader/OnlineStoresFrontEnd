@@ -1,11 +1,13 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { Controller, useForm } from "react-hook-form";
+import { STORE_THEME_TEMPLATES } from "../../constants/storeThemeTemplates.js";
 import "./StoresManagement.css";
 
 const defaultValues = {
@@ -15,6 +17,7 @@ const defaultValues = {
   businessType: "",
   logoUrl: "",
   coverImageUrl: "",
+  themeTemplate: "D",
   isActive: true,
 };
 
@@ -26,6 +29,7 @@ function cleanPayload(values) {
     businessType: values.businessType.trim(),
     logoUrl: values.logoUrl.trim(),
     coverImageUrl: values.coverImageUrl.trim(),
+    ThemeTemplate: values.themeTemplate || "D",
     isActive: values.isActive,
   };
 
@@ -103,6 +107,27 @@ export default function CreateStore({
             fullWidth
             {...register("coverImageUrl")}
           />
+          <TextField
+            select
+            label="ثيم المتجر"
+            defaultValue="D"
+            fullWidth
+            helperText="الثيم الافتراضي يحافظ على شكل الموقع الحالي، وكل ثيم يدعم لايت ودارك مود."
+            {...register("themeTemplate")}
+          >
+            {STORE_THEME_TEMPLATES.map((template) => (
+              <MenuItem key={template.value} value={template.value}>
+                <Stack spacing={0.25}>
+                  <Typography variant="body2" fontWeight={700}>
+                    {template.label}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {template.description}
+                  </Typography>
+                </Stack>
+              </MenuItem>
+            ))}
+          </TextField>
         </Box>
 
         <TextField
