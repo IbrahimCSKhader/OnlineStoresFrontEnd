@@ -1,7 +1,7 @@
 .app-button.MuiButton-root {
   position: relative;
   min-height: 48px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--button-radius, var(--radius-sm));
   padding-inline: 20px;
   font-weight: 700;
   transition:
@@ -68,7 +68,7 @@
 .app-surface-card {
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-theme-radius, var(--radius-lg));
   background: var(--surface-card);
   box-shadow: var(--shadow-soft);
 }

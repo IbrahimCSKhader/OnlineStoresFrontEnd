@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap");
 @import "./components/common/common.css";
 
 :root {
@@ -463,6 +463,112 @@ input[type="password"] {
 .storefront-note {
   color: var(--text-muted);
   font-size: 0.84rem;
+}
+
+html[data-theme-template="pink"] {
+  --max-width: 1220px;
+  --button-radius: 999px;
+  --card-theme-radius: 24px;
+  --card-theme-border: 1px solid rgba(225, 190, 196, 0.72);
+}
+
+html[data-theme-template="black"] {
+  --max-width: 1260px;
+  --button-radius: 999px;
+  --card-theme-radius: 18px;
+  --card-theme-border: 1px solid color-mix(in srgb, var(--border-strong) 52%, transparent);
+}
+
+html[data-theme-template="green"] {
+  --max-width: 1240px;
+  --button-radius: 20px;
+  --card-theme-radius: 22px;
+  --card-theme-border: 1px solid color-mix(in srgb, var(--border-strong) 42%, transparent);
+}
+
+html[data-theme-template="pink"] body,
+html[data-theme-template="black"] body,
+html[data-theme-template="green"] body {
+  font-family: var(--font-body);
+}
+
+html[data-theme-template="pink"] .storefront-page {
+  padding-block-start: 24px;
+}
+
+html[data-theme-template="pink"] .storefront-eyebrow {
+  color: var(--primary);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+html[data-theme-template="pink"] .storefront-title,
+html[data-theme-template="pink"] .storefront-section__copy .MuiTypography-h3,
+html[data-theme-template="pink"] .storefront-section__copy .MuiTypography-h2 {
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+html[data-theme-template="pink"] .app-button.MuiButton-root,
+html[data-theme-template="black"] .app-button.MuiButton-root {
+  border-radius: var(--button-radius);
+}
+
+html[data-theme-template="pink"] .app-button--secondary.MuiButton-root,
+html[data-theme-template="pink"] .app-button--ghost.MuiButton-root {
+  color: #aa2f72;
+  border: 1px solid rgba(241, 191, 215, 0.9);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+html[data-theme-template="pink"] .app-surface-card:not(.app-surface-card--hero),
+html[data-theme-template="black"] .app-surface-card:not(.app-surface-card--hero),
+html[data-theme-template="green"] .app-surface-card:not(.app-surface-card--hero) {
+  border: var(--card-theme-border);
+  border-radius: var(--card-theme-radius);
+}
+
+html[data-theme-template="pink"] .storefront-products-grid,
+html[data-theme-template="black"] .storefront-products-grid,
+html[data-theme-template="green"] .storefront-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  align-items: stretch;
+  justify-content: stretch;
+  width: 100%;
+}
+
+html[data-theme-template="pink"] .storefront-products-grid > *,
+html[data-theme-template="black"] .storefront-products-grid > *,
+html[data-theme-template="green"] .storefront-products-grid > * {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+html[data-theme-template="pink"] .storefront-logo {
+  border: 1px solid rgba(241, 191, 215, 0.9);
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(89, 37, 67, 0.08);
+}
+
+html[data-theme-template="black"] .storefront-logo {
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 18px;
+}
+
+html[data-theme-template="green"] .storefront-logo {
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  border-radius: 22px;
+}
+
+@media (max-width: 639px) {
+  html[data-theme-template="pink"] .storefront-products-grid,
+  html[data-theme-template="black"] .storefront-products-grid,
+  html[data-theme-template="green"] .storefront-products-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1199px) {

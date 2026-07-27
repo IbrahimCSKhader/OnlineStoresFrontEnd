@@ -30,10 +30,7 @@ const cacheLtr = createCache({
 });
 
 const defaultVariant = "light";
-const storeOnlyVariant = "pink";
-const defaultAvailableVariants = THEME_VARIANTS.filter(
-  (variant) => variant !== storeOnlyVariant,
-);
+const defaultAvailableVariants = ["light", "dark"];
 const noop = () => {};
 
 function resolveAllowedThemeVariants(values, fallback = defaultAvailableVariants) {
@@ -215,6 +212,8 @@ export default function AppThemeProvider({ children }) {
   useEffect(() => {
     document.documentElement.dataset.theme = variant;
     document.documentElement.dataset.themeMode = themeProfile.mode;
+    document.documentElement.dataset.themeTemplate =
+      themeProfile.template || "default";
     document.documentElement.dir = "rtl";
     document.documentElement.lang = "ar-u-nu-latn";
     applyCssVariables(themeProfile.cssVars);

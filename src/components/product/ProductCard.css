@@ -275,6 +275,92 @@
   width: 100%;
 }
 
+html[data-theme-template="pink"] .product-card {
+  border: 1px solid rgba(225, 190, 196, 0.72);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(89, 37, 67, 0.08);
+}
+
+html[data-theme-template="pink"] .product-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 40px rgba(89, 37, 67, 0.12);
+}
+
+html[data-theme-template="pink"] .product-card__media {
+  aspect-ratio: 1 / 1;
+  max-height: none;
+  border-radius: 20px;
+  background: #fff0f7;
+}
+
+html[data-theme-template="pink"] .product-card:hover .product-card__image {
+  transform: scale(1.05);
+}
+
+html[data-theme-template="pink"] .product-card__badge {
+  min-height: 24px;
+  color: #aa2f72;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(241, 191, 215, 0.72);
+}
+
+html[data-theme-template="pink"] .product-card__eyebrow,
+html[data-theme-template="pink"] .product-card__price {
+  color: #aa2f72;
+}
+
+html[data-theme-template="pink"] .product-card__description {
+  -webkit-line-clamp: 2;
+  min-height: 2.8em;
+}
+
+html[data-theme-template="pink"] .product-card__detail-button {
+  min-height: 38px !important;
+  padding-inline: 14px !important;
+  border-radius: 999px !important;
+  color: #aa2f72 !important;
+  background: #ffe3f1 !important;
+}
+
+html[data-theme-template="pink"] .product-card__add-button {
+  border-radius: 999px !important;
+  background: #aa2f72 !important;
+}
+
+html[data-theme-template="black"] .product-card {
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-card) 92%, #000 8%);
+}
+
+html[data-theme-template="black"] .product-card__media {
+  aspect-ratio: 1 / 1;
+  max-height: none;
+  border-radius: 14px;
+}
+
+html[data-theme-template="black"] .product-card__price,
+html[data-theme-template="black"] .product-card__eyebrow {
+  color: var(--primary);
+}
+
+html[data-theme-template="green"] .product-card {
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+  border-radius: 22px;
+}
+
+html[data-theme-template="green"] .product-card__media {
+  aspect-ratio: 1 / 1;
+  max-height: none;
+  border-radius: 18px;
+}
+
+html[data-theme-template="green"] .product-card__price,
+html[data-theme-template="green"] .product-card__eyebrow {
+  color: var(--primary);
+}
+
 @media (max-width: 639px) {
   .product-card-lazy-shell,
   .product-card-placeholder {

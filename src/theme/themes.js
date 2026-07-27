@@ -98,6 +98,15 @@ function resolveBrandedPalette(preset, branding = null) {
 export function buildThemeProfile(variant = "light", branding = null) {
   const preset = themeCatalog[variant] ?? themeCatalog.light;
   const palette = resolveBrandedPalette(preset, branding);
+  const typographyPreset = {
+    fontFamilyBody: preset.typography?.fontFamilyBody || tokens.fontFamily,
+    fontFamilyHeading:
+      preset.typography?.fontFamilyHeading || tokens.fontFamilyHeading,
+  };
+  const radiiPreset = {
+    ...tokens.radii,
+    ...(preset.radii || {}),
+  };
 
   const cssVars = {
     "--primary": palette.primary,
@@ -152,8 +161,8 @@ export function buildThemeProfile(variant = "light", branding = null) {
     "--gradient-hero": preset.gradients.hero,
     "--gradient-accent": preset.gradients.accent,
     "--cta-gradient": palette.ctaGradient,
-    "--font-body": tokens.fontFamily,
-    "--font-heading": tokens.fontFamilyHeading,
+    "--font-body": typographyPreset.fontFamilyBody,
+    "--font-heading": typographyPreset.fontFamilyHeading,
     "--max-width": `${tokens.layout.maxWidth}px`,
     "--grid-columns": String(tokens.layout.gridColumns),
     "--page-inset": tokens.layout.pageInset,
@@ -174,11 +183,12 @@ export function buildThemeProfile(variant = "light", branding = null) {
     "--hero-padding": tokens.layout.heroPadding,
     "--card-padding": tokens.layout.cardPadding,
     "--panel-padding": tokens.layout.panelPadding,
-    "--radius-sm": `${tokens.radii.sm}px`,
-    "--radius-md": `${tokens.radii.md}px`,
-    "--radius-lg": `${tokens.radii.lg}px`,
-    "--radius-xl": `${tokens.radii.xl}px`,
-    "--radius-xxl": `${tokens.radii.xxl}px`,
+    "--radius-sm": `${radiiPreset.sm}px`,
+    "--radius-md": `${radiiPreset.md}px`,
+    "--radius-lg": `${radiiPreset.lg}px`,
+    "--radius-xl": `${radiiPreset.xl}px`,
+    "--radius-xxl": `${radiiPreset.xxl}px`,
+    "--radius-pill": `${radiiPreset.pill}px`,
     "--transition-fast": `${tokens.motion.durationFast} ${tokens.motion.easing}`,
     "--transition-base": `${tokens.motion.durationBase} ${tokens.motion.easing}`,
     "--transition-slow": `${tokens.motion.durationSlow} ${tokens.motion.easing}`,
@@ -188,48 +198,49 @@ export function buildThemeProfile(variant = "light", branding = null) {
     ...preset,
     palette,
     cssVars,
+    template: preset.template || "default",
   };
 }
 
 const sharedTypography = {
-  fontFamily: tokens.fontFamily,
+  fontFamily: "var(--font-body)",
   h1: {
-    fontFamily: tokens.fontFamilyHeading,
+    fontFamily: "var(--font-heading)",
     fontWeight: 800,
     fontSize: tokens.typography.sizes.h1,
     lineHeight: tokens.typography.lineHeights.tight,
     letterSpacing: tokens.typography.letterSpacing.h1,
   },
   h2: {
-    fontFamily: tokens.fontFamilyHeading,
+    fontFamily: "var(--font-heading)",
     fontWeight: 780,
     fontSize: tokens.typography.sizes.h2,
     lineHeight: tokens.typography.lineHeights.heading,
     letterSpacing: tokens.typography.letterSpacing.h2,
   },
   h3: {
-    fontFamily: tokens.fontFamilyHeading,
+    fontFamily: "var(--font-heading)",
     fontWeight: 760,
     fontSize: tokens.typography.sizes.h3,
     lineHeight: tokens.typography.lineHeights.heading,
     letterSpacing: tokens.typography.letterSpacing.h3,
   },
   h4: {
-    fontFamily: tokens.fontFamilyHeading,
+    fontFamily: "var(--font-heading)",
     fontWeight: 740,
     fontSize: tokens.typography.sizes.h4,
     lineHeight: tokens.typography.lineHeights.heading,
     letterSpacing: tokens.typography.letterSpacing.h4,
   },
   h5: {
-    fontFamily: tokens.fontFamilyHeading,
+    fontFamily: "var(--font-heading)",
     fontWeight: 720,
     fontSize: "1.25rem",
     lineHeight: 1.42,
     letterSpacing: "-0.01em",
   },
   h6: {
-    fontFamily: tokens.fontFamilyHeading,
+    fontFamily: "var(--font-heading)",
     fontWeight: 700,
     fontSize: "1rem",
     lineHeight: 1.46,
@@ -405,7 +416,7 @@ export function createAppTheme(variant = "light", branding = null) {
         styleOverrides: {
           root: {
             minHeight: 48,
-            borderRadius: tokens.radii.sm,
+            borderRadius: "var(--button-radius, var(--radius-sm))",
             paddingInline: 20,
             boxShadow: "none",
             transition:
@@ -469,7 +480,7 @@ export function createAppTheme(variant = "light", branding = null) {
       MuiIconButton: {
         styleOverrides: {
           root: {
-            borderRadius: tokens.radii.sm,
+            borderRadius: "var(--button-radius, var(--radius-sm))",
             border: `1px solid ${palette.ghostBorder}`,
             backgroundColor: withAlpha(
               palette.surfaceBright || palette.surface,
@@ -488,7 +499,7 @@ export function createAppTheme(variant = "light", branding = null) {
         styleOverrides: {
           root: {
             minHeight: 50,
-            borderRadius: tokens.radii.md,
+            borderRadius: "var(--card-theme-radius, var(--radius-md))",
             backgroundColor: palette.surfaceCard || palette.surface,
             transition:
               "background-color var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast)",

@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from "react";
+﻿import { useDeferredValue, useMemo, useState } from "react";
 import { Link as RouterLink, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -48,6 +48,10 @@ import {
 import { resolveAssetUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
 import { normalizeEntityResponse, normalizeListResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
+import {
+  getStoreThemeTemplateLabel,
+  STORE_THEME_TEMPLATES,
+} from "../../constants/storeThemeTemplates.js";
 import "./SuperAdminPages.css";
 
 const CONTACT_PLATFORM_OPTIONS = Object.values(STORE_CONTACT_PLATFORMS);
@@ -78,7 +82,7 @@ function createStoreFormState(store) {
     coverImageUrl: store?.coverImageUrl || "",
     whatsAppNumber: store?.whatsAppNumber || "",
     storeStory: store?.storeStory || "",
-    themeTemplate: store?.themeTemplate || "",
+    themeTemplate: store?.themeTemplate || "D",
     isActive: store?.isActive !== false,
     contactAccounts: Array.isArray(store?.contactAccounts)
       ? store.contactAccounts.map((account, index) => createContactAccount(account, index))
@@ -116,17 +120,17 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
 
   return (
     <Dialog open={open} onClose={loading ? undefined : onClose} fullWidth maxWidth="lg">
-      <DialogTitle>تعديل المتجر</DialogTitle>
+      <DialogTitle>طھط¹ط¯ظٹظ„ ط§ظ„ظ…طھط¬ط±</DialogTitle>
       <DialogContent dividers>
         <Box className="super-admin-panel" sx={{ p: 0 }}>
           <Typography variant="body2" color="text.secondary">
-            إرسال حسابات التواصل هنا يستبدل القائمة الحالية بالكامل في الباك إند، لذلك أبقِ
-            كل حساب تريد الحفاظ عليه.
+            ط¥ط±ط³ط§ظ„ ط­ط³ط§ط¨ط§طھ ط§ظ„طھظˆط§طµظ„ ظ‡ظ†ط§ ظٹط³طھط¨ط¯ظ„ ط§ظ„ظ‚ط§ط¦ظ…ط© ط§ظ„ط­ط§ظ„ظٹط© ط¨ط§ظ„ظƒط§ظ…ظ„ ظپظٹ ط§ظ„ط¨ط§ظƒ ط¥ظ†ط¯طŒ ظ„ط°ظ„ظƒ ط£ط¨ظ‚ظگ
+            ظƒظ„ ط­ط³ط§ط¨ طھط±ظٹط¯ ط§ظ„ط­ظپط§ط¸ ط¹ظ„ظٹظ‡.
           </Typography>
 
           {error ? (
             <Alert severity="error">
-              {extractApiError(error, "تعذر تحديث المتجر حاليًا.")}
+              {extractApiError(error, "طھط¹ط°ط± طھط­ط¯ظٹط« ط§ظ„ظ…طھط¬ط± ط­ط§ظ„ظٹظ‹ط§.")}
             </Alert>
           ) : null}
 
@@ -151,19 +155,19 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
             className="super-admin-modal-grid"
           >
             <AppTextField
-              label="اسم المتجر"
+              label="ط§ط³ظ… ط§ظ„ظ…طھط¬ط±"
               value={form.name}
               onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))}
             />
             <AppTextField
-              label="نوع النشاط"
+              label="ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط·"
               value={form.businessType}
               onChange={(event) =>
                 setForm((current) => ({ ...current, businessType: event.target.value }))
               }
             />
             <AppTextField
-              label="الوصف"
+              label="ط§ظ„ظˆطµظپ"
               multiline
               minRows={3}
               value={form.description}
@@ -173,35 +177,44 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
               sx={{ gridColumn: "1 / -1" }}
             />
             <AppTextField
-              label="رابط الشعار"
+              label="ط±ط§ط¨ط· ط§ظ„ط´ط¹ط§ط±"
               value={form.logoUrl}
               onChange={(event) =>
                 setForm((current) => ({ ...current, logoUrl: event.target.value }))
               }
             />
             <AppTextField
-              label="رابط صورة الغلاف"
+              label="ط±ط§ط¨ط· طµظˆط±ط© ط§ظ„ط؛ظ„ط§ظپ"
               value={form.coverImageUrl}
               onChange={(event) =>
                 setForm((current) => ({ ...current, coverImageUrl: event.target.value }))
               }
             />
             <AppTextField
-              label="رقم واتساب"
+              label="ط±ظ‚ظ… ظˆط§طھط³ط§ط¨"
               value={form.whatsAppNumber}
               onChange={(event) =>
                 setForm((current) => ({ ...current, whatsAppNumber: event.target.value }))
               }
             />
+
             <AppTextField
-              label="القالب"
+              select
+              label="قالب المتجر"
               value={form.themeTemplate}
               onChange={(event) =>
                 setForm((current) => ({ ...current, themeTemplate: event.target.value }))
               }
-            />
+              helperText="كل قالب يملك لايت مود ودارك مود داخل واجهة المتجر."
+            >
+              {STORE_THEME_TEMPLATES.map((template) => (
+                <MenuItem key={template.value} value={template.value}>
+                  {template.label}
+                </MenuItem>
+              ))}
+            </AppTextField>
             <AppTextField
-              label="قصة المتجر"
+              label="ظ‚طµط© ط§ظ„ظ…طھط¬ط±"
               multiline
               minRows={5}
               value={form.storeStory}
@@ -221,7 +234,7 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                     }
                   />
                 }
-                label="المتجر نشط"
+                label="ط§ظ„ظ…طھط¬ط± ظ†ط´ط·"
               />
             </Box>
 
@@ -235,9 +248,9 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                 useFlexGap
               >
                 <Box>
-                  <Typography variant="subtitle1">حسابات التواصل</Typography>
+                  <Typography variant="subtitle1">ط­ط³ط§ط¨ط§طھ ط§ظ„طھظˆط§طµظ„</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    المنصة واسم المستخدم فقط. تكرار نفس المنصة مسموح.
+                    ط§ظ„ظ…ظ†طµط© ظˆط§ط³ظ… ط§ظ„ظ…ط³طھط®ط¯ظ… ظپظ‚ط·. طھظƒط±ط§ط± ظ†ظپط³ ط§ظ„ظ…ظ†طµط© ظ…ط³ظ…ظˆط­.
                   </Typography>
                 </Box>
                 <Button
@@ -254,7 +267,7 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                     }))
                   }
                 >
-                  إضافة حساب
+                  ط¥ط¶ط§ظپط© ط­ط³ط§ط¨
                 </Button>
               </Stack>
 
@@ -263,7 +276,7 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                   <Box key={account.clientId} className="super-admin-contact-row">
                     <AppTextField
                       select
-                      label="المنصة"
+                      label="ط§ظ„ظ…ظ†طµط©"
                       value={account.platform}
                       onChange={(event) =>
                         setForm((current) => ({
@@ -283,7 +296,7 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                       ))}
                     </AppTextField>
                     <AppTextField
-                      label="اسم المستخدم / الرقم"
+                      label="ط§ط³ظ… ط§ظ„ظ…ط³طھط®ط¯ظ… / ط§ظ„ط±ظ‚ظ…"
                       value={account.username}
                       onChange={(event) =>
                         setForm((current) => ({
@@ -297,7 +310,7 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                       }
                     />
                     <AppTextField
-                      label="العنوان"
+                      label="ط§ظ„ط¹ظ†ظˆط§ظ†"
                       value={account.label}
                       onChange={(event) =>
                         setForm((current) => ({
@@ -311,7 +324,7 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                       }
                     />
                     <AppTextField
-                      label="الترتيب"
+                      label="ط§ظ„طھط±طھظٹط¨"
                       type="number"
                       value={account.sortOrder}
                       onChange={(event) =>
@@ -339,13 +352,13 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                         }))
                       }
                     >
-                      حذف
+                      ط­ط°ظپ
                     </Button>
                   </Box>
                 ))
               ) : (
                 <Box className="super-admin-empty-inline">
-                  لن يتم إرسال أي حسابات تواصل ما لم تضفها من هنا.
+                  ظ„ظ† ظٹطھظ… ط¥ط±ط³ط§ظ„ ط£ظٹ ط­ط³ط§ط¨ط§طھ طھظˆط§طµظ„ ظ…ط§ ظ„ظ… طھط¶ظپظ‡ط§ ظ…ظ† ظ‡ظ†ط§.
                 </Box>
               )}
             </Box>
@@ -354,10 +367,10 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
       </DialogContent>
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose} disabled={loading}>
-          إلغاء
+          ط¥ظ„ط؛ط§ط،
         </Button>
         <AppButton form="store-edit-form" loading={loading} type="submit">
-          حفظ التعديلات
+          ط­ظپط¸ ط§ظ„طھط¹ط¯ظٹظ„ط§طھ
         </AppButton>
       </DialogActions>
     </Dialog>
@@ -403,7 +416,7 @@ export default function StoreDetails() {
 
         return (
           matchesStatus &&
-          (matchesSearch(buildDisplayName(customer, "عميل متجر"), deferredCustomersSearch) ||
+          (matchesSearch(buildDisplayName(customer, "ط¹ظ…ظٹظ„ ظ…طھط¬ط±"), deferredCustomersSearch) ||
             matchesSearch(customer.email, deferredCustomersSearch) ||
             matchesSearch(customer.phone, deferredCustomersSearch))
         );
@@ -417,11 +430,11 @@ export default function StoreDetails() {
   const customerColumns = [
     {
       key: "fullName",
-      title: "العميل",
+      title: "ط§ظ„ط¹ظ…ظٹظ„",
       render: (customer) => (
         <Stack spacing={0.25}>
           <Typography variant="body2" fontWeight={700}>
-            {buildDisplayName(customer, "عميل متجر")}
+            {buildDisplayName(customer, "ط¹ظ…ظٹظ„ ظ…طھط¬ط±")}
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {customer.email || "-"}
@@ -431,27 +444,27 @@ export default function StoreDetails() {
     },
     {
       key: "phone",
-      title: "الهاتف",
+      title: "ط§ظ„ظ‡ط§طھظپ",
       render: (customer) => customer.phone || "-",
     },
     {
       key: "discountPercentage",
-      title: "الخصم",
+      title: "ط§ظ„ط®طµظ…",
       render: (customer) => `${Number(customer.discountPercentage ?? 0)}%`,
     },
     {
       key: "isActive",
-      title: "الحالة",
+      title: "ط§ظ„ط­ط§ظ„ط©",
       render: (customer) => <AdminStatusChip active={customer.isActive !== false} />,
     },
     {
       key: "createdAt",
-      title: "تاريخ الإنشاء",
+      title: "طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،",
       render: (customer) => formatAdminDate(customer.createdAt),
     },
     {
       key: "updatedAt",
-      title: "آخر تحديث",
+      title: "ط¢ط®ط± طھط­ط¯ظٹط«",
       render: (customer) => formatAdminDate(customer.updatedAt),
     },
   ];
@@ -461,13 +474,13 @@ export default function StoreDetails() {
       <Box className="super-admin-page__toolbar">
         <Box className="super-admin-page__toolbar-copy">
           <Typography variant="overline" className="super-admin-page__eyebrow">
-            ملف المتجر
+            ظ…ظ„ظپ ط§ظ„ظ…طھط¬ط±
           </Typography>
           <Typography variant="h5" className="super-admin-page__title">
-            {store?.name || "تفاصيل المتجر"}
+            {store?.name || "طھظپط§طµظٹظ„ ط§ظ„ظ…طھط¬ط±"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            راجع ملف المتجر، وبيانات المالك، وحسابات التواصل، وقصة المتجر، وعملاء المتجر.
+            ط±ط§ط¬ط¹ ظ…ظ„ظپ ط§ظ„ظ…طھط¬ط±طŒ ظˆط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…ط§ظ„ظƒطŒ ظˆط­ط³ط§ط¨ط§طھ ط§ظ„طھظˆط§طµظ„طŒ ظˆظ‚طµط© ط§ظ„ظ…طھط¬ط±طŒ ظˆط¹ظ…ظ„ط§ط، ط§ظ„ظ…طھط¬ط±.
           </Typography>
         </Box>
 
@@ -478,7 +491,7 @@ export default function StoreDetails() {
             variant="outlined"
             startIcon={<ArrowBackRoundedIcon fontSize="small" />}
           >
-            العودة إلى المتاجر
+            ط§ظ„ط¹ظˆط¯ط© ط¥ظ„ظ‰ ط§ظ„ظ…طھط§ط¬ط±
           </Button>
           <Button
             variant="outlined"
@@ -490,11 +503,11 @@ export default function StoreDetails() {
                 await customersQuery.refetch();
               }
 
-              notify?.({ severity: "success", message: "تم تحديث تفاصيل المتجر." });
+              notify?.({ severity: "success", message: "طھظ… طھط­ط¯ظٹط« طھظپط§طµظٹظ„ ط§ظ„ظ…طھط¬ط±." });
             }}
             disabled={storeQuery.isFetching || customersQuery.isFetching}
           >
-            تحديث
+            طھط­ط¯ظٹط«
           </Button>
         </Box>
       </Box>
@@ -504,22 +517,22 @@ export default function StoreDetails() {
       {!storeQuery.isLoading && storeQuery.isError ? (
         storeStatus === 404 ? (
           <EmptyState
-            title="المتجر غير موجود"
-            description="تعذر العثور على المتجر المطلوب."
+            title="ط§ظ„ظ…طھط¬ط± ط؛ظٹط± ظ…ظˆط¬ظˆط¯"
+            description="طھط¹ط°ط± ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ط§ظ„ظ…طھط¬ط± ط§ظ„ظ…ط·ظ„ظˆط¨."
             action={
               <Button component={RouterLink} to="/dashboard/stores" variant="contained">
-                العودة إلى المتاجر
+                ط§ظ„ط¹ظˆط¯ط© ط¥ظ„ظ‰ ط§ظ„ظ…طھط§ط¬ط±
               </Button>
             }
           />
         ) : storeStatus === 403 ? (
           <EmptyState
-            title="ليس لديك صلاحية"
-            description="الحساب الحالي غير مخول لعرض هذا المتجر."
+            title="ظ„ظٹط³ ظ„ط¯ظٹظƒ طµظ„ط§ط­ظٹط©"
+            description="ط§ظ„ط­ط³ط§ط¨ ط§ظ„ط­ط§ظ„ظٹ ط؛ظٹط± ظ…ط®ظˆظ„ ظ„ط¹ط±ط¶ ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±."
           />
         ) : (
           <Alert severity="error">
-            {extractApiError(storeQuery.error, "تعذر تحميل هذا المتجر حاليًا.")}
+            {extractApiError(storeQuery.error, "طھط¹ط°ط± طھط­ظ…ظٹظ„ ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط± ط­ط§ظ„ظٹظ‹ط§.")}
           </Alert>
         )
       ) : null}
@@ -538,11 +551,11 @@ export default function StoreDetails() {
               >
                 <Stack spacing={0.65}>
                   <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-                    <Typography variant="h4">{store.name || "متجر"}</Typography>
+                    <Typography variant="h4">{store.name || "ظ…طھط¬ط±"}</Typography>
                     <AdminStatusChip active={store.isActive !== false} />
                   </Stack>
                   <Typography variant="body1" color="text.secondary">
-                    /{store.slug || "بدون رابط"} - {store.businessType || "بدون نوع نشاط"}
+                    /{store.slug || "ط¨ط¯ظˆظ† ط±ط§ط¨ط·"} - {store.businessType || "ط¨ط¯ظˆظ† ظ†ظˆط¹ ظ†ط´ط§ط·"}
                   </Typography>
                 </Stack>
 
@@ -552,14 +565,14 @@ export default function StoreDetails() {
                     startIcon={<EditRoundedIcon fontSize="small" />}
                     onClick={() => setEditDialogOpen(true)}
                   >
-                    تعديل المتجر
+                    طھط¹ط¯ظٹظ„ ط§ظ„ظ…طھط¬ط±
                   </AppButton>
                   <AppButton
                     variant="outlined"
                     appearance={store.isActive !== false ? "destructive" : "primary"}
                     onClick={() => setStatusDialogOpen(true)}
                   >
-                    {store.isActive !== false ? "تعطيل" : "تفعيل"}
+                    {store.isActive !== false ? "طھط¹ط·ظٹظ„" : "طھظپط¹ظٹظ„"}
                   </AppButton>
                   <Button
                     variant="outlined"
@@ -567,14 +580,14 @@ export default function StoreDetails() {
                     startIcon={<DeleteOutlineRoundedIcon fontSize="small" />}
                     onClick={() => setDeleteDialogOpen(true)}
                   >
-                    حذف
+                    ط­ط°ظپ
                   </Button>
                 </Stack>
               </Stack>
 
               <Box className="super-admin-store-visual">
                 {coverImage ? (
-                  <img src={coverImage} alt={store.name || "غلاف المتجر"} />
+                  <img src={coverImage} alt={store.name || "ط؛ظ„ط§ظپ ط§ظ„ظ…طھط¬ط±"} />
                 ) : (
                   <Box
                     sx={{
@@ -584,7 +597,7 @@ export default function StoreDetails() {
                       color: "var(--text-secondary)",
                     }}
                   >
-                    لا توجد صورة غلاف
+                    ظ„ط§ طھظˆط¬ط¯ طµظˆط±ط© ط؛ظ„ط§ظپ
                   </Box>
                 )}
               </Box>
@@ -593,18 +606,18 @@ export default function StoreDetails() {
                 {logoImage ? (
                   <img
                     src={logoImage}
-                    alt={`${store.name || "متجر"} logo`}
+                    alt={`${store.name || "ظ…طھط¬ط±"} logo`}
                     className="super-admin-logo-thumb"
                   />
                 ) : (
                   <Box className="super-admin-logo-thumb super-admin-logo-thumb--empty">
-                    {getInitials(store.name, "مت")}
+                    {getInitials(store.name, "ظ…طھ")}
                   </Box>
                 )}
                 <Stack spacing={0.35}>
-                  <Typography variant="subtitle1">{store.name || "متجر"}</Typography>
+                  <Typography variant="subtitle1">{store.name || "ظ…طھط¬ط±"}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    العملاء: {store.customerCount ?? 0}
+                    ط§ظ„ط¹ظ…ظ„ط§ط،: {store.customerCount ?? 0}
                   </Typography>
                 </Stack>
               </Box>
@@ -617,47 +630,47 @@ export default function StoreDetails() {
               onChange={(_, nextValue) => setActiveTab(nextValue)}
               sx={{ borderBottom: "1px solid var(--border-subtle)" }}
             >
-              <Tab value="overview" label="نظرة عامة" />
+              <Tab value="overview" label="ظ†ط¸ط±ط© ط¹ط§ظ…ط©" />
               <Tab
                 value="customers"
                 icon={<PeopleAltRoundedIcon fontSize="small" />}
                 iconPosition="start"
-                label="العملاء"
+                label="ط§ظ„ط¹ظ…ظ„ط§ط،"
               />
             </Tabs>
 
             {activeTab === "overview" ? (
               <Box className="super-admin-detail-grid">
                 <Paper className="super-admin-detail-card" elevation={0}>
-                  <Typography variant="h6">معلومات المتجر</Typography>
+                  <Typography variant="h6">ظ…ط¹ظ„ظˆظ…ط§طھ ط§ظ„ظ…طھط¬ط±</Typography>
                   <Box className="super-admin-info-list">
                     <Box className="super-admin-info-row">
                       <Typography variant="body2" color="text.secondary">
-                        الوصف
+                        ط§ظ„ظˆطµظپ
                       </Typography>
                       <Typography variant="body2">{store.description || "-"}</Typography>
                     </Box>
                     <Box className="super-admin-info-row">
                       <Typography variant="body2" color="text.secondary">
-                        رقم واتساب
+                        ط±ظ‚ظ… ظˆط§طھط³ط§ط¨
                       </Typography>
                       <Typography variant="body2">{store.whatsAppNumber || "-"}</Typography>
                     </Box>
                     <Box className="super-admin-info-row">
                       <Typography variant="body2" color="text.secondary">
-                        القالب
+                        ط§ظ„ظ‚ط§ظ„ط¨
                       </Typography>
-                      <Typography variant="body2">{store.themeTemplate || "-"}</Typography>
+                      <Typography variant="body2">{getStoreThemeTemplateLabel(store.themeTemplate)}</Typography>
                     </Box>
                     <Box className="super-admin-info-row">
                       <Typography variant="body2" color="text.secondary">
-                        تاريخ الإنشاء
+                        طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،
                       </Typography>
                       <Typography variant="body2">{formatAdminDateTime(store.createdAt)}</Typography>
                     </Box>
                     <Box className="super-admin-info-row">
                       <Typography variant="body2" color="text.secondary">
-                        آخر تحديث
+                        ط¢ط®ط± طھط­ط¯ظٹط«
                       </Typography>
                       <Typography variant="body2">{formatAdminDateTime(store.updatedAt)}</Typography>
                     </Box>
@@ -665,14 +678,14 @@ export default function StoreDetails() {
                 </Paper>
 
                 <Paper className="super-admin-detail-card" elevation={0}>
-                  <Typography variant="h6">المالك</Typography>
+                  <Typography variant="h6">ط§ظ„ظ…ط§ظ„ظƒ</Typography>
                   <Box className="super-admin-info-list">
                     <Box className="super-admin-info-row">
                       <Typography variant="body2" color="text.secondary">
-                        الاسم
+                        ط§ظ„ط§ط³ظ…
                       </Typography>
                       <Typography variant="body2">
-                        {buildDisplayName(store.owner, "بدون مالك")}
+                        {buildDisplayName(store.owner, "ط¨ط¯ظˆظ† ظ…ط§ظ„ظƒ")}
                       </Typography>
                     </Box>
                     <Box className="super-admin-info-row">
@@ -683,7 +696,7 @@ export default function StoreDetails() {
                     </Box>
                     <Box className="super-admin-info-row">
                       <Typography variant="body2" color="text.secondary">
-                        حالة المالك
+                        ط­ط§ظ„ط© ط§ظ„ظ…ط§ظ„ظƒ
                       </Typography>
                       <AdminStatusChip active={store.owner?.isActive !== false} />
                     </Box>
@@ -691,14 +704,14 @@ export default function StoreDetails() {
                 </Paper>
 
                 <Paper className="super-admin-detail-card" elevation={0}>
-                  <Typography variant="h6">حسابات التواصل</Typography>
+                  <Typography variant="h6">ط­ط³ط§ط¨ط§طھ ط§ظ„طھظˆط§طµظ„</Typography>
                   <AdminContactAccounts accounts={store.contactAccounts || []} />
                 </Paper>
 
                 <Paper className="super-admin-story-card" elevation={0}>
-                  <Typography variant="h6">قصة المتجر</Typography>
+                  <Typography variant="h6">ظ‚طµط© ط§ظ„ظ…طھط¬ط±</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {store.storeStory || "لم تتم إضافة قصة للمتجر بعد."}
+                    {store.storeStory || "ظ„ظ… طھطھظ… ط¥ط¶ط§ظپط© ظ‚طµط© ظ„ظ„ظ…طھط¬ط± ط¨ط¹ط¯."}
                   </Typography>
                 </Paper>
               </Box>
@@ -710,19 +723,19 @@ export default function StoreDetails() {
                   <SearchInput
                     value={customersSearch}
                     onChange={setCustomersSearch}
-                    placeholder="ابحث في عملاء المتجر بالاسم أو البريد أو الهاتف"
+                    placeholder="ط§ط¨ط­ط« ظپظٹ ط¹ظ…ظ„ط§ط، ط§ظ„ظ…طھط¬ط± ط¨ط§ظ„ط§ط³ظ… ط£ظˆ ط§ظ„ط¨ط±ظٹط¯ ط£ظˆ ط§ظ„ظ‡ط§طھظپ"
                   />
                   <AppTextField
                     select
                     size="small"
                     sx={{ minWidth: 170 }}
-                    label="الحالة"
+                    label="ط§ظ„ط­ط§ظ„ط©"
                     value={customersStatusFilter}
                     onChange={(event) => setCustomersStatusFilter(event.target.value)}
                   >
-                    <MenuItem value="all">كل الحالات</MenuItem>
-                    <MenuItem value="active">النشطة فقط</MenuItem>
-                    <MenuItem value="inactive">غير النشطة فقط</MenuItem>
+                    <MenuItem value="all">ظƒظ„ ط§ظ„ط­ط§ظ„ط§طھ</MenuItem>
+                    <MenuItem value="active">ط§ظ„ظ†ط´ط·ط© ظپظ‚ط·</MenuItem>
+                    <MenuItem value="inactive">ط؛ظٹط± ط§ظ„ظ†ط´ط·ط© ظپظ‚ط·</MenuItem>
                   </AppTextField>
                 </Box>
 
@@ -735,19 +748,19 @@ export default function StoreDetails() {
                 ) : customersQuery.isError ? (
                   customersStatus === 404 ? (
                     <EmptyState
-                      title="قائمة العملاء غير متاحة"
-                      description="هذا المتجر لا يملك قائمة عملاء متاحة من endpoint الداشبورد."
+                      title="ظ‚ط§ط¦ظ…ط© ط§ظ„ط¹ظ…ظ„ط§ط، ط؛ظٹط± ظ…طھط§ط­ط©"
+                      description="ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط± ظ„ط§ ظٹظ…ظ„ظƒ ظ‚ط§ط¦ظ…ط© ط¹ظ…ظ„ط§ط، ظ…طھط§ط­ط© ظ…ظ† endpoint ط§ظ„ط¯ط§ط´ط¨ظˆط±ط¯."
                     />
                   ) : customersStatus === 403 ? (
                     <EmptyState
-                      title="ليس لديك صلاحية"
-                      description="الحساب الحالي غير مخول لعرض عملاء هذا المتجر."
+                      title="ظ„ظٹط³ ظ„ط¯ظٹظƒ طµظ„ط§ط­ظٹط©"
+                      description="ط§ظ„ط­ط³ط§ط¨ ط§ظ„ط­ط§ظ„ظٹ ط؛ظٹط± ظ…ط®ظˆظ„ ظ„ط¹ط±ط¶ ط¹ظ…ظ„ط§ط، ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±."
                     />
                   ) : (
                     <Alert severity="error">
                       {extractApiError(
                         customersQuery.error,
-                        "تعذر تحميل عملاء المتجر حاليًا.",
+                        "طھط¹ط°ط± طھط­ظ…ظٹظ„ ط¹ظ…ظ„ط§ط، ط§ظ„ظ…طھط¬ط± ط­ط§ظ„ظٹظ‹ط§.",
                       )}
                     </Alert>
                   )
@@ -757,8 +770,8 @@ export default function StoreDetails() {
                     columns={customerColumns}
                     emptyState={
                       <EmptyState
-                        title="لا يوجد عملاء مطابقون"
-                        description="جرّب عبارة بحث مختلفة أو غيّر فلتر الحالة."
+                        title="ظ„ط§ ظٹظˆط¬ط¯ ط¹ظ…ظ„ط§ط، ظ…ط·ط§ط¨ظ‚ظˆظ†"
+                        description="ط¬ط±ظ‘ط¨ ط¹ط¨ط§ط±ط© ط¨ط­ط« ظ…ط®طھظ„ظپط© ط£ظˆ ط؛ظٹظ‘ط± ظپظ„طھط± ط§ظ„ط­ط§ظ„ط©."
                       />
                     }
                   />
@@ -791,7 +804,7 @@ export default function StoreDetails() {
 
           notify?.({
             severity: "success",
-            message: `تم تحديث ${store.name || "المتجر"} بنجاح.`,
+            message: `طھظ… طھط­ط¯ظٹط« ${store.name || "ط§ظ„ظ…طھط¬ط±"} ط¨ظ†ط¬ط§ط­.`,
           });
           setEditDialogOpen(false);
         }}
@@ -799,13 +812,13 @@ export default function StoreDetails() {
 
       <AdminConfirmDialog
         open={statusDialogOpen}
-        title={`${store?.isActive !== false ? "تعطيل" : "تفعيل"} المتجر`}
+        title={`${store?.isActive !== false ? "طھط¹ط·ظٹظ„" : "طھظپط¹ظٹظ„"} ط§ظ„ظ…طھط¬ط±`}
         description={
           store
-            ? `هل أنت متأكد من ${store.isActive !== false ? "تعطيل" : "تفعيل"} ${store.name || "هذا المتجر"}؟`
-            : "هل أنت متأكد؟"
+            ? `ظ‡ظ„ ط£ظ†طھ ظ…طھط£ظƒط¯ ظ…ظ† ${store.isActive !== false ? "طھط¹ط·ظٹظ„" : "طھظپط¹ظٹظ„"} ${store.name || "ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±"}طں`
+            : "ظ‡ظ„ ط£ظ†طھ ظ…طھط£ظƒط¯طں"
         }
-        confirmLabel={store?.isActive !== false ? "تعطيل المتجر" : "تفعيل المتجر"}
+        confirmLabel={store?.isActive !== false ? "طھط¹ط·ظٹظ„ ط§ظ„ظ…طھط¬ط±" : "طھظپط¹ظٹظ„ ط§ظ„ظ…طھط¬ط±"}
         confirmColor={store?.isActive !== false ? "warning" : "primary"}
         loading={updateStatusMutation.isPending}
         onClose={() => setStatusDialogOpen(false)}
@@ -823,8 +836,8 @@ export default function StoreDetails() {
 
           notify?.({
             severity: "success",
-            message: `${store.name || "المتجر"} أصبح الآن ${
-              store.isActive === false ? "نشطًا" : "غير نشط"
+            message: `${store.name || "ط§ظ„ظ…طھط¬ط±"} ط£طµط¨ط­ ط§ظ„ط¢ظ† ${
+              store.isActive === false ? "ظ†ط´ط·ظ‹ط§" : "ط؛ظٹط± ظ†ط´ط·"
             }.`,
           });
           setStatusDialogOpen(false);
@@ -833,13 +846,13 @@ export default function StoreDetails() {
 
       <AdminConfirmDialog
         open={deleteDialogOpen}
-        title="حذف المتجر"
+        title="ط­ط°ظپ ط§ظ„ظ…طھط¬ط±"
         description={
           store
-            ? `سيتم حذف ${store.name || "هذا المتجر"} حذفًا ناعمًا. هل تريد المتابعة؟`
-            : "سيتم حذف المتجر الحالي حذفًا ناعمًا. هل تريد المتابعة؟"
+            ? `ط³ظٹطھظ… ط­ط°ظپ ${store.name || "ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±"} ط­ط°ظپظ‹ط§ ظ†ط§ط¹ظ…ظ‹ط§. ظ‡ظ„ طھط±ظٹط¯ ط§ظ„ظ…طھط§ط¨ط¹ط©طں`
+            : "ط³ظٹطھظ… ط­ط°ظپ ط§ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹ ط­ط°ظپظ‹ط§ ظ†ط§ط¹ظ…ظ‹ط§. ظ‡ظ„ طھط±ظٹط¯ ط§ظ„ظ…طھط§ط¨ط¹ط©طں"
         }
-        confirmLabel="حذف المتجر"
+        confirmLabel="ط­ط°ظپ ط§ظ„ظ…طھط¬ط±"
         confirmColor="error"
         loading={deleteStoreMutation.isPending}
         onClose={() => setDeleteDialogOpen(false)}
@@ -851,7 +864,7 @@ export default function StoreDetails() {
           await deleteStoreMutation.mutateAsync(store.id);
           notify?.({
             severity: "success",
-            message: `تم حذف ${store.name || "المتجر"}.`,
+            message: `طھظ… ط­ط°ظپ ${store.name || "ط§ظ„ظ…طھط¬ط±"}.`,
           });
           navigate("/dashboard/stores", { replace: true });
         }}
@@ -859,3 +872,4 @@ export default function StoreDetails() {
     </Box>
   );
 }
+

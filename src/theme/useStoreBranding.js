@@ -2,8 +2,10 @@ import { useEffect } from "react";
 import { useAppThemeVariant } from "./AppThemeProvider.jsx";
 
 let activeStoreBrandingHooks = 0;
-const defaultStoreThemeVariants = ["light", "dark", "nature"];
-const pinkStoreThemeVariants = ["pink"];
+const defaultStoreThemeVariants = ["light", "dark"];
+const greenStoreThemeVariants = ["nature", "nature-dark"];
+const pinkStoreThemeVariants = ["pink", "pink-dark"];
+const blackStoreThemeVariants = ["black", "black-light"];
 
 function normalizeStoreThemeTemplate(value) {
   return String(value ?? "")
@@ -23,11 +25,19 @@ function resolveStoreThemeConfig(store) {
         defaultVariant: "pink",
         availableVariants: pinkStoreThemeVariants,
       };
+    case "b":
+    case "black":
+      return {
+        defaultVariant: "black",
+        availableVariants: blackStoreThemeVariants,
+      };
+    case "g":
     case "f":
     case "forest":
+    case "green":
       return {
         defaultVariant: "nature",
-        availableVariants: defaultStoreThemeVariants,
+        availableVariants: greenStoreThemeVariants,
       };
     case "d":
     case "dark":

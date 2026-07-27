@@ -1,4 +1,4 @@
-import { memo } from "react";
+﻿import { memo } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -85,14 +85,14 @@ function ProductCard({
     "";
   const availabilityLabel = isAvailable
     ? normalizedProduct.trackInventory && stockQuantity > 0
-      ? `متوفر ${stockQuantity}`
-      : "متوفر الآن"
-    : "نفد مؤقتاً";
+      ? `ظ…طھظˆظپط± ${stockQuantity}`
+      : "ظ…طھظˆظپط± ط§ظ„ط¢ظ†"
+    : "ظ†ظپط¯ ظ…ط¤ظ‚طھط§ظ‹";
   const discountBadgeLabel =
     normalizedProduct.hasDiscount && normalizedProduct.discountPercentage > 0
-      ? `%${Math.round(normalizedProduct.discountPercentage)} خصم`
+      ? `%${Math.round(normalizedProduct.discountPercentage)} ط®طµظ…`
       : normalizedProduct.hasDiscount
-        ? "عرض"
+        ? "ط¹ط±ط¶"
         : "";
 
   const handleNavigateToDetails = () => {
@@ -135,7 +135,7 @@ function ProductCard({
           ) : (
             <Box className="product-card__media-empty">
               <Typography variant="body2" color="text.secondary">
-                لا توجد صورة
+                ظ„ط§ طھظˆط¬ط¯ طµظˆط±ط©
               </Typography>
             </Box>
           )}
@@ -147,13 +147,13 @@ function ProductCard({
               </span>
             ) : null}
             {normalizedProduct.isWholesalePriceApplied ? (
-              <span className="product-card__badge">سعر عميل</span>
+              <span className="product-card__badge">ط³ط¹ط± ط¹ظ…ظٹظ„</span>
             ) : null}
             {normalizedProduct.isFeatured ? (
-              <span className="product-card__badge">مميز</span>
+              <span className="product-card__badge">ظ…ظ…ظٹط²</span>
             ) : null}
             {!isAvailable ? (
-              <span className="product-card__badge">نفد</span>
+              <span className="product-card__badge">ظ†ظپط¯</span>
             ) : null}
           </Box>
         </Box>
@@ -190,7 +190,7 @@ function ProductCard({
                 color="text.secondary"
                 className="product-card__price-note"
               >
-                قبل خصم العميل: {formatCurrency(originalPrice)}
+                ظ‚ط¨ظ„ ط®طµظ… ط§ظ„ط¹ظ…ظٹظ„: {formatCurrency(originalPrice)}
               </Typography>
             ) : null}
 
@@ -200,7 +200,7 @@ function ProductCard({
               className="product-card__description"
             >
               {cardDescription ||
-                "قطعة واضحة التفاصيل مع صورة تركز على المنتج نفسه."}
+                "ظ‚ط·ط¹ط© ظˆط§ط¶ط­ط© ط§ظ„طھظپط§طµظٹظ„ ظ…ط¹ طµظˆط±ط© طھط±ظƒط² ط¹ظ„ظ‰ ط§ظ„ظ…ظ†طھط¬ ظ†ظپط³ظ‡."}
             </Typography>
 
             <Typography
@@ -224,7 +224,7 @@ function ProductCard({
             className="product-card__detail-button"
             onClick={handleNavigateToDetails}
           >
-            عرض
+            عرض المنتج
           </AppButton>
         ) : null}
 
@@ -243,7 +243,7 @@ function ProductCard({
                 : "product-card__add-button product-card__add-button--solo"
             }
           >
-            أضف
+            ط£ط¶ظپ
           </AppButton>
         ) : null}
       </Stack>
@@ -260,3 +260,4 @@ export default memo(ProductCard, (previousProps, nextProps) => (
   previousProps.scrollAnchorScope === nextProps.scrollAnchorScope &&
   previousProps.scrollAnchorIndex === nextProps.scrollAnchorIndex
 ));
+

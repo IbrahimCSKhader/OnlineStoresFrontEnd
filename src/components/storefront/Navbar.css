@@ -317,6 +317,106 @@
   color: var(--text-primary);
 }
 
+html[data-theme-template="pink"] .store-navbar {
+  padding-top: 10px;
+}
+
+html[data-theme-template="pink"] .store-navbar__toolbar {
+  min-height: 76px;
+  border: 1px solid rgba(241, 191, 215, 0.62);
+  border-radius: 28px;
+  background: rgba(255, 240, 247, 0.78);
+  box-shadow: 0 8px 30px rgba(89, 37, 67, 0.08);
+  backdrop-filter: blur(20px);
+}
+
+html[data-theme-template="pink"] .store-navbar__brand-logo,
+html[data-theme-template="pink"] .store-navbar__brand-mark {
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(241, 191, 215, 0.92);
+  border-radius: 999px;
+  background: #ffffff;
+  color: #aa2f72;
+  box-shadow: 0 8px 24px rgba(89, 37, 67, 0.08);
+}
+
+html[data-theme-template="pink"] .store-navbar__brand-name {
+  color: #aa2f72;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+html[data-theme-template="pink"] .store-navbar__nav {
+  background: transparent;
+}
+
+html[data-theme-template="pink"] .store-navbar__link {
+  color: #6b4a5d;
+  border-radius: 999px;
+}
+
+html[data-theme-template="pink"] .store-navbar__link:hover,
+html[data-theme-template="pink"] .store-navbar__link--active {
+  color: #aa2f72;
+  background: rgba(255, 219, 206, 0.48);
+}
+
+html[data-theme-template="pink"] .store-navbar__profile-trigger,
+html[data-theme-template="pink"] .store-navbar__icon-button,
+html[data-theme-template="pink"] .store-navbar__theme-option {
+  border-radius: 999px !important;
+  color: #aa2f72 !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid rgba(241, 191, 215, 0.72) !important;
+}
+
+html[data-theme-template="pink"] .store-navbar__theme-option--active {
+  color: #ffffff !important;
+  background: #aa2f72 !important;
+}
+
+html[data-theme-template="pink"] .store-navbar__drawer {
+  background: rgba(255, 240, 247, 0.96);
+}
+
+html[data-theme-template="black"] .store-navbar__toolbar {
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  background: color-mix(in srgb, var(--surface-bright) 72%, transparent);
+}
+
+html[data-theme-template="black"] .store-navbar__link:hover,
+html[data-theme-template="black"] .store-navbar__link--active {
+  color: #15110a;
+  background: var(--primary);
+}
+
+html[data-theme-template="green"] .store-navbar__toolbar {
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  background: color-mix(in srgb, var(--surface-bright) 82%, transparent);
+}
+
+html[data-theme-template="green"] .store-navbar__link:hover,
+html[data-theme-template="green"] .store-navbar__link--active {
+  color: var(--button-text);
+  background: var(--primary);
+}
+
+@media (max-width: 899px) {
+  html[data-theme-template="pink"] .store-navbar__toolbar {
+    min-height: 68px;
+  }
+
+  html[data-theme-template="pink"] .store-navbar__drawer {
+    width: min(100vw - 32px, 420px);
+    margin: 84px auto 0;
+    border: 1px solid rgba(241, 191, 215, 0.72);
+    border-radius: 24px;
+    box-shadow: 0 18px 48px rgba(89, 37, 67, 0.14);
+  }
+}
+
 @media (max-width: 1199px) {
   .store-navbar__toolbar {
     gap: var(--space-4);

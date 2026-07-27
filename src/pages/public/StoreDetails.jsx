@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -36,6 +36,7 @@ import {
 import { buildProductSnapshot } from "../../utils/guestCart.js";
 import {
   getProductDisplayVariant,
+  getProductImage,
   isProductActive,
   isProductInStock,
   normalizeProductList,
@@ -49,7 +50,7 @@ function buildStoreDescription(store) {
   return (
     String(store?.description || "").trim() ||
     String(store?.businessType || "").trim() ||
-    "اكتشف منتجات المتجر وتصفح التصنيفات بسهولة."
+    "ط§ظƒطھط´ظپ ظ…ظ†طھط¬ط§طھ ط§ظ„ظ…طھط¬ط± ظˆطھطµظپط­ ط§ظ„طھطµظ†ظٹظپط§طھ ط¨ط³ظ‡ظˆظ„ط©."
   );
 }
 
@@ -84,8 +85,8 @@ function buildCategoryProductGroups(products, categories) {
     nonEmptyGroups.push({
       id: "uncategorized",
       groupId: "uncategorized",
-      name: "منتجات أخرى",
-      description: "منتجات غير مرتبطة بفئة محددة.",
+      name: "ظ…ظ†طھط¬ط§طھ ط£ط®ط±ظ‰",
+      description: "ظ…ظ†طھط¬ط§طھ ط؛ظٹط± ظ…ط±طھط¨ط·ط© ط¨ظپط¦ط© ظ…ط­ط¯ط¯ط©.",
       products: uncategorizedProducts,
       count: uncategorizedProducts.length,
       isVirtual: true,
@@ -254,7 +255,7 @@ export default function StoreDetails() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-details">
-        <EmptyState title="جاري تحميل المتجر..." />
+        <EmptyState title="ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط§ظ„ظ…طھط¬ط±..." />
       </Box>
     );
   }
@@ -263,8 +264,8 @@ export default function StoreDetails() {
     return (
       <Box className="storefront-page page-store-details">
         <EmptyState
-          title="تعذر العثور على المتجر"
-          description="قد يكون الرابط غير صحيح أو أن المتجر لم يعد متاحًا."
+          title="طھط¹ط°ط± ط§ظ„ط¹ط«ظˆط± ط¹ظ„ظ‰ ط§ظ„ظ…طھط¬ط±"
+          description="ظ‚ط¯ ظٹظƒظˆظ† ط§ظ„ط±ط§ط¨ط· ط؛ظٹط± طµط­ظٹط­ ط£ظˆ ط£ظ† ط§ظ„ظ…طھط¬ط± ظ„ظ… ظٹط¹ط¯ ظ…طھط§ط­ظ‹ط§."
         />
       </Box>
     );
@@ -280,11 +281,11 @@ export default function StoreDetails() {
   return (
     <Box className="storefront-page page-store-details">
       {addToCartMutation.isError ? (
-        <Alert severity="error">تعذر إضافة المنتج إلى السلة.</Alert>
+        <Alert severity="error">طھط¹ط°ط± ط¥ط¶ط§ظپط© ط§ظ„ظ…ظ†طھط¬ ط¥ظ„ظ‰ ط§ظ„ط³ظ„ط©.</Alert>
       ) : null}
 
       {addToCartMutation.isSuccess ? (
-        <Alert severity="success">تمت إضافة المنتج إلى السلة.</Alert>
+        <Alert severity="success">طھظ…طھ ط¥ط¶ط§ظپط© ط§ظ„ظ…ظ†طھط¬ ط¥ظ„ظ‰ ط§ظ„ط³ظ„ط©.</Alert>
       ) : null}
 
       <SurfaceCard
@@ -318,7 +319,7 @@ export default function StoreDetails() {
                 />
               ) : (
                 <Box className="storefront-logo storefront-logo--empty">
-                  {store.name?.[0] || "م"}
+                  {store.name?.[0] || "ظ…"}
                 </Box>
               )}
 
@@ -342,7 +343,7 @@ export default function StoreDetails() {
                     <Chip label={store.businessType} variant="outlined" />
                   ) : null}
                   <Chip
-                    label={store.isActive === false ? "غير نشط" : "نشط"}
+                    label={store.isActive === false ? "ط؛ظٹط± ظ†ط´ط·" : "ظ†ط´ط·"}
                     variant="outlined"
                   />
                 </Stack>
@@ -352,7 +353,7 @@ export default function StoreDetails() {
             <Box className="storefront-hero__metrics page-store-details__hero-metrics">
               <Box className="storefront-metric">
                 <CategoryRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">التصنيفات</span>
+                <span className="storefront-metric__label">ط§ظ„طھطµظ†ظٹظپط§طھ</span>
                 <strong className="storefront-metric__value">
                   {categories.length}
                 </strong>
@@ -360,7 +361,7 @@ export default function StoreDetails() {
 
               <Box className="storefront-metric">
                 <StorefrontRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">المنتجات</span>
+                <span className="storefront-metric__label">ط§ظ„ظ…ظ†طھط¬ط§طھ</span>
                 <strong className="storefront-metric__value">
                   {(catalogPagination?.totalCount || products.length).toLocaleString("ar")}
                 </strong>
@@ -368,7 +369,7 @@ export default function StoreDetails() {
 
               <Box className="storefront-metric">
                 <Inventory2RoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">المتوفر الآن</span>
+                <span className="storefront-metric__label">ط§ظ„ظ…طھظˆظپط± ط§ظ„ط¢ظ†</span>
                 <strong className="storefront-metric__value">
                   {availableProductsCount}
                 </strong>
@@ -376,7 +377,7 @@ export default function StoreDetails() {
 
               <Box className="storefront-metric">
                 <VisibilityRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">الزيارات</span>
+                <span className="storefront-metric__label">ط§ظ„ط²ظٹط§ط±ط§طھ</span>
                 <strong className="storefront-metric__value">
                   {displayedVisitCount.toLocaleString("ar")}
                 </strong>
@@ -385,14 +386,14 @@ export default function StoreDetails() {
 
             <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
               <AppButton href="#store-catalog" variant="contained">
-                تصفح الكتالوج
+                طھطµظپط­ ط§ظ„ظƒطھط§ظ„ظˆط¬
               </AppButton>
               <AppButton
                 component={RouterLink}
                 to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/about`)}
                 variant="text"
               >
-                من نحن
+                ظ…ظ† ظ†ط­ظ†
               </AppButton>
               <AppButton
                 component={RouterLink}
@@ -401,7 +402,7 @@ export default function StoreDetails() {
                 )}
                 variant="text"
               >
-                تواصل
+                طھظˆط§طµظ„
               </AppButton>
               {isOwnerPreview ? (
                 <AppButton
@@ -409,7 +410,7 @@ export default function StoreDetails() {
                   startIcon={<LocalMallRoundedIcon fontSize="small" />}
                   disabled
                 >
-                  السلة
+                  ط§ظ„ط³ظ„ط©
                 </AppButton>
               ) : (
                 <AppButton
@@ -418,7 +419,7 @@ export default function StoreDetails() {
                   variant="outlined"
                   startIcon={<LocalMallRoundedIcon fontSize="small" />}
                 >
-                  السلة
+                  ط§ظ„ط³ظ„ط©
                 </AppButton>
               )}
             </Stack>
@@ -429,41 +430,58 @@ export default function StoreDetails() {
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">التصنيفات</span>
-            <Typography variant="h3">التصنيفات الرئيسية</Typography>
+            <span className="storefront-eyebrow">ط§ظ„طھطµظ†ظٹظپط§طھ</span>
+            <Typography variant="h3">ط§ظ„طھطµظ†ظٹظپط§طھ ط§ظ„ط±ط¦ظٹط³ظٹط©</Typography>
           </Box>
         </Box>
 
         {categoriesQuery.isLoading && !categorySummary.length ? (
-          <EmptyState title="جاري تحميل التصنيفات..." />
+          <EmptyState title="ط¬ط§ط±ظٹ طھط­ظ…ظٹظ„ ط§ظ„طھطµظ†ظٹظپط§طھ..." />
         ) : categorySummary.length ? (
           <Box className="storefront-cards-grid page-store-details__categories-grid">
-            {categorySummary.map((category) => (
-              <SurfaceCard
-                key={category.id}
-                component={RouterLink}
-                to={buildStorePreviewPath(
-                  `/market/${resolvedStoreSlug}/category/${category.id}`,
-                )}
-                interactive
-                className="page-store-details__category-card"
-              >
-                <Typography variant="h6">{category.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {category.description || ""}
-                </Typography>
-                {category.count !== undefined ? (
-                  <Typography variant="caption" color="text.secondary">
-                    {category.count} منتج
+
+            {categorySummary.map((category) => {
+              const categoryProductImage = resolveAssetUrl(
+                getProductImage(
+                  [...featuredProducts, ...products].find(
+                    (product) => String(product?.categoryId || "") === String(category.id),
+                  ),
+                ),
+              );
+              const categoryImage = categoryProductImage || coverImage || "";
+
+              return (
+                <SurfaceCard
+                  key={category.id}
+                  component={RouterLink}
+                  to={buildStorePreviewPath(
+                    `/market/${resolvedStoreSlug}/category/${category.id}`,
+                  )}
+                  interactive
+                  className="page-store-details__category-card"
+                  style={
+                    categoryImage
+                      ? { "--category-card-image": `url("${categoryImage}")` }
+                      : undefined
+                  }
+                >
+                  <Typography variant="h6">{category.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {category.description || ""}
                   </Typography>
-                ) : null}
-              </SurfaceCard>
-            ))}
+                  {category.count !== undefined ? (
+                    <Typography variant="caption" color="text.secondary">
+                      {category.count} منتج
+                    </Typography>
+                  ) : null}
+                </SurfaceCard>
+              );
+            })}
           </Box>
         ) : (
           <EmptyState
-            title="لا توجد تصنيفات بعد"
-            description="ستظهر التصنيفات هنا بمجرد إضافة أقسام ومنتجات داخل المتجر."
+            title="ظ„ط§ طھظˆط¬ط¯ طھطµظ†ظٹظپط§طھ ط¨ط¹ط¯"
+            description="ط³طھط¸ظ‡ط± ط§ظ„طھطµظ†ظٹظپط§طھ ظ‡ظ†ط§ ط¨ظ…ط¬ط±ط¯ ط¥ط¶ط§ظپط© ط£ظ‚ط³ط§ظ… ظˆظ…ظ†طھط¬ط§طھ ط¯ط§ط®ظ„ ط§ظ„ظ…طھط¬ط±."
           />
         )}
       </Box>
@@ -475,8 +493,8 @@ export default function StoreDetails() {
       >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">منتجات</span>
-            <Typography variant="h3">منتجات مختارة</Typography>
+            <span className="storefront-eyebrow">ظ…ظ†طھط¬ط§طھ</span>
+            <Typography variant="h3">ظ…ظ†طھط¬ط§طھ ظ…ط®طھط§ط±ط©</Typography>
           </Box>
         </Box>
 
@@ -493,7 +511,7 @@ export default function StoreDetails() {
             scrollAnchorScope="store-featured-products"
           />
         ) : (
-          <EmptyState title="لا توجد منتجات مختارة" />
+          <EmptyState title="ظ„ط§ طھظˆط¬ط¯ ظ…ظ†طھط¬ط§طھ ظ…ط®طھط§ط±ط©" />
         )}
       </Box>
 
@@ -504,8 +522,8 @@ export default function StoreDetails() {
       >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">المنتجات</span>
-            <Typography variant="h3">جميع المنتجات</Typography>
+            <span className="storefront-eyebrow">ط§ظ„ظ…ظ†طھط¬ط§طھ</span>
+            <Typography variant="h3">ط¬ظ…ظٹط¹ ط§ظ„ظ…ظ†طھط¬ط§طھ</Typography>
           </Box>
 
           <Box className="page-store-details__catalog-toolbar">
@@ -520,13 +538,13 @@ export default function StoreDetails() {
                 variant={catalogView === "grid" ? "contained" : "outlined"}
                 onClick={() => setCatalogView("grid")}
               >
-                عرض شبكي
+                ط¹ط±ط¶ ط´ط¨ظƒظٹ
               </AppButton>
               <AppButton
                 variant={catalogView === "grouped" ? "contained" : "outlined"}
                 onClick={() => setCatalogView("grouped")}
               >
-                حسب الفئات
+                ط­ط³ط¨ ط§ظ„ظپط¦ط§طھ
               </AppButton>
             </Stack>
 
@@ -534,7 +552,7 @@ export default function StoreDetails() {
               <SearchInput
                 value={searchText}
                 onChange={handleSearchChange}
-                placeholder="ابحث داخل هذا المتجر"
+                placeholder="ط§ط¨ط­ط« ط¯ط§ط®ظ„ ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±"
               />
             </Box>
           </Box>
@@ -552,8 +570,8 @@ export default function StoreDetails() {
             />
           ) : catalogProductsQuery.error ? (
             <EmptyState
-              title="تعذر تحميل المنتجات"
-              description="حاول تحديث الصفحة أو افتح المتجر مرة أخرى."
+              title="طھط¹ط°ط± طھط­ظ…ظٹظ„ ط§ظ„ظ…ظ†طھط¬ط§طھ"
+              description="ط­ط§ظˆظ„ طھط­ط¯ظٹط« ط§ظ„طµظپط­ط© ط£ظˆ ط§ظپطھط­ ط§ظ„ظ…طھط¬ط± ظ…ط±ط© ط£ط®ط±ظ‰."
             />
           ) : filteredProducts.length ? (
             catalogView === "grouped" ? (
@@ -578,14 +596,14 @@ export default function StoreDetails() {
                           <Box className="page-store-details__category-accordion-copy">
                             <Typography variant="h6">{group.name}</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              {group.description || "استعرض منتجات هذه الفئة من هنا."}
+                              {group.description || "ط§ط³طھط¹ط±ط¶ ظ…ظ†طھط¬ط§طھ ظ‡ط°ظ‡ ط§ظ„ظپط¦ط© ظ…ظ† ظ‡ظ†ط§."}
                             </Typography>
                           </Box>
                           <Typography
                             variant="caption"
                             className="page-store-details__category-accordion-count"
                           >
-                            {group.count} منتج
+                            {group.count} ظ…ظ†طھط¬
                           </Typography>
                         </Box>
                       </AccordionSummary>
@@ -600,7 +618,7 @@ export default function StoreDetails() {
                               )}
                               variant="text"
                             >
-                              فتح صفحة الفئة
+                              ظپطھط­ طµظپط­ط© ط§ظ„ظپط¦ط©
                             </AppButton>
                           </Box>
                         ) : null}
@@ -643,8 +661,8 @@ export default function StoreDetails() {
             )
           ) : (
             <EmptyState
-              title="لا توجد نتائج"
-              description="جرّب كلمة بحث أخرى أو ارجع إلى جميع التصنيفات."
+              title="ظ„ط§ طھظˆط¬ط¯ ظ†طھط§ط¦ط¬"
+              description="ط¬ط±ظ‘ط¨ ظƒظ„ظ…ط© ط¨ط­ط« ط£ط®ط±ظ‰ ط£ظˆ ط§ط±ط¬ط¹ ط¥ظ„ظ‰ ط¬ظ…ظٹط¹ ط§ظ„طھطµظ†ظٹظپط§طھ."
             />
           )}
         </Box>
@@ -652,3 +670,4 @@ export default function StoreDetails() {
     </Box>
   );
 }
+
