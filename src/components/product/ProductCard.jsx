@@ -85,14 +85,14 @@ function ProductCard({
     "";
   const availabilityLabel = isAvailable
     ? normalizedProduct.trackInventory && stockQuantity > 0
-      ? `ظ…طھظˆظپط± ${stockQuantity}`
-      : "ظ…طھظˆظپط± ط§ظ„ط¢ظ†"
-    : "ظ†ظپط¯ ظ…ط¤ظ‚طھط§ظ‹";
+      ? `متوفر ${stockQuantity}`
+      : "متوفر الآن"
+    : "نفد مؤقتاً";
   const discountBadgeLabel =
     normalizedProduct.hasDiscount && normalizedProduct.discountPercentage > 0
-      ? `%${Math.round(normalizedProduct.discountPercentage)} ط®طµظ…`
+      ? `%${Math.round(normalizedProduct.discountPercentage)} خصم`
       : normalizedProduct.hasDiscount
-        ? "ط¹ط±ط¶"
+        ? "عرض"
         : "";
 
   const handleNavigateToDetails = () => {
@@ -135,7 +135,7 @@ function ProductCard({
           ) : (
             <Box className="product-card__media-empty">
               <Typography variant="body2" color="text.secondary">
-                ظ„ط§ طھظˆط¬ط¯ طµظˆط±ط©
+                لا توجد صورة
               </Typography>
             </Box>
           )}
@@ -147,13 +147,13 @@ function ProductCard({
               </span>
             ) : null}
             {normalizedProduct.isWholesalePriceApplied ? (
-              <span className="product-card__badge">ط³ط¹ط± ط¹ظ…ظٹظ„</span>
+              <span className="product-card__badge">سعر عميل</span>
             ) : null}
             {normalizedProduct.isFeatured ? (
-              <span className="product-card__badge">ظ…ظ…ظٹط²</span>
+              <span className="product-card__badge">مميز</span>
             ) : null}
             {!isAvailable ? (
-              <span className="product-card__badge">ظ†ظپط¯</span>
+              <span className="product-card__badge">نفد</span>
             ) : null}
           </Box>
         </Box>
@@ -190,7 +190,7 @@ function ProductCard({
                 color="text.secondary"
                 className="product-card__price-note"
               >
-                ظ‚ط¨ظ„ ط®طµظ… ط§ظ„ط¹ظ…ظٹظ„: {formatCurrency(originalPrice)}
+                قبل خصم العميل: {formatCurrency(originalPrice)}
               </Typography>
             ) : null}
 
@@ -200,7 +200,7 @@ function ProductCard({
               className="product-card__description"
             >
               {cardDescription ||
-                "ظ‚ط·ط¹ط© ظˆط§ط¶ط­ط© ط§ظ„طھظپط§طµظٹظ„ ظ…ط¹ طµظˆط±ط© طھط±ظƒط² ط¹ظ„ظ‰ ط§ظ„ظ…ظ†طھط¬ ظ†ظپط³ظ‡."}
+                "قطعة واضحة التفاصيل مع صورة تركز على المنتج نفسه."}
             </Typography>
 
             <Typography
@@ -243,7 +243,7 @@ function ProductCard({
                 : "product-card__add-button product-card__add-button--solo"
             }
           >
-            ط£ط¶ظپ
+            أضف
           </AppButton>
         ) : null}
       </Stack>

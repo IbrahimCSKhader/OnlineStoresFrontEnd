@@ -41,16 +41,16 @@ import { STORE_THEME_TEMPLATES } from "../../constants/storeThemeTemplates.js";
 import "./SuperAdminPages.css";
 
 const STATUS_OPTIONS = [
-  { value: "all", label: "ظƒظ„ ط§ظ„ط­ط§ظ„ط§طھ" },
-  { value: "active", label: "ط§ظ„ظ†ط´ط·ط© ظپظ‚ط·" },
-  { value: "inactive", label: "ط؛ظٹط± ط§ظ„ظ†ط´ط·ط© ظپظ‚ط·" },
+  { value: "all", label: "كل الحالات" },
+  { value: "active", label: "النشطة فقط" },
+  { value: "inactive", label: "غير النشطة فقط" },
 ];
 
 const SORT_OPTIONS = [
-  { value: "newest", label: "ط§ظ„ط£ط­ط¯ط« ط£ظˆظ„ظ‹ط§" },
-  { value: "oldest", label: "ط§ظ„ط£ظ‚ط¯ظ… ط£ظˆظ„ظ‹ط§" },
-  { value: "customers-desc", label: "ط§ظ„ط£ظƒط«ط± ط¹ظ…ظ„ط§ط،" },
-  { value: "name-asc", label: "ط§ظ„ط§ط³ظ… ط£ - ظٹ" },
+  { value: "newest", label: "الأحدث أولًا" },
+  { value: "oldest", label: "الأقدم أولًا" },
+  { value: "customers-desc", label: "الأكثر عملاء" },
+  { value: "name-asc", label: "الاسم أ - ي" },
 ];
 
 const CONTACT_PLATFORM_OPTIONS = Object.values(STORE_CONTACT_PLATFORMS);
@@ -185,20 +185,20 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
     >
       <Box className="super-admin-panel">
         <Box>
-          <Typography variant="h6">ط¥ظ†ط´ط§ط، ظ…طھط¬ط± ط¬ط¯ظٹط¯</Typography>
+          <Typography variant="h6">إنشاء متجر جديد</Typography>
           <Typography variant="body2" color="text.secondary">
-            ظٹظ…ظƒظ†ظƒ ط¥ظ†ط´ط§ط، ظ…طھط¬ط± ظ…ظ† ظ‡ظ†ط§طŒ ظ„ظƒظ† ط§ظ„ط¨ط§ظƒ ط¥ظ†ط¯ ط§ظ„ط­ط§ظ„ظٹ ظ„ط§ ظٹطھظٹط­ ط§ط®طھظٹط§ط± ظ…ط§ظ„ظƒ ظ…ط®طھظ„ظپ ظˆظ‚طھ
-            ط§ظ„ط¥ظ†ط´ط§ط،ط› ظ„ط°ظ„ظƒ ط³ظٹط±ط¨ط·ظ‡ ط¨ط§ظ„ظ…ط³طھط®ط¯ظ… ط§ظ„ظ…ط³ط¬ظ„ ط¯ط®ظˆظ„ظ‡ ط­ط§ظ„ظٹظ‹ط§.
+            يمكنك إنشاء متجر من هنا، لكن الباك إند الحالي لا يتيح اختيار مالك مختلف وقت
+            الإنشاء؛ لذلك سيربطه بالمستخدم المسجل دخوله حاليًا.
           </Typography>
         </Box>
 
         <Alert severity="warning">
-          ط§ط®طھظٹط§ط± ط§ظ„ظ…ط§ظ„ظƒ ط؛ظٹط± ظ…طھط§ط­ ط­ط§ظ„ظٹظ‹ط§ ظ…ظ† ظ‡ط°ظ‡ ط§ظ„ظ€ API. ط£ط±ط³ظ„ ظپظ‚ط· ط¨ظٹط§ظ†ط§طھ ط§ظ„ظ…طھط¬ط± ط§ظ„ط£ط³ط§ط³ظٹط©
-          ظˆط­ط³ط§ط¨ط§طھ ط§ظ„طھظˆط§طµظ„ ط§ظ„ط§ط®طھظٹط§ط±ظٹط©.
+          اختيار المالك غير متاح حاليًا من هذه الـ API. أرسل فقط بيانات المتجر الأساسية
+          وحسابات التواصل الاختيارية.
         </Alert>
 
         {error ? (
-          <Alert severity="error">{extractApiError(error, "طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط§ظ„ظ…طھط¬ط± ط­ط§ظ„ظٹظ‹ط§.")}</Alert>
+          <Alert severity="error">{extractApiError(error, "تعذر إنشاء المتجر حاليًا.")}</Alert>
         ) : null}
 
         <Box
@@ -222,30 +222,30 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
           className="super-admin-modal-grid"
         >
           <AppTextField
-            label="ط§ط³ظ… ط§ظ„ظ…طھط¬ط±"
+            label="اسم المتجر"
             value={form.name}
             required
             onChange={(event) => updateForm("name", event.target.value)}
           />
           <AppTextField
-            label="ط±ط§ط¨ط· ط§ظ„ظ…طھط¬ط±"
+            label="رابط المتجر"
             value={form.slug}
             required
-            helperText={`ط§ظ„ط±ط§ط¨ط· ط§ظ„ط­ط§ظ„ظٹ: /${slugPreview || "store"}`}
+            helperText={`الرابط الحالي: /${slugPreview || "store"}`}
             onChange={(event) => updateForm("slug", event.target.value)}
           />
           <AppTextField
-            label="ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط·"
+            label="نوع النشاط"
             value={form.businessType}
             onChange={(event) => updateForm("businessType", event.target.value)}
           />
           <AppTextField
-            label="ط±ظ‚ظ… ظˆط§طھط³ط§ط¨"
+            label="رقم واتساب"
             value={form.whatsAppNumber}
             onChange={(event) => updateForm("whatsAppNumber", event.target.value)}
           />
           <AppTextField
-            label="ط§ظ„ظˆطµظپ"
+            label="الوصف"
             multiline
             minRows={3}
             value={form.description}
@@ -253,7 +253,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
             sx={{ gridColumn: "1 / -1" }}
           />
           <AppTextField
-            label="ظ‚طµط© ط§ظ„ظ…طھط¬ط±"
+            label="قصة المتجر"
             multiline
             minRows={4}
             value={form.storeStory}
@@ -276,7 +276,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
           </AppTextField>
 
           <Box sx={{ display: "grid", gap: 0.75 }}>
-            <Typography variant="subtitle2">ط´ط¹ط§ط± ط§ظ„ظ…طھط¬ط±</Typography>
+            <Typography variant="subtitle2">شعار المتجر</Typography>
             <input
               type="file"
               accept=".jpg,.jpeg,.png,.webp"
@@ -285,7 +285,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
           </Box>
 
           <Box sx={{ display: "grid", gap: 0.75 }}>
-            <Typography variant="subtitle2">طµظˆط±ط© ط§ظ„ط؛ظ„ط§ظپ</Typography>
+            <Typography variant="subtitle2">صورة الغلاف</Typography>
             <input
               type="file"
               accept=".jpg,.jpeg,.png,.webp"
@@ -303,9 +303,9 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
               useFlexGap
             >
               <Box>
-                <Typography variant="subtitle1">ط­ط³ط§ط¨ط§طھ ط§ظ„طھظˆط§طµظ„</Typography>
+                <Typography variant="subtitle1">حسابات التواصل</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  ط§ظ„ظ…ظ†طµط© ظˆط§ط³ظ… ط§ظ„ظ…ط³طھط®ط¯ظ… ظپظ‚ط·. ظٹظ…ظƒظ† طھظƒط±ط§ط± ظ†ظپط³ ط§ظ„ظ…ظ†طµط© ط£ظƒط«ط± ظ…ظ† ظ…ط±ط©.
+                  المنصة واسم المستخدم فقط. يمكن تكرار نفس المنصة أكثر من مرة.
                 </Typography>
               </Box>
               <Button
@@ -322,7 +322,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
                   }))
                 }
               >
-                ط¥ط¶ط§ظپط© ط­ط³ط§ط¨
+                إضافة حساب
               </Button>
             </Stack>
 
@@ -331,7 +331,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
                 <Box key={account.clientId} className="super-admin-contact-row">
                   <AppTextField
                     select
-                    label="ط§ظ„ظ…ظ†طµط©"
+                    label="المنصة"
                     value={account.platform}
                     onChange={(event) =>
                       setForm((current) => ({
@@ -351,7 +351,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
                     ))}
                   </AppTextField>
                   <AppTextField
-                    label="ط§ط³ظ… ط§ظ„ظ…ط³طھط®ط¯ظ… / ط§ظ„ط±ظ‚ظ…"
+                    label="اسم المستخدم / الرقم"
                     value={account.username}
                     onChange={(event) =>
                       setForm((current) => ({
@@ -365,7 +365,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
                     }
                   />
                   <AppTextField
-                    label="ط§ظ„ط¹ظ†ظˆط§ظ†"
+                    label="العنوان"
                     value={account.label}
                     onChange={(event) =>
                       setForm((current) => ({
@@ -379,7 +379,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
                     }
                   />
                   <AppTextField
-                    label="ط§ظ„طھط±طھظٹط¨"
+                    label="الترتيب"
                     type="number"
                     value={account.sortOrder}
                     onChange={(event) =>
@@ -406,13 +406,13 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
                       }))
                     }
                   >
-                    ط­ط°ظپ
+                    حذف
                   </Button>
                 </Box>
               ))
             ) : (
               <Box className="super-admin-empty-inline">
-                ظ„ظ† ظٹطھظ… ط¥ط±ط³ط§ظ„ ط£ظٹ ط­ط³ط§ط¨ طھظˆط§طµظ„ ظ…ط§ ظ„ظ… طھط¶ظپظ‡ ظ…ظ† ظ‡ظ†ط§.
+                لن يتم إرسال أي حساب تواصل ما لم تضفه من هنا.
               </Box>
             )}
           </Box>
@@ -424,10 +424,10 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
             sx={{ gridColumn: "1 / -1" }}
           >
             <Button onClick={onClose} disabled={loading}>
-              ط¥ظ„ط؛ط§ط،
+              إلغاء
             </Button>
             <AppButton type="submit" loading={loading}>
-              ط¥ظ†ط´ط§ط، ط§ظ„ظ…طھط¬ط±
+              إنشاء المتجر
             </AppButton>
           </Stack>
         </Box>
@@ -485,25 +485,25 @@ export default function Stores() {
   const columns = [
     {
       key: "name",
-      title: "ط§ظ„ظ…طھط¬ط±",
+      title: "المتجر",
       render: (store) => (
         <Stack spacing={0.25}>
           <Typography variant="body2" fontWeight={700}>
-            {store.name || "ظ…طھط¬ط±"}
+            {store.name || "متجر"}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            /{store.slug || "ط¨ط¯ظˆظ† ط±ط§ط¨ط·"}
+            /{store.slug || "بدون رابط"}
           </Typography>
         </Stack>
       ),
     },
     {
       key: "owner",
-      title: "ط§ظ„ظ…ط§ظ„ظƒ",
+      title: "المالك",
       render: (store) => (
         <Stack spacing={0.25}>
           <Typography variant="body2" fontWeight={700}>
-            {buildDisplayName(store.owner, "ط¨ط¯ظˆظ† ظ…ط§ظ„ظƒ")}
+            {buildDisplayName(store.owner, "بدون مالك")}
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {store.owner?.email || "-"}
@@ -513,23 +513,23 @@ export default function Stores() {
     },
     {
       key: "businessType",
-      title: "ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط·",
+      title: "نوع النشاط",
       render: (store) => store.businessType || "-",
     },
     {
       key: "isActive",
-      title: "ط§ظ„ط­ط§ظ„ط©",
+      title: "الحالة",
       render: (store) => <AdminStatusChip active={store.isActive !== false} />,
     },
-    { key: "customerCount", title: "ط§ظ„ط¹ظ…ظ„ط§ط،" },
+    { key: "customerCount", title: "العملاء" },
     {
       key: "createdAt",
-      title: "طھط§ط±ظٹط® ط§ظ„ط¥ظ†ط´ط§ط،",
+      title: "تاريخ الإنشاء",
       render: (store) => formatAdminDate(store.createdAt),
     },
     {
       key: "actions",
-      title: "ط§ظ„ط¥ط¬ط±ط§ط،ط§طھ",
+      title: "الإجراءات",
       render: (store) => (
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           <Button
@@ -539,7 +539,7 @@ export default function Stores() {
             variant="outlined"
             startIcon={<OpenInNewRoundedIcon fontSize="small" />}
           >
-            ظپطھط­
+            فتح
           </Button>
           <AppButton
             size="small"
@@ -553,7 +553,7 @@ export default function Stores() {
               })
             }
           >
-            {store.isActive !== false ? "طھط¹ط·ظٹظ„" : "طھظپط¹ظٹظ„"}
+            {store.isActive !== false ? "تعطيل" : "تفعيل"}
           </AppButton>
           <Button
             size="small"
@@ -562,7 +562,7 @@ export default function Stores() {
             startIcon={<DeleteOutlineRoundedIcon fontSize="small" />}
             onClick={() => setDeleteDialog({ open: true, store })}
           >
-            ط­ط°ظپ
+            حذف
           </Button>
         </Stack>
       ),
@@ -573,14 +573,14 @@ export default function Stores() {
       <Box className="super-admin-page__toolbar">
         <Box className="super-admin-page__toolbar-copy">
           <Typography variant="overline" className="super-admin-page__eyebrow">
-            ط§ظ„ظ…طھط§ط¬ط±
+            المتاجر
           </Typography>
           <Typography variant="h5" className="super-admin-page__title">
-            ط¬ظ…ظٹط¹ ظ…طھط§ط¬ط± ط§ظ„ظ…ظ†طµط© ظپظٹ ظ…ظƒط§ظ† ظˆط§ط­ط¯
+            جميع متاجر المنصة في مكان واحد
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            ط§ط¨ط­ط« ظˆط§ظپط±ط² ظ…ط­ظ„ظٹظ‹ط§طŒ ظˆط§ظپطھط­ طھظپط§طµظٹظ„ ط£ظٹ ظ…طھط¬ط±طŒ ظˆطھط­ظƒظ… ط¨ط§ظ„طھظپط¹ظٹظ„ ط£ظˆ ط§ظ„ط­ط°ظپ ط§ظ„ظ†ط§ط¹ظ… ظ…ظ† ظ†ظپط³
-            ط§ظ„ط´ط§ط´ط©.
+            ابحث وافرز محليًا، وافتح تفاصيل أي متجر، وتحكم بالتفعيل أو الحذف الناعم من نفس
+            الشاشة.
           </Typography>
         </Box>
 
@@ -590,24 +590,24 @@ export default function Stores() {
             startIcon={<RefreshRoundedIcon fontSize="small" />}
             onClick={async () => {
               await storesQuery.refetch();
-              notify?.({ severity: "success", message: "طھظ… طھط­ط¯ظٹط« ظ‚ط§ط¦ظ…ط© ط§ظ„ظ…طھط§ط¬ط±." });
+              notify?.({ severity: "success", message: "تم تحديث قائمة المتاجر." });
             }}
             disabled={storesQuery.isFetching}
           >
-            {storesQuery.isFetching ? "ط¬ط§ط±ظچ ط§ظ„طھط­ط¯ظٹط«..." : "طھط­ط¯ظٹط«"}
+            {storesQuery.isFetching ? "جارٍ التحديث..." : "تحديث"}
           </Button>
           <AppButton
             startIcon={<AddRoundedIcon fontSize="small" />}
             onClick={() => setCreateModalOpen(true)}
           >
-            ط¥ظ†ط´ط§ط، ظ…طھط¬ط±
+            إنشاء متجر
           </AppButton>
         </Box>
       </Box>
 
       <Alert severity="info" icon={<StorefrontRoundedIcon fontSize="inherit" />}>
-        ظٹظ…ظƒظ†ظƒ ط¥ظ†ط´ط§ط، ظ…طھط¬ط± ظ…ظ† ط§ظ„ط³ظˆط¨ط± ط£ط¯ظ…ظ† ط§ظ„ط¢ظ†طŒ ظ„ظƒظ† طھط¹ظٹظٹظ† ط§ظ„ظ…ط§ظ„ظƒ ظ…ط§ ط²ط§ظ„ ظ…ط­ط¯ظˆط¯ظ‹ط§ ظ…ظ† ط¬ظ‡ط© ط§ظ„ط¨ط§ظƒ
-        ط¥ظ†ط¯: ظ‚ظٹظ…ط© <code>OwnerId</code> ظ„ط§ طھظڈط³طھط®ط¯ظ… ط­ط§ظ„ظٹظ‹ط§ ط¹ظ†ط¯ ط§ظ„ط¥ظ†ط´ط§ط،.
+        يمكنك إنشاء متجر من السوبر أدمن الآن، لكن تعيين المالك ما زال محدودًا من جهة الباك
+        إند: قيمة <code>OwnerId</code> لا تُستخدم حاليًا عند الإنشاء.
       </Alert>
 
       <Paper className="super-admin-panel" elevation={0}>
@@ -615,13 +615,13 @@ export default function Stores() {
           <SearchInput
             value={searchValue}
             onChange={setSearchValue}
-            placeholder="ط§ط¨ط­ط« ط¨ط§ط³ظ… ط§ظ„ظ…طھط¬ط± ط£ظˆ ط§ظ„ط±ط§ط¨ط· ط£ظˆ ظ†ظˆط¹ ط§ظ„ظ†ط´ط§ط· ط£ظˆ ط§ط³ظ… ط§ظ„ظ…ط§ظ„ظƒ"
+            placeholder="ابحث باسم المتجر أو الرابط أو نوع النشاط أو اسم المالك"
           />
           <AppTextField
             select
             size="small"
             sx={{ minWidth: 170 }}
-            label="ط§ظ„ط­ط§ظ„ط©"
+            label="الحالة"
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
@@ -635,7 +635,7 @@ export default function Stores() {
             select
             size="small"
             sx={{ minWidth: 180 }}
-            label="ط§ظ„ظپط±ط²"
+            label="الفرز"
             value={sortBy}
             onChange={(event) => setSortBy(event.target.value)}
           >
@@ -652,7 +652,7 @@ export default function Stores() {
 
       {!storesQuery.isLoading && !storesQuery.isError && createStoreMutation.isError ? (
         <Alert severity="error">
-          {extractApiError(createStoreMutation.error, "طھط¹ط°ط± ط¥ظ†ط´ط§ط، ط§ظ„ظ…طھط¬ط± ط­ط§ظ„ظٹظ‹ط§.")}
+          {extractApiError(createStoreMutation.error, "تعذر إنشاء المتجر حاليًا.")}
         </Alert>
       ) : null}
 
@@ -661,10 +661,10 @@ export default function Stores() {
           <Box className="super-admin-panel__head">
             <Box>
               <Typography variant="h6" className="super-admin-panel__title">
-                ظ‚ط§ط¦ظ…ط© ط§ظ„ظ…طھط§ط¬ط±
+                قائمة المتاجر
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {filteredStores.length} ظ…طھط¬ط± ط¨ط¹ط¯ طھط·ط¨ظٹظ‚ ط§ظ„ط¨ط­ط« ظˆط§ظ„ظپظ„طھط±ط© ط§ظ„ظ…ط­ظ„ظٹط©.
+                {filteredStores.length} متجر بعد تطبيق البحث والفلترة المحلية.
               </Typography>
             </Box>
           </Box>
@@ -674,8 +674,8 @@ export default function Stores() {
             columns={columns}
             emptyState={
               <EmptyState
-                title="ظ„ط§ طھظˆط¬ط¯ ظ…طھط§ط¬ط± ظ…ط·ط§ط¨ظ‚ط©"
-                description="ط¬ط±ظ‘ط¨ ط¹ط¨ط§ط±ط© ط¨ط­ط« ظ…ط®طھظ„ظپط© ط£ظˆ ط؛ظٹظ‘ط± ط¥ط¹ط¯ط§ط¯ط§طھ ط§ظ„ظپظ„طھط±ط©."
+                title="لا توجد متاجر مطابقة"
+                description="جرّب عبارة بحث مختلفة أو غيّر إعدادات الفلترة."
               />
             }
           />
@@ -685,17 +685,17 @@ export default function Stores() {
       {!storesQuery.isLoading && storesQuery.isError ? (
         status === 403 ? (
           <EmptyState
-            title="ظ„ظٹط³ ظ„ط¯ظٹظƒ طµظ„ط§ط­ظٹط©"
-            description="ط§ظ„ط­ط³ط§ط¨ ط§ظ„ط­ط§ظ„ظٹ ط؛ظٹط± ظ…ط®ظˆظ„ ظ„ط¹ط±ط¶ ظ‚ط§ط¦ظ…ط© ظ…طھط§ط¬ط± ط§ظ„ط³ظˆط¨ط± ط£ط¯ظ…ظ†."
+            title="ليس لديك صلاحية"
+            description="الحساب الحالي غير مخول لعرض قائمة متاجر السوبر أدمن."
           />
         ) : status === 404 ? (
           <EmptyState
-            title="ظ„ط§ طھظˆط¬ط¯ ظ…طھط§ط¬ط±"
-            description="ط§ظ„ظ€ API ظ„ظ… طھظڈط±ط¬ط¹ ظ…طھط§ط¬ط± ظ„ظ„ط¯ط§ط´ط¨ظˆط±ط¯ ط­طھظ‰ ط§ظ„ط¢ظ†."
+            title="لا توجد متاجر"
+            description="الـ API لم تُرجع متاجر للداشبورد حتى الآن."
           />
         ) : (
           <Alert severity="error">
-            {extractApiError(storesQuery.error, "طھط¹ط°ط± طھط­ظ…ظٹظ„ ط§ظ„ظ…طھط§ط¬ط± ط­ط§ظ„ظٹظ‹ط§.")}
+            {extractApiError(storesQuery.error, "تعذر تحميل المتاجر حاليًا.")}
           </Alert>
         )
       ) : null}
@@ -713,7 +713,7 @@ export default function Stores() {
           await createStoreMutation.mutateAsync(payload);
           notify?.({
             severity: "success",
-            message: "طھظ… ط¥ظ†ط´ط§ط، ط§ظ„ظ…طھط¬ط± ط¨ظ†ط¬ط§ط­.",
+            message: "تم إنشاء المتجر بنجاح.",
           });
           setCreateModalOpen(false);
         }}
@@ -721,13 +721,13 @@ export default function Stores() {
 
       <AdminConfirmDialog
         open={statusDialog.open}
-        title={`${statusDialog.nextStatus ? "طھظپط¹ظٹظ„" : "طھط¹ط·ظٹظ„"} ط§ظ„ظ…طھط¬ط±`}
+        title={`${statusDialog.nextStatus ? "تفعيل" : "تعطيل"} المتجر`}
         description={
           statusDialog.store
-            ? `ظ‡ظ„ ط£ظ†طھ ظ…طھط£ظƒط¯ ظ…ظ† ${statusDialog.nextStatus ? "طھظپط¹ظٹظ„" : "طھط¹ط·ظٹظ„"} ${statusDialog.store.name || "ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±"}طں`
-            : "ظ‡ظ„ ط£ظ†طھ ظ…طھط£ظƒط¯طں"
+            ? `هل أنت متأكد من ${statusDialog.nextStatus ? "تفعيل" : "تعطيل"} ${statusDialog.store.name || "هذا المتجر"}؟`
+            : "هل أنت متأكد؟"
         }
-        confirmLabel={statusDialog.nextStatus ? "طھظپط¹ظٹظ„ ط§ظ„ظ…طھط¬ط±" : "طھط¹ط·ظٹظ„ ط§ظ„ظ…طھط¬ط±"}
+        confirmLabel={statusDialog.nextStatus ? "تفعيل المتجر" : "تعطيل المتجر"}
         confirmColor={statusDialog.nextStatus ? "primary" : "warning"}
         loading={updateStatusMutation.isPending}
         onClose={() =>
@@ -751,8 +751,8 @@ export default function Stores() {
 
           notify?.({
             severity: "success",
-            message: `${statusDialog.store.name || "ط§ظ„ظ…طھط¬ط±"} ط£طµط¨ط­ ${
-              statusDialog.nextStatus ? "ظ†ط´ط·ظ‹ط§" : "ط؛ظٹط± ظ†ط´ط·"
+            message: `${statusDialog.store.name || "المتجر"} أصبح ${
+              statusDialog.nextStatus ? "نشطًا" : "غير نشط"
             }.`,
           });
           setStatusDialog({
@@ -765,13 +765,13 @@ export default function Stores() {
 
       <AdminConfirmDialog
         open={deleteDialog.open}
-        title="ط­ط°ظپ ط§ظ„ظ…طھط¬ط±"
+        title="حذف المتجر"
         description={
           deleteDialog.store
-            ? `ط³ظٹطھظ… ط­ط°ظپ ${deleteDialog.store.name || "ظ‡ط°ط§ ط§ظ„ظ…طھط¬ط±"} ط­ط°ظپظ‹ط§ ظ†ط§ط¹ظ…ظ‹ط§. ظ‡ظ„ طھط±ظٹط¯ ط§ظ„ظ…طھط§ط¨ط¹ط©طں`
-            : "ط³ظٹطھظ… ط­ط°ظپ ط§ظ„ظ…طھط¬ط± ط§ظ„ط­ط§ظ„ظٹ ط­ط°ظپظ‹ط§ ظ†ط§ط¹ظ…ظ‹ط§. ظ‡ظ„ طھط±ظٹط¯ ط§ظ„ظ…طھط§ط¨ط¹ط©طں"
+            ? `سيتم حذف ${deleteDialog.store.name || "هذا المتجر"} حذفًا ناعمًا. هل تريد المتابعة؟`
+            : "سيتم حذف المتجر الحالي حذفًا ناعمًا. هل تريد المتابعة؟"
         }
-        confirmLabel="ط­ط°ظپ ط§ظ„ظ…طھط¬ط±"
+        confirmLabel="حذف المتجر"
         confirmColor="error"
         loading={deleteStoreMutation.isPending}
         onClose={() =>
@@ -788,7 +788,7 @@ export default function Stores() {
           await deleteStoreMutation.mutateAsync(deleteDialog.store.id);
           notify?.({
             severity: "success",
-            message: `طھظ… ط­ط°ظپ ${deleteDialog.store.name || "ط§ظ„ظ…طھط¬ط±"}.`,
+            message: `تم حذف ${deleteDialog.store.name || "المتجر"}.`,
           });
           setDeleteDialog({
             open: false,
