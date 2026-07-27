@@ -59,6 +59,26 @@ export function normalizeListResponse(data) {
   return findNestedArray(data) ?? [];
 }
 
+export function normalizePagedResponse(data) {
+  const items = normalizeListResponse(data);
+  const source = isPlainObject(data?.data) ? data.data : data;
+  const totalCount = Number(source?.totalCount ?? items.length);
+  const pageSize = Number(source?.pageSize ?? (items.length || 1));
+  const totalPages = Number(
+    source?.totalPages ?? Math.max(1, Math.ceil(totalCount / Math.max(pageSize, 1))),
+  );
+
+  return {
+    items,
+    page: Number(source?.page ?? 1),
+    pageSize,
+    totalCount,
+    totalPages,
+    hasPreviousPage: Boolean(source?.hasPreviousPage),
+    hasNextPage: Boolean(source?.hasNextPage),
+  };
+}
+
 export function normalizeEntityResponse(data) {
   let current = data;
   const visited = new Set();

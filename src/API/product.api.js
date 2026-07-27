@@ -64,10 +64,16 @@ export const productApi = {
     axiosInstance.get(endpoints.products.featured(storeId)),
   getProductById: (id) => axiosInstance.get(endpoints.products.detail(id)),
   getProductBySlug: (slug) => axiosInstance.get(endpoints.products.slug(slug)),
-  getProductsByCategory: (categoryId) =>
-    axiosInstance.get(endpoints.products.byCategory(categoryId)),
-  getProductsBySection: (sectionId) =>
-    axiosInstance.get(endpoints.products.bySection(sectionId)),
+  getProductsByCategory: (categoryId, params) =>
+    axiosInstance.get(
+      endpoints.products.byCategory(categoryId),
+      params ? { params } : undefined,
+    ),
+  getProductsBySection: (sectionId, params) =>
+    axiosInstance.get(
+      endpoints.products.bySection(sectionId),
+      params ? { params } : undefined,
+    ),
   createProduct: (payload) =>
     axiosInstance.post(
       endpoints.products.create,

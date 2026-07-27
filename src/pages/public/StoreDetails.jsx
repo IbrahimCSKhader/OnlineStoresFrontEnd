@@ -19,6 +19,7 @@ import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
+import ProductPagination from "../../components/product/ProductPagination.jsx";
 import storeApi from "../../API/store.api.js";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
@@ -39,9 +40,10 @@ import {
   isProductInStock,
   normalizeProductList,
 } from "../../utils/products.js";
-import { buildCategorySummary } from "../../utils/storefront.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./StoreDetails.css";
+
+const CATALOG_PAGE_SIZE = 12;
 
 function buildStoreDescription(store) {
   return (
@@ -101,6 +103,7 @@ function normalizeVisitCount(value) {
 export default function StoreDetails() {
   const { slug = "" } = useParams();
   const [searchText, setSearchText] = useState("");
+  const [catalogPage, setCatalogPage] = useState(1);
   const [catalogView, setCatalogView] = useState("grid");
   const [expandedCategoryIds, setExpandedCategoryIds] = useState([]);
   const [recordedVisit, setRecordedVisit] = useState({
@@ -135,6 +138,11 @@ export default function StoreDetails() {
   );
   const catalogProductsQuery = useStorefrontCatalogProducts(store?.id, {
     enabled: Boolean(store?.id),
+    params: {
+      page: catalogPage,
+      pageSize: CATALOG_PAGE_SIZE,
+      search: deferredSearchText.trim() || undefined,
+    },
     staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);
@@ -151,34 +159,20 @@ export default function StoreDetails() {
     () => normalizeProductList(catalogProductsQuery.data),
     [catalogProductsQuery.data],
   );
-  const keyword = deferredSearchText.toLowerCase().trim();
-  const filteredProducts = useMemo(
-    () =>
-      keyword
-        ? products.filter((product) =>
-            [product.name, product.description, product.shortDescription]
-              .filter(Boolean)
-              .some((value) => String(value).toLowerCase().includes(keyword)),
-          )
-        : products,
-    [keyword, products],
-  );
+  const filteredProducts = products;
   const categorySummary = useMemo(
-    () => buildCategorySummary(products, categories).slice(0, 8),
-    [categories, products],
+    () => categories.slice(0, 8),
+    [categories],
   );
   const catalogProductGroups = useMemo(
     () => buildCategoryProductGroups(filteredProducts, categories),
     [categories, filteredProducts],
   );
-  const catalogProductGroupIds = useMemo(
-    () => catalogProductGroups.map((group) => String(group.groupId || group.id)),
-    [catalogProductGroups],
-  );
   const availableProductsCount = useMemo(
     () => products.filter((product) => isProductInStock(product)).length,
     [products],
   );
+  const catalogPagination = catalogProductsQuery.pagination;
   const currentStoreId = String(store?.id || "").trim();
   const displayedVisitCount = useMemo(
     () => {
@@ -214,12 +208,6 @@ export default function StoreDetails() {
       });
   }, [currentStoreId, isOwnerPreview]);
 
-  useEffect(() => {
-    setExpandedCategoryIds((currentIds) =>
-      currentIds.filter((groupId) => catalogProductGroupIds.includes(groupId)),
-    );
-  }, [catalogProductGroupIds]);
-
   const handleAddToCart = (product) => {
     if (isOwnerPreview || !store?.id || !product?.id) {
       return;
@@ -246,6 +234,21 @@ export default function StoreDetails() {
         ? [...new Set([...currentIds, groupId])]
         : currentIds.filter((currentId) => currentId !== groupId),
     );
+  };
+
+  const handleCatalogPageChange = (nextPage) => {
+    setCatalogPage(nextPage);
+
+    if (typeof document !== "undefined") {
+      document
+        .getElementById("store-catalog")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchText(value);
+    setCatalogPage(1);
   };
 
   if (storeQuery.isLoading) {
@@ -359,7 +362,7 @@ export default function StoreDetails() {
                 <StorefrontRoundedIcon fontSize="small" />
                 <span className="storefront-metric__label">المنتجات</span>
                 <strong className="storefront-metric__value">
-                  {products.length}
+                  {(catalogPagination?.totalCount || products.length).toLocaleString("ar")}
                 </strong>
               </Box>
 
@@ -449,9 +452,11 @@ export default function StoreDetails() {
                 <Typography variant="body2" color="text.secondary">
                   {category.description || ""}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {category.count} منتج
-                </Typography>
+                {category.count !== undefined ? (
+                  <Typography variant="caption" color="text.secondary">
+                    {category.count} منتج
+                  </Typography>
+                ) : null}
               </SurfaceCard>
             ))}
           </Box>
@@ -528,7 +533,7 @@ export default function StoreDetails() {
             <Box className="page-store-details__search">
               <SearchInput
                 value={searchText}
-                onChange={setSearchText}
+                onChange={handleSearchChange}
                 placeholder="ابحث داخل هذا المتجر"
               />
             </Box>
@@ -607,17 +612,27 @@ export default function StoreDetails() {
                     </Accordion>
                   );
                 })}
+                <ProductPagination
+                  pagination={catalogPagination}
+                  onPageChange={handleCatalogPageChange}
+                />
               </Box>
             ) : (
-              <ProductGrid
-                products={filteredProducts}
-                storeSlug={resolvedStoreSlug}
-                onAddToCart={handleAddToCart}
-                addingProductId={addToCartUi.activeKey}
-                disableCartActions={isOwnerPreview}
-                linkSearch={previewSearch}
-                scrollAnchorScope="store-catalog"
-              />
+              <>
+                <ProductGrid
+                  products={filteredProducts}
+                  storeSlug={resolvedStoreSlug}
+                  onAddToCart={handleAddToCart}
+                  addingProductId={addToCartUi.activeKey}
+                  disableCartActions={isOwnerPreview}
+                  linkSearch={previewSearch}
+                  scrollAnchorScope="store-catalog"
+                />
+                <ProductPagination
+                  pagination={catalogPagination}
+                  onPageChange={handleCatalogPageChange}
+                />
+              </>
             )
           ) : (
             <EmptyState

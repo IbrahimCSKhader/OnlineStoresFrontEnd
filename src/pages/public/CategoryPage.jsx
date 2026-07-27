@@ -10,26 +10,27 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import AppTextField from "../../components/common/inputs/AppTextField.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
+import ProductPagination from "../../components/product/ProductPagination.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
-import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
+import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import {
   normalizeEntityResponse,
   normalizeListResponse,
+  normalizePagedResponse,
 } from "../../utils/collections.js";
 import { buildProductSnapshot } from "../../utils/guestCart.js";
 import {
-  getProductDisplayPrice,
   getProductDisplayVariant,
-  isProductInStock,
   normalizeProductList,
 } from "../../utils/products.js";
-import { buildCategorySummary, sortProducts } from "../../utils/storefront.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./CategoryPage.css";
+
+const CATEGORY_PAGE_SIZE = 12;
 
 export default function CategoryPage() {
   const { slug, categoryId } = useParams();
@@ -37,9 +38,11 @@ export default function CategoryPage() {
     useOwnerStorePreview();
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
+  const [page, setPage] = useState(1);
   const [sortValue, setSortValue] = useState("newest");
   const [onlyInStock, setOnlyInStock] = useState(false);
   const [priceInputs, setPriceInputs] = useState({ min: "", max: "" });
+  const keyword = deferredSearchText.toLowerCase().trim();
 
   const storeQuery = useStoreBySlug(slug);
   const store = useMemo(
@@ -59,8 +62,17 @@ export default function CategoryPage() {
       ),
     [categoriesQuery.data],
   );
-  const catalogProductsQuery = useStorefrontCatalogProducts(store?.id, {
-    enabled: Boolean(store?.id),
+  const catalogProductsQuery = useProductsByCategory(categoryId, {
+    enabled: Boolean(categoryId) && Boolean(store?.id),
+    params: {
+      page,
+      pageSize: CATEGORY_PAGE_SIZE,
+      search: keyword || undefined,
+      sort: sortValue,
+      onlyInStock: onlyInStock || undefined,
+      minPrice: priceInputs.min || undefined,
+      maxPrice: priceInputs.max || undefined,
+    },
     staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);
@@ -87,39 +99,15 @@ export default function CategoryPage() {
 
   const activeCategory =
     categories.find((category) => String(category.id) === String(categoryId)) || null;
-  const allStoreProducts = normalizeProductList(catalogProductsQuery.data);
-  const products = allStoreProducts.filter(
-    (product) => String(product?.categoryId || "") === String(categoryId),
-  );
-  const availablePrices = products.map((product) => getProductDisplayPrice(product));
-  const maxPrice = Math.max(...availablePrices, 0);
-  const minFilter = Number(priceInputs.min || 0);
-  const maxFilter = Number(priceInputs.max || maxPrice || 0);
-  const keyword = deferredSearchText.toLowerCase().trim();
-  const filteredProducts = sortProducts(
-    products.filter((product) => {
-      const price = getProductDisplayPrice(product);
-
-      if (onlyInStock && !isProductInStock(product)) {
-        return false;
-      }
-
-      if (price < minFilter || price > maxFilter) {
-        return false;
-      }
-
-      if (!keyword) {
-        return true;
-      }
-
-      return [product.name, product.description, product.shortDescription]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(keyword));
-    }),
-    sortValue,
-  );
-
-  const categorySummary = buildCategorySummary(allStoreProducts, categories);
+  const categoryPagination = normalizePagedResponse(catalogProductsQuery.data);
+  const filteredProducts = normalizeProductList(categoryPagination.items);
+  const categorySummary = categories.map((category) => ({
+    ...category,
+    count:
+      String(category.id) === String(categoryId)
+        ? categoryPagination.totalCount
+        : null,
+  }));
 
   const handleAddToCart = (product) => {
     if (isOwnerPreview || !store?.id || !product?.id) return;
@@ -137,6 +125,39 @@ export default function CategoryPage() {
       }),
       debugSource: "category-page",
     });
+  };
+
+  const handlePageChange = (nextPage) => {
+    setPage(nextPage);
+
+    if (typeof document !== "undefined") {
+      document
+        .getElementById("category-results")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchText(value);
+    setPage(1);
+  };
+
+  const handleSortChange = (event) => {
+    setSortValue(event.target.value);
+    setPage(1);
+  };
+
+  const handlePriceInputChange = (key) => (event) => {
+    setPriceInputs((previous) => ({
+      ...previous,
+      [key]: event.target.value,
+    }));
+    setPage(1);
+  };
+
+  const handleOnlyInStockChange = (event) => {
+    setOnlyInStock(event.target.checked);
+    setPage(1);
   };
 
   return (
@@ -163,7 +184,7 @@ export default function CategoryPage() {
 
             <SearchInput
               value={searchText}
-              onChange={setSearchText}
+              onChange={handleSearchChange}
               placeholder="ابحث داخل هذا التصنيف"
             />
 
@@ -171,7 +192,7 @@ export default function CategoryPage() {
               select
               label="الترتيب"
               value={sortValue}
-              onChange={(event) => setSortValue(event.target.value)}
+              onChange={handleSortChange}
               SelectProps={{ native: true }}
             >
               <option value="price-asc">السعر: من الأقل</option>
@@ -185,23 +206,13 @@ export default function CategoryPage() {
                 type="number"
                 label="أقل سعر"
                 value={priceInputs.min}
-                onChange={(event) =>
-                  setPriceInputs((previous) => ({
-                    ...previous,
-                    min: event.target.value,
-                  }))
-                }
+                onChange={handlePriceInputChange("min")}
               />
               <AppTextField
                 type="number"
                 label="أعلى سعر"
                 value={priceInputs.max}
-                onChange={(event) =>
-                  setPriceInputs((previous) => ({
-                    ...previous,
-                    max: event.target.value,
-                  }))
-                }
+                onChange={handlePriceInputChange("max")}
               />
             </Box>
 
@@ -209,7 +220,7 @@ export default function CategoryPage() {
               control={
                 <Switch
                   checked={onlyInStock}
-                  onChange={(event) => setOnlyInStock(event.target.checked)}
+                  onChange={handleOnlyInStockChange}
                 />
               }
               label="عرض المتوفر فقط"
@@ -223,9 +234,12 @@ export default function CategoryPage() {
                   to={buildStorePreviewPath(
                     `/market/${store.slug}/category/${category.id}`,
                   )}
+                  onClick={() => setPage(1)}
                   variant={String(category.id) === String(categoryId) ? "contained" : "outlined"}
                 >
-                  {category.name} ({category.count})
+                  {category.count === null
+                    ? category.name
+                    : `${category.name} (${category.count})`}
                 </AppButton>
               ))}
             </Box>
@@ -242,7 +256,7 @@ export default function CategoryPage() {
               <Box className="storefront-section__copy">
                 <span className="storefront-eyebrow">النتائج</span>
                 <Typography variant="h5">
-                  {filteredProducts.length} نتيجة داخل {activeCategory?.name || "هذا التصنيف"}
+                  {categoryPagination.totalCount} نتيجة داخل {activeCategory?.name || "هذا التصنيف"}
                 </Typography>
               </Box>
 
@@ -258,16 +272,22 @@ export default function CategoryPage() {
             {catalogProductsQuery.isLoading ? (
               <EmptyState title="جاري تحميل المنتجات..." />
             ) : filteredProducts.length ? (
-              <ProductGrid
-                products={filteredProducts}
-                storeSlug={store.slug}
-                onAddToCart={handleAddToCart}
-                addingProductId={addToCartUi.activeKey}
-                disableCartActions={isOwnerPreview}
-                linkSearch={previewSearch}
-                className="page-category__products-grid"
-                scrollAnchorScope="category-results"
-              />
+              <>
+                <ProductGrid
+                  products={filteredProducts}
+                  storeSlug={store.slug}
+                  onAddToCart={handleAddToCart}
+                  addingProductId={addToCartUi.activeKey}
+                  disableCartActions={isOwnerPreview}
+                  linkSearch={previewSearch}
+                  className="page-category__products-grid"
+                  scrollAnchorScope="category-results"
+                />
+                <ProductPagination
+                  pagination={categoryPagination}
+                  onPageChange={handlePageChange}
+                />
+              </>
             ) : (
               <EmptyState
                 title="لا توجد نتائج"

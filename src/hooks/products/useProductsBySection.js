@@ -5,11 +5,15 @@ import useProductPricingScope from "./useProductPricingScope.js";
 
 export default function useProductsBySection(sectionId, options = {}) {
   const pricingScope = useProductPricingScope();
+  const { params, ...queryOptions } = options;
 
   return useQuery({
-    queryKey: queryKeys.products.bySection(sectionId, pricingScope),
-    queryFn: () => productApi.getProductsBySection(sectionId),
-    enabled: Boolean(sectionId) && (options.enabled ?? true),
-    ...options,
+    queryKey: queryKeys.products.bySection(sectionId, {
+      ...(params || {}),
+      pricingScope,
+    }),
+    queryFn: () => productApi.getProductsBySection(sectionId, params),
+    enabled: Boolean(sectionId) && (queryOptions.enabled ?? true),
+    ...queryOptions,
   });
 }

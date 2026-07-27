@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import productApi from "../../API/product.api.js";
-import { normalizeListResponse } from "../../utils/collections.js";
+import {
+  normalizeListResponse,
+  normalizePagedResponse,
+} from "../../utils/collections.js";
 import {
   isProductActive,
   normalizeProductList,
@@ -11,23 +14,37 @@ import useProductPricingScope from "./useProductPricingScope.js";
 
 export default function useStorefrontCatalogProducts(storeId, options = {}) {
   const pricingScope = useProductPricingScope();
+  const { enabled, staleTime, params, ...queryOptions } = options;
+  const queryParams = params || {};
   const query = useQuery({
-    queryKey: queryKeys.products.byStore(storeId, pricingScope),
-    queryFn: () => productApi.getProductsByStore(storeId),
-    enabled: Boolean(storeId) && (options.enabled ?? true),
-    staleTime: options.staleTime ?? 30000,
+    queryKey: queryKeys.products.byStore(storeId, {
+      ...queryParams,
+      pricingScope,
+    }),
+    queryFn: () => productApi.getProductsByStore(storeId, queryParams),
+    enabled: Boolean(storeId) && (enabled ?? true),
+    staleTime: staleTime ?? 30000,
+    keepPreviousData: true,
+    ...queryOptions,
   });
 
-  const data = useMemo(
-    () =>
-      normalizeProductList(normalizeListResponse(query.data)).filter((product) =>
-        isProductActive(product),
-      ),
-    [query.data],
-  );
+  const pagedData = useMemo(() => normalizePagedResponse(query.data), [query.data]);
+  const data = useMemo(() => {
+    const source = queryParams.page || queryParams.pageSize
+      ? pagedData.items
+      : normalizeListResponse(query.data);
+
+    return normalizeProductList(source).filter((product) =>
+      isProductActive(product),
+    );
+  }, [pagedData.items, query.data, queryParams.page, queryParams.pageSize]);
 
   return {
     data,
+    pagination: {
+      ...pagedData,
+      items: data,
+    },
     isLoading: query.isLoading && !data.length,
     isFetching: query.isFetching,
     error: query.error || null,
