@@ -14,6 +14,7 @@ export default function useProductsBySection(sectionId, options = {}) {
     }),
     queryFn: () => productApi.getProductsBySection(sectionId, params),
     enabled: Boolean(sectionId) && (queryOptions.enabled ?? true),
+    placeholderData: (previousData) => previousData,
     ...queryOptions,
   });
 }

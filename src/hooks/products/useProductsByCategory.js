@@ -14,6 +14,7 @@ export default function useProductsByCategory(categoryId, options = {}) {
     }),
     queryFn: () => productApi.getProductsByCategory(categoryId, params),
     enabled: Boolean(categoryId) && (queryOptions.enabled ?? true),
+    placeholderData: (previousData) => previousData,
     ...queryOptions,
   });
 }

@@ -18,7 +18,7 @@ import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
-import ProductGrid from "../../components/product/ProductGrid.jsx";
+import ProductGrid, { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
 import ProductPagination from "../../components/product/ProductPagination.jsx";
 import storeApi from "../../API/store.api.js";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
@@ -481,7 +481,7 @@ export default function StoreDetails() {
         </Box>
 
         {featuredProductsQuery.isLoading && !featuredProducts.length ? (
-          <EmptyState title="جاري تحميل المنتجات المختارة..." />
+          <ProductGridSkeleton count={5} />
         ) : featuredProducts.length ? (
           <ProductGrid
             products={featuredProducts}
@@ -542,7 +542,14 @@ export default function StoreDetails() {
 
         <Box className="page-store-details__catalog-body">
           {catalogProductsQuery.isLoading ? (
-            <EmptyState title="جاري تحميل المنتجات..." />
+            <ProductGridSkeleton
+              count={CATALOG_PAGE_SIZE}
+              className={
+                catalogView === "grouped"
+                  ? "page-store-details__grouped-products-grid"
+                  : ""
+              }
+            />
           ) : catalogProductsQuery.error ? (
             <EmptyState
               title="تعذر تحميل المنتجات"

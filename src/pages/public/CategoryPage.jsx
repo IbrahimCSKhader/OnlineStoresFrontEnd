@@ -9,7 +9,7 @@ import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import AppTextField from "../../components/common/inputs/AppTextField.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
-import ProductGrid from "../../components/product/ProductGrid.jsx";
+import ProductGrid, { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
 import ProductPagination from "../../components/product/ProductPagination.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
@@ -270,7 +270,10 @@ export default function CategoryPage() {
             </Box>
 
             {catalogProductsQuery.isLoading ? (
-              <EmptyState title="جاري تحميل المنتجات..." />
+              <ProductGridSkeleton
+                count={CATEGORY_PAGE_SIZE}
+                className="page-category__products-grid"
+              />
             ) : filteredProducts.length ? (
               <>
                 <ProductGrid

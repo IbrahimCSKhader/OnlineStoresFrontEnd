@@ -24,7 +24,7 @@ export default function useStorefrontCatalogProducts(storeId, options = {}) {
     queryFn: () => productApi.getProductsByStore(storeId, queryParams),
     enabled: Boolean(storeId) && (enabled ?? true),
     staleTime: staleTime ?? 30000,
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
     ...queryOptions,
   });
 
