@@ -403,6 +403,27 @@ html[data-theme-template="green"] .store-navbar__link--active {
   background: var(--primary);
 }
 
+html[data-theme-template="blue"] .store-navbar__toolbar {
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  background: color-mix(in srgb, var(--surface-bright) 84%, transparent);
+}
+
+html[data-theme-template="blue"] .store-navbar__brand-mark {
+  border-radius: 16px;
+  background: linear-gradient(145deg, #0b5fbd 0%, #18a8c8 100%);
+}
+
+html[data-theme-template="blue"] .store-navbar__link:hover,
+html[data-theme-template="blue"] .store-navbar__link--active {
+  color: var(--button-text);
+  background: var(--primary);
+}
+
+html[data-theme-template="blue"] .store-navbar__theme-option--active {
+  color: var(--button-text) !important;
+  background: var(--primary) !important;
+}
+
 @media (max-width: 899px) {
   html[data-theme-template="pink"] .store-navbar__toolbar {
     min-height: 68px;

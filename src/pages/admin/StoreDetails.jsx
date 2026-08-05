@@ -205,7 +205,7 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
               onChange={(event) =>
                 setForm((current) => ({ ...current, themeTemplate: event.target.value }))
               }
-              helperText="كل قالب يملك لايت مود ودارك مود داخل واجهة المتجر."
+              helperText="اختر قالب المتجر. كل قالب يملك ثيم صباحي وثيم ليلي داخل الواجهة."
             >
               {STORE_THEME_TEMPLATES.map((template) => (
                 <MenuItem key={template.value} value={template.value}>

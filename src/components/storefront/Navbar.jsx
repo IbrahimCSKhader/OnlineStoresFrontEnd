@@ -19,11 +19,8 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
-import FavoriteRoundedIcon from "@mui/icons-material/FavoriteRounded";
-import LightModeRoundedIcon from "@mui/icons-material/LightModeRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
-import ParkRoundedIcon from "@mui/icons-material/ParkRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
@@ -77,15 +74,21 @@ function buildNavItems(activeStoreSlug) {
 }
 
 const storefrontThemeOptions = [
-  { value: "light", label: "الوضع الفاتح", icon: <LightModeRoundedIcon /> },
-  { value: "dark", label: "الوضع الداكن", icon: <DarkModeRoundedIcon /> },
-  { value: "nature", label: "الأخضر الفاتح", icon: <ParkRoundedIcon /> },
-  { value: "nature-dark", label: "الأخضر الداكن", icon: <ParkRoundedIcon /> },
-  { value: "pink", label: "الوردي الفاتح", icon: <FavoriteRoundedIcon /> },
-  { value: "pink-dark", label: "الوردي الداكن", icon: <FavoriteRoundedIcon /> },
-  { value: "black", label: "الأسود الداكن", icon: <DarkModeRoundedIcon /> },
-  { value: "black-light", label: "الأسود الفاتح", icon: <WbSunnyRoundedIcon /> },
+  { value: "light", label: "صباحي", mode: "light" },
+  { value: "dark", label: "ليلي", mode: "dark" },
+  { value: "blue", label: "أزرق صباحي", mode: "light" },
+  { value: "blue-dark", label: "أزرق ليلي", mode: "dark" },
+  { value: "nature", label: "أخضر صباحي", mode: "light" },
+  { value: "nature-dark", label: "أخضر ليلي", mode: "dark" },
+  { value: "pink", label: "وردي صباحي", mode: "light" },
+  { value: "pink-dark", label: "وردي ليلي", mode: "dark" },
+  { value: "black-light", label: "أسود صباحي", mode: "light" },
+  { value: "black", label: "أسود ليلي", mode: "dark" },
 ];
+
+function renderThemeModeIcon(mode) {
+  return mode === "dark" ? <DarkModeRoundedIcon /> : <WbSunnyRoundedIcon />;
+}
 
 function getCustomerInitials(user) {
   return [user?.firstName, user?.lastName]
@@ -103,6 +106,7 @@ function ThemeToggleButton({ variant, onSelect, options, className }) {
     storefrontThemeOptions.find((option) => option.value === variant) ??
     options[0] ??
         storefrontThemeOptions[0];
+  const activeThemeIcon = renderThemeModeIcon(activeTheme.mode);
 
   if (!options.length || options.length <= 1) {
     return null;
@@ -120,7 +124,7 @@ function ThemeToggleButton({ variant, onSelect, options, className }) {
         aria-haspopup="menu"
         onClick={(event) => setAnchorEl(event.currentTarget)}
       >
-        {activeTheme.icon}
+        {activeThemeIcon}
       </IconButton>
 
       <Menu
@@ -155,7 +159,7 @@ function ThemeToggleButton({ variant, onSelect, options, className }) {
                 setAnchorEl(null);
               }}
             >
-              {option.icon}
+              {renderThemeModeIcon(option.mode)}
             </IconButton>
           ))}
         </Box>

@@ -112,7 +112,7 @@ export default function CreateStore({
             label="ثيم المتجر"
             defaultValue="D"
             fullWidth
-            helperText="الثيم الافتراضي يحافظ على شكل الموقع الحالي، وكل ثيم يدعم لايت ودارك مود."
+            helperText="اختر قالب المتجر. كل قالب يملك ثيم صباحي وثيم ليلي داخل الواجهة."
             {...register("themeTemplate")}
           >
             {STORE_THEME_TEMPLATES.map((template) => (

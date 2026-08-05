@@ -3,6 +3,7 @@ import { useAppThemeVariant } from "./AppThemeProvider.jsx";
 
 let activeStoreBrandingHooks = 0;
 const defaultStoreThemeVariants = ["light", "dark"];
+const blueStoreThemeVariants = ["blue", "blue-dark"];
 const greenStoreThemeVariants = ["nature", "nature-dark"];
 const pinkStoreThemeVariants = ["pink", "pink-dark"];
 const blackStoreThemeVariants = ["black", "black-light"];
@@ -39,13 +40,20 @@ function resolveStoreThemeConfig(store) {
         defaultVariant: "nature",
         availableVariants: greenStoreThemeVariants,
       };
-    case "d":
+    case "u":
+    case "blue":
+    case "azure":
+      return {
+        defaultVariant: "blue",
+        availableVariants: blueStoreThemeVariants,
+      };
     case "dark":
     case "darl":
       return {
         defaultVariant: "dark",
         availableVariants: defaultStoreThemeVariants,
       };
+    case "d":
     case "l":
     case "light":
       return {

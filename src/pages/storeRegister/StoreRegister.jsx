@@ -459,7 +459,7 @@ export default function StoreRegister() {
               label="ثيم المتجر"
               value={form.themeTemplate}
               onChange={(event) => updateForm("themeTemplate", event.target.value)}
-              helperText="اختر شكل المتجر. الثيم الافتراضي هو نفس تصميم الموقع الحالي، وكل ثيم يدعم لايت ودارك مود."
+              helperText="اختر قالب المتجر. كل قالب يملك ثيم صباحي وثيم ليلي داخل الواجهة."
               fullWidth
             >
               {STORE_THEME_TEMPLATES.map((template) => (
