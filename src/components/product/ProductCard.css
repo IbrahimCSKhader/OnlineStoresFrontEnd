@@ -361,6 +361,53 @@ html[data-theme-template="green"] .product-card__eyebrow {
   color: var(--primary);
 }
 
+html[data-theme-template="blue"] .product-card {
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, transparent);
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      180deg,
+      var(--surface-card) 0%,
+      color-mix(in srgb, var(--surface-card) 82%, var(--surface-low) 18%) 100%
+    );
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 9%, transparent);
+}
+
+html[data-theme-template="blue"] .product-card:hover {
+  box-shadow: 0 18px 46px color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+html[data-theme-template="blue"] .product-card__media {
+  aspect-ratio: 1 / 1;
+  max-height: none;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface-low) 76%, var(--primary) 24%),
+      color-mix(in srgb, var(--surface-card) 84%, var(--accent) 16%)
+    );
+}
+
+html[data-theme-template="blue"] .product-card__badge {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--surface-card) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+html[data-theme-template="blue"] .product-card__price,
+html[data-theme-template="blue"] .product-card__eyebrow {
+  color: var(--primary);
+}
+
+html[data-theme-template="blue"] .product-card__detail-button {
+  color: var(--primary) !important;
+}
+
+html[data-theme-template="blue"] .product-card__add-button {
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
 @media (max-width: 639px) {
   .product-card-lazy-shell,
   .product-card-placeholder {

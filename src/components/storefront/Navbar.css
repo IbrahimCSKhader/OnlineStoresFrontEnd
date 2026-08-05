@@ -404,13 +404,28 @@ html[data-theme-template="green"] .store-navbar__link--active {
 }
 
 html[data-theme-template="blue"] .store-navbar__toolbar {
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
-  background: color-mix(in srgb, var(--surface-bright) 84%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, transparent);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--surface-bright) 90%, transparent),
+      color-mix(in srgb, var(--surface-low) 78%, transparent)
+    );
+  box-shadow: 0 14px 38px color-mix(in srgb, var(--primary) 14%, transparent);
 }
 
 html[data-theme-template="blue"] .store-navbar__brand-mark {
   border-radius: 16px;
-  background: linear-gradient(145deg, #0b5fbd 0%, #18a8c8 100%);
+  background: var(--cta-gradient);
+}
+
+html[data-theme-template="blue"] .store-navbar__brand-name {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+html[data-theme-template="blue"] .store-navbar__nav {
+  background: color-mix(in srgb, var(--surface-low) 76%, transparent);
 }
 
 html[data-theme-template="blue"] .store-navbar__link:hover,
