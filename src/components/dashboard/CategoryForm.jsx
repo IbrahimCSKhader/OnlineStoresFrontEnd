@@ -58,6 +58,15 @@ export default function CategoryForm({
         />
 
         <TextField
+          label="رابط صورة التصنيف"
+          value={form.imageUrl}
+          size="small"
+          className="owner-form__wide"
+          placeholder="https://..."
+          onChange={(event) => onChange("imageUrl", event.target.value)}
+        />
+
+        <TextField
           label="الوصف"
           value={form.description}
           size="small"

@@ -60,6 +60,7 @@ function buildNavItems(activeStoreSlug) {
   if (activeStoreSlug) {
     return [
       { to: buildStorefrontPath(activeStoreSlug), label: "الرئيسية", exact: true },
+      { to: buildStorefrontPath(activeStoreSlug, "/products"), label: "المنتجات" },
       { to: buildStorefrontPath(activeStoreSlug, "/about"), label: "من نحن" },
       { to: buildStorefrontPath(activeStoreSlug, "/contact"), label: "تواصل" },
     ];
@@ -199,7 +200,7 @@ function NavLinks({ items, onNavigate, drawer = false, resolveTo }) {
 
 export default function Navbar() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isCompactHeader = useMediaQuery(theme.breakpoints.down("lg"));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const { variant, setVariant, availableVariants } = useAppThemeVariant();
@@ -897,7 +898,7 @@ export default function Navbar() {
           </Box>
         </Box>
 
-        {!isMobile && navItems.length ? (
+        {!isCompactHeader && navItems.length ? (
           <Box
             component="nav"
             className="store-navbar__nav"
@@ -918,7 +919,7 @@ export default function Navbar() {
             />
           ) : null}
           {renderCartButton()}
-          {!isMobile ? (
+          {!isCompactHeader ? (
             <ContactDeveloperButton
               label="الدعم"
               variant="text"
@@ -926,9 +927,9 @@ export default function Navbar() {
             />
           ) : null}
 
-          {!isMobile ? renderStoreRegisterButton() : null}
+          {!isCompactHeader ? renderStoreRegisterButton() : null}
 
-          {!isMobile ? (
+          {!isCompactHeader ? (
             <Stack
               direction="row"
               spacing={1}

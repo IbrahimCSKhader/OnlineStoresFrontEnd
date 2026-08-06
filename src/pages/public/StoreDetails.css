@@ -141,7 +141,41 @@ html[data-theme-mode="dark"] .page-store-details__hero {
   gap: 10px;
   min-height: 164px;
   padding: 20px;
+  overflow: hidden;
   color: inherit;
+}
+
+.page-store-details__category-card--image {
+  color: #ffffff;
+}
+
+.page-store-details__category-card--image::before,
+.page-store-details__category-card--image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.page-store-details__category-card--image::before {
+  background:
+    var(--category-card-image, none) center / cover no-repeat,
+    linear-gradient(145deg, var(--surface-low), var(--surface-card));
+  transition: transform var(--transition-slow);
+}
+
+.page-store-details__category-card--image::after {
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(15, 23, 42, 0.72) 100%);
+}
+
+.page-store-details__category-card--image:hover::before {
+  transform: scale(1.04);
+}
+
+.page-store-details__category-card--image > * {
+  position: relative;
+  z-index: 1;
 }
 
 .page-store-details__category-card .MuiTypography-h6 {
@@ -158,6 +192,11 @@ html[data-theme-mode="dark"] .page-store-details__hero {
 .page-store-details__category-card .MuiTypography-caption {
   margin-top: auto;
   font-weight: 600;
+}
+
+.page-store-details__category-card--image .MuiTypography-body2,
+.page-store-details__category-card--image .MuiTypography-caption {
+  color: rgba(255, 255, 255, 0.84);
 }
 
 html[data-theme-template="pink"] .page-store-details__hero {

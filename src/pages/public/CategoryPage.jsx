@@ -22,6 +22,7 @@ import {
   normalizeListResponse,
   normalizePagedResponse,
 } from "../../utils/collections.js";
+import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import { buildProductSnapshot } from "../../utils/guestCart.js";
 import {
   getProductDisplayVariant,
@@ -99,6 +100,7 @@ export default function CategoryPage() {
 
   const activeCategory =
     categories.find((category) => String(category.id) === String(categoryId)) || null;
+  const activeCategoryImage = resolveAssetUrl(activeCategory?.imageUrl);
   const categoryPagination = normalizePagedResponse(catalogProductsQuery.data);
   const filteredProducts = normalizeProductList(categoryPagination.items);
   const categorySummary = categories.map((category) => ({
@@ -162,7 +164,18 @@ export default function CategoryPage() {
 
   return (
     <Box className="storefront-page page-category">
-      <SurfaceCard variant="hero" className="page-category__hero">
+      <SurfaceCard
+        variant="hero"
+        className={[
+          "page-category__hero",
+          activeCategoryImage ? "page-category__hero--image" : "",
+        ].filter(Boolean).join(" ")}
+        style={
+          activeCategoryImage
+            ? { "--category-hero-image": `url("${activeCategoryImage}")` }
+            : undefined
+        }
+      >
         <Box className="storefront-section__copy">
           <span className="storefront-eyebrow">التصنيف</span>
           <Typography variant="h2">{activeCategory?.name || "التصنيف"}</Typography>
@@ -227,21 +240,36 @@ export default function CategoryPage() {
             />
 
             <Box className="page-category__category-list">
-              {categorySummary.map((category) => (
-                <AppButton
-                  key={category.id}
-                  component={RouterLink}
-                  to={buildStorePreviewPath(
-                    `/market/${store.slug}/category/${category.id}`,
-                  )}
-                  onClick={() => setPage(1)}
-                  variant={String(category.id) === String(categoryId) ? "contained" : "outlined"}
-                >
-                  {category.count === null
-                    ? category.name
-                    : `${category.name} (${category.count})`}
-                </AppButton>
-              ))}
+              {categorySummary.map((category) => {
+                const categoryImage = resolveAssetUrl(category.imageUrl);
+
+                return (
+                  <AppButton
+                    key={category.id}
+                    component={RouterLink}
+                    to={buildStorePreviewPath(
+                      `/market/${store.slug}/category/${category.id}`,
+                    )}
+                    onClick={() => setPage(1)}
+                    variant={String(category.id) === String(categoryId) ? "contained" : "outlined"}
+                    className="page-category__category-button"
+                  >
+                    {categoryImage ? (
+                      <Box
+                        component="img"
+                        src={categoryImage}
+                        alt=""
+                        className="page-category__category-button-image"
+                      />
+                    ) : null}
+                    <span>
+                      {category.count === null
+                        ? category.name
+                        : `${category.name} (${category.count})`}
+                    </span>
+                  </AppButton>
+                );
+              })}
             </Box>
           </SurfaceCard>
         </Box>

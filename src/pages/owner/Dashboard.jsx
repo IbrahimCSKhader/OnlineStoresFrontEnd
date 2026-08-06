@@ -440,6 +440,7 @@ function buildCategoryForm() {
     id: "",
     name: "",
     description: "",
+    imageUrl: "",
     displayOrder: "1",
     parentCategoryId: "",
     isActive: true,
@@ -1125,6 +1126,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           "name",
           "pathLabel",
           "description",
+          "imageUrl",
         ]),
       ),
     [categoryOptions, deferredSearchText],
@@ -1267,6 +1269,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         <TextField
           select
           size="small"
+          className="owner-order-status-select"
           value={String(getOwnerOrderStatusSelectValue(row.status))}
           onChange={(event) =>
             updateOrderStatusMutation.mutate({
@@ -2168,6 +2171,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           payload: {
             Name: categoryForm.name.trim(),
             Description: categoryForm.description || undefined,
+            ImageUrl: categoryForm.imageUrl || "",
             DisplayOrder: Number(categoryForm.displayOrder || 0),
             ParentCategoryId: categoryForm.parentCategoryId || undefined,
             ClearParentCategory: !categoryForm.parentCategoryId,
@@ -2183,6 +2187,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         name: categoryForm.name.trim(),
         slug: slugify(categoryForm.name),
         description: categoryForm.description || undefined,
+        imageUrl: categoryForm.imageUrl || undefined,
         displayOrder: Number(categoryForm.displayOrder || 1),
         storeId,
       });
@@ -2410,6 +2415,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         <TextField
           select
           size="small"
+          className="owner-order-status-select"
           value={String(getOwnerOrderStatusSelectValue(row.status))}
           onChange={(event) =>
             updateOrderStatusMutation.mutate({
@@ -2702,6 +2708,32 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 rows={products}
                 columns={[
                   {
+                    key: "imageUrl",
+                    title: "الصورة",
+                    render: (row) => {
+                      const imageUrl = resolveAssetUrl(row.imageUrl);
+
+                      return imageUrl ? (
+                        <Box
+                          component="img"
+                          src={imageUrl}
+                          alt={row.name}
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            objectFit: "cover",
+                            borderRadius: 1,
+                            display: "block",
+                          }}
+                        />
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          -
+                        </Typography>
+                      );
+                    },
+                  },
+                  {
                     key: "name",
                     title: "المنتج",
                     render: (row) => (
@@ -2931,6 +2963,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               id: row.id,
                               name: row.name || "",
                               description: row.description || "",
+                              imageUrl: row.imageUrl || "",
                               displayOrder: String(row.displayOrder ?? 0),
                               parentCategoryId: row.parentCategoryId || "",
                               isActive: Boolean(row.isActive),
@@ -3394,6 +3427,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         <TextField
                           select
                           size="small"
+                          className="owner-order-status-select"
                           value={String(getOwnerOrderStatusSelectValue(row.status))}
                           onChange={(event) =>
                             updateOrderStatusMutation.mutate({

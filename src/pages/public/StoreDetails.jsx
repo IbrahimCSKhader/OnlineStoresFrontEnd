@@ -441,6 +441,7 @@ export default function StoreDetails() {
           <Box className="storefront-cards-grid page-store-details__categories-grid">
 
             {categorySummary.map((category) => {
+              const configuredCategoryImage = resolveAssetUrl(category.imageUrl);
               const categoryProductImage = resolveAssetUrl(
                 getProductImage(
                   [...featuredProducts, ...products].find(
@@ -448,7 +449,7 @@ export default function StoreDetails() {
                   ),
                 ),
               );
-              const categoryImage = categoryProductImage || coverImage || "";
+              const categoryImage = configuredCategoryImage || categoryProductImage || coverImage || "";
 
               return (
                 <SurfaceCard
@@ -458,7 +459,10 @@ export default function StoreDetails() {
                     `/market/${resolvedStoreSlug}/category/${category.id}`,
                   )}
                   interactive
-                  className="page-store-details__category-card"
+                  className={[
+                    "page-store-details__category-card",
+                    categoryImage ? "page-store-details__category-card--image" : "",
+                  ].filter(Boolean).join(" ")}
                   style={
                     categoryImage
                       ? { "--category-card-image": `url("${categoryImage}")` }

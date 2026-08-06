@@ -106,6 +106,31 @@
   font-weight: 700;
 }
 
+html[data-theme-template="blue"] .owner-sidebar__nav-item--active {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--primary) 94%, #001a33 6%),
+      color-mix(in srgb, var(--primary-container) 88%, var(--accent) 12%)
+    );
+  color: #ffffff;
+}
+
+html[data-theme-template="blue"] .owner-sidebar__nav-item--active .MuiTypography-colorTextSecondary,
+html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar__nav-copy .MuiTypography-caption {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar__nav-icon {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar__nav-count {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+}
+
 .owner-hero {
   padding: var(--panel-padding);
   display: grid;
@@ -519,6 +544,62 @@
 
 .owner-order-card__link:hover {
   text-decoration: underline;
+}
+
+.owner-order-card__head .MuiChip-root,
+.owner-detail-hero .MuiChip-root,
+.owner-detail-list-item .MuiChip-root {
+  min-width: 86px;
+  color: var(--button-text);
+  border-color: transparent;
+  font-weight: 800;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.owner-order-card__head .MuiChip-colorDefault,
+.owner-detail-hero .MuiChip-colorDefault,
+.owner-detail-list-item .MuiChip-colorDefault {
+  color: var(--button-text);
+  border-color: color-mix(in srgb, var(--text-primary) 18%, transparent);
+  background: color-mix(in srgb, var(--text-primary) 74%, var(--primary) 26%);
+}
+
+.owner-order-card__head .MuiChip-colorPrimary,
+.owner-detail-hero .MuiChip-colorPrimary,
+.owner-detail-list-item .MuiChip-colorPrimary {
+  background: color-mix(in srgb, var(--primary) 82%, #000000 18%);
+}
+
+.owner-order-card__head .MuiChip-colorSuccess,
+.owner-detail-hero .MuiChip-colorSuccess,
+.owner-detail-list-item .MuiChip-colorSuccess {
+  background: color-mix(in srgb, #15803d 86%, #000000 14%);
+}
+
+.owner-order-card__head .MuiChip-colorError,
+.owner-detail-hero .MuiChip-colorError,
+.owner-detail-list-item .MuiChip-colorError {
+  background: color-mix(in srgb, #b42318 86%, #000000 14%);
+}
+
+.owner-order-status-select .MuiOutlinedInput-root {
+  min-height: 42px;
+  color: var(--text-primary);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-card));
+  font-weight: 800;
+}
+
+.owner-order-status-select .MuiOutlinedInput-notchedOutline {
+  border-color: color-mix(in srgb, var(--primary) 36%, var(--border-subtle));
+}
+
+.owner-order-status-select .MuiSelect-select {
+  padding-block: 9px;
+}
+
+.owner-order-status-select .MuiSvgIcon-root {
+  color: var(--primary);
 }
 
 .owner-detail-shell {

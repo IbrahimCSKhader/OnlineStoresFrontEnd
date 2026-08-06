@@ -83,6 +83,10 @@ const CategoryPage = lazyWithRetry(
   () => import("./pages/public/CategoryPage.jsx"),
   "category-page",
 );
+const ProductsPage = lazyWithRetry(
+  () => import("./pages/public/ProductsPage.jsx"),
+  "products-page",
+);
 const StoreDetails = lazyWithRetry(
   () => import("./pages/public/StoreDetails.jsx"),
   "store-details",
@@ -248,6 +252,14 @@ const router = createBrowserRouter([
           },
 
           {
+            path: "products",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<ProductsPage />)}
+              </CustomDomainElement>
+            ),
+          },
+          {
             path: "category/:categoryId",
             element: (
               <CustomDomainElement>
@@ -359,6 +371,7 @@ const router = createBrowserRouter([
         errorElement: <AppRouteError />,
         children: [
           { index: true, element: withRouteSuspense(<StoreDetails />) },
+          { path: "products", element: withRouteSuspense(<ProductsPage />) },
           { path: "about", element: withRouteSuspense(<StoreAbout />) },
           { path: "contact", element: withRouteSuspense(<StoreContact />) },
           {
