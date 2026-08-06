@@ -1,8 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link as RouterLink, Navigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -37,6 +40,41 @@ function getOrderStatusLabel(status) {
 
 function formatDateTimeLabel(value) {
   return formatUiDateTime(value);
+}
+
+function DetailValue({ label, value }) {
+  const [open, setOpen] = useState(false);
+  const displayValue = value === null || value === undefined || value === "" ? "-" : String(value);
+  const canExpand = displayValue !== "-" && displayValue.length > 12;
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`owner-detail-value${canExpand ? " owner-detail-value--expandable" : ""}`}
+        onClick={canExpand ? () => setOpen(true) : undefined}
+        aria-label={canExpand ? `${label}: ${displayValue}` : undefined}
+        title={canExpand ? "اضغط لعرض النص كامل" : displayValue}
+      >
+        {displayValue}
+      </button>
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ className: "owner-detail-value-dialog" }}
+      >
+        <DialogTitle>{label}</DialogTitle>
+        <DialogContent>
+          <Typography className="owner-detail-value-dialog__text">
+            {displayValue}
+          </Typography>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
 
 function normalizeStoreCustomer(item) {
@@ -187,19 +225,27 @@ export default function CustomerDetailsPage() {
                 <Typography variant="h6">معلومات التواصل</Typography>
                 <Box className="owner-detail-card__row">
                   <span>الاسم</span>
-                  <strong>{customer.fullName}</strong>
+                  <strong>
+                    <DetailValue label="الاسم" value={customer.fullName} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>البريد</span>
-                  <strong>{customer.email || "-"}</strong>
+                  <strong>
+                    <DetailValue label="البريد" value={customer.email || "-"} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>الهاتف</span>
-                  <strong>{customer.phone || "-"}</strong>
+                  <strong>
+                    <DetailValue label="الهاتف" value={customer.phone || "-"} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>المعرف</span>
-                  <strong>{customer.id}</strong>
+                  <strong>
+                    <DetailValue label="المعرف" value={customer.id} />
+                  </strong>
                 </Box>
               </Paper>
 
@@ -207,7 +253,9 @@ export default function CustomerDetailsPage() {
                 <Typography variant="h6">إعدادات الحساب</Typography>
                 <Box className="owner-detail-card__row">
                   <span>خصم الجملة</span>
-                  <strong>{customer.discountPercentage}%</strong>
+                  <strong>
+                    <DetailValue label="خصم الجملة" value={`${customer.discountPercentage}%`} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>الحالة</span>
@@ -215,7 +263,9 @@ export default function CustomerDetailsPage() {
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>آخر تحديث</span>
-                  <strong>{formatDateTimeLabel(customer.updatedAt)}</strong>
+                  <strong>
+                    <DetailValue label="آخر تحديث" value={formatDateTimeLabel(customer.updatedAt)} />
+                  </strong>
                 </Box>
               </Paper>
 
@@ -223,25 +273,35 @@ export default function CustomerDetailsPage() {
                 <Typography variant="h6">ملخص الطلبات</Typography>
                 <Box className="owner-detail-card__row">
                   <span>عدد الطلبات</span>
-                  <strong>{customerOrders.length}</strong>
+                  <strong>
+                    <DetailValue label="عدد الطلبات" value={customerOrders.length} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>إجمالي المشتريات</span>
                   <strong>
-                    {formatCurrency(
-                      customerOrders.reduce(
-                        (sum, order) => sum + Number(order.totalAmount || 0),
-                        0,
-                      ),
-                    )}
+                    <DetailValue
+                      label="إجمالي المشتريات"
+                      value={formatCurrency(
+                        customerOrders.reduce(
+                          (sum, order) => sum + Number(order.totalAmount || 0),
+                          0,
+                        ),
+                      )}
+                    />
                   </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>آخر طلب</span>
                   <strong>
-                    {customerOrders[0]
-                      ? formatDateTimeLabel(customerOrders[0].createdAt)
-                      : "-"}
+                    <DetailValue
+                      label="آخر طلب"
+                      value={
+                        customerOrders[0]
+                          ? formatDateTimeLabel(customerOrders[0].createdAt)
+                          : "-"
+                      }
+                    />
                   </strong>
                 </Box>
               </Paper>
@@ -274,8 +334,8 @@ export default function CustomerDetailsPage() {
                         >
                           {order.orderNumber || order.id}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {formatDateTimeLabel(order.createdAt)}
+                        <Typography variant="caption" color="text.secondary" component="div">
+                          <DetailValue label="تاريخ الطلب" value={formatDateTimeLabel(order.createdAt)} />
                         </Typography>
                       </Box>
 

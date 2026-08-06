@@ -710,6 +710,19 @@ html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar
   flex-wrap: wrap;
 }
 
+.owner-detail-list-item > * {
+  min-width: 0;
+}
+
+.owner-detail-list-item .owner-order-card__link {
+  display: inline-block;
+  max-width: min(100%, 320px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
 .owner-subscription-grid {
   display: grid;
   gap: var(--space-4);
