@@ -1,8 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link as RouterLink, Navigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -44,6 +47,41 @@ function getStatusTone(status) {
 
 function formatDateTimeLabel(value) {
   return formatUiDateTime(value);
+}
+
+function DetailValue({ label, value }) {
+  const [open, setOpen] = useState(false);
+  const displayValue = value === null || value === undefined || value === "" ? "-" : String(value);
+  const canExpand = displayValue !== "-" && displayValue.length > 12;
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`owner-detail-value${canExpand ? " owner-detail-value--expandable" : ""}`}
+        onClick={canExpand ? () => setOpen(true) : undefined}
+        aria-label={canExpand ? `${label}: ${displayValue}` : undefined}
+        title={canExpand ? "اضغط لعرض النص كامل" : displayValue}
+      >
+        {displayValue}
+      </button>
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ className: "owner-detail-value-dialog" }}
+      >
+        <DialogTitle>{label}</DialogTitle>
+        <DialogContent>
+          <Typography className="owner-detail-value-dialog__text">
+            {displayValue}
+          </Typography>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
 
 function DetailSidebar({ store }) {
@@ -171,23 +209,33 @@ export default function OrderDetailsPage() {
                 <Typography variant="h6">ملخص الطلب</Typography>
                 <Box className="owner-detail-card__row">
                   <span>رقم الطلب</span>
-                  <strong>{order.orderNumber || order.id || "-"}</strong>
+                  <strong>
+                    <DetailValue label="رقم الطلب" value={order.orderNumber || order.id || "-"} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>عدد القطع</span>
-                  <strong>{order.itemsCount ?? 0}</strong>
+                  <strong>
+                    <DetailValue label="عدد القطع" value={order.itemsCount ?? 0} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>الإجمالي قبل الخصم</span>
-                  <strong>{formatCurrency(order.subtotal)}</strong>
+                  <strong>
+                    <DetailValue label="الإجمالي قبل الخصم" value={formatCurrency(order.subtotal)} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>الخصم</span>
-                  <strong>{formatCurrency(order.discount)}</strong>
+                  <strong>
+                    <DetailValue label="الخصم" value={formatCurrency(order.discount)} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row owner-detail-card__row--total">
                   <span>الإجمالي النهائي</span>
-                  <strong>{formatCurrency(order.totalAmount)}</strong>
+                  <strong>
+                    <DetailValue label="الإجمالي النهائي" value={formatCurrency(order.totalAmount)} />
+                  </strong>
                 </Box>
               </Paper>
 
@@ -195,19 +243,27 @@ export default function OrderDetailsPage() {
                 <Typography variant="h6">بيانات العميل</Typography>
                 <Box className="owner-detail-card__row">
                   <span>الاسم</span>
-                  <strong>{customerName}</strong>
+                  <strong>
+                    <DetailValue label="الاسم" value={customerName} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>البريد</span>
-                  <strong>{order.customerEmail || "-"}</strong>
+                  <strong>
+                    <DetailValue label="البريد" value={order.customerEmail || "-"} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>الهاتف</span>
-                  <strong>{order.customerPhone || order.deliveryPhone || "-"}</strong>
+                  <strong>
+                    <DetailValue label="الهاتف" value={order.customerPhone || order.deliveryPhone || "-"} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>معرف العميل</span>
-                  <strong>{order.storeCustomerId || "-"}</strong>
+                  <strong>
+                    <DetailValue label="معرف العميل" value={order.storeCustomerId || "-"} />
+                  </strong>
                 </Box>
               </Paper>
 
@@ -215,15 +271,21 @@ export default function OrderDetailsPage() {
                 <Typography variant="h6">التوصيل والملاحظات</Typography>
                 <Box className="owner-detail-card__row">
                   <span>العنوان</span>
-                  <strong>{order.deliveryAddress || "-"}</strong>
+                  <strong>
+                    <DetailValue label="العنوان" value={order.deliveryAddress || "-"} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>المدينة</span>
-                  <strong>{order.deliveryCity || "-"}</strong>
+                  <strong>
+                    <DetailValue label="المدينة" value={order.deliveryCity || "-"} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
                   <span>الكوبون</span>
-                  <strong>{order.couponCode || "-"}</strong>
+                  <strong>
+                    <DetailValue label="الكوبون" value={order.couponCode || "-"} />
+                  </strong>
                 </Box>
                 <Box className="owner-detail-note">
                   <Typography variant="subtitle2">ملاحظات العميل</Typography>
