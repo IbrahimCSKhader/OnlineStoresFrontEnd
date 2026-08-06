@@ -107,11 +107,36 @@ export default function useCreateOrder(storeId, options = {}) {
       options.onError?.(error, variables, context?.userContext ?? context);
     },
     onSuccess: (data, variables, context) => {
-      if (storeId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.cart.byStore(storeId) });
+      const resolvedStoreId = data?.storeId || storeId || variables?.storeId;
+      const orderId = data?.id;
+
+      if (resolvedStoreId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.cart.byStore(resolvedStoreId),
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.orders.byStore(resolvedStoreId),
+        });
       }
 
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.mine });
+
+      if (resolvedStoreId && orderId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.orders.storeDetail(resolvedStoreId, orderId),
+        });
+      }
+
+      if (resolvedStoreId && typeof window !== "undefined") {
+        window.localStorage.setItem(
+          "store-order-updated",
+          JSON.stringify({
+            storeId: resolvedStoreId,
+            orderId: orderId || "",
+            at: Date.now(),
+          }),
+        );
+      }
 
       logOrderCartFlow("Create Order Succeeded", {
         status: "success",
