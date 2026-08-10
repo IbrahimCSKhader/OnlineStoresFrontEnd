@@ -62,22 +62,23 @@
 
 .page-category__products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(142px, 100%), 176px));
   width: 100%;
   margin-inline: 0;
-  justify-content: stretch;
+  justify-content: start;
   gap: 12px;
 }
 
 .page-category__products-grid > * {
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   min-width: 0;
 }
 
 .page-category__products-grid .product-card,
 .page-category__products-grid .product-card:hover {
   --product-card-media-height: clamp(118px, 13vw, 160px);
+  --product-card-max-width: 176px;
   height: auto;
   padding: 8px;
   border-radius: 14px;
@@ -141,15 +142,25 @@
 html[data-theme-template="pink"] .page-category__products-grid,
 html[data-theme-template="black"] .page-category__products-grid,
 html[data-theme-template="green"] .page-category__products-grid,
-html[data-theme-template="blue"] .page-category__products-grid {
+html[data-theme-template="blue"] .page-category__products-grid,
+html[data-theme-template="brown"] .page-category__products-grid,
+html[data-theme-template="purple"] .page-category__products-grid,
+html[data-theme-template="gold"] .page-category__products-grid,
+html[data-theme-template="deep-green"] .page-category__products-grid,
+html[data-theme-template="red"] .page-category__products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(142px, 100%), 176px));
 }
 
 html[data-theme-template="pink"] .page-category__products-grid .product-card__media,
 html[data-theme-template="black"] .page-category__products-grid .product-card__media,
 html[data-theme-template="green"] .page-category__products-grid .product-card__media,
-html[data-theme-template="blue"] .page-category__products-grid .product-card__media {
+html[data-theme-template="blue"] .page-category__products-grid .product-card__media,
+html[data-theme-template="brown"] .page-category__products-grid .product-card__media,
+html[data-theme-template="purple"] .page-category__products-grid .product-card__media,
+html[data-theme-template="gold"] .page-category__products-grid .product-card__media,
+html[data-theme-template="deep-green"] .page-category__products-grid .product-card__media,
+html[data-theme-template="red"] .page-category__products-grid .product-card__media {
   aspect-ratio: 4 / 3;
   max-height: var(--product-card-media-height);
   border-radius: 10px;
@@ -167,7 +178,7 @@ html[data-theme-template="blue"] .page-category__products-grid .product-card__me
 
 @media (min-width: 1600px) {
   .page-category__products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 184px));
   }
 }
 
@@ -177,13 +188,13 @@ html[data-theme-template="blue"] .page-category__products-grid .product-card__me
   }
 
   .page-category__products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 184px));
   }
 }
 
 @media (max-width: 899px) {
   .page-category__products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(140px, 100%), 176px));
   }
 }
 
@@ -208,14 +219,21 @@ html[data-theme-template="blue"] .page-category__products-grid .product-card__me
 
   .page-category__products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
     gap: 8px;
   }
 
   html[data-theme-template="pink"] .page-category__products-grid,
   html[data-theme-template="black"] .page-category__products-grid,
   html[data-theme-template="green"] .page-category__products-grid,
-  html[data-theme-template="blue"] .page-category__products-grid {
+  html[data-theme-template="blue"] .page-category__products-grid,
+  html[data-theme-template="brown"] .page-category__products-grid,
+  html[data-theme-template="purple"] .page-category__products-grid,
+  html[data-theme-template="gold"] .page-category__products-grid,
+  html[data-theme-template="deep-green"] .page-category__products-grid,
+  html[data-theme-template="red"] .page-category__products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
   }
 
   .page-category__products-grid .product-card {

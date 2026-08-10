@@ -28,6 +28,7 @@ import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
 import AppButton from "../common/buttons/AppButton.jsx";
 import ContactDeveloperButton from "../common/ContactDeveloperButton.jsx";
 import { useAppThemeVariant } from "../../theme/AppThemeProvider.jsx";
+import { themeCatalog } from "../../theme/tokens.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useCart from "../../hooks/cart/useCart.js";
 import useLogout from "../../hooks/auth/useLogout.js";
@@ -74,21 +75,22 @@ function buildNavItems(activeStoreSlug) {
   ];
 }
 
-const storefrontThemeOptions = [
-  { value: "light", label: "صباحي", mode: "light" },
-  { value: "dark", label: "ليلي", mode: "dark" },
-  { value: "blue", label: "أزرق صباحي", mode: "light" },
-  { value: "blue-dark", label: "أزرق ليلي", mode: "dark" },
-  { value: "nature", label: "أخضر صباحي", mode: "light" },
-  { value: "nature-dark", label: "أخضر ليلي", mode: "dark" },
-  { value: "pink", label: "وردي صباحي", mode: "light" },
-  { value: "pink-dark", label: "وردي ليلي", mode: "dark" },
-  { value: "black-light", label: "أسود صباحي", mode: "light" },
-  { value: "black", label: "أسود ليلي", mode: "dark" },
-];
-
 function renderThemeModeIcon(mode) {
   return mode === "dark" ? <DarkModeRoundedIcon /> : <WbSunnyRoundedIcon />;
+}
+
+function buildThemeOption(value) {
+  const profile = themeCatalog[value];
+
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    value,
+    label: profile.navigationLabel || (profile.mode === "dark" ? "ليلي" : "صباحي"),
+    mode: profile.mode,
+  };
 }
 
 function getCustomerInitials(user) {
@@ -103,15 +105,13 @@ function getCustomerInitials(user) {
 function ThemeToggleButton({ variant, onSelect, options, className }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
-  const activeTheme =
-    storefrontThemeOptions.find((option) => option.value === variant) ??
-    options[0] ??
-        storefrontThemeOptions[0];
-  const activeThemeIcon = renderThemeModeIcon(activeTheme.mode);
+  const activeTheme = options.find((option) => option.value === variant) ?? options[0];
 
   if (!options.length || options.length <= 1) {
     return null;
   }
+
+  const activeThemeIcon = renderThemeModeIcon(activeTheme.mode);
 
   return (
     <>
@@ -304,9 +304,7 @@ export default function Navbar() {
   const shouldHideThemeToggle = false;
   const themeOptions = useMemo(
     () =>
-      storefrontThemeOptions.filter((option) =>
-        availableVariants.includes(option.value),
-      ),
+      availableVariants.map(buildThemeOption).filter(Boolean),
     [availableVariants],
   );
   const loginPath = activeStoreSlug

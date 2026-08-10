@@ -23,6 +23,7 @@ import PhotoCameraRoundedIcon from "@mui/icons-material/PhotoCameraRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import authApi from "../../API/auth.api.js";
 import storeApi from "../../API/store.api.js";
+import ThemeTemplateOption from "../../components/common/ThemeTemplateOption.jsx";
 import { STORE_THEME_TEMPLATES } from "../../constants/storeThemeTemplates.js";
 import extractApiError from "../../utils/extractApiError.js";
 import "./StoreRegister.css";
@@ -456,22 +457,15 @@ export default function StoreRegister() {
             />
             <TextField
               select
-              label="ثيم المتجر"
+              label="لون المتجر"
               value={form.themeTemplate}
               onChange={(event) => updateForm("themeTemplate", event.target.value)}
-              helperText="اختر قالب المتجر. كل قالب يملك ثيم صباحي وثيم ليلي داخل الواجهة."
+              helperText="اختر لون المتجر. كل لون له نهار وليل."
               fullWidth
             >
               {STORE_THEME_TEMPLATES.map((template) => (
                 <MenuItem key={template.value} value={template.value}>
-                  <Stack spacing={0.25}>
-                    <Typography variant="body2" fontWeight={700}>
-                      {template.label}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {template.description}
-                    </Typography>
-                  </Stack>
+                  <ThemeTemplateOption template={template} />
                 </MenuItem>
               ))}
             </TextField>

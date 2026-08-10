@@ -439,6 +439,47 @@ html[data-theme-template="blue"] .store-navbar__theme-option--active {
   background: var(--primary) !important;
 }
 
+html[data-theme-template="brown"] .store-navbar__toolbar,
+html[data-theme-template="purple"] .store-navbar__toolbar,
+html[data-theme-template="gold"] .store-navbar__toolbar,
+html[data-theme-template="deep-green"] .store-navbar__toolbar,
+html[data-theme-template="red"] .store-navbar__toolbar {
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
+  background: color-mix(in srgb, var(--surface-bright) 84%, transparent);
+  box-shadow: 0 12px 34px color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+html[data-theme-template="brown"] .store-navbar__brand-mark,
+html[data-theme-template="purple"] .store-navbar__brand-mark,
+html[data-theme-template="gold"] .store-navbar__brand-mark,
+html[data-theme-template="deep-green"] .store-navbar__brand-mark,
+html[data-theme-template="red"] .store-navbar__brand-mark {
+  background: var(--cta-gradient);
+}
+
+html[data-theme-template="brown"] .store-navbar__link:hover,
+html[data-theme-template="brown"] .store-navbar__link--active,
+html[data-theme-template="purple"] .store-navbar__link:hover,
+html[data-theme-template="purple"] .store-navbar__link--active,
+html[data-theme-template="gold"] .store-navbar__link:hover,
+html[data-theme-template="gold"] .store-navbar__link--active,
+html[data-theme-template="deep-green"] .store-navbar__link:hover,
+html[data-theme-template="deep-green"] .store-navbar__link--active,
+html[data-theme-template="red"] .store-navbar__link:hover,
+html[data-theme-template="red"] .store-navbar__link--active {
+  color: var(--button-text);
+  background: var(--primary);
+}
+
+html[data-theme-template="brown"] .store-navbar__theme-option--active,
+html[data-theme-template="purple"] .store-navbar__theme-option--active,
+html[data-theme-template="gold"] .store-navbar__theme-option--active,
+html[data-theme-template="deep-green"] .store-navbar__theme-option--active,
+html[data-theme-template="red"] .store-navbar__theme-option--active {
+  color: var(--button-text) !important;
+  background: var(--primary) !important;
+}
+
 @media (max-width: 899px) {
   html[data-theme-template="pink"] .store-navbar__toolbar {
     min-height: 68px;

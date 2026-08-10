@@ -7,6 +7,7 @@ import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { Controller, useForm } from "react-hook-form";
+import ThemeTemplateOption from "../../components/common/ThemeTemplateOption.jsx";
 import { STORE_THEME_TEMPLATES } from "../../constants/storeThemeTemplates.js";
 import "./StoresManagement.css";
 
@@ -109,22 +110,15 @@ export default function CreateStore({
           />
           <TextField
             select
-            label="ثيم المتجر"
+            label="لون المتجر"
             defaultValue="D"
             fullWidth
-            helperText="اختر قالب المتجر. كل قالب يملك ثيم صباحي وثيم ليلي داخل الواجهة."
+            helperText="اختر لون المتجر. كل لون له نهار وليل."
             {...register("themeTemplate")}
           >
             {STORE_THEME_TEMPLATES.map((template) => (
               <MenuItem key={template.value} value={template.value}>
-                <Stack spacing={0.25}>
-                  <Typography variant="body2" fontWeight={700}>
-                    {template.label}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {template.description}
-                  </Typography>
-                </Stack>
+                <ThemeTemplateOption template={template} />
               </MenuItem>
             ))}
           </TextField>

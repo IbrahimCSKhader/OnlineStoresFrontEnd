@@ -24,6 +24,7 @@ describe("product card layout CSS", () => {
     expect(cssRule(productCardCss, ".product-card__media")).toContain(
       "aspect-ratio: 4 / 3",
     );
+    expect(productCardCss).not.toContain("max-height: none");
     expect(cssRule(productCardCss, ".product-card__title")).toContain(
       "-webkit-line-clamp: 2",
     );
@@ -39,10 +40,11 @@ describe("product card layout CSS", () => {
     const shellRule = cssRule(productCardCss, ".product-card-lazy-shell");
 
     expect(shellRule).toContain("min-height: 0");
+    expect(shellRule).toContain("max-width: var(--product-card-max-width, 240px)");
     expect(shellRule).not.toContain("height: 100%");
   });
 
-  it("uses a real responsive grid in the store products section", () => {
+  it("uses bounded responsive cards in the store products section", () => {
     const catalogGridRule = cssRule(
       storeDetailsCss,
       ".page-store-details__catalog .storefront-products-grid",
@@ -53,8 +55,11 @@ describe("product card layout CSS", () => {
     );
 
     expect(catalogGridRule).toContain("display: grid");
-    expect(catalogGridRule).toContain("repeat(auto-fit, minmax(190px, 1fr))");
-    expect(itemRule).toContain("max-width: none");
+    expect(catalogGridRule).toContain(
+      "repeat(auto-fill, minmax(min(190px, 100%), 230px))",
+    );
+    expect(catalogGridRule).toContain("justify-content: start");
+    expect(itemRule).toContain("max-width: 100%");
   });
 
   it("centers product pagination controls", () => {

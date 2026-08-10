@@ -474,9 +474,9 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
 
 .page-store-details__grouped-products-grid.storefront-products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(176px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(176px, 100%), 214px));
   align-items: stretch;
-  justify-content: stretch;
+  justify-content: start;
   gap: 14px;
   width: 100%;
   margin-inline: 0;
@@ -485,9 +485,9 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
 .page-store-details__featured .storefront-products-grid,
 .page-store-details__catalog .storefront-products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(190px, 100%), 230px));
   align-items: stretch;
-  justify-content: stretch;
+  justify-content: start;
   gap: 14px;
   width: 100%;
   margin-inline: 0;
@@ -497,7 +497,7 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
 .page-store-details__featured .storefront-products-grid > *,
 .page-store-details__catalog .storefront-products-grid > * {
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -506,6 +506,7 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
 .page-store-details__catalog .product-card,
 .page-store-details__catalog .product-card:hover {
   --product-card-media-height: clamp(138px, 14vw, 186px);
+  --product-card-max-width: 230px;
   padding: 10px;
   border-radius: 18px;
   background: var(--surface-card);
@@ -547,12 +548,12 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
 
   .page-store-details__featured .storefront-products-grid,
   .page-store-details__catalog .storefront-products-grid {
-    grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(168px, 100%), 220px));
     gap: 14px;
   }
 
   .page-store-details__grouped-products-grid.storefront-products-grid {
-    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(158px, 100%), 210px));
   }
 }
 
@@ -599,6 +600,7 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
   .page-store-details__featured .storefront-products-grid,
   .page-store-details__catalog .storefront-products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
     gap: 10px;
   }
 
@@ -642,6 +644,7 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
 
   .page-store-details__grouped-products-grid.storefront-products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
     gap: 10px;
   }
 

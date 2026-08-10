@@ -7,6 +7,11 @@ const blueStoreThemeVariants = ["blue", "blue-dark"];
 const greenStoreThemeVariants = ["nature", "nature-dark"];
 const pinkStoreThemeVariants = ["pink", "pink-dark"];
 const blackStoreThemeVariants = ["black", "black-light"];
+const brownStoreThemeVariants = ["brown", "brown-dark"];
+const purpleStoreThemeVariants = ["purple", "purple-dark"];
+const goldStoreThemeVariants = ["gold", "gold-dark"];
+const deepGreenStoreThemeVariants = ["deep-green", "deep-green-dark"];
+const redStoreThemeVariants = ["red", "red-dark"];
 
 function normalizeStoreThemeTemplate(value) {
   return String(value ?? "")
@@ -46,6 +51,38 @@ function resolveStoreThemeConfig(store) {
       return {
         defaultVariant: "blue",
         availableVariants: blueStoreThemeVariants,
+      };
+    case "n":
+    case "brown":
+      return {
+        defaultVariant: "brown",
+        availableVariants: brownStoreThemeVariants,
+      };
+    case "v":
+    case "purple":
+      return {
+        defaultVariant: "purple",
+        availableVariants: purpleStoreThemeVariants,
+      };
+    case "y":
+    case "gold":
+    case "yellow":
+      return {
+        defaultVariant: "gold",
+        availableVariants: goldStoreThemeVariants,
+      };
+    case "e":
+    case "deep-green":
+    case "dark-green":
+      return {
+        defaultVariant: "deep-green",
+        availableVariants: deepGreenStoreThemeVariants,
+      };
+    case "r":
+    case "red":
+      return {
+        defaultVariant: "red",
+        availableVariants: redStoreThemeVariants,
       };
     case "dark":
     case "darl":

@@ -123,3 +123,53 @@ html[data-theme-template="blue"] .storefront-product-card__price,
 html[data-theme-template="blue"] .storefront-product-card__name {
   color: var(--primary);
 }
+
+html[data-theme-template="brown"] .storefront-product-card,
+html[data-theme-template="purple"] .storefront-product-card,
+html[data-theme-template="gold"] .storefront-product-card,
+html[data-theme-template="deep-green"] .storefront-product-card,
+html[data-theme-template="red"] .storefront-product-card {
+  border-color: color-mix(in srgb, var(--primary) 16%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      var(--surface-card),
+      color-mix(in srgb, var(--surface-card) 84%, var(--surface-low) 16%)
+    );
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+html[data-theme-template="brown"] .storefront-product-card:hover,
+html[data-theme-template="purple"] .storefront-product-card:hover,
+html[data-theme-template="gold"] .storefront-product-card:hover,
+html[data-theme-template="deep-green"] .storefront-product-card:hover,
+html[data-theme-template="red"] .storefront-product-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 28%, transparent);
+  box-shadow: 0 18px 46px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+
+html[data-theme-template="brown"] .storefront-product-card__media,
+html[data-theme-template="purple"] .storefront-product-card__media,
+html[data-theme-template="gold"] .storefront-product-card__media,
+html[data-theme-template="deep-green"] .storefront-product-card__media,
+html[data-theme-template="red"] .storefront-product-card__media {
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--surface-low) 78%, var(--primary) 22%),
+      color-mix(in srgb, var(--surface-card) 84%, var(--accent) 16%)
+    );
+}
+
+html[data-theme-template="brown"] .storefront-product-card__price,
+html[data-theme-template="brown"] .storefront-product-card__name,
+html[data-theme-template="purple"] .storefront-product-card__price,
+html[data-theme-template="purple"] .storefront-product-card__name,
+html[data-theme-template="gold"] .storefront-product-card__price,
+html[data-theme-template="gold"] .storefront-product-card__name,
+html[data-theme-template="deep-green"] .storefront-product-card__price,
+html[data-theme-template="deep-green"] .storefront-product-card__name,
+html[data-theme-template="red"] .storefront-product-card__price,
+html[data-theme-template="red"] .storefront-product-card__name {
+  color: var(--primary);
+}
