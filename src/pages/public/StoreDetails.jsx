@@ -18,6 +18,7 @@ import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
+import ProductCard from "../../components/product/ProductCard.jsx";
 import ProductGrid, { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
 import ProductPagination from "../../components/product/ProductPagination.jsx";
 import storeApi from "../../API/store.api.js";
@@ -34,7 +35,9 @@ import {
   normalizeListResponse,
 } from "../../utils/collections.js";
 import { buildProductSnapshot } from "../../utils/guestCart.js";
+import { buildBalancedCategoryHighlights } from "../../utils/categoryHighlights.js";
 import {
+  dedupeProducts,
   getProductDisplayVariant,
   getProductImage,
   isProductActive,
@@ -45,6 +48,8 @@ import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./StoreDetails.css";
 
 const CATALOG_PAGE_SIZE = 12;
+const HIGHLIGHT_POOL_PAGE_SIZE = 80;
+const BALANCED_HIGHLIGHTS_LIMIT = 10;
 
 function buildStoreDescription(store) {
   return (
@@ -146,6 +151,14 @@ export default function StoreDetails() {
     },
     staleTime: 30000,
   });
+  const highlightProductsQuery = useStorefrontCatalogProducts(store?.id, {
+    enabled: Boolean(store?.id),
+    params: {
+      page: 1,
+      pageSize: HIGHLIGHT_POOL_PAGE_SIZE,
+    },
+    staleTime: 60000,
+  });
   const addToCartMutation = useAddToCart(store?.id);
   const addToCartUi = useTransientBusyState();
 
@@ -159,6 +172,29 @@ export default function StoreDetails() {
   const products = useMemo(
     () => normalizeProductList(catalogProductsQuery.data),
     [catalogProductsQuery.data],
+  );
+  const highlightPoolProducts = useMemo(
+    () =>
+      dedupeProducts([
+        ...featuredProducts,
+        ...normalizeProductList(highlightProductsQuery.data),
+      ]).filter((product) => isProductActive(product)),
+    [featuredProducts, highlightProductsQuery.data],
+  );
+  const balancedHighlights = useMemo(
+    () =>
+      buildBalancedCategoryHighlights(highlightPoolProducts, categories, {
+        maxItems: BALANCED_HIGHLIGHTS_LIMIT,
+      }),
+    [categories, highlightPoolProducts],
+  );
+  const shouldAnimateHighlights = balancedHighlights.length > 3;
+  const animatedHighlights = useMemo(
+    () =>
+      shouldAnimateHighlights
+        ? [...balancedHighlights, ...balancedHighlights]
+        : balancedHighlights,
+    [balancedHighlights, shouldAnimateHighlights],
   );
   const filteredProducts = products;
   const categorySummary = useMemo(
@@ -486,6 +522,81 @@ export default function StoreDetails() {
           <EmptyState
             title="لا توجد تصنيفات بعد"
             description="ستظهر التصنيفات هنا بمجرد إضافة أقسام ومنتجات داخل المتجر."
+          />
+        )}
+      </Box>
+
+      <Box
+        className="storefront-section page-store-details__balanced-highlights"
+        id="store-category-highlights"
+        data-scroll-section
+      >
+        <Box className="storefront-section__head">
+          <Box className="storefront-section__copy">
+            <span className="storefront-eyebrow">مختارات ذكية</span>
+            <Typography variant="h3">من كل تصنيف لمحة</Typography>
+            <Typography variant="body2" color="text.secondary">
+              نختار حتى {BALANCED_HIGHLIGHTS_LIMIT} منتجات بتوزيع يغطي أكبر عدد ممكن من التصنيفات.
+            </Typography>
+          </Box>
+
+          <AppButton
+            component={RouterLink}
+            to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/products`)}
+            variant="outlined"
+          >
+            كل المنتجات
+          </AppButton>
+        </Box>
+
+        {highlightProductsQuery.isLoading && !balancedHighlights.length ? (
+          <ProductGridSkeleton
+            count={5}
+            className="page-store-details__balanced-skeleton"
+          />
+        ) : balancedHighlights.length ? (
+          <Box
+            className={[
+              "page-store-details__highlight-rail",
+              shouldAnimateHighlights
+                ? "page-store-details__highlight-rail--animated"
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            <Box
+              className="page-store-details__highlight-track"
+              style={{ "--highlight-count": balancedHighlights.length }}
+            >
+              {animatedHighlights.map((item, index) => (
+                <Box
+                  key={`${item.product.id}-${index}`}
+                  className="page-store-details__highlight-card-wrap"
+                >
+                  <Chip
+                    size="small"
+                    label={item.categoryName}
+                    className="page-store-details__highlight-category"
+                  />
+                  <ProductCard
+                    product={item.product}
+                    storeSlug={resolvedStoreSlug}
+                    onAddToCart={handleAddToCart}
+                    adding={addToCartUi.activeKey === item.product.id}
+                    disableCartActions={isOwnerPreview}
+                    linkSearch={previewSearch}
+                    scrollAnchorScope="store-category-highlights"
+                    scrollAnchorIndex={index}
+                  />
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        ) : (
+          <EmptyState
+            title="لا توجد منتجات كافية للعرض"
+            description="عند إضافة منتجات للتصنيفات سيظهر هذا القسم تلقائياً."
           />
         )}
       </Box>
