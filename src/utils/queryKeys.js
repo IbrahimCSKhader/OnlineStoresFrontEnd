@@ -54,6 +54,7 @@ export const queryKeys = {
   },
   orders: {
     mine: ["orders", "mine"],
+    myPoints: ["orders", "mine", "points"],
     myDetail: (orderId) => ["orders", "mine", orderId],
     byStore: (storeId) => ["orders", "store", storeId],
     storeDetail: (storeId, orderId) => ["orders", "store", storeId, orderId],

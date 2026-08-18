@@ -220,6 +220,15 @@ export default function OrderDetailsPage() {
                   </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
+                  <span>نقاط الطلب</span>
+                  <strong>
+                    <DetailValue
+                      label="نقاط الطلب"
+                      value={`${Number(order.pointsEarned || 0).toLocaleString("ar-u-nu-latn")} نقطة`}
+                    />
+                  </strong>
+                </Box>
+                <Box className="owner-detail-card__row">
                   <span>الإجمالي قبل الخصم</span>
                   <strong>
                     <DetailValue label="الإجمالي قبل الخصم" value={formatCurrency(order.subtotal)} />

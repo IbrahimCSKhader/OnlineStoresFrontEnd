@@ -19,6 +19,7 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
+import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
@@ -315,6 +316,9 @@ export default function Navbar() {
     : "/auth/register";
   const cartPath = activeStoreSlug
     ? buildStorePreviewPath(buildStorefrontPath(activeStoreSlug, "/cart"))
+    : "/market";
+  const ordersPath = activeStoreSlug
+    ? buildStorePreviewPath(buildStorefrontPath(activeStoreSlug, "/orders"))
     : "/market";
   const { hasScopedStorefrontSession, useLocalGuestCart } =
     useStorefrontSession(activeStore?.id, activeStoreSlug);
@@ -615,6 +619,18 @@ export default function Navbar() {
 
           <MenuItem
             component={NavLink}
+            to={ordersPath}
+            onClick={closeProfileMenu}
+            className="store-navbar__profile-item"
+          >
+            <ListItemIcon>
+              <EmojiEventsRoundedIcon fontSize="small" />
+            </ListItemIcon>
+            نقاطي
+          </MenuItem>
+
+          <MenuItem
+            component={NavLink}
             to={brandHref}
             onClick={closeProfileMenu}
             className="store-navbar__profile-item"
@@ -673,6 +689,16 @@ export default function Navbar() {
 
         <Stack spacing={1}>
           {renderCartButton(true)}
+          <AppButton
+            component={NavLink}
+            to={ordersPath}
+            onClick={() => setDrawerOpen(false)}
+            variant="outlined"
+            startIcon={<EmojiEventsRoundedIcon fontSize="small" />}
+            fullWidth
+          >
+            نقاطي
+          </AppButton>
           <AppButton
             component={NavLink}
             to={brandHref}

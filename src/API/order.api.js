@@ -4,6 +4,7 @@ import endpoints from "./endpoints.js";
 export const orderApi = {
   createOrder: (payload) => axiosInstance.post(endpoints.orders.create, payload),
   getMyOrders: () => axiosInstance.get(endpoints.orders.mine),
+  getMyPoints: () => axiosInstance.get(endpoints.orders.myPoints),
   getMyOrderById: (orderId) => axiosInstance.get(endpoints.orders.myDetail(orderId)),
   getStoreOrders: (storeId) => axiosInstance.get(endpoints.orders.byStore(storeId)),
   getStoreOrderById: (storeId, orderId) =>

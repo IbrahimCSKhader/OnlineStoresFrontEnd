@@ -120,6 +120,7 @@ export default function useCreateOrder(storeId, options = {}) {
       }
 
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.mine });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.myPoints });
 
       if (resolvedStoreId && orderId) {
         queryClient.invalidateQueries({

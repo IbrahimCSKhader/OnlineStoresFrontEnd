@@ -17,6 +17,7 @@ import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import ConfirmationNumberRoundedIcon from "@mui/icons-material/ConfirmationNumberRounded";
 import DragIndicatorRoundedIcon from "@mui/icons-material/DragIndicatorRounded";
+import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LayersRoundedIcon from "@mui/icons-material/LayersRounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
@@ -523,6 +524,10 @@ function formatDiscountPercentage(value) {
   )}%`;
 }
 
+function formatPoints(value) {
+  return `${formatUiNumber(toNumber(value, 0))} نقطة`;
+}
+
 function _normalizeCustomerOption(entity) {
   const source = entity?.customer || entity?.user || entity;
   const id = firstDefined(
@@ -571,6 +576,10 @@ function normalizeStoreCustomer(item) {
         item?.discountValue,
         0,
       ),
+      0,
+    ),
+    purchasePoints: toNumber(
+      firstDefined(item?.purchasePoints, item?.points, item?.rewardPoints, 0),
       0,
     ),
     isActive: toBoolean(item?.isActive, true),
@@ -1162,9 +1171,30 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const customers = useMemo(
     () =>
       storeCustomersAll.filter((item) =>
-        matchesText(item, deferredSearchText, ["fullName", "email", "phone"]),
+        matchesText(item, deferredSearchText, [
+          "fullName",
+          "email",
+          "phone",
+          "purchasePoints",
+        ]),
       ),
     [deferredSearchText, storeCustomersAll],
+  );
+  const topPointsCustomers = useMemo(
+    () =>
+      [...storeCustomersAll]
+        .filter((customer) => customer.purchasePoints > 0)
+        .sort((first, second) => second.purchasePoints - first.purchasePoints)
+        .slice(0, 5),
+    [storeCustomersAll],
+  );
+  const totalCustomerPoints = useMemo(
+    () =>
+      storeCustomersAll.reduce(
+        (sum, customer) => sum + toNumber(customer.purchasePoints, 0),
+        0,
+      ),
+    [storeCustomersAll],
   );
   const ordersAll = useMemo(
     () =>
@@ -3197,6 +3227,58 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               الطلب.
             </Alert>
 
+            <Box className="owner-points-overview">
+              <Box className="owner-points-card owner-points-card--summary">
+                <Box className="owner-points-card__icon">
+                  <EmojiEventsRoundedIcon fontSize="small" />
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    مجموع نقاط الزبائن
+                  </Typography>
+                  <Typography variant="h5" className="owner-points-card__value">
+                    {formatPoints(totalCustomerPoints)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    كل منتج مشتَرى يمنح الزبون 5 نقاط.
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box className="owner-points-card owner-points-card--leaders">
+                <Box className="owner-points-card__head">
+                  <Box>
+                    <Typography variant="caption" color="text.secondary">
+                      أصحاب النقاط الأكثر
+                    </Typography>
+                    <Typography variant="h6">ترتيب الزبائن</Typography>
+                  </Box>
+                </Box>
+
+                {topPointsCustomers.length ? (
+                  <Stack spacing={1}>
+                    {topPointsCustomers.map((customer, index) => (
+                      <Box
+                        key={customer.id}
+                        className="owner-points-leader"
+                      >
+                        <span>{index + 1}</span>
+                        <Box className="owner-points-leader__copy">
+                          <strong>{customer.fullName || customer.email}</strong>
+                          <small>{customer.email}</small>
+                        </Box>
+                        <b>{formatPoints(customer.purchasePoints)}</b>
+                      </Box>
+                    ))}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    لا توجد نقاط بعد.
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+
             {customerStoreForm.id ? (
               <CustomerStoreForm
                 form={customerStoreForm}
@@ -3256,6 +3338,17 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       title: "خصم الجملة",
                       render: (row) =>
                         formatDiscountPercentage(row.discountPercentage),
+                    },
+                    {
+                      key: "purchasePoints",
+                      title: "نقاط الشراء",
+                      render: (row) => (
+                        <Chip
+                          size="small"
+                          label={formatPoints(row.purchasePoints)}
+                          className="owner-points-chip"
+                        />
+                      ),
                     },
                     {
                       key: "isActive",

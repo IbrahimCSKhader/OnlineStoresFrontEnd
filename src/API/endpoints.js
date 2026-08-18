@@ -99,6 +99,7 @@ export const endpoints = {
   orders: {
     create: withPrefix("/Order"),
     mine: withPrefix("/Order/my-orders"),
+    myPoints: withPrefix("/Order/my-points"),
     myDetail: (orderId) => withPrefix(`/Order/my-orders/${orderId}`),
     byStore: (storeId) => withPrefix(`/Order/store/${storeId}`),
     storeDetail: (storeId, orderId) =>

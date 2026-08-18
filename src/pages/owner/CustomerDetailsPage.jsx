@@ -94,6 +94,7 @@ function normalizeStoreCustomer(item) {
     email: String(item?.email || "").trim(),
     phone: String(item?.phone || "").trim(),
     discountPercentage: Number(item?.discountPercentage ?? 0),
+    purchasePoints: Number(item?.purchasePoints ?? item?.points ?? 0),
     isActive: Boolean(item?.isActive ?? true),
     createdAt: item?.createdAt || "",
     updatedAt: item?.updatedAt || "",
@@ -210,6 +211,9 @@ export default function CustomerDetailsPage() {
                 <Typography variant="body2" color="text.secondary">
                   أضيف بتاريخ {formatDateTimeLabel(customer.createdAt)}
                 </Typography>
+                <Typography variant="subtitle1" className="owner-detail-points-line">
+                  {customer.purchasePoints.toLocaleString("ar-u-nu-latn")} نقطة شراء
+                </Typography>
               </Box>
 
               <Chip
@@ -255,6 +259,15 @@ export default function CustomerDetailsPage() {
                   <span>خصم الجملة</span>
                   <strong>
                     <DetailValue label="خصم الجملة" value={`${customer.discountPercentage}%`} />
+                  </strong>
+                </Box>
+                <Box className="owner-detail-card__row">
+                  <span>نقاط الشراء</span>
+                  <strong>
+                    <DetailValue
+                      label="نقاط الشراء"
+                      value={`${customer.purchasePoints.toLocaleString("ar-u-nu-latn")} نقطة`}
+                    />
                   </strong>
                 </Box>
                 <Box className="owner-detail-card__row">

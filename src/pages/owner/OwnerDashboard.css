@@ -385,6 +385,110 @@ html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar
   margin-bottom: 0.15rem !important;
 }
 
+.owner-points-overview {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr);
+}
+
+.owner-points-card {
+  min-width: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  background: var(--surface-low);
+}
+
+.owner-points-card--summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: center;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--primary) 10%, var(--surface-card)),
+      color-mix(in srgb, var(--accent) 8%, var(--surface-low))
+    );
+}
+
+.owner-points-card--leaders {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.owner-points-card__icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  color: var(--button-text);
+  background: var(--cta-gradient);
+  box-shadow: var(--shadow-soft);
+}
+
+.owner-points-card__value {
+  margin-block: 0.15rem !important;
+}
+
+.owner-points-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.owner-points-leader {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+}
+
+.owner-points-leader > span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--button-text);
+  background: var(--surface-inverse);
+  font-weight: 800;
+}
+
+.owner-points-leader__copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.owner-points-leader__copy strong,
+.owner-points-leader__copy small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.owner-points-leader__copy small {
+  color: var(--text-secondary);
+}
+
+.owner-points-leader > b {
+  white-space: nowrap;
+}
+
+.owner-points-chip {
+  font-weight: 800;
+  color: var(--button-text) !important;
+  background: color-mix(in srgb, var(--primary) 84%, #000000 16%) !important;
+}
+
 .owner-order-dialog {
   display: grid;
   gap: var(--space-5);
@@ -612,6 +716,12 @@ html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-4);
+}
+
+.owner-detail-points-line {
+  margin-top: 0.45rem !important;
+  color: var(--primary);
+  font-weight: 800 !important;
 }
 
 .owner-detail-grid {
@@ -931,6 +1041,10 @@ html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .owner-points-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .owner-detail-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -979,5 +1093,14 @@ html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar
   .owner-detail-card__row span,
   .owner-detail-card__row strong {
     max-width: 100%;
+  }
+
+  .owner-points-card--summary,
+  .owner-points-leader {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .owner-points-leader > b {
+    white-space: normal;
   }
 }

@@ -112,6 +112,13 @@ export function normalizeOrderDetails(data) {
     entity?.customer?.discountPercentage,
     entity?.storeCustomer?.discountPercentage,
   );
+  const pointsEarned = firstNumber(entity?.pointsEarned, entity?.earnedPoints);
+  const customerPurchasePoints = firstNumber(
+    entity?.customerPurchasePoints,
+    entity?.purchasePoints,
+    entity?.storeCustomer?.purchasePoints,
+    entity?.customer?.purchasePoints,
+  );
 
   return {
     ...entity,
@@ -161,6 +168,8 @@ export function normalizeOrderDetails(data) {
     couponDiscountType: Number.isFinite(couponDiscountType) ? couponDiscountType : null,
     couponDiscountValue: Number.isFinite(couponDiscountValue) ? couponDiscountValue : null,
     customerDiscountPercentage,
+    pointsEarned,
+    customerPurchasePoints,
     items,
     itemsCount:
       firstNumber(entity?.itemsCount, entity?.totalItems) ||

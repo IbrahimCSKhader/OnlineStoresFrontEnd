@@ -78,6 +78,10 @@ const Checkout = lazyWithRetry(
   () => import("./pages/customer/Checkout.jsx"),
   "checkout",
 );
+const MyOrders = lazyWithRetry(
+  () => import("./pages/customer/MyOrders.jsx"),
+  "my-orders",
+);
 
 const CategoryPage = lazyWithRetry(
   () => import("./pages/public/CategoryPage.jsx"),
@@ -292,6 +296,14 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: "orders",
+            element: (
+              <CustomDomainElement>
+                {withRouteSuspense(<MyOrders />)}
+              </CustomDomainElement>
+            ),
+          },
+          {
             path: "login",
             element: (
               <CustomDomainElement>
@@ -384,6 +396,7 @@ const router = createBrowserRouter([
           },
           { path: "cart", element: withRouteSuspense(<Cart />) },
           { path: "checkout", element: withRouteSuspense(<Checkout />) },
+          { path: "orders", element: withRouteSuspense(<MyOrders />) },
           { path: "login", element: withRouteSuspense(<Login />) },
           { path: "register", element: withRouteSuspense(<Register />) },
           { path: "verify-email", element: withRouteSuspense(<VerifyEmail />) },
