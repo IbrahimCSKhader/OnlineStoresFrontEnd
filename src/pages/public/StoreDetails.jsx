@@ -190,10 +190,25 @@ export default function StoreDetails() {
   );
   const shouldAnimateHighlights = balancedHighlights.length > 3;
   const animatedHighlights = useMemo(
-    () =>
-      shouldAnimateHighlights
-        ? [...balancedHighlights, ...balancedHighlights]
-        : balancedHighlights,
+    () => {
+      const primaryHighlights = balancedHighlights.map((item, index) => ({
+        item,
+        originalIndex: index,
+        isDuplicate: false,
+      }));
+
+      if (!shouldAnimateHighlights) {
+        return primaryHighlights;
+      }
+
+      return [
+        ...primaryHighlights,
+        ...primaryHighlights.map((entry) => ({
+          ...entry,
+          isDuplicate: true,
+        })),
+      ];
+    },
     [balancedHighlights, shouldAnimateHighlights],
   );
   const filteredProducts = products;
@@ -569,10 +584,23 @@ export default function StoreDetails() {
               className="page-store-details__highlight-track"
               style={{ "--highlight-count": balancedHighlights.length }}
             >
-              {animatedHighlights.map((item, index) => (
+              {animatedHighlights.map(({
+                item,
+                originalIndex,
+                isDuplicate,
+              }, index) => (
                 <Box
-                  key={`${item.product.id}-${index}`}
-                  className="page-store-details__highlight-card-wrap"
+                  key={`${item.product.id}-${isDuplicate ? "copy" : "main"}-${index}`}
+                  className={[
+                    "page-store-details__highlight-card-wrap",
+                    isDuplicate
+                      ? "page-store-details__highlight-card-wrap--duplicate"
+                      : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                  aria-hidden={isDuplicate ? "true" : undefined}
+                  inert={isDuplicate ? true : undefined}
                 >
                   <Chip
                     size="small"
@@ -587,7 +615,7 @@ export default function StoreDetails() {
                     disableCartActions={isOwnerPreview}
                     linkSearch={previewSearch}
                     scrollAnchorScope="store-category-highlights"
-                    scrollAnchorIndex={index}
+                    scrollAnchorIndex={originalIndex}
                   />
                 </Box>
               ))}

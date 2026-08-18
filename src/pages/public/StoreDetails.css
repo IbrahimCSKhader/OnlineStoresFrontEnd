@@ -387,6 +387,14 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
   gap: var(--gap);
 }
 
+.page-store-details__balanced-highlights .storefront-section__head {
+  align-items: center;
+}
+
+.page-store-details__balanced-highlights .storefront-section__head > .MuiButton-root {
+  flex-shrink: 0;
+}
+
 .page-store-details__highlight-rail {
   --highlight-card-width: clamp(198px, 19vw, 232px);
   position: relative;
@@ -630,16 +638,23 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
   }
 
   .page-store-details__highlight-rail {
-    --highlight-card-width: clamp(176px, 36vw, 220px);
+    --highlight-card-width: clamp(184px, 42vw, 224px);
     overflow-x: auto;
     overscroll-behavior-inline: contain;
     scroll-snap-type: inline proximity;
+    scroll-padding-inline: 2px;
+    padding-inline: 2px;
     mask-image: none;
     scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
   }
 
   .page-store-details__highlight-rail--animated .page-store-details__highlight-track {
-    animation-duration: 38s;
+    animation: none;
+  }
+
+  .page-store-details__highlight-card-wrap--duplicate {
+    display: none;
   }
 
   .page-store-details__highlight-card-wrap {
@@ -699,7 +714,16 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
   }
 
   .page-store-details__highlight-rail {
-    --highlight-card-width: min(78vw, 228px);
+    --highlight-card-width: min(82vw, 232px);
+  }
+
+  .page-store-details__balanced-highlights .storefront-section__head {
+    align-items: stretch;
+  }
+
+  .page-store-details__balanced-highlights .storefront-section__head > .MuiButton-root {
+    width: 100%;
+    justify-content: center;
   }
 
   .page-store-details__category-card {
@@ -751,8 +775,30 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
   }
 }
 
+@media (max-width: 420px) {
+  .page-store-details__highlight-rail {
+    --highlight-card-width: min(86vw, 224px);
+  }
+
+  .page-store-details__highlight-track {
+    gap: 10px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .page-store-details__highlight-rail {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    mask-image: none;
+    scrollbar-width: thin;
+  }
+
   .page-store-details__highlight-rail--animated .page-store-details__highlight-track {
     animation: none;
+  }
+
+  .page-store-details__highlight-card-wrap--duplicate {
+    display: none;
   }
 }
