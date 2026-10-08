@@ -36,6 +36,7 @@ export const endpoints = {
     list: withPrefix("/Store"),
     create: withPrefix("/Store"),
     owned: withPrefix("/Store/owned"),
+    registrationVisit: withPrefix("/store-registration/visits"),
     detail: (id) => withPrefix(`/Store/${id}`),
     slug: (slug) => withPrefix(`/Store/slug/${slug}`),
     resolve: withPrefix("/Store/resolve"),

@@ -53,6 +53,8 @@ function createMultipartFormData(payload = {}) {
 }
 
 export const storeApi = {
+  recordRegistrationVisit: () =>
+    axiosInstance.post(endpoints.stores.registrationVisit),
   getStores: (params) => axiosInstance.get(endpoints.stores.list, { params }),
   getOwnedStore: () => axiosInstance.get(endpoints.stores.owned),
   createStore: (payload) =>

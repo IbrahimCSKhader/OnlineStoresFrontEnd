@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -217,6 +217,13 @@ function buildStoreLink(slug) {
 
 export default function StoreRegister() {
   const navigate = useNavigate();
+  const visitRecorded = useRef(false);
+
+  useEffect(() => {
+    if (visitRecorded.current) return;
+    visitRecorded.current = true;
+    void storeApi.recordRegistrationVisit().catch(() => undefined);
+  }, []);
   const [form, setForm] = useState(initialForm);
   const [contacts, setContacts] = useState([emptyContact()]);
   const [errors, setErrors] = useState({});
