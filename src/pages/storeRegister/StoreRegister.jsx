@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -26,6 +26,7 @@ import storeApi from "../../API/store.api.js";
 import ThemeTemplateOption from "../../components/common/ThemeTemplateOption.jsx";
 import { STORE_THEME_TEMPLATES } from "../../constants/storeThemeTemplates.js";
 import extractApiError from "../../utils/extractApiError.js";
+import { trackCompleteRegistration } from "../../utils/metaPixel.js";
 import "./StoreRegister.css";
 
 const CONTACT_PLATFORMS = [
@@ -217,6 +218,7 @@ function buildStoreLink(slug) {
 
 export default function StoreRegister() {
   const navigate = useNavigate();
+  const completeRegistrationTracked = useRef(false);
   const [form, setForm] = useState(initialForm);
   const [contacts, setContacts] = useState([emptyContact()]);
   const [errors, setErrors] = useState({});
@@ -338,6 +340,11 @@ export default function StoreRegister() {
         ownerId: owner.id,
         contactAccounts: normalizedContacts,
       });
+
+      if (!completeRegistrationTracked.current) {
+        completeRegistrationTracked.current = true;
+        trackCompleteRegistration();
+      }
 
       const storeLink = buildStoreLink(store?.slug || form.slug.trim());
 
