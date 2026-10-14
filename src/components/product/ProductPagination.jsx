@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import Box from "@mui/material/Box";
 import Pagination from "@mui/material/Pagination";
 import Typography from "@mui/material/Typography";
@@ -7,6 +8,7 @@ export default function ProductPagination({
   onPageChange,
   className = "",
 }) {
+  const { t, locale } = useStorefrontLanguage();
   const totalPages = Number(pagination?.totalPages || 0);
   const page = Number(pagination?.page || 1);
   const totalCount = Number(pagination?.totalCount || 0);
@@ -20,8 +22,8 @@ export default function ProductPagination({
       className={["product-pagination", className].filter(Boolean).join(" ")}
     >
       <Typography variant="body2" color="text.secondary">
-        {totalCount.toLocaleString("ar")} نتيجة، صفحة {page.toLocaleString("ar")} من{" "}
-        {totalPages.toLocaleString("ar")}
+        {totalCount.toLocaleString(locale)} {t("نتيجة، صفحة")} {page.toLocaleString(locale)} {t("من")}{" "}
+        {totalPages.toLocaleString(locale)}
       </Typography>
       <Pagination
         count={totalPages}

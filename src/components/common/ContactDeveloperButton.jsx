@@ -9,11 +9,12 @@ export default function ContactDeveloperButton({
   fullWidth = false,
   onClick,
   className,
+  message,
 }) {
   return (
     <AppButton
       component="a"
-      href={getDeveloperSupportWhatsAppLink()}
+      href={getDeveloperSupportWhatsAppLink(message)}
       target="_blank"
       rel="noopener noreferrer"
       variant={variant}

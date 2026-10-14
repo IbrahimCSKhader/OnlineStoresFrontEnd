@@ -4,6 +4,8 @@ export default function QuantityStepper({
   max,
   disabled = false,
   onChange,
+  decreaseLabel = "تقليل الكمية",
+  increaseLabel = "زيادة الكمية",
 }) {
   const decrementDisabled = disabled || value <= min;
   const incrementDisabled =
@@ -23,7 +25,7 @@ export default function QuantityStepper({
         className="app-quantity__button"
         onClick={() => updateValue(value - 1)}
         disabled={decrementDisabled}
-        aria-label="تقليل الكمية"
+        aria-label={decreaseLabel}
       >
         -
       </button>
@@ -33,7 +35,7 @@ export default function QuantityStepper({
         className="app-quantity__button"
         onClick={() => updateValue(value + 1)}
         disabled={incrementDisabled}
-        aria-label="زيادة الكمية"
+        aria-label={increaseLabel}
       >
         +
       </button>

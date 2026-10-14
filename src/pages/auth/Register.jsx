@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import { useMemo } from "react";
 import {
   Link as RouterLink,
@@ -39,6 +40,7 @@ import {
 import "./Register.css";
 
 export default function Register() {
+  const { t, language } = useStorefrontLanguage();
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
   const location = useLocation();
@@ -47,6 +49,7 @@ export default function Register() {
   const customDomainHost = getCurrentCustomDomainHost();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
     enabled: Boolean(routeStoreSlug || customDomainHost),
+    language,
     staleTime: 60000,
   });
   const routeStore = useMemo(
@@ -76,7 +79,7 @@ export default function Register() {
   const storeLabel =
     storeCustomerAuthState?.storeName ||
     storeCustomerAuthState?.storeSlug ||
-    "هذا المتجر";
+    t("هذا المتجر");
   const storeHomePath =
     storeCustomerAuthState?.storeSlug
       ? buildStorefrontPath(storeCustomerAuthState.storeSlug)
@@ -114,7 +117,7 @@ export default function Register() {
       <Box className="page-register">
         <Box className="page-register__shell">
           <Paper className="page-register__panel page-register__panel--form" elevation={0}>
-            <Typography variant="body1">جاري تجهيز بيانات المتجر...</Typography>
+            <Typography variant="body1">{t("جاري تجهيز بيانات المتجر...")}</Typography>
           </Paper>
         </Box>
       </Box>
@@ -153,7 +156,7 @@ export default function Register() {
         redirectTo,
         message:
           data?.message ||
-          "تم إنشاء الحساب. أدخل كود التحقق.",
+          t("تم إنشاء الحساب. أدخل كود التحقق."),
       },
     });
   });
@@ -168,29 +171,19 @@ export default function Register() {
           {!storeCustomerAuthState?.storeId ? (
             <Stack spacing={2.1}>
               <Box>
-                <Typography variant="overline" className="page-register__eyebrow">
-                  إنشاء حساب
-                </Typography>
-                <Typography variant="h4" className="page-register__form-title">
-                  افتح المتجر أولاً
-                </Typography>
+                <Typography variant="overline" className="page-register__eyebrow">{t("إنشاء حساب")}</Typography>
+                <Typography variant="h4" className="page-register__form-title">{t("افتح المتجر أولاً")}</Typography>
               </Box>
 
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                <Button component={RouterLink} to={storeHomePath} variant="contained">
-                  الذهاب إلى المتاجر
-                </Button>
-                <Button component={RouterLink} to={storeLoginPath} variant="outlined">
-                  تسجيل الدخول
-                </Button>
+                <Button component={RouterLink} to={storeHomePath} variant="contained">{t("الذهاب إلى المتاجر")}</Button>
+                <Button component={RouterLink} to={storeLoginPath} variant="outlined">{t("تسجيل الدخول")}</Button>
               </Stack>
             </Stack>
           ) : (
             <Stack spacing={2.1} component="form" onSubmit={onSubmit}>
               <Box>
-                <Typography variant="overline" className="page-register__eyebrow">
-                  إنشاء حساب
-                </Typography>
+                <Typography variant="overline" className="page-register__eyebrow">{t("إنشاء حساب")}</Typography>
                 <Typography variant="h4" className="page-register__form-title">
                   {storeLabel}
                 </Typography>
@@ -200,15 +193,15 @@ export default function Register() {
                 <Alert severity="error">
                   {extractApiError(
                     registerMutation.error,
-                    "تعذر إنشاء الحساب الآن. حاول مرة أخرى.",
+                    t("تعذر إنشاء الحساب الآن. حاول مرة أخرى."),
                   )}
                 </Alert>
               ) : null}
 
               <Box className="page-register__grid">
                 <TextField
-                  label="الاسم الأول"
-                  placeholder="مثال: إبراهيم"
+                  label={t("الاسم الأول")}
+                  placeholder={t("مثال: إبراهيم")}
                   fullWidth
                   InputProps={{
                     startAdornment: (
@@ -218,10 +211,10 @@ export default function Register() {
                     ),
                   }}
                   {...register("firstName", {
-                    required: "الاسم الأول مطلوب",
+                    required: t("الاسم الأول مطلوب"),
                     minLength: {
                       value: 2,
-                      message: "الاسم الأول يجب أن يكون حرفين على الأقل",
+                      message: t("الاسم الأول يجب أن يكون حرفين على الأقل"),
                     },
                   })}
                   error={Boolean(errors.firstName)}
@@ -229,8 +222,8 @@ export default function Register() {
                 />
 
                 <TextField
-                  label="اسم العائلة"
-                  placeholder="مثال: خالد"
+                  label={t("اسم العائلة")}
+                  placeholder={t("مثال: خالد")}
                   fullWidth
                   InputProps={{
                     startAdornment: (
@@ -240,10 +233,10 @@ export default function Register() {
                     ),
                   }}
                   {...register("lastName", {
-                    required: "اسم العائلة مطلوب",
+                    required: t("اسم العائلة مطلوب"),
                     minLength: {
                       value: 2,
-                      message: "اسم العائلة يجب أن يكون حرفين على الأقل",
+                      message: t("اسم العائلة يجب أن يكون حرفين على الأقل"),
                     },
                   })}
                   error={Boolean(errors.lastName)}
@@ -251,7 +244,7 @@ export default function Register() {
                 />
 
                 <TextField
-                  label="البريد الإلكتروني"
+                  label={t("البريد الإلكتروني")}
                   placeholder="name@example.com"
                   type="email"
                   fullWidth
@@ -263,10 +256,10 @@ export default function Register() {
                     ),
                   }}
                   {...register("email", {
-                    required: "البريد الإلكتروني مطلوب",
+                    required: t("البريد الإلكتروني مطلوب"),
                     pattern: {
                       value: /\S+@\S+\.\S+/,
-                      message: "أدخل بريدًا إلكترونيًا صحيحًا",
+                      message: t("أدخل بريدًا إلكترونيًا صحيحًا"),
                     },
                   })}
                   error={Boolean(errors.email)}
@@ -276,7 +269,7 @@ export default function Register() {
 
               <Box className="page-register__grid">
                 <TextField
-                  label="كلمة المرور"
+                  label={t("كلمة المرور")}
                   type="password"
                   fullWidth
                   InputProps={{
@@ -287,10 +280,10 @@ export default function Register() {
                     ),
                   }}
                   {...register("password", {
-                    required: "كلمة المرور مطلوبة",
+                    required: t("كلمة المرور مطلوبة"),
                     minLength: {
                       value: 8,
-                      message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
+                      message: t("كلمة المرور يجب أن تكون 8 أحرف على الأقل"),
                     },
                   })}
                   error={Boolean(errors.password)}
@@ -298,7 +291,7 @@ export default function Register() {
                 />
 
                 <TextField
-                  label="تأكيد كلمة المرور"
+                  label={t("تأكيد كلمة المرور")}
                   type="password"
                   fullWidth
                   InputProps={{
@@ -309,9 +302,9 @@ export default function Register() {
                     ),
                   }}
                   {...register("confirmPassword", {
-                    required: "أعد كتابة كلمة المرور",
+                    required: t("أعد كتابة كلمة المرور"),
                     validate: (value) =>
-                      value === getValues("password") || "كلمتا المرور غير متطابقتين",
+                      value === getValues("password") || t("كلمتا المرور غير متطابقتين"),
                   })}
                   error={Boolean(errors.confirmPassword)}
                   helperText={errors.confirmPassword?.message}
@@ -324,7 +317,7 @@ export default function Register() {
                 size="large"
                 disabled={registerMutation.isPending}
               >
-                {registerMutation.isPending ? "جارٍ إنشاء الحساب..." : "إنشاء الحساب"}
+                {registerMutation.isPending ? t("جارٍ إنشاء الحساب...") : t("إنشاء الحساب")}
               </Button>
 
               <Divider />
@@ -335,12 +328,8 @@ export default function Register() {
                   to={storeLoginPath}
                   state={storeCustomerAuthState}
                   variant="outlined"
-                >
-                  لدي حساب بالفعل
-                </Button>
-                <Button component={RouterLink} to={storeHomePath} variant="text">
-                  العودة إلى المتجر
-                </Button>
+                >{t("لدي حساب بالفعل")}</Button>
+                <Button component={RouterLink} to={storeHomePath} variant="text">{t("العودة إلى المتجر")}</Button>
               </Stack>
             </Stack>
           )}

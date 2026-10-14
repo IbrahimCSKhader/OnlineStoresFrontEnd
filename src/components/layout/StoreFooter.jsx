@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import { Link as RouterLink } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
@@ -10,6 +11,7 @@ import { getStoreContactEntries } from "../../utils/storeContacts.js";
 import "./StoreFooter.css";
 
 export default function StoreFooter({ store, slug = "" }) {
+  const { t } = useStorefrontLanguage();
   const year = new Date().getFullYear();
   const { isOwnerPreview, buildStorePreviewPath } = useOwnerStorePreview();
   const contactEntries = getStoreContactEntries(store);
@@ -17,12 +19,12 @@ export default function StoreFooter({ store, slug = "" }) {
     (entry) => entry.platform === "WhatsApp",
   );
   const localLinks = [
-    { to: buildStorePreviewPath(`/market/${slug}`), label: "الرئيسية" },
-    { to: buildStorePreviewPath(`/market/${slug}/about`), label: "من نحن" },
-    { to: buildStorePreviewPath(`/market/${slug}/contact`), label: "تواصل" },
+    { to: buildStorePreviewPath(`/market/${slug}`), label: t("الرئيسية") },
+    { to: buildStorePreviewPath(`/market/${slug}/about`), label: t("من نحن") },
+    { to: buildStorePreviewPath(`/market/${slug}/contact`), label: t("تواصل") },
     {
       to: buildStorePreviewPath(`/market/${slug}/cart`),
-      label: "السلة",
+      label: t("السلة"),
       disabled: isOwnerPreview,
     },
   ];
@@ -32,13 +34,13 @@ export default function StoreFooter({ store, slug = "" }) {
       <Box className="store-local-footer__grid">
         <Box className="store-local-footer__story">
           <Typography variant="h4" className="store-local-footer__title">
-            {store?.name || "المتجر"}
+            {store?.name || t("المتجر")}
           </Typography>
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            <Chip label={store?.businessType || "متجر"} variant="outlined" />
+            <Chip label={store?.businessType || t("متجر")} variant="outlined" />
             <Chip
-              label={store?.isActive === false ? "غير نشط" : "نشط"}
+              label={store?.isActive === false ? t("غير نشط") : t("نشط")}
               variant="outlined"
             />
           </Stack>
@@ -47,7 +49,7 @@ export default function StoreFooter({ store, slug = "" }) {
         <Box
           component="nav"
           className="store-local-footer__links"
-          aria-label="روابط المتجر"
+          aria-label={t("روابط المتجر")}
         >
           {localLinks.map((link) => (
             link.disabled ? (
@@ -77,9 +79,7 @@ export default function StoreFooter({ store, slug = "" }) {
               component={RouterLink}
               to={buildStorePreviewPath(`/market/${slug}/contact`)}
               variant="contained"
-            >
-              تواصل
-            </AppButton>
+            >{t("تواصل")}</AppButton>
             {primaryWhatsApp?.url ? (
               <AppButton
                 component="a"
@@ -87,13 +87,12 @@ export default function StoreFooter({ store, slug = "" }) {
                 target="_blank"
                 rel="noreferrer"
                 variant="text"
-              >
-                واتساب
-              </AppButton>
+              >{t("واتساب")}</AppButton>
             ) : null}
           </Stack>
 
           <StoreContactAccounts
+            translate={t}
             accounts={contactEntries}
             title=""
             layout="compact"

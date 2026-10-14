@@ -38,7 +38,7 @@ export default function CategoryPage() {
   const { slug, categoryId } = useParams();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
-  const { language } = useStorefrontLanguage();
+  const { t, language } = useStorefrontLanguage();
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
   const [page, setPage] = useState(1);
@@ -86,7 +86,7 @@ export default function CategoryPage() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-category">
-        <EmptyState title="جاري تحميل الصفحة..." />
+        <EmptyState title={t("جاري تحميل الصفحة...")} />
       </Box>
     );
   }
@@ -95,8 +95,8 @@ export default function CategoryPage() {
     return (
       <Box className="storefront-page page-category">
         <EmptyState
-          title="تعذر فتح هذا التصنيف"
-          description="تعذر العثور على المتجر أو التصنيف المطلوب."
+          title={t("تعذر فتح هذا التصنيف")}
+          description={t("تعذر العثور على المتجر أو التصنيف المطلوب.")}
         />
       </Box>
     );
@@ -181,8 +181,8 @@ export default function CategoryPage() {
         }
       >
         <Box className="storefront-section__copy">
-          <span className="storefront-eyebrow">التصنيف</span>
-          <Typography variant="h2">{activeCategory?.name || "التصنيف"}</Typography>
+          <span className="storefront-eyebrow">{t("التصنيف")}</span>
+          <Typography variant="h2">{activeCategory?.name || t("التصنيف")}</Typography>
           {activeCategory?.description ? (
             <Typography variant="body1" className="storefront-subtitle">
               {activeCategory.description}
@@ -195,39 +195,39 @@ export default function CategoryPage() {
         <Box className="storefront-grid__span-4">
           <SurfaceCard className="page-category__sidebar">
             <Box className="storefront-section__copy">
-              <span className="storefront-eyebrow">فلترة</span>
-              <Typography variant="h5">الخيارات</Typography>
+              <span className="storefront-eyebrow">{t("فلترة")}</span>
+              <Typography variant="h5">{t("الخيارات")}</Typography>
             </Box>
 
             <SearchInput
               value={searchText}
               onChange={handleSearchChange}
-              placeholder="ابحث داخل هذا التصنيف"
+              placeholder={t("ابحث داخل هذا التصنيف")}
             />
 
             <AppTextField
               select
-              label="الترتيب"
+              label={t("الترتيب")}
               value={sortValue}
               onChange={handleSortChange}
               SelectProps={{ native: true }}
             >
-              <option value="price-asc">السعر: من الأقل</option>
-              <option value="price-desc">السعر: من الأعلى</option>
-              <option value="newest">الأحدث</option>
-              <option value="alphabetical">أبجديًا</option>
+              <option value="price-asc">{t("السعر: من الأقل")}</option>
+              <option value="price-desc">{t("السعر: من الأعلى")}</option>
+              <option value="newest">{t("الأحدث")}</option>
+              <option value="alphabetical">{t("أبجديًا")}</option>
             </AppTextField>
 
             <Box className="page-category__price-grid">
               <AppTextField
                 type="number"
-                label="أقل سعر"
+                label={t("أقل سعر")}
                 value={priceInputs.min}
                 onChange={handlePriceInputChange("min")}
               />
               <AppTextField
                 type="number"
-                label="أعلى سعر"
+                label={t("أعلى سعر")}
                 value={priceInputs.max}
                 onChange={handlePriceInputChange("max")}
               />
@@ -240,7 +240,7 @@ export default function CategoryPage() {
                   onChange={handleOnlyInStockChange}
                 />
               }
-              label="عرض المتوفر فقط"
+              label={t("عرض المتوفر فقط")}
             />
 
             <Box className="page-category__category-list">
@@ -286,9 +286,9 @@ export default function CategoryPage() {
           >
             <Box className="storefront-section__head">
               <Box className="storefront-section__copy">
-                <span className="storefront-eyebrow">النتائج</span>
+                <span className="storefront-eyebrow">{t("النتائج")}</span>
                 <Typography variant="h5">
-                  {categoryPagination.totalCount} نتيجة داخل {activeCategory?.name || "هذا التصنيف"}
+                  {categoryPagination.totalCount} {t("نتيجة داخل")} {activeCategory?.name || t("هذا التصنيف")}
                 </Typography>
               </Box>
 
@@ -296,9 +296,7 @@ export default function CategoryPage() {
                 component={RouterLink}
                 to={buildStorePreviewPath(`/market/${store.slug}`)}
                 variant="outlined"
-              >
-                العودة إلى المتجر
-              </AppButton>
+              >{t("العودة إلى المتجر")}</AppButton>
             </Box>
 
             {catalogProductsQuery.isLoading ? (
@@ -325,8 +323,8 @@ export default function CategoryPage() {
               </>
             ) : (
               <EmptyState
-                title="لا توجد نتائج"
-                description="غيّر ترتيب النتائج أو نطاق السعر أو جرّب كلمة بحث مختلفة."
+                title={t("لا توجد نتائج")}
+                description={t("غيّر ترتيب النتائج أو نطاق السعر أو جرّب كلمة بحث مختلفة.")}
               />
             )}
           </SurfaceCard>

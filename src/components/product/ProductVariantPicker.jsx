@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
@@ -20,6 +21,7 @@ export default function ProductVariantPicker({
   onClear,
   onChange,
 }) {
+  const { t } = useStorefrontLanguage();
   if (!variants?.length) {
     return null;
   }
@@ -40,13 +42,9 @@ export default function ProductVariantPicker({
         justifyContent="space-between"
         gap={1}
       >
-        <Typography variant="subtitle1" className="product-details__block-title">
-          الأصناف المتاحة
-        </Typography>
+        <Typography variant="subtitle1" className="product-details__block-title">{t("الأصناف المتاحة")}</Typography>
         {allowClear ? (
-          <AppButton type="button" variant="text" size="small" onClick={onClear}>
-            عرض صور المنتج
-          </AppButton>
+          <AppButton type="button" variant="text" size="small" onClick={onClear}>{t("عرض صور المنتج")}</AppButton>
         ) : null}
       </Stack>
 
@@ -87,14 +85,12 @@ export default function ProductVariantPicker({
                   {imageUrl ? (
                     <img
                       src={imageUrl}
-                      alt={variant.name || product?.name || "صنف"}
+                      alt={variant.name || product?.name || t("صنف")}
                       loading="lazy"
                       decoding="async"
                     />
                   ) : (
-                    <Typography variant="caption" color="text.secondary">
-                      صورة
-                    </Typography>
+                    <Typography variant="caption" color="text.secondary">{t("صورة")}</Typography>
                   )}
                 </Box>
 
@@ -105,8 +101,8 @@ export default function ProductVariantPicker({
                       size="small"
                       label={
                         isAvailable
-                          ? `${variant.stockQuantity ?? 0} متوفر`
-                          : "غير متوفر"
+                          ? t("{0} متوفر", variant.stockQuantity ?? 0)
+                          : t("غير متوفر")
                       }
                       variant="outlined"
                     />

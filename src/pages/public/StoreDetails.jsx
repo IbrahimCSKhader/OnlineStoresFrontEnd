@@ -47,15 +47,15 @@ import "./StoreDetails.css";
 
 const CATALOG_PAGE_SIZE = 12;
 
-function buildStoreDescription(store) {
+function buildStoreDescription(store, t) {
   return (
     String(store?.description || "").trim() ||
     String(store?.businessType || "").trim() ||
-    "اكتشف منتجات المتجر وتصفح التصنيفات بسهولة."
+    t("اكتشف منتجات المتجر وتصفح التصنيفات بسهولة.")
   );
 }
 
-function buildCategoryProductGroups(products, categories) {
+function buildCategoryProductGroups(products, categories, t) {
   const groups = categories.map((category) => ({
     ...category,
     groupId: String(category.id),
@@ -86,8 +86,8 @@ function buildCategoryProductGroups(products, categories) {
     nonEmptyGroups.push({
       id: "uncategorized",
       groupId: "uncategorized",
-      name: "منتجات أخرى",
-      description: "منتجات غير مرتبطة بفئة محددة.",
+      name: t("منتجات أخرى"),
+      description: t("منتجات غير مرتبطة بفئة محددة."),
       products: uncategorizedProducts,
       count: uncategorizedProducts.length,
       isVirtual: true,
@@ -116,7 +116,7 @@ export default function StoreDetails() {
   const recordedVisitRef = useRef("");
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
-  const { language } = useStorefrontLanguage();
+  const { t, language } = useStorefrontLanguage();
 
   const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(
@@ -171,8 +171,8 @@ export default function StoreDetails() {
     [categories],
   );
   const catalogProductGroups = useMemo(
-    () => buildCategoryProductGroups(filteredProducts, categories),
-    [categories, filteredProducts],
+    () => buildCategoryProductGroups(filteredProducts, categories, t),
+    [categories, filteredProducts, t],
   );
   const availableProductsCount = useMemo(
     () => products.filter((product) => isProductInStock(product)).length,
@@ -260,7 +260,7 @@ export default function StoreDetails() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-details">
-        <EmptyState title="جاري تحميل المتجر..." />
+        <EmptyState title={t("جاري تحميل المتجر...")} />
       </Box>
     );
   }
@@ -269,8 +269,8 @@ export default function StoreDetails() {
     return (
       <Box className="storefront-page page-store-details">
         <EmptyState
-          title="تعذر العثور على المتجر"
-          description="قد يكون الرابط غير صحيح أو أن المتجر لم يعد متاحًا."
+          title={t("تعذر العثور على المتجر")}
+          description={t("قد يكون الرابط غير صحيح أو أن المتجر لم يعد متاحًا.")}
         />
       </Box>
     );
@@ -279,18 +279,18 @@ export default function StoreDetails() {
   const coverImage = resolveStoreCoverUrl(store);
   const logoImage = resolveAssetUrl(store.logoUrl);
   const resolvedStoreSlug = store.slug || slug;
-  const storeDescription = buildStoreDescription(store);
+  const storeDescription = buildStoreDescription(store, t);
   const shouldHideStoreHeader =
     String(store?.name || "").trim().toLowerCase() === "glamour";
 
   return (
     <Box className="storefront-page page-store-details">
       {addToCartMutation.isError ? (
-        <Alert severity="error">تعذر إضافة المنتج إلى السلة.</Alert>
+        <Alert severity="error">{t("تعذر إضافة المنتج إلى السلة.")}</Alert>
       ) : null}
 
       {addToCartMutation.isSuccess ? (
-        <Alert severity="success">تمت إضافة المنتج إلى السلة.</Alert>
+        <Alert severity="success">{t("تمت إضافة المنتج إلى السلة.")}</Alert>
       ) : null}
 
       <SurfaceCard
@@ -324,7 +324,7 @@ export default function StoreDetails() {
                 />
               ) : (
                 <Box className="storefront-logo storefront-logo--empty">
-                  {store.name?.[0] || "م"}
+                  {store.name?.[0] || t("م")}
                 </Box>
               )}
 
@@ -348,7 +348,7 @@ export default function StoreDetails() {
                     <Chip label={store.businessType} variant="outlined" />
                   ) : null}
                   <Chip
-                    label={store.isActive === false ? "غير نشط" : "نشط"}
+                    label={store.isActive === false ? t("غير نشط") : t("نشط")}
                     variant="outlined"
                   />
                 </Stack>
@@ -358,7 +358,7 @@ export default function StoreDetails() {
             <Box className="storefront-hero__metrics page-store-details__hero-metrics">
               <Box className="storefront-metric">
                 <CategoryRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">التصنيفات</span>
+                <span className="storefront-metric__label">{t("التصنيفات")}</span>
                 <strong className="storefront-metric__value">
                   {categories.length}
                 </strong>
@@ -366,7 +366,7 @@ export default function StoreDetails() {
 
               <Box className="storefront-metric">
                 <StorefrontRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">المنتجات</span>
+                <span className="storefront-metric__label">{t("المنتجات")}</span>
                 <strong className="storefront-metric__value">
                   {(catalogPagination?.totalCount || products.length).toLocaleString("ar")}
                 </strong>
@@ -374,7 +374,7 @@ export default function StoreDetails() {
 
               <Box className="storefront-metric">
                 <Inventory2RoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">المتوفر الآن</span>
+                <span className="storefront-metric__label">{t("المتوفر الآن")}</span>
                 <strong className="storefront-metric__value">
                   {availableProductsCount}
                 </strong>
@@ -382,7 +382,7 @@ export default function StoreDetails() {
 
               <Box className="storefront-metric">
                 <VisibilityRoundedIcon fontSize="small" />
-                <span className="storefront-metric__label">الزيارات</span>
+                <span className="storefront-metric__label">{t("الزيارات")}</span>
                 <strong className="storefront-metric__value">
                   {displayedVisitCount.toLocaleString("ar")}
                 </strong>
@@ -390,42 +390,32 @@ export default function StoreDetails() {
             </Box>
 
             <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
-              <AppButton href="#store-catalog" variant="contained">
-                تصفح الكتالوج
-              </AppButton>
+              <AppButton href="#store-catalog" variant="contained">{t("تصفح الكتالوج")}</AppButton>
               <AppButton
                 component={RouterLink}
                 to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/about`)}
                 variant="text"
-              >
-                من نحن
-              </AppButton>
+              >{t("من نحن")}</AppButton>
               <AppButton
                 component={RouterLink}
                 to={buildStorePreviewPath(
                   `/market/${resolvedStoreSlug}/contact`,
                 )}
                 variant="text"
-              >
-                تواصل
-              </AppButton>
+              >{t("تواصل")}</AppButton>
               {isOwnerPreview ? (
                 <AppButton
                   variant="outlined"
                   startIcon={<LocalMallRoundedIcon fontSize="small" />}
                   disabled
-                >
-                  السلة
-                </AppButton>
+                >{t("السلة")}</AppButton>
               ) : (
                 <AppButton
                   component={RouterLink}
                   to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/cart`)}
                   variant="outlined"
                   startIcon={<LocalMallRoundedIcon fontSize="small" />}
-                >
-                  السلة
-                </AppButton>
+                >{t("السلة")}</AppButton>
               )}
             </Stack>
           </Box>
@@ -435,13 +425,13 @@ export default function StoreDetails() {
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">التصنيفات</span>
-            <Typography variant="h3">التصنيفات الرئيسية</Typography>
+            <span className="storefront-eyebrow">{t("التصنيفات")}</span>
+            <Typography variant="h3">{t("التصنيفات الرئيسية")}</Typography>
           </Box>
         </Box>
 
         {categoriesQuery.isLoading && !categorySummary.length ? (
-          <EmptyState title="جاري تحميل التصنيفات..." />
+          <EmptyState title={t("جاري تحميل التصنيفات...")} />
         ) : categorySummary.length ? (
           <Box className="storefront-cards-grid page-store-details__categories-grid">
 
@@ -480,8 +470,7 @@ export default function StoreDetails() {
                   </Typography>
                   {category.count !== undefined ? (
                     <Typography variant="caption" color="text.secondary">
-                      {category.count} منتج
-                    </Typography>
+                      {category.count} {t("منتج")}</Typography>
                   ) : null}
                 </SurfaceCard>
               );
@@ -489,8 +478,8 @@ export default function StoreDetails() {
           </Box>
         ) : (
           <EmptyState
-            title="لا توجد تصنيفات بعد"
-            description="ستظهر التصنيفات هنا بمجرد إضافة أقسام ومنتجات داخل المتجر."
+            title={t("لا توجد تصنيفات بعد")}
+            description={t("ستظهر التصنيفات هنا بمجرد إضافة أقسام ومنتجات داخل المتجر.")}
           />
         )}
       </Box>
@@ -502,8 +491,8 @@ export default function StoreDetails() {
       >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">منتجات</span>
-            <Typography variant="h3">منتجات مختارة</Typography>
+            <span className="storefront-eyebrow">{t("منتجات")}</span>
+            <Typography variant="h3">{t("منتجات مختارة")}</Typography>
           </Box>
         </Box>
 
@@ -520,7 +509,7 @@ export default function StoreDetails() {
             scrollAnchorScope="store-featured-products"
           />
         ) : (
-          <EmptyState title="لا توجد منتجات مختارة" />
+          <EmptyState title={t("لا توجد منتجات مختارة")} />
         )}
       </Box>
 
@@ -531,8 +520,8 @@ export default function StoreDetails() {
       >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">المنتجات</span>
-            <Typography variant="h3">جميع المنتجات</Typography>
+            <span className="storefront-eyebrow">{t("المنتجات")}</span>
+            <Typography variant="h3">{t("جميع المنتجات")}</Typography>
           </Box>
 
           <Box className="page-store-details__catalog-toolbar">
@@ -546,22 +535,18 @@ export default function StoreDetails() {
               <AppButton
                 variant={catalogView === "grid" ? "contained" : "outlined"}
                 onClick={() => setCatalogView("grid")}
-              >
-                عرض شبكي
-              </AppButton>
+              >{t("عرض شبكي")}</AppButton>
               <AppButton
                 variant={catalogView === "grouped" ? "contained" : "outlined"}
                 onClick={() => setCatalogView("grouped")}
-              >
-                حسب الفئات
-              </AppButton>
+              >{t("حسب الفئات")}</AppButton>
             </Stack>
 
             <Box className="page-store-details__search">
               <SearchInput
                 value={searchText}
                 onChange={handleSearchChange}
-                placeholder="ابحث داخل هذا المتجر"
+                placeholder={t("ابحث داخل هذا المتجر")}
               />
             </Box>
           </Box>
@@ -579,8 +564,8 @@ export default function StoreDetails() {
             />
           ) : catalogProductsQuery.error ? (
             <EmptyState
-              title="تعذر تحميل المنتجات"
-              description="حاول تحديث الصفحة أو افتح المتجر مرة أخرى."
+              title={t("تعذر تحميل المنتجات")}
+              description={t("حاول تحديث الصفحة أو افتح المتجر مرة أخرى.")}
             />
           ) : filteredProducts.length ? (
             catalogView === "grouped" ? (
@@ -605,15 +590,14 @@ export default function StoreDetails() {
                           <Box className="page-store-details__category-accordion-copy">
                             <Typography variant="h6">{group.name}</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              {group.description || "استعرض منتجات هذه الفئة من هنا."}
+                              {group.description || t("استعرض منتجات هذه الفئة من هنا.")}
                             </Typography>
                           </Box>
                           <Typography
                             variant="caption"
                             className="page-store-details__category-accordion-count"
                           >
-                            {group.count} منتج
-                          </Typography>
+                            {group.count} {t("منتج")}</Typography>
                         </Box>
                       </AccordionSummary>
 
@@ -626,9 +610,7 @@ export default function StoreDetails() {
                                 `/market/${resolvedStoreSlug}/category/${group.id}`,
                               )}
                               variant="text"
-                            >
-                              فتح صفحة الفئة
-                            </AppButton>
+                            >{t("فتح صفحة الفئة")}</AppButton>
                           </Box>
                         ) : null}
 
@@ -670,8 +652,8 @@ export default function StoreDetails() {
             )
           ) : (
             <EmptyState
-              title="لا توجد نتائج"
-              description="جرّب كلمة بحث أخرى أو ارجع إلى جميع التصنيفات."
+              title={t("لا توجد نتائج")}
+              description={t("جرّب كلمة بحث أخرى أو ارجع إلى جميع التصنيفات.")}
             />
           )}
         </Box>

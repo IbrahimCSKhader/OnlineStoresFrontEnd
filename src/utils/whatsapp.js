@@ -21,9 +21,9 @@ export function buildWhatsAppLink(phoneNumber, message) {
   return `${baseUrl}?text=${encodeURIComponent(trimmedMessage)}`;
 }
 
-export function getDeveloperSupportWhatsAppLink() {
+export function getDeveloperSupportWhatsAppLink(message = DEVELOPER_SUPPORT_DEFAULT_MESSAGE) {
   return buildWhatsAppLink(
     DEVELOPER_SUPPORT_NUMBER,
-    DEVELOPER_SUPPORT_DEFAULT_MESSAGE,
+    message,
   );
 }

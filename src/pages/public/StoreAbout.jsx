@@ -16,7 +16,7 @@ import { normalizeEntityResponse } from "../../utils/collections.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./StoreAbout.css";
 
-function buildStoryParagraphs(store) {
+function buildStoryParagraphs(store, t) {
   const story = String(store?.storeStory || "").trim();
 
   if (story) {
@@ -29,14 +29,14 @@ function buildStoryParagraphs(store) {
   const description = String(store?.description || "").trim();
 
   return [
-    description || "لا توجد نبذة حالياً.",
+    description || t("لا توجد نبذة حالياً."),
   ];
 }
 
 export default function StoreAbout() {
   const { slug } = useParams();
   const { buildStorePreviewPath } = useOwnerStorePreview();
-  const { language } = useStorefrontLanguage();
+  const { t, language } = useStorefrontLanguage();
   const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(
     () => normalizeEntityResponse(storeQuery.data),
@@ -48,7 +48,7 @@ export default function StoreAbout() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-about">
-        <EmptyState title="جاري التحميل..." />
+        <EmptyState title={t("جاري التحميل...")} />
       </Box>
     );
   }
@@ -57,27 +57,27 @@ export default function StoreAbout() {
     return (
       <Box className="storefront-page page-store-about">
         <EmptyState
-          title="تعذر فتح الصفحة"
+          title={t("تعذر فتح الصفحة")}
         />
       </Box>
     );
   }
 
-  const storyParagraphs = buildStoryParagraphs(store);
+  const storyParagraphs = buildStoryParagraphs(store, t);
   const resolvedStoreSlug = store.slug || slug || "";
 
   return (
     <Box className="storefront-page page-store-about">
       <SurfaceCard variant="hero" className="page-store-about__hero">
         <Box className="storefront-section__copy">
-          <span className="storefront-eyebrow">من نحن</span>
+          <span className="storefront-eyebrow">{t("من نحن")}</span>
           <Typography variant="h1" className="storefront-title page-store-about__title">
             {store.name}
           </Typography>
 
           <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
             {store.businessType ? <Chip label={store.businessType} /> : null}
-            <Chip label={store.isActive === false ? "غير نشط" : "نشط"} variant="outlined" />
+            <Chip label={store.isActive === false ? t("غير نشط") : t("نشط")} variant="outlined" />
           </Stack>
 
           <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
@@ -85,16 +85,12 @@ export default function StoreAbout() {
               component={RouterLink}
               to={buildStorePreviewPath(`/market/${resolvedStoreSlug}`)}
               variant="contained"
-            >
-              العودة لواجهة المتجر
-            </AppButton>
+            >{t("العودة لواجهة المتجر")}</AppButton>
             <AppButton
               component={RouterLink}
               to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/contact`)}
               variant="outlined"
-            >
-              تواصل معنا
-            </AppButton>
+            >{t("تواصل معنا")}</AppButton>
           </Stack>
         </Box>
       </SurfaceCard>
@@ -104,7 +100,7 @@ export default function StoreAbout() {
           <SurfaceCard className="page-store-about__story-card">
             <Box className="page-store-about__section-head">
               <AutoStoriesRoundedIcon fontSize="small" />
-              <Typography variant="h4">نبذة</Typography>
+              <Typography variant="h4">{t("نبذة")}</Typography>
             </Box>
 
             <Box className="page-store-about__story">
@@ -121,34 +117,28 @@ export default function StoreAbout() {
           <SurfaceCard className="page-store-about__info-card">
             <Box className="page-store-about__section-head">
               <StorefrontRoundedIcon fontSize="small" />
-              <Typography variant="h5">معلومات</Typography>
+              <Typography variant="h5">{t("معلومات")}</Typography>
             </Box>
 
             <Box className="page-store-about__info-list">
               <Box className="page-store-about__info-item">
-                <Typography variant="body2" color="text.secondary">
-                  اسم المتجر
-                </Typography>
+                <Typography variant="body2" color="text.secondary">{t("اسم المتجر")}</Typography>
                 <Typography variant="body2" fontWeight={700}>
                   {store.name}
                 </Typography>
               </Box>
 
               <Box className="page-store-about__info-item">
-                <Typography variant="body2" color="text.secondary">
-                  نوع النشاط
-                </Typography>
+                <Typography variant="body2" color="text.secondary">{t("نوع النشاط")}</Typography>
                 <Typography variant="body2" fontWeight={700}>
-                  {store.businessType || "غير محدد"}
+                  {store.businessType || t("غير محدد")}
                 </Typography>
               </Box>
 
               <Box className="page-store-about__info-item">
-                <Typography variant="body2" color="text.secondary">
-                  الحالة
-                </Typography>
+                <Typography variant="body2" color="text.secondary">{t("الحالة")}</Typography>
                 <Typography variant="body2" fontWeight={700}>
-                  {store.isActive === false ? "غير نشط" : "نشط"}
+                  {store.isActive === false ? t("غير نشط") : t("نشط")}
                 </Typography>
               </Box>
             </Box>

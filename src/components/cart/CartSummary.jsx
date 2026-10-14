@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import { Link as RouterLink } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -14,34 +15,34 @@ export default function CartSummary({
   checkoutPath,
   actionLabel = "متابعة إلى الدفع",
 }) {
+  const { t } = useStorefrontLanguage();
   return (
     <SurfaceCard className="cart-summary">
       <Box className="cart-summary__head">
-        <Typography variant="h5">ملخص الطلب</Typography>
+        <Typography variant="h5">{t("ملخص الطلب")}</Typography>
         <Typography variant="body2" color="text.secondary">
-          {itemCount} قطعة داخل السلة
-        </Typography>
+          {itemCount} {t("قطعة داخل السلة")}</Typography>
       </Box>
 
       <Divider />
 
       <Box className="cart-summary__rows">
         <Box className="cart-summary__row">
-          <span>الإجمالي الفرعي</span>
+          <span>{t("الإجمالي الفرعي")}</span>
           <strong>{formatCurrency(subtotal)}</strong>
         </Box>
         <Box className="cart-summary__row">
-          <span>الشحن</span>
-          <span>يُحدد في خطوة الدفع</span>
+          <span>{t("الشحن")}</span>
+          <span>{t("يُحدد في خطوة الدفع")}</span>
         </Box>
         <Box className="cart-summary__row cart-summary__row--total">
-          <span>الإجمالي</span>
+          <span>{t("الإجمالي")}</span>
           <strong>{formatCurrency(totalAmount)}</strong>
         </Box>
       </Box>
 
       <AppButton component={RouterLink} to={checkoutPath} variant="contained" fullWidth>
-        {actionLabel}
+        {t(actionLabel)}
       </AppButton>
     </SurfaceCard>
   );

@@ -116,6 +116,7 @@ export default function StoreContactAccounts({
   layout = "cards",
   hideWhenEmpty = true,
   className = "",
+  translate = (value) => value,
 }) {
   const resolvedAccounts = Array.isArray(accounts)
     ? accounts
@@ -128,7 +129,7 @@ export default function StoreContactAccounts({
 
     return (
       <Typography variant="body2" color="text.secondary" className={className}>
-        {emptyLabel}
+        {translate(emptyLabel)}
       </Typography>
     );
   }
@@ -139,7 +140,7 @@ export default function StoreContactAccounts({
     <Stack spacing={1.5} className={className}>
       {showTitle && title ? (
         <Typography variant="h5" component="h3">
-          {title}
+          {translate(title)}
         </Typography>
       ) : null}
 
@@ -155,7 +156,7 @@ export default function StoreContactAccounts({
         {resolvedAccounts.map((account, index) => {
           const key =
             account?.id || `${account?.platform || "contact"}-${index}`;
-          const label = getAccountLabel(account);
+          const label = translate(getAccountLabel(account));
           const value = getAccountValue(account);
           const platformVisual = getPlatformVisual(account?.platform);
           const href =

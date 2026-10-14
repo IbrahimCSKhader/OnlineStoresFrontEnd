@@ -15,7 +15,7 @@ import "./StoreContact.css";
 export default function StoreContact() {
   const { slug } = useParams();
   const { buildStorePreviewPath } = useOwnerStorePreview();
-  const { language } = useStorefrontLanguage();
+  const { t, language } = useStorefrontLanguage();
   const storeQuery = useStoreBySlug(slug, { language });
   const store = normalizeEntityResponse(storeQuery.data);
 
@@ -24,7 +24,7 @@ export default function StoreContact() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-store-contact">
-        <EmptyState title="جارٍ التحميل..." />
+        <EmptyState title={t("جارٍ التحميل...")} />
       </Box>
     );
   }
@@ -32,7 +32,7 @@ export default function StoreContact() {
   if (storeQuery.error || !store) {
     return (
       <Box className="storefront-page page-store-contact">
-        <EmptyState title="تعذر فتح الصفحة" />
+        <EmptyState title={t("تعذر فتح الصفحة")} />
       </Box>
     );
   }
@@ -43,34 +43,27 @@ export default function StoreContact() {
     <Box className="storefront-page page-store-contact">
       <SurfaceCard variant="hero" className="page-store-contact__hero">
         <Box className="storefront-section__copy">
-          <span className="storefront-eyebrow">تواصل</span>
+          <span className="storefront-eyebrow">{t("تواصل")}</span>
           <Typography
             variant="h1"
             className="storefront-title page-store-contact__title"
-          >
-            تواصل مع {store.name}
+          >{t("تواصل مع")} {store.name}
           </Typography>
-          <Typography variant="body1" className="storefront-subtitle">
-            إذا كان لديك أي استفسار حول المنتجات أو الطلبات، يسعدنا مساعدتك.
-          </Typography>
+          <Typography variant="body1" className="storefront-subtitle">{t("إذا كان لديك أي استفسار حول المنتجات أو الطلبات، يسعدنا مساعدتك.")}</Typography>
 
           <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
             <AppButton
               component={RouterLink}
               to={buildStorePreviewPath(`/market/${resolvedStoreSlug}`)}
               variant="contained"
-            >
-              العودة لواجهة المتجر
-            </AppButton>
+            >{t("العودة لواجهة المتجر")}</AppButton>
           </Stack>
         </Box>
       </SurfaceCard>
 
       <SurfaceCard className="page-store-contact__notice">
-        <Typography variant="h4">نحن هنا لمساعدتك</Typography>
-        <Typography variant="body1" color="text.secondary">
-          نسعد بالرد على أسئلتك المتعلقة بالمنتجات، التوفر، والطلبات.
-        </Typography>
+        <Typography variant="h4">{t("نحن هنا لمساعدتك")}</Typography>
+        <Typography variant="body1" color="text.secondary">{t("نسعد بالرد على أسئلتك المتعلقة بالمنتجات، التوفر، والطلبات.")}</Typography>
       </SurfaceCard>
     </Box>
   );

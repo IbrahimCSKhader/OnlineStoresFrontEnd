@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import Box from "@mui/material/Box";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
@@ -19,6 +20,7 @@ export default function CheckoutForm({
   onBack,
   onSubmit,
 }) {
+  const { t } = useStorefrontLanguage();
   const isLastStep = step === checkoutSteps.length - 1;
 
   return (
@@ -26,7 +28,7 @@ export default function CheckoutForm({
       <Stepper activeStep={step} alternativeLabel className="checkout-form__steps">
         {checkoutSteps.map((label) => (
           <Step key={label}>
-            <StepLabel>{label}</StepLabel>
+            <StepLabel>{t(label)}</StepLabel>
           </Step>
         ))}
       </Stepper>
@@ -35,29 +37,29 @@ export default function CheckoutForm({
         {step === 0 ? (
           <Box className="checkout-form__grid">
             <AppTextField
-              label="عنوان التوصيل"
+              label={t("عنوان التوصيل")}
               value={form.deliveryAddress}
               onChange={(event) => onChange("deliveryAddress", event.target.value)}
               multiline
               minRows={3}
             />
             <AppTextField
-              label="المدينة"
+              label={t("المدينة")}
               value={form.deliveryCity}
               onChange={(event) => onChange("deliveryCity", event.target.value)}
             />
             <AppTextField
-              label="رقم الهاتف"
+              label={t("رقم الهاتف")}
               value={form.deliveryPhone}
               onChange={(event) => onChange("deliveryPhone", event.target.value)}
             />
             <AppTextField
-              label="كود الخصم (اختياري)"
+              label={t("كود الخصم (اختياري)")}
               value={form.couponCode}
               onChange={(event) => onChange("couponCode", event.target.value)}
             />
             <AppTextField
-              label="ملاحظات الطلب"
+              label={t("ملاحظات الطلب")}
               value={form.customerNotes}
               onChange={(event) => onChange("customerNotes", event.target.value)}
               multiline
@@ -68,46 +70,42 @@ export default function CheckoutForm({
 
         {step === 1 ? (
           <Box className="checkout-form__review">
-            <Typography variant="h6">مراجعة البيانات</Typography>
+            <Typography variant="h6">{t("مراجعة البيانات")}</Typography>
             <Box className="checkout-form__review-grid">
               <div>
-                <span>العنوان</span>
+                <span>{t("العنوان")}</span>
                 <strong>{form.deliveryAddress || "-"}</strong>
               </div>
               <div>
-                <span>المدينة</span>
+                <span>{t("المدينة")}</span>
                 <strong>{form.deliveryCity || "-"}</strong>
               </div>
               <div>
-                <span>رقم الهاتف</span>
+                <span>{t("رقم الهاتف")}</span>
                 <strong>{form.deliveryPhone || "-"}</strong>
               </div>
               <div>
-                <span>كود الخصم</span>
+                <span>{t("كود الخصم")}</span>
                 <strong>{form.couponCode || "-"}</strong>
               </div>
               <div>
-                <span>الملاحظات</span>
+                <span>{t("الملاحظات")}</span>
                 <strong>{form.customerNotes || "-"}</strong>
               </div>
             </Box>
-            <Typography variant="body2" color="text.secondary">
-              عند التأكيد سيتم إنشاء الطلب من السلة الحالية في نفس المتجر ثم إرسال ملخصه عبر واتساب.
-            </Typography>
+            <Typography variant="body2" color="text.secondary">{t("عند التأكيد سيتم إنشاء الطلب من السلة الحالية في نفس المتجر ثم إرسال ملخصه عبر واتساب.")}</Typography>
           </Box>
         ) : null}
       </Box>
 
       <Box className="checkout-form__actions">
-        <AppButton variant="text" onClick={onBack} disabled={step === 0 || isSubmitting}>
-          رجوع
-        </AppButton>
+        <AppButton variant="text" onClick={onBack} disabled={step === 0 || isSubmitting}>{t("رجوع")}</AppButton>
         <AppButton
           variant="contained"
           onClick={isLastStep ? onSubmit : onNext}
           disabled={isSubmitting}
         >
-          {isLastStep ? (isSubmitting ? "جارٍ التنفيذ..." : submitLabel) : "التالي"}
+          {isLastStep ? (isSubmitting ? t("جارٍ التنفيذ...") : t(submitLabel)) : t("التالي")}
         </AppButton>
       </Box>
     </Box>

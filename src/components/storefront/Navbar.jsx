@@ -106,6 +106,7 @@ function getCustomerInitials(user) {
 }
 
 function ThemeToggleButton({ variant, onSelect, options, className }) {
+  const { t } = useStorefrontLanguage();
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
   const activeTheme = options.find((option) => option.value === variant) ?? options[0];
@@ -122,7 +123,7 @@ function ThemeToggleButton({ variant, onSelect, options, className }) {
         className={["store-navbar__icon-button", className || ""]
           .filter(Boolean)
           .join(" ")}
-        aria-label="الثيمات"
+        aria-label={t("الثيمات")}
         aria-controls={menuOpen ? "theme-picker-menu" : undefined}
         aria-expanded={menuOpen ? "true" : undefined}
         aria-haspopup="menu"
@@ -141,7 +142,7 @@ function ThemeToggleButton({ variant, onSelect, options, className }) {
         PaperProps={{ className: "store-navbar__theme-menu" }}
         MenuListProps={{
           className: "store-navbar__theme-menu-list",
-          "aria-label": "خيارات الثيم",
+          "aria-label": t("خيارات الثيم"),
         }}
       >
         <Box className="store-navbar__theme-options">
@@ -156,8 +157,8 @@ function ThemeToggleButton({ variant, onSelect, options, className }) {
               ]
                 .filter(Boolean)
                 .join(" ")}
-              aria-label={option.label}
-              title={option.label}
+              aria-label={t(option.mode === "dark" ? "ليلي" : "صباحي")}
+              title={t(option.mode === "dark" ? "ليلي" : "صباحي")}
               onClick={() => {
                 onSelect(option.value);
                 setAnchorEl(null);
@@ -267,7 +268,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isOwnerPreview, buildStorePreviewPath } = useOwnerStorePreview();
-  const { language, copy, setLanguage } = useStorefrontLanguage();
+  const { t, language, copy, setLanguage } = useStorefrontLanguage();
   const profileMenuOpen = Boolean(profileAnchorEl);
   const isOwnerDashboardRoute = location.pathname.startsWith("/owner");
 
@@ -343,10 +344,10 @@ export default function Navbar() {
     : activeStoreSlug
       ? buildStorePreviewPath(buildStorefrontPath(activeStoreSlug))
       : "/";
-  const brandEyebrow = isScopedOwnerDashboard ? "لوحة المتجر" : "";
-  const brandName = activeStore?.name || "السوق";
+  const brandEyebrow = isScopedOwnerDashboard ? t("لوحة المتجر") : "";
+  const brandName = activeStore?.name || t("السوق");
   const resolvedBrandName =
-    currentBrandStore?.name || (isScopedOwnerDashboard ? "متجرك" : brandName);
+    currentBrandStore?.name || (isScopedOwnerDashboard ? t("متجرك") : brandName);
   const fallbackBrandName = activeStore?.name || SITE_BRAND_NAME;
   const resolvedDisplayBrandName =
     currentBrandStore?.name ||
@@ -443,7 +444,7 @@ export default function Navbar() {
   const customerDisplayName =
     storeCustomer?.fullName?.trim() ||
     [storeCustomer?.firstName, storeCustomer?.lastName].filter(Boolean).join(" ").trim() ||
-    "الزبون";
+    t("الزبون");
   const customerEmail = storeCustomer?.email || "";
   const customerStoreLabel =
     currentBrandStore?.name || storeCustomerAuthState?.storeName || "";
@@ -510,9 +511,7 @@ export default function Navbar() {
             startIcon={<ShoppingCartRoundedIcon fontSize="small" />}
             fullWidth
             disabled
-          >
-            السلة
-          </AppButton>
+          >{t("السلة")}</AppButton>
         );
       }
 
@@ -524,9 +523,7 @@ export default function Navbar() {
           variant="outlined"
           startIcon={cartIcon}
           fullWidth
-        >
-          السلة
-        </AppButton>
+        >{t("السلة")}</AppButton>
       );
     }
 
@@ -536,7 +533,7 @@ export default function Navbar() {
       return (
         <IconButton
           className="store-navbar__icon-button store-navbar__cart-button"
-          aria-label="السلة معطلة في وضع المعاينة"
+          aria-label={t("السلة معطلة في وضع المعاينة")}
           disabled
         >
           {cartIcon}
@@ -549,7 +546,7 @@ export default function Navbar() {
         component={NavLink}
         to={cartPath}
         className="store-navbar__icon-button store-navbar__cart-button"
-        aria-label="السلة"
+        aria-label={t("السلة")}
       >
         {cartIcon}
       </IconButton>
@@ -565,7 +562,7 @@ export default function Navbar() {
       <>
         <IconButton
           className="store-navbar__profile-trigger"
-          aria-label="بيانات الحساب"
+          aria-label={t("بيانات الحساب")}
           aria-controls={
             profileMenuOpen ? "store-customer-profile-menu" : undefined
           }
@@ -588,7 +585,7 @@ export default function Navbar() {
           PaperProps={{ className: "store-navbar__profile-menu" }}
           MenuListProps={{
             className: "store-navbar__profile-menu-list",
-            "aria-label": "بيانات حساب الزبون",
+            "aria-label": t("بيانات حساب الزبون"),
           }}
         >
           <Box className="store-navbar__profile-menu-head">
@@ -616,9 +613,7 @@ export default function Navbar() {
             <Box className="store-navbar__profile-info">
               <StorefrontRoundedIcon fontSize="small" />
               <Box>
-                <Typography variant="caption" color="text.secondary">
-                  المتجر الحالي
-                </Typography>
+                <Typography variant="caption" color="text.secondary">{t("المتجر الحالي")}</Typography>
                 <Typography variant="body2">{customerStoreLabel}</Typography>
               </Box>
             </Box>
@@ -628,9 +623,7 @@ export default function Navbar() {
             <Box className="store-navbar__profile-info">
               <EmailRoundedIcon fontSize="small" />
               <Box>
-                <Typography variant="caption" color="text.secondary">
-                  البريد الإلكتروني
-                </Typography>
+                <Typography variant="caption" color="text.secondary">{t("البريد الإلكتروني")}</Typography>
                 <Typography variant="body2">{customerEmail}</Typography>
               </Box>
             </Box>
@@ -640,9 +633,7 @@ export default function Navbar() {
             <Box className="store-navbar__profile-info">
               <PersonRoundedIcon fontSize="small" />
               <Box>
-                <Typography variant="caption" color="text.secondary">
-                  رقم الحساب
-                </Typography>
+                <Typography variant="caption" color="text.secondary">{t("رقم الحساب")}</Typography>
                 <Typography
                   variant="body2"
                   className="store-navbar__profile-id"
@@ -663,9 +654,7 @@ export default function Navbar() {
           >
             <ListItemIcon>
               <ShoppingCartRoundedIcon fontSize="small" />
-            </ListItemIcon>
-            السلة
-          </MenuItem>
+            </ListItemIcon>{t("السلة")}</MenuItem>
 
           <MenuItem
             component={NavLink}
@@ -675,9 +664,7 @@ export default function Navbar() {
           >
             <ListItemIcon>
               <StorefrontRoundedIcon fontSize="small" />
-            </ListItemIcon>
-            واجهة المتجر
-          </MenuItem>
+            </ListItemIcon>{t("واجهة المتجر")}</MenuItem>
 
           <MenuItem
             onClick={handleLogout}
@@ -685,9 +672,7 @@ export default function Navbar() {
           >
             <ListItemIcon>
               <LogoutRoundedIcon fontSize="small" />
-            </ListItemIcon>
-            تسجيل الخروج
-          </MenuItem>
+            </ListItemIcon>{t("تسجيل الخروج")}</MenuItem>
         </Menu>
       </>
     );
@@ -734,20 +719,16 @@ export default function Navbar() {
             variant="outlined"
             startIcon={<StorefrontRoundedIcon fontSize="small" />}
             fullWidth
-          >
-            واجهة المتجر
-          </AppButton>
+          >{t("واجهة المتجر")}</AppButton>
           <AppButton
             variant="text"
             appearance="ghost"
             startIcon={<LogoutRoundedIcon fontSize="small" />}
             onClick={handleLogout}
             loading={logoutMutation.isPending}
-            loadingLabel="جارٍ تسجيل الخروج..."
+            loadingLabel={t("جارٍ تسجيل الخروج...")}
             fullWidth
-          >
-            تسجيل الخروج
-          </AppButton>
+          >{t("تسجيل الخروج")}</AppButton>
         </Stack>
       </Box>
     );
@@ -765,9 +746,7 @@ export default function Navbar() {
         variant={drawer ? "outlined" : "text"}
         appearance={drawer ? "secondary" : "ghost"}
         fullWidth={drawer}
-      >
-        تسجيل الدخول
-      </AppButton>
+      >{t("تسجيل الدخول")}</AppButton>
       <AppButton
         component={NavLink}
         to={registerPath}
@@ -775,9 +754,7 @@ export default function Navbar() {
         onClick={drawer ? () => setDrawerOpen(false) : undefined}
         variant="contained"
         fullWidth={drawer}
-      >
-        إنشاء حساب
-      </AppButton>
+      >{t("إنشاء حساب")}</AppButton>
       </>
     ) : null
   );
@@ -800,11 +777,9 @@ export default function Navbar() {
         startIcon={<LogoutRoundedIcon fontSize="small" />}
         onClick={handleLogout}
         loading={logoutMutation.isPending}
-        loadingLabel="جارٍ تسجيل الخروج..."
+        loadingLabel={t("جارٍ تسجيل الخروج...")}
         fullWidth={drawer}
-      >
-        تسجيل الخروج
-      </AppButton>
+      >{t("تسجيل الخروج")}</AppButton>
     </>
   );
 
@@ -815,11 +790,9 @@ export default function Navbar() {
       startIcon={<LogoutRoundedIcon fontSize="small" />}
       onClick={handleLogout}
       loading={logoutMutation.isPending}
-      loadingLabel="جاري تسجيل الخروج..."
+      loadingLabel={t("جاري تسجيل الخروج...")}
       fullWidth={drawer}
-    >
-      تسجيل الخروج
-    </AppButton>
+    >{t("تسجيل الخروج")}</AppButton>
   );
 
   const renderStoreRegisterButton = (drawer = false) => {
@@ -835,9 +808,7 @@ export default function Navbar() {
         variant={drawer ? "contained" : "outlined"}
         startIcon={<StorefrontRoundedIcon fontSize="small" />}
         fullWidth={drawer}
-      >
-        أنشئ متجرك
-      </AppButton>
+      >{t("أنشئ متجرك")}</AppButton>
     );
   };
 
@@ -870,7 +841,8 @@ export default function Navbar() {
   const renderDrawerAccountSection = () => {
     const contactButton = (
       <ContactDeveloperButton
-        label="الدعم"
+        message={t("مرحبًا، أحتاج مساعدة بخصوص المتجر")}
+        label={t("الدعم")}
         variant="outlined"
         fullWidth
         onClick={() => setDrawerOpen(false)}
@@ -954,7 +926,7 @@ export default function Navbar() {
           <Box
             component="nav"
             className="store-navbar__nav"
-            aria-label="التنقل الرئيسي"
+            aria-label={t("التنقل الرئيسي")}
           >
             <NavLinks items={navItems} resolveTo={buildStorePreviewPath} />
           </Box>
@@ -980,7 +952,8 @@ export default function Navbar() {
           {renderCartButton()}
           {!isCompactHeader ? (
             <ContactDeveloperButton
-              label="الدعم"
+              message={t("مرحبًا، أحتاج مساعدة بخصوص المتجر")}
+              label={t("الدعم")}
               variant="text"
               className="store-navbar__support-button"
             />
@@ -999,7 +972,7 @@ export default function Navbar() {
           ) : (
             <IconButton
               className="store-navbar__icon-button"
-              aria-label="فتح القائمة"
+              aria-label={t("فتح القائمة")}
               onClick={() => setDrawerOpen(true)}
             >
               <MenuRoundedIcon />
@@ -1033,7 +1006,7 @@ export default function Navbar() {
             <IconButton
               className="store-navbar__icon-button"
               onClick={() => setDrawerOpen(false)}
-              aria-label="إغلاق القائمة"
+              aria-label={t("إغلاق القائمة")}
             >
               <CloseRoundedIcon />
             </IconButton>
@@ -1041,9 +1014,7 @@ export default function Navbar() {
         </Box>
 
         {navItems.length ? <Box className="store-navbar__drawer-section">
-          <Typography variant="overline" className="storefront-eyebrow">
-            التنقل
-          </Typography>
+          <Typography variant="overline" className="storefront-eyebrow">{t("التنقل")}</Typography>
           <Box className="store-navbar__drawer-links">
             <NavLinks
               items={navItems}
@@ -1055,9 +1026,7 @@ export default function Navbar() {
         </Box> : null}
 
         <Box className="store-navbar__drawer-section">
-          <Typography variant="overline" className="storefront-eyebrow">
-            الحساب
-          </Typography>
+          <Typography variant="overline" className="storefront-eyebrow">{t("الحساب")}</Typography>
           <Stack spacing={1.25}>
             {renderStoreRegisterButton(true)}
             {renderDrawerAccountSection()}

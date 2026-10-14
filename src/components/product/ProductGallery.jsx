@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import { useCallback, useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
@@ -15,6 +16,7 @@ export default function ProductGallery({
   selectedImageIndex,
   onSelectImage,
 }) {
+  const { t } = useStorefrontLanguage();
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const normalizedImages = images.length
@@ -73,7 +75,7 @@ export default function ProductGallery({
             decoding="async"
           />
         ) : (
-          <span>صورة</span>
+          <span>{t("صورة")}</span>
         )}
       </button>
     );
@@ -88,7 +90,7 @@ export default function ProductGallery({
               type="button"
               className="product-gallery__main-button"
               onClick={() => setLightboxOpen(true)}
-              aria-label="فتح عرض الصور"
+              aria-label={t("فتح عرض الصور")}
             >
               <img
                 src={activeImageUrl}
@@ -96,13 +98,11 @@ export default function ProductGallery({
                 className="product-gallery__image"
                 decoding="async"
               />
-              <span className="product-gallery__zoom-hint">عرض أكبر</span>
+              <span className="product-gallery__zoom-hint">{t("عرض أكبر")}</span>
             </button>
           ) : (
             <Box className="product-gallery__empty">
-              <Typography variant="body1" color="text.secondary">
-                لا توجد صورة لهذا المنتج بعد
-              </Typography>
+              <Typography variant="body1" color="text.secondary">{t("لا توجد صورة لهذا المنتج بعد")}</Typography>
             </Box>
           )}
         </Box>
@@ -128,7 +128,7 @@ export default function ProductGallery({
             <IconButton
               className="product-gallery__lightbox-close"
               onClick={() => setLightboxOpen(false)}
-              aria-label="إغلاق المعرض"
+              aria-label={t("إغلاق المعرض")}
             >
               <CloseRoundedIcon />
             </IconButton>
@@ -139,7 +139,7 @@ export default function ProductGallery({
               <IconButton
                 className="product-gallery__lightbox-arrow"
                 onClick={() => navigateTo("previous")}
-                aria-label="الصورة السابقة"
+                aria-label={t("الصورة السابقة")}
               >
                 <ChevronRightRoundedIcon />
               </IconButton>
@@ -155,9 +155,7 @@ export default function ProductGallery({
                 />
               ) : (
                 <Box className="product-gallery__lightbox-empty">
-                  <Typography variant="body2" color="text.secondary">
-                    لا توجد صورة لهذا المنتج بعد
-                  </Typography>
+                  <Typography variant="body2" color="text.secondary">{t("لا توجد صورة لهذا المنتج بعد")}</Typography>
                 </Box>
               )}
             </Box>
@@ -166,7 +164,7 @@ export default function ProductGallery({
               <IconButton
                 className="product-gallery__lightbox-arrow"
                 onClick={() => navigateTo("next")}
-                aria-label="الصورة التالية"
+                aria-label={t("الصورة التالية")}
               >
                 <ChevronLeftRoundedIcon />
               </IconButton>

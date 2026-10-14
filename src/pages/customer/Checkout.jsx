@@ -95,7 +95,7 @@ function findStoreWhatsAppNumber(store) {
   return "";
 }
 
-function buildCouponDiscountLabel(order, couponCode) {
+function buildCouponDiscountLabel(order, couponCode, t) {
   const discountType = order.couponDiscountType;
   const discountValue = Number(order.couponDiscountValue ?? 0) || 0;
 
@@ -104,17 +104,17 @@ function buildCouponDiscountLabel(order, couponCode) {
   }
 
   if (discountType === 0 && discountValue > 0) {
-    return `- خصم ${discountValue}% على كوبون ${couponCode}`;
+    return t("- خصم {0}% على كوبون {1}", discountValue, couponCode);
   }
 
   if (discountType === 1 && discountValue > 0) {
-    return `- خصم ${formatCurrency(discountValue)} على كوبون ${couponCode}`;
+    return t("- خصم {0} على كوبون {1}", formatCurrency(discountValue), couponCode);
   }
 
-  return `- تم تطبيق كوبون الخصم: ${couponCode}`;
+  return t("- تم تطبيق كوبون الخصم: {0}", couponCode);
 }
 
-function buildWhatsAppOrderMessage({ store, cart, form, order }) {
+function buildWhatsAppOrderMessage({ store, cart, form, order, t }) {
   const normalizedOrder = normalizeOrderDetails(order);
   const normalizedItems = normalizedOrder.items.length
     ? normalizedOrder.items
@@ -124,7 +124,7 @@ function buildWhatsAppOrderMessage({ store, cart, form, order }) {
           item.productName ||
           item.raw?.productName ||
           item.raw?.product?.name ||
-          `منتج #${index + 1}`,
+          t("منتج #{0}", index + 1),
         variantName: item.variantName || "",
         variantSku: item.variantSku || "",
         variantAttributes: item.variantAttributes || "",
@@ -152,7 +152,7 @@ function buildWhatsAppOrderMessage({ store, cart, form, order }) {
   ).trim();
   const customerDiscountPercentage =
     Number(normalizedOrder.customerDiscountPercentage ?? 0) || 0;
-  const couponDiscountLabel = buildCouponDiscountLabel(normalizedOrder, couponCode);
+  const couponDiscountLabel = buildCouponDiscountLabel(normalizedOrder, couponCode, t);
 
   const orderItems = normalizedItems.map((item, index) => {
     const variantDetails = [
@@ -164,20 +164,20 @@ function buildWhatsAppOrderMessage({ store, cart, form, order }) {
 
     return [
       `- ${index + 1}. ${item.productName}${variantLabel}`,
-      `  الكمية: ${item.quantity}`,
-      `  سعر الوحدة: ${formatCurrency(item.unitPrice)}`,
-      `  الإجمالي: ${formatCurrency(item.totalPrice)}`,
+      t("الكمية: {0}", item.quantity),
+      t("سعر الوحدة: {0}", formatCurrency(item.unitPrice)),
+      t("الإجمالي: {0}", formatCurrency(item.totalPrice)),
     ].join("\n");
   });
 
   const pricingLines = [
-    `- السعر قبل الخصم: ${formatCurrency(subtotal)}`,
-    `- إجمالي الخصومات: ${formatCurrency(discountAmount)}`,
-    `- الإجمالي النهائي: ${formatCurrency(finalTotal)}`,
+    t("- السعر قبل الخصم: {0}", formatCurrency(subtotal)),
+    t("- إجمالي الخصومات: {0}", formatCurrency(discountAmount)),
+    t("- الإجمالي النهائي: {0}", formatCurrency(finalTotal)),
   ];
 
   if (customerDiscountPercentage > 0) {
-    pricingLines.push(`- تم خصم ${customerDiscountPercentage}% لزبون متجر`);
+    pricingLines.push(t("- تم خصم {0}% لزبون متجر", customerDiscountPercentage));
   }
 
   if (couponDiscountLabel) {
@@ -185,22 +185,22 @@ function buildWhatsAppOrderMessage({ store, cart, form, order }) {
   }
 
   return [
-    "طلب جديد",
-    `المتجر: ${store.name || "-"}`,
-    `رقم الطلب: ${normalizedOrder.orderNumber || normalizedOrder.id || "-"}`,
+    t("طلب جديد"),
+    t("المتجر: {0}", store.name || "-"),
+    t("رقم الطلب: {0}", normalizedOrder.orderNumber || normalizedOrder.id || "-"),
     "",
-    "بيانات التوصيل:",
-    `- العنوان: ${normalizedOrder.deliveryAddress || form.deliveryAddress || "-"}`,
-    `- المدينة: ${normalizedOrder.deliveryCity || form.deliveryCity || "-"}`,
-    `- رقم الهاتف: ${normalizedOrder.deliveryPhone || form.deliveryPhone || "-"}`,
+    t("بيانات التوصيل:"),
+    t("- العنوان: {0}", normalizedOrder.deliveryAddress || form.deliveryAddress || "-"),
+    t("- المدينة: {0}", normalizedOrder.deliveryCity || form.deliveryCity || "-"),
+    t("- رقم الهاتف: {0}", normalizedOrder.deliveryPhone || form.deliveryPhone || "-"),
     "",
-    "تفاصيل الطلب:",
+    t("تفاصيل الطلب:"),
     ...orderItems,
     "",
-    "الملخص:",
-    `- إجمالي العناصر: ${normalizedOrder.itemsCount || cart.itemCount}`,
+    t("الملخص:"),
+    t("- إجمالي العناصر: {0}", normalizedOrder.itemsCount || cart.itemCount),
     ...pricingLines,
-    `- ملاحظات: ${normalizedOrder.customerNotes || form.customerNotes || "-"}`,
+    t("- ملاحظات: {0}", normalizedOrder.customerNotes || form.customerNotes || "-"),
   ].join("\n");
 }
 
@@ -266,7 +266,7 @@ export default function Checkout() {
   const [form, setForm] = useState(initialForm);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
-  const { language } = useStorefrontLanguage();
+  const { t, language } = useStorefrontLanguage();
 
   const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(
@@ -303,7 +303,7 @@ export default function Checkout() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-checkout">
-        <EmptyState title="جارٍ تحميل صفحة الدفع..." />
+        <EmptyState title={t("جارٍ تحميل صفحة الدفع...")} />
       </Box>
     );
   }
@@ -312,8 +312,8 @@ export default function Checkout() {
     return (
       <Box className="storefront-page page-checkout">
         <EmptyState
-          title="تعذر فتح صفحة الدفع"
-          description="تعذر العثور على المتجر المطلوب."
+          title={t("تعذر فتح صفحة الدفع")}
+          description={t("تعذر العثور على المتجر المطلوب.")}
         />
       </Box>
     );
@@ -323,16 +323,14 @@ export default function Checkout() {
     return (
       <Box className="storefront-page page-checkout">
         <EmptyState
-          title="يلزم تسجيل الدخول لهذا المتجر"
-          description="جلسة العميل الحالية تخص متجرًا آخر، لذلك سيُرفض الطلب هنا."
+          title={t("يلزم تسجيل الدخول لهذا المتجر")}
+          description={t("جلسة العميل الحالية تخص متجرًا آخر، لذلك سيُرفض الطلب هنا.")}
           action={
             <AppButton
               component={RouterLink}
               to={storeLoginPath}
               variant="contained"
-            >
-              تسجيل الدخول لهذا المتجر
-            </AppButton>
+            >{t("تسجيل الدخول لهذا المتجر")}</AppButton>
           }
         />
       </Box>
@@ -343,16 +341,14 @@ export default function Checkout() {
     return (
       <Box className="storefront-page page-checkout">
         <EmptyState
-          title="لا يمكن المتابعة دون منتجات"
-          description="أضف منتجًا واحدًا على الأقل إلى السلة قبل إرسال الطلب."
+          title={t("لا يمكن المتابعة دون منتجات")}
+          description={t("أضف منتجًا واحدًا على الأقل إلى السلة قبل إرسال الطلب.")}
           action={
             <AppButton
               component={RouterLink}
               to={storeHomePath}
               variant="contained"
-            >
-              العودة إلى المتجر
-            </AppButton>
+            >{t("العودة إلى المتجر")}</AppButton>
           }
         />
       </Box>
@@ -408,7 +404,7 @@ export default function Checkout() {
     if (!String(form.deliveryAddress || "").trim()) {
       handleValidationFailure(
         "missing-delivery-address",
-        "يرجى إدخال عنوان التوصيل قبل إرسال الطلب.",
+        t("يرجى إدخال عنوان التوصيل قبل إرسال الطلب."),
       );
       return;
     }
@@ -416,7 +412,7 @@ export default function Checkout() {
     if (!String(form.deliveryCity || "").trim()) {
       handleValidationFailure(
         "missing-delivery-city",
-        "يرجى إدخال المدينة قبل إرسال الطلب.",
+        t("يرجى إدخال المدينة قبل إرسال الطلب."),
       );
       return;
     }
@@ -424,7 +420,7 @@ export default function Checkout() {
     if (!String(form.deliveryPhone || "").trim()) {
       handleValidationFailure(
         "missing-delivery-phone",
-        "يرجى إدخال رقم الهاتف قبل إرسال الطلب.",
+        t("يرجى إدخال رقم الهاتف قبل إرسال الطلب."),
       );
       return;
     }
@@ -435,7 +431,7 @@ export default function Checkout() {
     if (!waNumber) {
       handleValidationFailure(
         "missing-store-whatsapp-number",
-        "لا يوجد رقم واتساب صالح لصاحب المتجر حاليًا. تحقق من بيانات التواصل في المتجر.",
+        t("لا يوجد رقم واتساب صالح لصاحب المتجر حاليًا. تحقق من بيانات التواصل في المتجر."),
         {
           rawWhatsAppNumber,
         },
@@ -445,13 +441,13 @@ export default function Checkout() {
 
     let whatsappUrl = buildWhatsAppLink(
       waNumber,
-      buildWhatsAppOrderMessage({ store, cart, form }),
+      buildWhatsAppOrderMessage({ store, cart, form, t }),
     );
 
     if (!whatsappUrl) {
       handleValidationFailure(
         "failed-to-build-whatsapp-url",
-        `تعذر تجهيز رابط واتساب لهذا الرقم: ${rawWhatsAppNumber}`,
+        t("تعذر تجهيز رابط واتساب لهذا الرقم: {0}", rawWhatsAppNumber),
         {
           rawWhatsAppNumber,
           normalizedWhatsAppNumber: waNumber,
@@ -504,7 +500,7 @@ export default function Checkout() {
         setSubmitError(
           extractApiError(
             error,
-            "تم رفض الطلب لأن جلسة العميل الحالية لا تخص هذا المتجر.",
+            t("تم رفض الطلب لأن جلسة العميل الحالية لا تخص هذا المتجر."),
           ),
         );
         return;
@@ -513,7 +509,7 @@ export default function Checkout() {
       setSubmitError(
         extractApiError(
           error,
-          "تعذر إنشاء الطلب. تحقق من كود الخصم وبيانات التوصيل وتوفر المخزون.",
+          t("تعذر إنشاء الطلب. تحقق من كود الخصم وبيانات التوصيل وتوفر المخزون."),
         ),
       );
       return;
@@ -531,6 +527,7 @@ export default function Checkout() {
     whatsappUrl = buildWhatsAppLink(
       waNumber,
       buildWhatsAppOrderMessage({
+        t,
         store,
         order: normalizedOrder,
         cart,
@@ -542,7 +539,7 @@ export default function Checkout() {
       closePendingWhatsAppWindow(pendingWhatsAppWindow);
       handleValidationFailure(
         "failed-to-build-whatsapp-url",
-        `تعذر تجهيز رابط واتساب لهذا الرقم: ${rawWhatsAppNumber}`,
+        t("تعذر تجهيز رابط واتساب لهذا الرقم: {0}", rawWhatsAppNumber),
         {
           rawWhatsAppNumber,
           normalizedWhatsAppNumber: waNumber,
@@ -567,7 +564,7 @@ export default function Checkout() {
         debugSource: "customer-checkout-after-order",
       });
       setSubmitSuccess(
-        `تم إنشاء الطلب ومسح السلة بنجاح. حالة الطلب الآن ${getOrderStatusLabel(ORDER_STATUS.PENDING)} بانتظار تأكيد صاحب المتجر. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
+        t("تم إنشاء الطلب ومسح السلة بنجاح. حالة الطلب الآن {0} بانتظار تأكيد صاحب المتجر. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر ({1}).", t(getOrderStatusLabel(ORDER_STATUS.PENDING)), waNumber),
       );
     } catch (error) {
       logOrderCartFlow("Checkout Cart Clear Failed After Order", {
@@ -577,7 +574,7 @@ export default function Checkout() {
         error: serializeOrderCartError(error),
       });
       setSubmitSuccess(
-        `تم إنشاء الطلب بنجاح. حالة الطلب الآن ${getOrderStatusLabel(ORDER_STATUS.PENDING)} بانتظار تأكيد صاحب المتجر. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر (${waNumber}).`,
+        t("تم إنشاء الطلب بنجاح. حالة الطلب الآن {0} بانتظار تأكيد صاحب المتجر. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر ({1}).", t(getOrderStatusLabel(ORDER_STATUS.PENDING)), waNumber),
       );
     }
 
@@ -600,21 +597,16 @@ export default function Checkout() {
       <SurfaceCard className="page-checkout__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">إتمام الطلب</span>
-            <Typography variant="h2">إرسال الطلب عبر واتساب - {store.name}</Typography>
-            <Typography variant="body1" className="storefront-subtitle">
-              يمكنك مراجعة السلة كضيف، لكن إرسال الطلب نفسه يتطلب تسجيل الدخول أولًا.
-              بعد إنشاء الطلب ستصبح حالته معلقة حتى يؤكدها صاحب المتجر، ثم سيفتح واتساب مع ملخص واضح للخصومات المطبقة.
-            </Typography>
+            <span className="storefront-eyebrow">{t("إتمام الطلب")}</span>
+            <Typography variant="h2">{t("إرسال الطلب عبر واتساب -")} {store.name}</Typography>
+            <Typography variant="body1" className="storefront-subtitle">{t("يمكنك مراجعة السلة كضيف، لكن إرسال الطلب نفسه يتطلب تسجيل الدخول أولًا. بعد إنشاء الطلب ستصبح حالته معلقة حتى يؤكدها صاحب المتجر، ثم سيفتح واتساب مع ملخص واضح للخصومات المطبقة.")}</Typography>
           </Box>
 
           <AppButton
             component={RouterLink}
             to={storeCartPath}
             variant="outlined"
-          >
-            العودة إلى السلة
-          </AppButton>
+          >{t("العودة إلى السلة")}</AppButton>
         </Box>
       </SurfaceCard>
 
@@ -625,7 +617,7 @@ export default function Checkout() {
               step={step}
               form={form}
               isSubmitting={createOrderMutation.isPending || clearCartMutation.isPending}
-              submitLabel="إرسال الطلب عبر واتساب"
+              submitLabel={t("إرسال الطلب عبر واتساب")}
               onChange={(key, value) =>
                 setForm((previous) => ({
                   ...previous,
@@ -641,7 +633,7 @@ export default function Checkout() {
 
         <Box className="storefront-grid__span-4">
           <SurfaceCard className="page-checkout__cart-card">
-            <Typography variant="h6">عناصر السلة</Typography>
+            <Typography variant="h6">{t("عناصر السلة")}</Typography>
             <Stack spacing={1.5} divider={<Divider flexItem />}>
               {cart.items.map((item) => (
                 <CartItem key={item.id} item={item} storeSlug={resolvedStoreSlug} />
@@ -654,7 +646,7 @@ export default function Checkout() {
             totalAmount={cart.totalAmount}
             itemCount={cart.itemCount}
             checkoutPath={storeCartPath}
-            actionLabel="مراجعة السلة"
+            actionLabel={t("مراجعة السلة")}
           />
         </Box>
       </Box>

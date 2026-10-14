@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import { useMemo, useState } from "react";
 import {
   Link as RouterLink,
@@ -63,6 +64,7 @@ import {
 import "./Login.css";
 
 export default function VerifyEmail() {
+  const { t, language } = useStorefrontLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const { slug: routeStoreSlug = "" } = useParams();
@@ -79,6 +81,7 @@ export default function VerifyEmail() {
   const mergeGuestCart = useMergeGuestCart();
   const customDomainHost = getCurrentCustomDomainHost();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
+    language,
     enabled: Boolean(routeStoreSlug || customDomainHost),
     staleTime: 60000,
   });
@@ -154,7 +157,7 @@ export default function VerifyEmail() {
       <Box className="page-login">
         <Box className="page-login__shell" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
           <Paper className="page-login__panel page-login__panel--form" elevation={0}>
-            <Typography variant="body1">جاري تجهيز بيانات التحقق...</Typography>
+            <Typography variant="body1">{t("جاري تجهيز بيانات التحقق...")}</Typography>
           </Paper>
         </Box>
       </Box>
@@ -238,21 +241,21 @@ export default function VerifyEmail() {
   function handleStoreScopedAuthError(error) {
     if (error?.code === "STORE_SCOPE_MISMATCH") {
       setLocalError(
-        "انتهت صلاحية سياق المتجر الحالي. أعد فتح المتجر الصحيح ثم حاول مرة أخرى.",
+        t("انتهت صلاحية سياق المتجر الحالي. أعد فتح المتجر الصحيح ثم حاول مرة أخرى."),
       );
       return true;
     }
 
     if (error?.code === "STORE_SCOPE_UNRESOLVED") {
       setLocalError(
-        "تعذر تأكيد انتماء هذا الحساب للمتجر الحالي. حاول مرة أخرى.",
+        t("تعذر تأكيد انتماء هذا الحساب للمتجر الحالي. حاول مرة أخرى."),
       );
       return true;
     }
 
     if (error?.code === "STORE_MEMBERSHIP_REQUIRED") {
       setLocalError(
-        "هذا الحساب ليس مالكًا لهذا المتجر ولا زبونًا مسجلًا فيه.",
+        t("هذا الحساب ليس مالكًا لهذا المتجر ولا زبونًا مسجلًا فيه."),
       );
       return true;
     }
@@ -275,12 +278,12 @@ export default function VerifyEmail() {
     });
 
     if (!email) {
-      setLocalError("أدخل البريد الإلكتروني أولًا.");
+      setLocalError(t("أدخل البريد الإلكتروني أولًا."));
       return;
     }
 
     if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
-      setLocalError("تعذر تحديد المتجر المرتبط بعملية التحقق.");
+      setLocalError(t("تعذر تحديد المتجر المرتبط بعملية التحقق."));
       return;
     }
 
@@ -361,7 +364,7 @@ export default function VerifyEmail() {
         return;
       }
 
-      setLocalError(extractApiError(error, "تعذر التحقق من البريد."));
+      setLocalError(extractApiError(error, t("تعذر التحقق من البريد.")));
     }
   });
 
@@ -371,13 +374,13 @@ export default function VerifyEmail() {
 
     if (!email) {
       resendVerificationCodeMutation.reset();
-      setLocalError("أدخل البريد الإلكتروني أولًا.");
+      setLocalError(t("أدخل البريد الإلكتروني أولًا."));
       return;
     }
 
     if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
       resendVerificationCodeMutation.reset();
-      setLocalError("تعذر تحديد المتجر المرتبط بعملية التحقق.");
+      setLocalError(t("تعذر تحديد المتجر المرتبط بعملية التحقق."));
       return;
     }
 
@@ -397,8 +400,8 @@ export default function VerifyEmail() {
 
   const description = isStoreCustomerMode
     ? location.state?.message ||
-      "أدخل الكود الذي وصلك على البريد الإلكتروني لتفعيل حسابك داخل هذا المتجر."
-    : location.state?.message || "أدخل الكود الذي وصلك على البريد الإلكتروني.";
+      t("أدخل الكود الذي وصلك على البريد الإلكتروني لتفعيل حسابك داخل هذا المتجر.")
+    : location.state?.message || t("أدخل الكود الذي وصلك على البريد الإلكتروني.");
 
   return (
     <Box className="page-login">
@@ -406,12 +409,8 @@ export default function VerifyEmail() {
         <Paper className="page-login__panel page-login__panel--form" elevation={0}>
           <Stack spacing={2.25} component="form" onSubmit={onSubmit}>
             <Box>
-              <Typography variant="overline" className="page-login__eyebrow">
-                تحقق البريد
-              </Typography>
-              <Typography variant="h4" className="page-login__form-title">
-                أدخل كود التحقق لإكمال العملية
-              </Typography>
+              <Typography variant="overline" className="page-login__eyebrow">{t("تحقق البريد")}</Typography>
+              <Typography variant="h4" className="page-login__form-title">{t("أدخل كود التحقق لإكمال العملية")}</Typography>
               <Typography variant="body2" color="text.secondary">
                 {description}
               </Typography>
@@ -419,7 +418,7 @@ export default function VerifyEmail() {
 
             {verifyEmailMutation.isError ? (
               <Alert severity="error">
-                {extractApiError(verifyEmailMutation.error, "تعذر التحقق من البريد.")}
+                {extractApiError(verifyEmailMutation.error, t("تعذر التحقق من البريد."))}
               </Alert>
             ) : null}
 
@@ -430,8 +429,8 @@ export default function VerifyEmail() {
                 <Stack spacing={0.5}>
                   <span>
                     {location.state?.storeName
-                      ? `رابط متجر ${location.state.storeName}`
-                      : "رابط المتجر"}
+                      ? t("رابط متجر {0}", location.state.storeName)
+                      : t("رابط المتجر")}
                   </span>
                   <Button
                     component="a"
@@ -449,18 +448,18 @@ export default function VerifyEmail() {
 
             {resendVerificationCodeMutation.isSuccess ? (
               <Alert severity="success">
-                {resendVerificationCodeMutation.data?.message || "تم إرسال كود تحقق جديد."}
+                {resendVerificationCodeMutation.data?.message || t("تم إرسال كود تحقق جديد.")}
               </Alert>
             ) : null}
 
             {resendVerificationCodeMutation.isError ? (
               <Alert severity="error">
-                {extractApiError(resendVerificationCodeMutation.error, "تعذر إرسال كود جديد.")}
+                {extractApiError(resendVerificationCodeMutation.error, t("تعذر إرسال كود جديد."))}
               </Alert>
             ) : null}
 
             <TextField
-              label="البريد الإلكتروني"
+              label={t("البريد الإلكتروني")}
               placeholder="name@example.com"
               fullWidth
               autoComplete="email"
@@ -472,10 +471,10 @@ export default function VerifyEmail() {
                 ),
               }}
               {...register("email", {
-                required: "البريد الإلكتروني مطلوب",
+                required: t("البريد الإلكتروني مطلوب"),
                 pattern: {
                   value: /\S+@\S+\.\S+/,
-                  message: "يرجى إدخال بريد إلكتروني صحيح",
+                  message: t("يرجى إدخال بريد إلكتروني صحيح"),
                 },
               })}
               error={Boolean(errors.email)}
@@ -483,7 +482,7 @@ export default function VerifyEmail() {
             />
 
             <TextField
-              label="كود التحقق"
+              label={t("كود التحقق")}
               placeholder="123456"
               fullWidth
               autoComplete="one-time-code"
@@ -495,14 +494,14 @@ export default function VerifyEmail() {
                 ),
               }}
               {...register("code", {
-                required: "كود التحقق مطلوب",
+                required: t("كود التحقق مطلوب"),
                 minLength: {
                   value: 4,
-                  message: "الحد الأدنى للكود 4",
+                  message: t("الحد الأدنى للكود 4"),
                 },
                 maxLength: {
                   value: 10,
-                  message: "الحد الأقصى للكود 10",
+                  message: t("الحد الأقصى للكود 10"),
                 },
               })}
               error={Boolean(errors.code)}
@@ -515,7 +514,7 @@ export default function VerifyEmail() {
               size="large"
               disabled={verifyEmailMutation.isPending || resendVerificationCodeMutation.isPending}
             >
-              {verifyEmailMutation.isPending ? "جارٍ التحقق..." : "تأكيد الكود"}
+              {verifyEmailMutation.isPending ? t("جارٍ التحقق...") : t("تأكيد الكود")}
             </Button>
 
             <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -526,19 +525,15 @@ export default function VerifyEmail() {
                 disabled={verifyEmailMutation.isPending || resendVerificationCodeMutation.isPending}
               >
                 {resendVerificationCodeMutation.isPending
-                  ? "جارٍ الإرسال..."
-                  : "إعادة إرسال الكود"}
+                  ? t("جارٍ الإرسال...")
+                  : t("إعادة إرسال الكود")}
               </Button>
-              <Button component={RouterLink} to={loginPath} state={location.state} variant="text">
-                رجوع لتسجيل الدخول
-              </Button>
+              <Button component={RouterLink} to={loginPath} state={location.state} variant="text">{t("رجوع لتسجيل الدخول")}</Button>
             </Stack>
 
             <Divider />
 
-            <Button component={RouterLink} to={registerPath} state={location.state} variant="text">
-              إنشاء حساب جديد
-            </Button>
+            <Button component={RouterLink} to={registerPath} state={location.state} variant="text">{t("إنشاء حساب جديد")}</Button>
           </Stack>
         </Paper>
       </Box>

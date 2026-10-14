@@ -13,7 +13,7 @@ import "./StoreLayout.css";
 
 export default function StoreLayout() {
   const { slug = "" } = useParams();
-  const { language, dir, locale } = useStorefrontLanguage();
+  const { t, language, dir, locale, isLanguageLoading } = useStorefrontLanguage();
   const customDomainHost = getCurrentCustomDomainHost();
   const { isOwnerPreview } = useOwnerStorePreview();
   const storeQuery = useStoreBySlug(slug, {
@@ -26,14 +26,16 @@ export default function StoreLayout() {
 
   useStoreBranding(store);
 
+  if (isLanguageLoading) {
+    return <Box className="store-layout" aria-busy="true" sx={{ minHeight: "60vh" }} />;
+  }
+
   return (
     <Box className="store-layout" dir={dir} lang={locale}>
       <Header />
       <Box component="main" className="store-layout__content">
         {isOwnerPreview ? (
-          <Alert severity="info" className="store-layout__preview-alert">
-            هذه معاينة كتاجر. أزرار السلة والشراء معطلة هنا لعرض الواجهة فقط.
-          </Alert>
+          <Alert severity="info" className="store-layout__preview-alert">{t("هذه معاينة كتاجر. أزرار السلة والشراء معطلة هنا لعرض الواجهة فقط.")}</Alert>
         ) : null}
         <Outlet />
       </Box>

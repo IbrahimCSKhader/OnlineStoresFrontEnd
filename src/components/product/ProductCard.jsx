@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 ﻿import { memo } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
@@ -36,6 +37,7 @@ function ProductCard({
   scrollAnchorScope = "products",
   scrollAnchorIndex = 0,
 }) {
+  const { t } = useStorefrontLanguage();
   const location = useLocation();
   const normalizedProduct = normalizeProductDto(product);
   const displayVariant = getProductDisplayVariant(normalizedProduct);
@@ -85,14 +87,14 @@ function ProductCard({
     "";
   const availabilityLabel = isAvailable
     ? normalizedProduct.trackInventory && stockQuantity > 0
-      ? `متوفر ${stockQuantity}`
-      : "متوفر الآن"
-    : "نفد مؤقتاً";
+      ? t("متوفر {0}", stockQuantity)
+      : t("متوفر الآن")
+    : t("نفد مؤقتاً");
   const discountBadgeLabel =
     normalizedProduct.hasDiscount && normalizedProduct.discountPercentage > 0
-      ? `%${Math.round(normalizedProduct.discountPercentage)} خصم`
+      ? t("%{0} خصم", Math.round(normalizedProduct.discountPercentage))
       : normalizedProduct.hasDiscount
-        ? "عرض"
+        ? t("عرض")
         : "";
 
   const handleNavigateToDetails = () => {
@@ -134,9 +136,7 @@ function ProductCard({
             />
           ) : (
             <Box className="product-card__media-empty">
-              <Typography variant="body2" color="text.secondary">
-                لا توجد صورة
-              </Typography>
+              <Typography variant="body2" color="text.secondary">{t("لا توجد صورة")}</Typography>
             </Box>
           )}
 
@@ -147,13 +147,13 @@ function ProductCard({
               </span>
             ) : null}
             {normalizedProduct.isWholesalePriceApplied ? (
-              <span className="product-card__badge">سعر عميل</span>
+              <span className="product-card__badge">{t("سعر عميل")}</span>
             ) : null}
             {normalizedProduct.isFeatured ? (
-              <span className="product-card__badge">مميز</span>
+              <span className="product-card__badge">{t("مميز")}</span>
             ) : null}
             {!isAvailable ? (
-              <span className="product-card__badge">نفد</span>
+              <span className="product-card__badge">{t("نفد")}</span>
             ) : null}
           </Box>
         </Box>
@@ -189,8 +189,7 @@ function ProductCard({
                 variant="caption"
                 color="text.secondary"
                 className="product-card__price-note"
-              >
-                قبل خصم العميل: {formatCurrency(originalPrice)}
+              >{t("قبل خصم العميل:")} {formatCurrency(originalPrice)}
               </Typography>
             ) : null}
 
@@ -200,7 +199,7 @@ function ProductCard({
               className="product-card__description"
             >
               {cardDescription ||
-                "قطعة واضحة التفاصيل مع صورة تركز على المنتج نفسه."}
+                t("قطعة واضحة التفاصيل مع صورة تركز على المنتج نفسه.")}
             </Typography>
 
             <Typography
@@ -223,9 +222,7 @@ function ProductCard({
             endIcon={<OpenInNewRoundedIcon fontSize="small" />}
             className="product-card__detail-button"
             onClick={handleNavigateToDetails}
-          >
-            عرض المنتج
-          </AppButton>
+          >{t("عرض المنتج")}</AppButton>
         ) : null}
 
         {onAddToCart ? (
@@ -242,9 +239,7 @@ function ProductCard({
                 ? "product-card__add-button"
                 : "product-card__add-button product-card__add-button--solo"
             }
-          >
-            أضف
-          </AppButton>
+          >{t("أضف")}</AppButton>
         ) : null}
       </Stack>
     </SurfaceCard>

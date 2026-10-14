@@ -92,7 +92,7 @@ export default function ProductsPage() {
   const { slug = "" } = useParams();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
-  const { language } = useStorefrontLanguage();
+  const { t, language } = useStorefrontLanguage();
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
@@ -265,7 +265,7 @@ export default function ProductsPage() {
   if (storeQuery.isLoading) {
     return (
       <Box className="storefront-page page-products">
-        <EmptyState title="جاري تحميل المنتجات..." />
+        <EmptyState title={t("جاري تحميل المنتجات...")} />
       </Box>
     );
   }
@@ -274,8 +274,8 @@ export default function ProductsPage() {
     return (
       <Box className="storefront-page page-products">
         <EmptyState
-          title="تعذر فتح المنتجات"
-          description="تعذر العثور على المتجر المطلوب."
+          title={t("تعذر فتح المنتجات")}
+          description={t("تعذر العثور على المتجر المطلوب.")}
         />
       </Box>
     );
@@ -285,21 +285,19 @@ export default function ProductsPage() {
     <Box className="storefront-page page-products">
       <SurfaceCard variant="hero" className="page-products__hero">
         <Box className="page-products__hero-copy">
-          <span className="storefront-eyebrow">المنتجات</span>
-          <Typography variant="h2">كل تشكيلات {store.name}</Typography>
-          <Typography variant="body1" className="storefront-subtitle">
-            فلترة سريعة حسب السعر، الفئة، القسم، التوفر والعروض.
-          </Typography>
+          <span className="storefront-eyebrow">{t("المنتجات")}</span>
+          <Typography variant="h2">{t("كل تشكيلات")} {store.name}</Typography>
+          <Typography variant="body1" className="storefront-subtitle">{t("فلترة سريعة حسب السعر، الفئة، القسم، التوفر والعروض.")}</Typography>
         </Box>
 
         <Stack direction="row" className="page-products__hero-stats">
           <Box className="page-products__stat">
             <Inventory2RoundedIcon fontSize="small" />
-            <span>{products.length.toLocaleString("ar")} منتج</span>
+            <span>{products.length.toLocaleString("ar")} {t("منتج")}</span>
           </Box>
           <Box className="page-products__stat">
             <FilterAltRoundedIcon fontSize="small" />
-            <span>{filteredProducts.length.toLocaleString("ar")} نتيجة</span>
+            <span>{filteredProducts.length.toLocaleString("ar")} {t("نتيجة")}</span>
           </Box>
           <Box className="page-products__stat">
             <LocalOfferRoundedIcon fontSize="small" />
@@ -312,8 +310,8 @@ export default function ProductsPage() {
         <SurfaceCard className="page-products__filters">
           <Box className="page-products__filters-head">
             <Box>
-              <span className="storefront-eyebrow">فلترة ذكية</span>
-              <Typography variant="h5">اختصر الطريق</Typography>
+              <span className="storefront-eyebrow">{t("فلترة ذكية")}</span>
+              <Typography variant="h5">{t("اختصر الطريق")}</Typography>
             </Box>
             {hasActiveFilters ? (
               <AppButton
@@ -321,9 +319,7 @@ export default function ProductsPage() {
                 appearance="ghost"
                 startIcon={<RestartAltRoundedIcon fontSize="small" />}
                 onClick={resetFilters}
-              >
-                تصفير
-              </AppButton>
+              >{t("تصفير")}</AppButton>
             ) : null}
           </Box>
 
@@ -333,11 +329,11 @@ export default function ProductsPage() {
               setSearchText(value);
               resetPage();
             }}
-            placeholder="ابحث باسم المنتج أو الوصف"
+            placeholder={t("ابحث باسم المنتج أو الوصف")}
           />
 
           <Box className="page-products__filter-group">
-            <Typography variant="subtitle2">السعر</Typography>
+            <Typography variant="subtitle2">{t("السعر")}</Typography>
             <Box className="page-products__price-range">
               <Slider
                 value={activePriceRange}
@@ -362,7 +358,7 @@ export default function ProductsPage() {
           <Box className="page-products__filter-grid">
             <AppTextField
               select
-              label="الفئة"
+              label={t("الفئة")}
               value={selectedCategoryId}
               onChange={(event) => {
                 setSelectedCategoryId(event.target.value);
@@ -370,7 +366,7 @@ export default function ProductsPage() {
               }}
               SelectProps={{ native: true }}
             >
-              <option value="all">كل الفئات</option>
+              <option value="all">{t("كل الفئات")}</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name} ({categoryCounts.get(String(category.id)) || 0})
@@ -380,7 +376,7 @@ export default function ProductsPage() {
 
             <AppTextField
               select
-              label="القسم"
+              label={t("القسم")}
               value={selectedSectionId}
               onChange={(event) => {
                 setSelectedSectionId(event.target.value);
@@ -388,7 +384,7 @@ export default function ProductsPage() {
               }}
               SelectProps={{ native: true }}
             >
-              <option value="all">كل الأقسام</option>
+              <option value="all">{t("كل الأقسام")}</option>
               {sections.map((section) => (
                 <option key={section.id} value={section.id}>
                   {section.name} ({sectionCounts.get(String(section.id)) || 0})
@@ -398,7 +394,7 @@ export default function ProductsPage() {
 
             <AppTextField
               select
-              label="الترتيب"
+              label={t("الترتيب")}
               value={sortValue}
               onChange={(event) => {
                 setSortValue(event.target.value);
@@ -406,11 +402,11 @@ export default function ProductsPage() {
               }}
               SelectProps={{ native: true }}
             >
-              <option value="newest">الأحدث</option>
-              <option value="popular">الأكثر مشاهدة</option>
-              <option value="price-asc">السعر: من الأقل</option>
-              <option value="price-desc">السعر: من الأعلى</option>
-              <option value="alphabetical">أبجدياً</option>
+              <option value="newest">{t("الأحدث")}</option>
+              <option value="popular">{t("الأكثر مشاهدة")}</option>
+              <option value="price-asc">{t("السعر: من الأقل")}</option>
+              <option value="price-desc">{t("السعر: من الأعلى")}</option>
+              <option value="alphabetical">{t("أبجدياً")}</option>
             </AppTextField>
           </Box>
 
@@ -425,7 +421,7 @@ export default function ProductsPage() {
                   }}
                 />
               }
-              label="المتوفر فقط"
+              label={t("المتوفر فقط")}
             />
             <FormControlLabel
               control={
@@ -437,7 +433,7 @@ export default function ProductsPage() {
                   }}
                 />
               }
-              label="المميز فقط"
+              label={t("المميز فقط")}
             />
             <FormControlLabel
               control={
@@ -449,7 +445,7 @@ export default function ProductsPage() {
                   }}
                 />
               }
-              label="العروض فقط"
+              label={t("العروض فقط")}
             />
           </Box>
 
@@ -457,7 +453,7 @@ export default function ProductsPage() {
             {strongestCategory?.count ? (
               <Chip
                 icon={<AutoAwesomeRoundedIcon />}
-                label={`الأكثر تنوعاً: ${strongestCategory.name}`}
+                label={t("الأكثر تنوعاً: {0}", strongestCategory.name)}
                 onClick={() => {
                   setSelectedCategoryId(String(strongestCategory.id));
                   resetPage();
@@ -465,14 +461,14 @@ export default function ProductsPage() {
               />
             ) : null}
             <Chip
-              label="الأقل سعراً"
+              label={t("الأقل سعراً")}
               onClick={() => {
                 setSortValue("price-asc");
                 resetPage();
               }}
             />
             <Chip
-              label="الأحدث"
+              label={t("الأحدث")}
               onClick={() => {
                 setSortValue("newest");
                 resetPage();
@@ -484,18 +480,15 @@ export default function ProductsPage() {
         <SurfaceCard className="page-products__results" id="products-results">
           <Box className="page-products__results-head">
             <Box>
-              <span className="storefront-eyebrow">النتائج</span>
+              <span className="storefront-eyebrow">{t("النتائج")}</span>
               <Typography variant="h5">
-                {filteredProducts.length.toLocaleString("ar")} منتج مطابق
-              </Typography>
+                {filteredProducts.length.toLocaleString("ar")} {t("منتج مطابق")}</Typography>
             </Box>
             <AppButton
               component={RouterLink}
               to={buildStorePreviewPath(`/market/${store.slug}`)}
               variant="outlined"
-            >
-              العودة للمتجر
-            </AppButton>
+            >{t("العودة للمتجر")}</AppButton>
           </Box>
 
           {productsQuery.isLoading ? (
@@ -527,8 +520,8 @@ export default function ProductsPage() {
             </>
           ) : (
             <EmptyState
-              title="لا توجد نتائج"
-              description="خفف الفلاتر أو جرّب نطاق سعر أوسع."
+              title={t("لا توجد نتائج")}
+              description={t("خفف الفلاتر أو جرّب نطاق سعر أوسع.")}
             />
           )}
         </SurfaceCard>

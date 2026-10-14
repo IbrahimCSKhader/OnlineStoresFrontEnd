@@ -150,7 +150,7 @@ export default function ProductDetails() {
   const location = useLocation();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
-  const { language } = useStorefrontLanguage();
+  const { t, language } = useStorefrontLanguage();
   const [uiState, setUiState] = useState({
     productId: "",
     selectedImageIndex: 0,
@@ -403,7 +403,7 @@ export default function ProductDetails() {
     }
 
     if (productHasVariants && !selectedVariant) {
-      showToast("يرجى اختيار نسخة المنتج قبل الإضافة إلى السلة.", "warning");
+      showToast(t("يرجى اختيار نسخة المنتج قبل الإضافة إلى السلة."), "warning");
       return;
     }
 
@@ -453,7 +453,7 @@ export default function ProductDetails() {
 
   const handleCopyProductLink = async () => {
     if (!productShareUrl) {
-      showToast("تعذر تجهيز رابط المنتج الآن.", "error");
+      showToast(t("تعذر تجهيز رابط المنتج الآن."), "error");
       return;
     }
 
@@ -463,22 +463,22 @@ export default function ProductDetails() {
       }
 
       await navigator.clipboard.writeText(productShareUrl);
-      showToast("تم نسخ رابط المنتج.", "success");
+      showToast(t("تم نسخ رابط المنتج."), "success");
     } catch {
-      showToast("تعذر نسخ الرابط الآن.", "error");
+      showToast(t("تعذر نسخ الرابط الآن."), "error");
     }
   };
 
   const handleShareProduct = async () => {
     if (!productShareUrl) {
-      showToast("تعذر تجهيز رابط المنتج الآن.", "error");
+      showToast(t("تعذر تجهيز رابط المنتج الآن."), "error");
       return;
     }
 
     try {
       if (navigator?.share) {
         await navigator.share({
-          title: product?.name || "المنتج",
+          title: product?.name || t("المنتج"),
           text: product?.shortDescription || product?.name || "",
           url: productShareUrl,
         });
@@ -500,7 +500,7 @@ export default function ProductDetails() {
   if (storeQuery.isLoading || productQuery.isLoading) {
     return (
       <Box className="storefront-page page-product-details">
-        <EmptyState title="جارٍ التحميل..." />
+        <EmptyState title={t("جارٍ التحميل...")} />
       </Box>
     );
   }
@@ -509,8 +509,8 @@ export default function ProductDetails() {
     return (
       <Box className="storefront-page page-product-details">
         <EmptyState
-          title="تعذر عرض المنتج"
-          description="ربما لم يعد هذا المنتج متاحًا أو أن الرابط غير صحيح."
+          title={t("تعذر عرض المنتج")}
+          description={t("ربما لم يعد هذا المنتج متاحًا أو أن الرابط غير صحيح.")}
           action={
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center">
               <AppButton
@@ -518,9 +518,7 @@ export default function ProductDetails() {
                 to={backTarget}
                 state={backTargetState}
                 variant="contained"
-              >
-                العودة إلى المتجر
-              </AppButton>
+              >{t("العودة إلى المتجر")}</AppButton>
             </Stack>
           }
         />
@@ -533,17 +531,17 @@ export default function ProductDetails() {
       <AppFeedbackSnackbar toast={toast} onClose={handleToastClose} />
 
       {addToCartMutation.isError ? (
-        <Alert severity="error">تعذر إضافة المنتج إلى السلة. حاول مرة أخرى.</Alert>
+        <Alert severity="error">{t("تعذر إضافة المنتج إلى السلة. حاول مرة أخرى.")}</Alert>
       ) : null}
 
       {addToCartMutation.isSuccess ? (
-        <Alert severity="success">تمت إضافة المنتج إلى السلة.</Alert>
+        <Alert severity="success">{t("تمت إضافة المنتج إلى السلة.")}</Alert>
       ) : null}
 
       <SurfaceCard variant="hero" className="page-product-details__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">المنتج</span>
+            <span className="storefront-eyebrow">{t("المنتج")}</span>
             <Stack
               direction="row"
               spacing={1}
@@ -571,7 +569,7 @@ export default function ProductDetails() {
                     )}
                     variant="text"
                   >
-                    {product.categoryName || "التصنيف"}
+                    {product.categoryName || t("التصنيف")}
                   </AppButton>
                 </>
               ) : null}
@@ -585,21 +583,15 @@ export default function ProductDetails() {
               state={backTargetState}
               variant="outlined"
               startIcon={<ArrowBackRoundedIcon fontSize="small" />}
-            >
-              العودة إلى المتجر
-            </AppButton>
+            >{t("العودة إلى المتجر")}</AppButton>
             {isOwnerPreview ? (
-              <AppButton variant="text" disabled>
-                السلة
-              </AppButton>
+              <AppButton variant="text" disabled>{t("السلة")}</AppButton>
             ) : (
               <AppButton
                 component={RouterLink}
                 to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/cart`)}
                 variant="text"
-              >
-                السلة
-              </AppButton>
+              >{t("السلة")}</AppButton>
             )}
           </Stack>
         </Box>
@@ -651,15 +643,15 @@ export default function ProductDetails() {
                   <Chip
                     label={
                       product.discountPercentage > 0
-                        ? `خصم ${Math.round(product.discountPercentage)}%`
-                        : "عرض متاح"
+                        ? t("خصم {0}%", Math.round(product.discountPercentage))
+                        : t("عرض متاح")
                     }
                     color="warning"
                     variant="outlined"
                   />
                 ) : null}
                 {product.isWholesalePriceApplied ? (
-                  <Chip label="تم تطبيق سعر العميل" color="success" variant="outlined" />
+                  <Chip label={t("تم تطبيق سعر العميل")} color="success" variant="outlined" />
                 ) : null}
               </Stack>
 
@@ -683,8 +675,7 @@ export default function ProductDetails() {
                   variant="body2"
                   color="text.secondary"
                   className="page-product-details__price-note"
-                >
-                  السعر قبل خصم العميل: {formatCurrency(originalPrice)}
+                >{t("السعر قبل خصم العميل:")} {formatCurrency(originalPrice)}
                 </Typography>
               ) : null}
 
@@ -694,9 +685,9 @@ export default function ProductDetails() {
                   label={
                     isAvailable
                       ? product.trackInventory && availableStock > 0
-                        ? `المتوفر: ${availableStock}`
-                        : "متوفر الآن"
-                      : "غير متوفر حالياً"
+                        ? t("المتوفر: {0}", availableStock)
+                        : t("متوفر الآن")
+                      : t("غير متوفر حالياً")
                   }
                   color={isAvailable ? "default" : "warning"}
                   variant="outlined"
@@ -727,7 +718,7 @@ export default function ProductDetails() {
               />
 
               {productHasVariants && selectedVariant && !isAvailable ? (
-                <Alert severity="warning">هذه النسخة غير متوفرة حالياً.</Alert>
+                <Alert severity="warning">{t("هذه النسخة غير متوفرة حالياً.")}</Alert>
               ) : null}
 
               {selectedSku || selectedVariantAttributes ? (
@@ -740,11 +731,11 @@ export default function ProductDetails() {
               ) : null}
 
               <Box className="page-product-details__purchase">
-                <Typography variant="subtitle1" className="page-product-details__block-title">
-                  الكمية
-                </Typography>
+                <Typography variant="subtitle1" className="page-product-details__block-title">{t("الكمية")}</Typography>
 
                 <QuantityStepper
+                  decreaseLabel={t("تقليل الكمية")}
+                  increaseLabel={t("زيادة الكمية")}
                   value={quantity}
                   min={1}
                   max={quantityMax}
@@ -756,34 +747,24 @@ export default function ProductDetails() {
                   <AppButton
                     variant="contained"
                     loading={addToCartUi.activeKey === "main"}
-                    loadingLabel="جارٍ الإضافة"
+                    loadingLabel={t("جارٍ الإضافة")}
                     onClick={handleAddToCart}
                     startIcon={<LocalMallRoundedIcon fontSize="small" />}
                     sx={{ minWidth: { xs: "100%", sm: 220 } }}
                     disabled={isOwnerPreview || !isAvailable || (productHasVariants && !selectedVariant)}
-                  >
-                    أضف إلى السلة
-                  </AppButton>
+                  >{t("أضف إلى السلة")}</AppButton>
                   {isOwnerPreview ? (
-                    <AppButton variant="outlined" disabled>
-                      اذهب إلى الدفع
-                    </AppButton>
+                    <AppButton variant="outlined" disabled>{t("اذهب إلى الدفع")}</AppButton>
                   ) : (
                     <AppButton
                       component={RouterLink}
                       to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/checkout`)}
                       variant="outlined"
                       disabled={!isAvailable || (productHasVariants && !selectedVariant)}
-                    >
-                      اذهب إلى الدفع
-                    </AppButton>
+                    >{t("اذهب إلى الدفع")}</AppButton>
                   )}
-                  <AppButton variant="outlined" onClick={handleCopyProductLink}>
-                    نسخ الرابط
-                  </AppButton>
-                  <AppButton variant="text" onClick={handleShareProduct}>
-                    مشاركة
-                  </AppButton>
+                  <AppButton variant="outlined" onClick={handleCopyProductLink}>{t("نسخ الرابط")}</AppButton>
+                  <AppButton variant="text" onClick={handleShareProduct}>{t("مشاركة")}</AppButton>
                 </Stack>
               </Box>
 
@@ -791,9 +772,7 @@ export default function ProductDetails() {
                 <>
                   <Divider />
                   <Box className="page-product-details__description">
-                    <Typography variant="subtitle1" className="page-product-details__block-title">
-                      وصف المنتج
-                    </Typography>
+                    <Typography variant="subtitle1" className="page-product-details__block-title">{t("وصف المنتج")}</Typography>
                     <Typography variant="body1" color="text.secondary">
                       {product.description}
                     </Typography>
@@ -805,9 +784,7 @@ export default function ProductDetails() {
                 <>
                   <Divider />
                   <Box className="page-product-details__attributes">
-                    <Typography variant="subtitle1" className="page-product-details__block-title">
-                      المواصفات
-                    </Typography>
+                    <Typography variant="subtitle1" className="page-product-details__block-title">{t("المواصفات")}</Typography>
                     <Box className="page-product-details__attribute-list">
                       {attributes.map((item) => (
                         <Box
@@ -815,7 +792,7 @@ export default function ProductDetails() {
                           className="page-product-details__attribute-item"
                         >
                           <Typography variant="body2" color="text.secondary">
-                            {item.attributeName || "معلومة"}
+                            {item.attributeName || t("معلومة")}
                           </Typography>
                           <Typography variant="body2" fontWeight={700}>
                             {item.value}
@@ -838,13 +815,13 @@ export default function ProductDetails() {
       >
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">منتجات</span>
-            <Typography variant="h3">منتجات مشابهة</Typography>
+            <span className="storefront-eyebrow">{t("منتجات")}</span>
+            <Typography variant="h3">{t("منتجات مشابهة")}</Typography>
           </Box>
         </Box>
 
         {relatedProductsLoading ? (
-          <EmptyState title="جارٍ تحميل المنتجات المشابهة..." />
+          <EmptyState title={t("جارٍ تحميل المنتجات المشابهة...")} />
         ) : relatedProducts.length ? (
           <ProductGrid
             products={relatedProducts}
@@ -856,7 +833,7 @@ export default function ProductDetails() {
             scrollAnchorScope="related-products"
           />
         ) : (
-          <EmptyState title="لا توجد منتجات مشابهة" />
+          <EmptyState title={t("لا توجد منتجات مشابهة")} />
         )}
       </Box>
     </Box>

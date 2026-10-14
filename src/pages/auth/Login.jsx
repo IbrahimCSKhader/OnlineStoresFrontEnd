@@ -1,3 +1,4 @@
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import { useEffect, useMemo, useState } from "react";
 import {
   Link as RouterLink,
@@ -157,39 +158,40 @@ function getFlowHeading(flow) {
   };
 }
 
-function getStoreFlowHeading(flow, storeLabel) {
+function getStoreFlowHeading(flow, storeLabel, t) {
   if (flow === FLOW.GOOGLE_STORE_SETUP) {
     return {
-      overline: "متابعة الدخول",
-      title: `إكمال الدخول إلى ${storeLabel}`,
+      overline: t("متابعة الدخول"),
+      title: t("إكمال الدخول إلى {0}", storeLabel),
       description:
-        "أكمل الدخول لهذا المتجر عبر تعيين كلمة مرور ثم المتابعة.",
+        t("أكمل الدخول لهذا المتجر عبر تعيين كلمة مرور ثم المتابعة."),
     };
   }
   if (flow === FLOW.FORGOT_PASSWORD) {
     return {
-      overline: "استعادة الحساب",
-      title: `استعادة كلمة المرور في ${storeLabel}`,
+      overline: t("استعادة الحساب"),
+      title: t("استعادة كلمة المرور في {0}", storeLabel),
       description: "",
     };
   }
 
   if (flow === FLOW.RESET_PASSWORD) {
     return {
-      overline: "كلمة مرور جديدة",
-      title: `تغيير كلمة المرور في ${storeLabel}`,
+      overline: t("كلمة مرور جديدة"),
+      title: t("تغيير كلمة المرور في {0}", storeLabel),
       description: "",
     };
   }
 
   return {
-    overline: "تسجيل الدخول",
-    title: `الدخول إلى ${storeLabel}`,
+    overline: t("تسجيل الدخول"),
+    title: t("الدخول إلى {0}", storeLabel),
     description: "",
   };
 }
 
 export default function Login() {
+  const { t, language } = useStorefrontLanguage();
   const navigate = useNavigate();
   const { slug: routeStoreSlug = "" } = useParams();
   const location = useLocation();
@@ -206,6 +208,7 @@ export default function Login() {
   const customDomainHost = getCurrentCustomDomainHost();
   const routeStoreQuery = useStoreBySlug(routeStoreSlug, {
     enabled: Boolean(routeStoreSlug || customDomainHost),
+    language,
     staleTime: 60000,
   });
   const routeStore = useMemo(
@@ -257,7 +260,7 @@ export default function Login() {
   const storeLabel =
     resolvedGoogleStoreName ||
     resolvedGoogleStoreSlug ||
-    "هذا المتجر";
+    t("هذا المتجر");
   const storeHomePath = storeCustomerAuthState?.storeSlug
     ? buildStorefrontPath(storeCustomerAuthState.storeSlug)
     : "/";
@@ -394,7 +397,7 @@ export default function Login() {
           style={{ gridTemplateColumns: "minmax(0, 1fr)" }}
         >
           <Paper className="page-login__panel page-login__panel--form" elevation={0}>
-            <Typography variant="body1">جاري تجهيز بيانات المتجر...</Typography>
+            <Typography variant="body1">{t("جاري تجهيز بيانات المتجر...")}</Typography>
           </Paper>
         </Box>
       </Box>
@@ -453,7 +456,7 @@ export default function Login() {
         stateStoreId: location.state?.storeId || "",
         stateStoreSlug: location.state?.storeSlug || "",
       });
-      setLocalError("تسجيل الدخول عبر Google متاح فقط من صفحة متجر محدد.");
+      setLocalError(t("تسجيل الدخول عبر Google متاح فقط من صفحة متجر محدد."));
       return;
     }
 
@@ -468,7 +471,7 @@ export default function Login() {
         resolvedGoogleStoreSlug,
       });
       setLocalError(
-        "بيانات المتجر غير مكتملة. افتح صفحة المتجر ثم أعد المحاولة.",
+        t("بيانات المتجر غير مكتملة. افتح صفحة المتجر ثم أعد المحاولة."),
       );
       return;
     }
@@ -530,7 +533,7 @@ export default function Login() {
     } catch {
       clearPendingGoogleCallbackResult();
       clearPendingGoogleAuthContext();
-      setLocalError("فشل الاتصال بخادم Google. حاول مرة أخرى.");
+      setLocalError(t("فشل الاتصال بخادم Google. حاول مرة أخرى."));
       setIsLoadingGoogle(false);
     }
   }
@@ -574,7 +577,7 @@ export default function Login() {
         redirectTo: "/owner",
         message:
           message ||
-          "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+          t("لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق."),
       },
     });
   }
@@ -645,37 +648,37 @@ export default function Login() {
   function handleStoreCustomerLoginError(error, email) {
     if (error?.code === "STORE_SCOPE_MISMATCH") {
       setLocalError(
-        "انتهت صلاحية سياق المتجر الحالي. أعد فتح المتجر الصحيح ثم سجّل الدخول مرة أخرى.",
+        t("انتهت صلاحية سياق المتجر الحالي. أعد فتح المتجر الصحيح ثم سجّل الدخول مرة أخرى."),
       );
       return;
     }
 
     if (error?.code === "STORE_SCOPE_UNRESOLVED") {
       setLocalError(
-        "تعذر تأكيد انتماء هذا الحساب للمتجر الحالي. حاول مرة أخرى.",
+        t("تعذر تأكيد انتماء هذا الحساب للمتجر الحالي. حاول مرة أخرى."),
       );
       return;
     }
 
     if (error?.code === "STORE_MEMBERSHIP_REQUIRED") {
       setLocalError(
-        "هذا الحساب ليس مالكًا لهذا المتجر ولا زبونًا مسجلًا فيه.",
+        t("هذا الحساب ليس مالكًا لهذا المتجر ولا زبونًا مسجلًا فيه."),
       );
       return;
     }
 
     if (error?.code === "OWNER_STORE_SCOPE_UNRESOLVED") {
-      setLocalError("تعذر التأكد أن هذا الحساب يخص مالك هذا المتجر. حاول مرة أخرى.");
+      setLocalError(t("تعذر التأكد أن هذا الحساب يخص مالك هذا المتجر. حاول مرة أخرى."));
       return;
     }
 
     if (error?.code === "OWNER_STORE_SCOPE_MISMATCH") {
-      setLocalError("هذا الحساب لا يخص مالك هذا المتجر.");
+      setLocalError(t("هذا الحساب لا يخص مالك هذا المتجر."));
       return;
     }
 
     if (error?.code === "OWNER_ACCOUNT_REQUIRED") {
-      setLocalError("هذا الحساب ليس حساب مالك متجر.");
+      setLocalError(t("هذا الحساب ليس حساب مالك متجر."));
       return;
     }
 
@@ -691,7 +694,7 @@ export default function Login() {
         navigateToPlatformVerifyEmail(
           verificationEmail,
           responseData?.message ||
-            "لا يمكنك تسجيل الدخول كمالك قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+            t("لا يمكنك تسجيل الدخول كمالك قبل تفعيل البريد الإلكتروني. أدخل كود التحقق."),
         );
         return;
       }
@@ -705,7 +708,7 @@ export default function Login() {
           redirectTo,
           message:
             responseData?.message ||
-            "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+            t("لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق."),
         },
       });
       return;
@@ -713,7 +716,7 @@ export default function Login() {
 
     if (statusCode === 403) {
       setLocalError(
-        "هذا الحساب ليس مالكًا لهذا المتجر أو غير مخوّل للدخول إليه.",
+        t("هذا الحساب ليس مالكًا لهذا المتجر أو غير مخوّل للدخول إليه."),
       );
       return;
     }
@@ -721,7 +724,7 @@ export default function Login() {
     if (statusCode === 400 || statusCode === 401) {
       setLocalError(
         responseData?.message ||
-          "البريد الإلكتروني أو كلمة المرور غير صحيحة، أو أن الحساب لا يحقق شروط الدخول.",
+          t("البريد الإلكتروني أو كلمة المرور غير صحيحة، أو أن الحساب لا يحقق شروط الدخول."),
       );
       return;
     }
@@ -745,7 +748,7 @@ export default function Login() {
       if (isStoreCustomerMode) {
         if (!storeCustomerAuthState?.storeId) {
           setLocalError(
-            "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+            t("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة."),
           );
           return;
         }
@@ -846,7 +849,7 @@ export default function Login() {
               redirectTo,
               message:
                 responseData?.message ||
-                "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+                t("لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق."),
             },
           });
           return;
@@ -868,7 +871,7 @@ export default function Login() {
             email: responseData?.email || email,
             message:
               responseData?.message ||
-              "لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق.",
+              t("لا يمكنك تسجيل الدخول قبل تفعيل البريد الإلكتروني. أدخل كود التحقق."),
             redirectTo,
           },
         });
@@ -886,7 +889,7 @@ export default function Login() {
       clearPendingStoreGoogleAuth();
       moveTo(FLOW.LOGIN);
       setLocalError(
-        "انتهت جلسة Google الخاصة بهذا المتجر. ابدأ الدخول عبر Google مرة أخرى.",
+        t("انتهت جلسة Google الخاصة بهذا المتجر. ابدأ الدخول عبر Google مرة أخرى."),
       );
       return;
     }
@@ -896,12 +899,12 @@ export default function Login() {
     const email = pendingStoreGoogleAuth.email || values.email.trim();
 
     if (!resolvedStoreId) {
-      setLocalError("تعذر تحديد المتجر المطلوب لإكمال دخول Google.");
+      setLocalError(t("تعذر تحديد المتجر المطلوب لإكمال دخول Google."));
       return;
     }
 
     if (!email) {
-      setLocalError("تعذر تحديد البريد المرتبط بحساب Google لهذا المتجر.");
+      setLocalError(t("تعذر تحديد البريد المرتبط بحساب Google لهذا المتجر."));
       return;
     }
 
@@ -1002,7 +1005,7 @@ export default function Login() {
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
         setLocalError(
-          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+          t("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة."),
         );
         return;
       }
@@ -1096,14 +1099,14 @@ export default function Login() {
     const email = pendingEmail || getValues("email").trim();
 
     if (!email) {
-      setLocalError("أدخل البريد الإلكتروني أولًا.");
+      setLocalError(t("أدخل البريد الإلكتروني أولًا."));
       return;
     }
 
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
         setLocalError(
-          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+          t("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة."),
         );
         return;
       }
@@ -1116,7 +1119,7 @@ export default function Login() {
             }
           : { email },
       );
-      setSuccessMessage("تم إرسال كود التفعيل مرة أخرى إلى بريدك الإلكتروني.");
+      setSuccessMessage(t("تم إرسال كود التفعيل مرة أخرى إلى بريدك الإلكتروني."));
     } catch (error) {
       setLocalError(getErrorMessage(error));
     }
@@ -1130,7 +1133,7 @@ export default function Login() {
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
         setLocalError(
-          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+          t("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة."),
         );
         return;
       }
@@ -1150,7 +1153,7 @@ export default function Login() {
       moveTo(FLOW.RESET_PASSWORD);
       setSuccessMessage(
         data?.message ||
-          "إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور.",
+          t("إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور."),
       );
     } catch (error) {
       setLocalError(getErrorMessage(error));
@@ -1163,14 +1166,14 @@ export default function Login() {
     const email = pendingEmail || getValues("email").trim();
 
     if (!email) {
-      setLocalError("أدخل البريد الإلكتروني أولًا.");
+      setLocalError(t("أدخل البريد الإلكتروني أولًا."));
       return;
     }
 
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
         setLocalError(
-          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+          t("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة."),
         );
         return;
       }
@@ -1185,7 +1188,7 @@ export default function Login() {
       );
       setSuccessMessage(
         data?.message ||
-          "إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور.",
+          t("إذا كان البريد موجودًا، فسيتم إرسال كود إعادة تعيين كلمة المرور."),
       );
     } catch (error) {
       setLocalError(getErrorMessage(error));
@@ -1201,7 +1204,7 @@ export default function Login() {
     try {
       if (isStoreCustomerMode && !storeCustomerAuthState?.storeId) {
         setLocalError(
-          "بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة.",
+          t("بيانات المتجر لم تكتمل بعد. انتظر لحظة ثم أعد المحاولة."),
         );
         return;
       }
@@ -1231,7 +1234,7 @@ export default function Login() {
       setFlow(FLOW.LOGIN);
       setSuccessMessage(
         data?.message ||
-          "تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.",
+          t("تم تغيير كلمة المرور بنجاح. يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة."),
       );
     } catch (error) {
       setLocalError(getErrorMessage(error));
@@ -1249,7 +1252,7 @@ export default function Login() {
   const activeFlow = pendingStoreGoogleAuth ? FLOW.GOOGLE_STORE_SETUP : flow;
 
   const heading = isStoreCustomerMode
-    ? getStoreFlowHeading(activeFlow, storeLabel)
+    ? getStoreFlowHeading(activeFlow, storeLabel, t)
     : getFlowHeading(activeFlow);
 
   return (
@@ -1285,7 +1288,7 @@ export default function Login() {
             {activeFlow === FLOW.LOGIN ? (
               <Stack spacing={1.5} component="form" onSubmit={onLoginSubmit}>
                 <TextField
-                  label="البريد الإلكتروني"
+                  label={t("البريد الإلكتروني")}
                   placeholder="name@example.com"
                   fullWidth
                   autoComplete="email"
@@ -1297,10 +1300,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("email", {
-                    required: "هذا الحقل مطلوب",
+                    required: t("هذا الحقل مطلوب"),
                     pattern: {
                       value: /\S+@\S+\.\S+/,
-                      message: "يرجى إدخال بريد إلكتروني صحيح",
+                      message: t("يرجى إدخال بريد إلكتروني صحيح"),
                     },
                   })}
                   error={Boolean(errors.email)}
@@ -1308,7 +1311,7 @@ export default function Login() {
                 />
 
                 <TextField
-                  label="كلمة المرور"
+                  label={t("كلمة المرور")}
                   type="password"
                   fullWidth
                   autoComplete="current-password"
@@ -1320,10 +1323,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("password", {
-                    required: "كلمة المرور مطلوبة",
+                    required: t("كلمة المرور مطلوبة"),
                     minLength: {
                       value: 6,
-                      message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+                      message: t("كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
                     },
                   })}
                   error={Boolean(errors.password)}
@@ -1338,10 +1341,10 @@ export default function Login() {
                 >
                   {loginMutation.isPending ||
                   storeCustomerLoginMutation.isPending
-                    ? "جارٍ تسجيل الدخول..."
+                    ? t("جارٍ تسجيل الدخول...")
                     : isStoreCustomerMode
-                      ? "الدخول إلى المتجر"
-                      : "الدخول إلى حسابي"}
+                      ? t("الدخول إلى المتجر")
+                      : t("الدخول إلى حسابي")}
                 </Button>
 
                 <Button
@@ -1349,9 +1352,7 @@ export default function Login() {
                   variant="text"
                   onClick={() => moveTo(FLOW.FORGOT_PASSWORD)}
                   disabled={isBusy || isLoadingGoogle}
-                >
-                  نسيت أو أريد تغيير كلمة السر
-                </Button>
+                >{t("نسيت أو أريد تغيير كلمة السر")}</Button>
 
                 {isStoreCustomerMode ? (
                   <>
@@ -1371,8 +1372,8 @@ export default function Login() {
                       }
                     >
                       {isLoadingGoogle
-                    ? "جارٍ الاتصال بـ Google..."
-                    : "الدخول عبر Google"}
+                    ? t("جارٍ الاتصال بـ Google...")
+                    : t("الدخول عبر Google")}
                     </Button>
                   </>
                 ) : null}
@@ -1386,8 +1387,8 @@ export default function Login() {
                     variant="outlined"
                   >
                     {isStoreCustomerMode
-                      ? "العودة إلى المتجر"
-                      : "العودة إلى السوق"}
+                      ? t("العودة إلى المتجر")
+                      : t("العودة إلى السوق")}
                   </Button>
                   {isStoreCustomerMode ? (
                     <Button
@@ -1395,9 +1396,7 @@ export default function Login() {
                       to={storeRegisterPath}
                       state={redirectState}
                       variant="text"
-                    >
-                      إنشاء حساب جديد
-                    </Button>
+                    >{t("إنشاء حساب جديد")}</Button>
                   ) : null}
                 </Stack>
               </Stack>
@@ -1409,12 +1408,10 @@ export default function Login() {
                 component="form"
                 onSubmit={onGoogleStoreSetupSubmit}
               >
-                <Alert severity="info">
-                  تم التحقق من حساب Google. عيّن كلمة مرور لهذا المتجر لتكمل الدخول وتتابع السلة والطلبات.
-                </Alert>
+                <Alert severity="info">{t("تم التحقق من حساب Google. عيّن كلمة مرور لهذا المتجر لتكمل الدخول وتتابع السلة والطلبات.")}</Alert>
 
                 <TextField
-                  label="البريد الإلكتروني"
+                  label={t("البريد الإلكتروني")}
                   value={pendingStoreGoogleAuth?.email || getValues("email")}
                   disabled
                   fullWidth
@@ -1428,7 +1425,7 @@ export default function Login() {
                 />
 
                 <TextField
-                  label="كلمة مرور جديدة لهذا المتجر"
+                  label={t("كلمة مرور جديدة لهذا المتجر")}
                   type="password"
                   fullWidth
                   autoComplete="new-password"
@@ -1440,10 +1437,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("newPassword", {
-                    required: "كلمة المرور مطلوبة",
+                    required: t("كلمة المرور مطلوبة"),
                     minLength: {
                       value: 6,
-                      message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+                      message: t("كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
                     },
                   })}
                   error={Boolean(errors.newPassword)}
@@ -1451,7 +1448,7 @@ export default function Login() {
                 />
 
                 <TextField
-                  label="تأكيد كلمة المرور"
+                  label={t("تأكيد كلمة المرور")}
                   type="password"
                   fullWidth
                   autoComplete="new-password"
@@ -1463,10 +1460,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("confirmNewPassword", {
-                    required: "تأكيد كلمة المرور مطلوب",
+                    required: t("تأكيد كلمة المرور مطلوب"),
                     validate: (value) =>
                       value === getValues("newPassword") ||
-                      "كلمتا المرور غير متطابقتين",
+                      t("كلمتا المرور غير متطابقتين"),
                   })}
                   error={Boolean(errors.confirmNewPassword)}
                   helperText={errors.confirmNewPassword?.message}
@@ -1480,8 +1477,8 @@ export default function Login() {
                 >
                   {storeCustomerSetPasswordFromAuthUserMutation.isPending ||
                   storeCustomerLoginMutation.isPending
-                    ? "جارٍ إكمال الدخول..."
-                    : "إكمال الدخول إلى المتجر"}
+                    ? t("جارٍ إكمال الدخول...")
+                    : t("إكمال الدخول إلى المتجر")}
                 </Button>
 
                 <Button
@@ -1494,9 +1491,7 @@ export default function Login() {
                     moveTo(FLOW.LOGIN);
                   }}
                   disabled={isBusy}
-                >
-                  رجوع إلى تسجيل الدخول العادي
-                </Button>
+                >{t("رجوع إلى تسجيل الدخول العادي")}</Button>
               </Stack>
             ) : null}
 
@@ -1507,7 +1502,7 @@ export default function Login() {
                 onSubmit={onVerifyEmailSubmit}
               >
                 <TextField
-                  label="البريد الإلكتروني"
+                  label={t("البريد الإلكتروني")}
                   value={pendingEmail}
                   disabled
                   fullWidth
@@ -1521,7 +1516,7 @@ export default function Login() {
                 />
 
                 <TextField
-                  label="كود التفعيل"
+                  label={t("كود التفعيل")}
                   placeholder="123456"
                   fullWidth
                   autoComplete="one-time-code"
@@ -1533,10 +1528,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("verificationCode", {
-                    required: "كود التفعيل مطلوب",
+                    required: t("كود التفعيل مطلوب"),
                     minLength: {
                       value: 4,
-                      message: "الكود غير صالح",
+                      message: t("الكود غير صالح"),
                     },
                   })}
                   error={Boolean(errors.verificationCode)}
@@ -1550,8 +1545,8 @@ export default function Login() {
                   disabled={isBusy}
                 >
                   {verifyEmailMutation.isPending
-                    ? "جارٍ التحقق..."
-                    : "تأكيد الكود وإكمال الدخول"}
+                    ? t("جارٍ التحقق...")
+                    : t("تأكيد الكود وإكمال الدخول")}
                 </Button>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -1562,17 +1557,15 @@ export default function Login() {
                     disabled={isBusy}
                   >
                     {resendVerificationCodeMutation.isPending
-                      ? "جارٍ الإرسال..."
-                      : "إعادة إرسال الكود"}
+                      ? t("جارٍ الإرسال...")
+                      : t("إعادة إرسال الكود")}
                   </Button>
                   <Button
                     type="button"
                     variant="text"
                     onClick={() => moveTo(FLOW.LOGIN)}
                     disabled={isBusy}
-                  >
-                    رجوع لتسجيل الدخول
-                  </Button>
+                  >{t("رجوع لتسجيل الدخول")}</Button>
                 </Stack>
               </Stack>
             ) : null}
@@ -1584,7 +1577,7 @@ export default function Login() {
                 onSubmit={onForgotPasswordSubmit}
               >
                 <TextField
-                  label="البريد الإلكتروني"
+                  label={t("البريد الإلكتروني")}
                   placeholder="name@example.com"
                   fullWidth
                   autoComplete="email"
@@ -1596,10 +1589,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("email", {
-                    required: "هذا الحقل مطلوب",
+                    required: t("هذا الحقل مطلوب"),
                     pattern: {
                       value: /\S+@\S+\.\S+/,
-                      message: "يرجى إدخال بريد إلكتروني صحيح",
+                      message: t("يرجى إدخال بريد إلكتروني صحيح"),
                     },
                   })}
                   error={Boolean(errors.email)}
@@ -1613,8 +1606,8 @@ export default function Login() {
                   disabled={isBusy}
                 >
                   {forgotPasswordMutation.isPending
-                    ? "جارٍ إرسال الكود..."
-                    : "إرسال كود تغيير كلمة السر"}
+                    ? t("جارٍ إرسال الكود...")
+                    : t("إرسال كود تغيير كلمة السر")}
                 </Button>
 
                 <Button
@@ -1622,9 +1615,7 @@ export default function Login() {
                   variant="text"
                   onClick={() => moveTo(FLOW.LOGIN)}
                   disabled={isBusy}
-                >
-                  رجوع لتسجيل الدخول
-                </Button>
+                >{t("رجوع لتسجيل الدخول")}</Button>
               </Stack>
             ) : null}
 
@@ -1635,7 +1626,7 @@ export default function Login() {
                 onSubmit={onResetPasswordSubmit}
               >
                 <TextField
-                  label="البريد الإلكتروني"
+                  label={t("البريد الإلكتروني")}
                   value={pendingEmail}
                   disabled
                   fullWidth
@@ -1649,7 +1640,7 @@ export default function Login() {
                 />
 
                 <TextField
-                  label="كود التحقق"
+                  label={t("كود التحقق")}
                   placeholder="123456"
                   fullWidth
                   autoComplete="one-time-code"
@@ -1661,10 +1652,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("resetCode", {
-                    required: "كود التحقق مطلوب",
+                    required: t("كود التحقق مطلوب"),
                     minLength: {
                       value: 4,
-                      message: "الكود غير صالح",
+                      message: t("الكود غير صالح"),
                     },
                   })}
                   error={Boolean(errors.resetCode)}
@@ -1672,7 +1663,7 @@ export default function Login() {
                 />
 
                 <TextField
-                  label="كلمة المرور الجديدة"
+                  label={t("كلمة المرور الجديدة")}
                   type="password"
                   fullWidth
                   autoComplete="new-password"
@@ -1684,10 +1675,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("newPassword", {
-                    required: "كلمة المرور الجديدة مطلوبة",
+                    required: t("كلمة المرور الجديدة مطلوبة"),
                     minLength: {
                       value: 6,
-                      message: "كلمة المرور يجب أن تكون 6 أحرف على الأقل",
+                      message: t("كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
                     },
                   })}
                   error={Boolean(errors.newPassword)}
@@ -1695,7 +1686,7 @@ export default function Login() {
                 />
 
                 <TextField
-                  label="تأكيد كلمة المرور الجديدة"
+                  label={t("تأكيد كلمة المرور الجديدة")}
                   type="password"
                   fullWidth
                   autoComplete="new-password"
@@ -1707,10 +1698,10 @@ export default function Login() {
                     ),
                   }}
                   {...register("confirmNewPassword", {
-                    required: "يرجى تأكيد كلمة المرور",
+                    required: t("يرجى تأكيد كلمة المرور"),
                     validate: (value) =>
                       value === getValues("newPassword") ||
-                      "كلمتا المرور غير متطابقتين",
+                      t("كلمتا المرور غير متطابقتين"),
                   })}
                   error={Boolean(errors.confirmNewPassword)}
                   helperText={errors.confirmNewPassword?.message}
@@ -1723,8 +1714,8 @@ export default function Login() {
                   disabled={isBusy}
                 >
                   {resetPasswordMutation.isPending
-                    ? "جارٍ تغيير كلمة المرور..."
-                    : "تأكيد التغيير"}
+                    ? t("جارٍ تغيير كلمة المرور...")
+                    : t("تأكيد التغيير")}
                 </Button>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap">
@@ -1733,17 +1724,13 @@ export default function Login() {
                     variant="outlined"
                     onClick={onResendResetCode}
                     disabled={isBusy}
-                  >
-                    إعادة إرسال الكود
-                  </Button>
+                  >{t("إعادة إرسال الكود")}</Button>
                   <Button
                     type="button"
                     variant="text"
                     onClick={() => moveTo(FLOW.LOGIN)}
                     disabled={isBusy}
-                  >
-                    رجوع لتسجيل الدخول
-                  </Button>
+                  >{t("رجوع لتسجيل الدخول")}</Button>
                 </Stack>
               </Stack>
             ) : null}
