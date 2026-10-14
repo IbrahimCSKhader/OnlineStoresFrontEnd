@@ -3,10 +3,13 @@ import sectionApi from "../../API/section.api.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 
 export default function useSections(storeId, options = {}) {
+  const { language, ...queryOptions } = options;
+  const params = language ? { language } : undefined;
+
   return useQuery({
-    queryKey: queryKeys.sections.byStore(storeId),
-    queryFn: () => sectionApi.getSectionsByStore(storeId),
-    enabled: Boolean(storeId) && (options.enabled ?? true),
-    ...options,
+    queryKey: [...queryKeys.sections.byStore(storeId), language || ""],
+    queryFn: () => sectionApi.getSectionsByStore(storeId, params),
+    enabled: Boolean(storeId) && (queryOptions.enabled ?? true),
+    ...queryOptions,
   });
 }

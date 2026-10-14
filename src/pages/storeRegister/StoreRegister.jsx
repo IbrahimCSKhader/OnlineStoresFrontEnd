@@ -25,6 +25,7 @@ import authApi from "../../API/auth.api.js";
 import storeApi from "../../API/store.api.js";
 import ThemeTemplateOption from "../../components/common/ThemeTemplateOption.jsx";
 import { STORE_THEME_TEMPLATES } from "../../constants/storeThemeTemplates.js";
+import { STOREFRONT_LANGUAGE_OPTIONS } from "../../i18n/storefrontLanguages.js";
 import extractApiError from "../../utils/extractApiError.js";
 import { trackCompleteRegistration } from "../../utils/metaPixel.js";
 import "./StoreRegister.css";
@@ -51,6 +52,7 @@ const initialForm = {
   businessType: "",
   whatsAppNumber: "",
   themeTemplate: "D",
+  language: "A",
 };
 
 const emptyContact = () => ({
@@ -335,6 +337,7 @@ export default function StoreRegister() {
         businessType: form.businessType.trim(),
         whatsAppNumber: form.whatsAppNumber.trim(),
         ThemeTemplate: form.themeTemplate || "D",
+        Language: form.language || "A",
         Logo: brandingFiles.logoFile || undefined,
         CoverPage: brandingFiles.coverPageFile || undefined,
         ownerId: owner.id,
@@ -473,6 +476,20 @@ export default function StoreRegister() {
               {STORE_THEME_TEMPLATES.map((template) => (
                 <MenuItem key={template.value} value={template.value}>
                   <ThemeTemplateOption template={template} />
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="لغة المتجر الافتراضية"
+              value={form.language}
+              onChange={(event) => updateForm("language", event.target.value)}
+              helperText="العربية هي الافتراضية. الزائر يقدر يبدّل لغة واجهة المتجر لاحقًا."
+              fullWidth
+            >
+              {STOREFRONT_LANGUAGE_OPTIONS.map((language) => (
+                <MenuItem key={language.code} value={language.code}>
+                  {language.label}
                 </MenuItem>
               ))}
             </TextField>

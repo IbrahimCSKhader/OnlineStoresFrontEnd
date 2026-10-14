@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Header from "../components/layout/Header/Header.jsx";
 import StoreFooter from "../components/layout/StoreFooter.jsx";
 import useStoreBySlug from "../hooks/stores/useStoreBySlug.js";
+import useStorefrontLanguage from "../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerStorePreview from "../hooks/stores/useOwnerStorePreview.js";
 import { normalizeEntityResponse } from "../utils/collections.js";
 import { getCurrentCustomDomainHost } from "../utils/customDomain.js";
@@ -12,10 +13,12 @@ import "./StoreLayout.css";
 
 export default function StoreLayout() {
   const { slug = "" } = useParams();
+  const { language, dir, locale } = useStorefrontLanguage();
   const customDomainHost = getCurrentCustomDomainHost();
   const { isOwnerPreview } = useOwnerStorePreview();
   const storeQuery = useStoreBySlug(slug, {
     enabled: Boolean(slug || customDomainHost),
+    language,
     staleTime: 60000,
   });
   const store = normalizeEntityResponse(storeQuery.data);
@@ -24,7 +27,7 @@ export default function StoreLayout() {
   useStoreBranding(store);
 
   return (
-    <Box className="store-layout">
+    <Box className="store-layout" dir={dir} lang={locale}>
       <Header />
       <Box component="main" className="store-layout__content">
         {isOwnerPreview ? (

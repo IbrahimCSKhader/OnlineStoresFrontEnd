@@ -26,6 +26,7 @@ import useCategories from "../../hooks/categories/useCategories.js";
 import useFeaturedProducts from "../../hooks/products/useFeaturedProducts.js";
 import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import { resolveAssetUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
@@ -115,8 +116,9 @@ export default function StoreDetails() {
   const recordedVisitRef = useRef("");
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
+  const { language } = useStorefrontLanguage();
 
-  const storeQuery = useStoreBySlug(slug);
+  const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(
     () => normalizeEntityResponse(storeQuery.data),
     [storeQuery.data],
@@ -126,9 +128,11 @@ export default function StoreDetails() {
 
   const categoriesQuery = useCategories(store?.id, {
     enabled: Boolean(store?.id),
+    language,
   });
   const featuredProductsQuery = useFeaturedProducts(store?.id, {
     enabled: Boolean(store?.id),
+    language,
   });
   const categories = useMemo(
     () =>
@@ -144,6 +148,7 @@ export default function StoreDetails() {
       pageSize: CATALOG_PAGE_SIZE,
       search: deferredSearchText.trim() || undefined,
     },
+    language,
     staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);

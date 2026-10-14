@@ -5,11 +5,16 @@ import useProductPricingScope from "./useProductPricingScope.js";
 
 export default function useProductDetails(productId, options = {}) {
   const pricingScope = useProductPricingScope();
+  const { language, ...queryOptions } = options;
+  const params = language ? { language } : undefined;
 
   return useQuery({
-    queryKey: queryKeys.products.detail(productId, pricingScope),
-    queryFn: () => productApi.getProductById(productId),
-    enabled: Boolean(productId) && (options.enabled ?? true),
-    ...options,
+    queryKey: queryKeys.products.detail(productId, {
+      pricingScope,
+      language: language || "",
+    }),
+    queryFn: () => productApi.getProductById(productId, params),
+    enabled: Boolean(productId) && (queryOptions.enabled ?? true),
+    ...queryOptions,
   });
 }

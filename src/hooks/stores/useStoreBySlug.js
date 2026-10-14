@@ -6,16 +6,17 @@ import { queryKeys } from "../../utils/queryKeys.js";
 export default function useStoreBySlug(slug, options = {}) {
   const host = getCurrentCustomDomainHost();
   const normalizedSlug = String(slug || "").trim();
-  const { enabled = true, ...queryOptions } = options;
+  const { enabled = true, language, ...queryOptions } = options;
+  const languageParams = language ? { language } : undefined;
 
   return useQuery({
     queryKey: normalizedSlug
-      ? queryKeys.stores.slug(normalizedSlug)
-      : queryKeys.stores.resolve(host),
+      ? [...queryKeys.stores.slug(normalizedSlug), language || ""]
+      : [...queryKeys.stores.resolve(host), language || ""],
     queryFn: () =>
       normalizedSlug
-        ? storeApi.getStoreBySlug(normalizedSlug)
-        : storeApi.resolveStore({ host }),
+        ? storeApi.getStoreBySlug(normalizedSlug, languageParams)
+        : storeApi.resolveStore({ host, ...languageParams }),
     enabled: (Boolean(normalizedSlug) || Boolean(host)) && enabled,
     ...queryOptions,
   });

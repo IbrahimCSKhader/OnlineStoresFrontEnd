@@ -16,6 +16,7 @@ import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useCart from "../../hooks/cart/useCart.js";
 import useClearCart from "../../hooks/cart/useClearCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import useCreateOrder from "../../hooks/orders/useCreateOrder.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import extractApiError from "../../utils/extractApiError.js";
@@ -265,8 +266,9 @@ export default function Checkout() {
   const [form, setForm] = useState(initialForm);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
+  const { language } = useStorefrontLanguage();
 
-  const storeQuery = useStoreBySlug(slug);
+  const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(
     () => normalizeEntityResponse(storeQuery.data),
     [storeQuery.data],

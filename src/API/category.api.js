@@ -2,9 +2,10 @@ import axiosInstance from "./axiosInstance.js";
 import endpoints from "./endpoints.js";
 
 export const categoryApi = {
-  getCategoriesByStore: (storeId) =>
-    axiosInstance.get(endpoints.categories.byStore(storeId)),
-  getCategoryById: (id) => axiosInstance.get(endpoints.categories.detail(id)),
+  getCategoriesByStore: (storeId, params) =>
+    axiosInstance.get(endpoints.categories.byStore(storeId), params ? { params } : undefined),
+  getCategoryById: (id, params) =>
+    axiosInstance.get(endpoints.categories.detail(id), params ? { params } : undefined),
   createCategory: (payload) =>
     axiosInstance.post(endpoints.categories.create, payload, {
       headers: {

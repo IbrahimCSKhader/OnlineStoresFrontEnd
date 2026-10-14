@@ -60,10 +60,12 @@ export const productApi = {
       endpoints.products.manageByStore(storeId),
       params ? { params } : undefined,
     ),
-  getFeaturedProducts: (storeId) =>
-    axiosInstance.get(endpoints.products.featured(storeId)),
-  getProductById: (id) => axiosInstance.get(endpoints.products.detail(id)),
-  getProductBySlug: (slug) => axiosInstance.get(endpoints.products.slug(slug)),
+  getFeaturedProducts: (storeId, params) =>
+    axiosInstance.get(endpoints.products.featured(storeId), params ? { params } : undefined),
+  getProductById: (id, params) =>
+    axiosInstance.get(endpoints.products.detail(id), params ? { params } : undefined),
+  getProductBySlug: (slug, params) =>
+    axiosInstance.get(endpoints.products.slug(slug), params ? { params } : undefined),
   getProductsByCategory: (categoryId, params) =>
     axiosInstance.get(
       endpoints.products.byCategory(categoryId),

@@ -15,6 +15,7 @@ import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
 import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import {
@@ -37,6 +38,7 @@ export default function CategoryPage() {
   const { slug, categoryId } = useParams();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
+  const { language } = useStorefrontLanguage();
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
   const [page, setPage] = useState(1);
@@ -45,7 +47,7 @@ export default function CategoryPage() {
   const [priceInputs, setPriceInputs] = useState({ min: "", max: "" });
   const keyword = deferredSearchText.toLowerCase().trim();
 
-  const storeQuery = useStoreBySlug(slug);
+  const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(
     () => normalizeEntityResponse(storeQuery.data),
     [storeQuery.data],
@@ -55,6 +57,7 @@ export default function CategoryPage() {
 
   const categoriesQuery = useCategories(store?.id, {
     enabled: Boolean(store?.id),
+    language,
   });
   const categories = useMemo(
     () =>
@@ -74,6 +77,7 @@ export default function CategoryPage() {
       minPrice: priceInputs.min || undefined,
       maxPrice: priceInputs.max || undefined,
     },
+    language,
     staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);

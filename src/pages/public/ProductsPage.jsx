@@ -24,6 +24,7 @@ import useCategories from "../../hooks/categories/useCategories.js";
 import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
 import useSections from "../../hooks/sections/useSections.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import {
@@ -91,6 +92,7 @@ export default function ProductsPage() {
   const { slug = "" } = useParams();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
+  const { language } = useStorefrontLanguage();
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
@@ -102,7 +104,7 @@ export default function ProductsPage() {
   const [priceRange, setPriceRange] = useState(null);
   const [page, setPage] = useState(1);
 
-  const storeQuery = useStoreBySlug(slug);
+  const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(
     () => normalizeEntityResponse(storeQuery.data),
     [storeQuery.data],
@@ -112,12 +114,15 @@ export default function ProductsPage() {
 
   const categoriesQuery = useCategories(store?.id, {
     enabled: Boolean(store?.id),
+    language,
   });
   const sectionsQuery = useSections(store?.id, {
     enabled: Boolean(store?.id),
+    language,
   });
   const productsQuery = useStorefrontCatalogProducts(store?.id, {
     enabled: Boolean(store?.id),
+    language,
     staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);

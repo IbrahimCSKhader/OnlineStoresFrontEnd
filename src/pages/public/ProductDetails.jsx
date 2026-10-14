@@ -29,6 +29,7 @@ import useProductDetails from "../../hooks/products/useProductDetails.js";
 import useProductsByCategory from "../../hooks/products/useProductsByCategory.js";
 import useProductsBySection from "../../hooks/products/useProductsBySection.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
@@ -149,6 +150,7 @@ export default function ProductDetails() {
   const location = useLocation();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
+  const { language } = useStorefrontLanguage();
   const [uiState, setUiState] = useState({
     productId: "",
     selectedImageIndex: 0,
@@ -162,9 +164,10 @@ export default function ProductDetails() {
     message: "",
   });
 
-  const storeQuery = useStoreBySlug(slug);
+  const storeQuery = useStoreBySlug(slug, { language });
   const productQuery = useProductDetails(productId, {
     enabled: Boolean(productId),
+    language,
   });
 
   const store = useMemo(
@@ -181,9 +184,11 @@ export default function ProductDetails() {
 
   const relatedByCategoryQuery = useProductsByCategory(product?.categoryId, {
     enabled: Boolean(product?.categoryId) && isPublicProduct,
+    language,
   });
   const relatedBySectionQuery = useProductsBySection(product?.sectionId, {
     enabled: Boolean(product?.sectionId) && !product?.categoryId && isPublicProduct,
+    language,
   });
 
   const effectiveStoreId = store?.id || product?.storeId;

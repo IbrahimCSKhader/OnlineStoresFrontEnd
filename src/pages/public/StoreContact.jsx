@@ -6,6 +6,7 @@ import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
@@ -14,7 +15,8 @@ import "./StoreContact.css";
 export default function StoreContact() {
   const { slug } = useParams();
   const { buildStorePreviewPath } = useOwnerStorePreview();
-  const storeQuery = useStoreBySlug(slug);
+  const { language } = useStorefrontLanguage();
+  const storeQuery = useStoreBySlug(slug, { language });
   const store = normalizeEntityResponse(storeQuery.data);
 
   useStoreBranding(store);

@@ -14,8 +14,11 @@ import useProductPricingScope from "./useProductPricingScope.js";
 
 export default function useStorefrontCatalogProducts(storeId, options = {}) {
   const pricingScope = useProductPricingScope();
-  const { enabled, staleTime, params, ...queryOptions } = options;
-  const queryParams = params || {};
+  const { enabled, staleTime, params, language, ...queryOptions } = options;
+  const queryParams = {
+    ...(params || {}),
+    ...(language ? { language } : {}),
+  };
   const query = useQuery({
     queryKey: queryKeys.products.byStore(storeId, {
       ...queryParams,

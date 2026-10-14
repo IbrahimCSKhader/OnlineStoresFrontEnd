@@ -65,15 +65,18 @@ export const storeApi = {
         },
       },
     ),
-  getStoreById: (id) => axiosInstance.get(endpoints.stores.detail(id)),
+  getStoreById: (id, params) =>
+    axiosInstance.get(endpoints.stores.detail(id), params ? { params } : undefined),
   getStoreByIdWithAuth: (id, token) =>
     axiosInstance.get(endpoints.stores.detail(id), {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     }),
-  getStoreBySlug: (slug) => axiosInstance.get(endpoints.stores.slug(slug)),
+  getStoreBySlug: (slug, params) =>
+    axiosInstance.get(endpoints.stores.slug(slug), params ? { params } : undefined),
   resolveStore: (params) => axiosInstance.get(endpoints.stores.resolve, { params }),
-  getStoreBySlugWithAuth: (slug, token) =>
+  getStoreBySlugWithAuth: (slug, token, params) =>
     axiosInstance.get(endpoints.stores.slug(slug), {
+      params,
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     }),
   getStoreSubscription: (id) =>

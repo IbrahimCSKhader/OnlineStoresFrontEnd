@@ -21,6 +21,7 @@ import useRemoveCartItem from "../../hooks/cart/useRemoveCartItem.js";
 import useUpdateCartItem from "../../hooks/cart/useUpdateCartItem.js";
 import useClearCart from "../../hooks/cart/useClearCart.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
+import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
@@ -35,8 +36,9 @@ export default function Cart() {
   const { storeCustomer } = auth;
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { language } = useStorefrontLanguage();
 
-  const storeQuery = useStoreBySlug(slug);
+  const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(() => normalizeEntityResponse(storeQuery.data), [storeQuery.data]);
 
   useStoreBranding(store);
