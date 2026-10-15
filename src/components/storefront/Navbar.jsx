@@ -24,7 +24,6 @@ import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import ShoppingCartRoundedIcon from "@mui/icons-material/ShoppingCartRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import TranslateRoundedIcon from "@mui/icons-material/TranslateRounded";
 import WbSunnyRoundedIcon from "@mui/icons-material/WbSunnyRounded";
 import AppButton from "../common/buttons/AppButton.jsx";
 import ContactDeveloperButton from "../common/ContactDeveloperButton.jsx";
@@ -43,7 +42,6 @@ import {
   SITE_BRAND_ASSET_PATH,
   SITE_BRAND_NAME,
 } from "../../constants/siteBranding.js";
-import { STOREFRONT_LANGUAGE_OPTIONS } from "../../i18n/storefrontLanguages.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import {
@@ -173,55 +171,6 @@ function ThemeToggleButton({ variant, onSelect, options, className }) {
   );
 }
 
-function StoreLanguageButton({ activeLanguage, copy, onSelect }) {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const menuOpen = Boolean(anchorEl);
-  const activeOption =
-    STOREFRONT_LANGUAGE_OPTIONS.find((option) => option.code === activeLanguage) ??
-    STOREFRONT_LANGUAGE_OPTIONS[0];
-
-  return (
-    <>
-      <IconButton
-        className="store-navbar__icon-button"
-        aria-label={copy.language}
-        aria-controls={menuOpen ? "store-language-menu" : undefined}
-        aria-expanded={menuOpen ? "true" : undefined}
-        aria-haspopup="menu"
-        title={copy.language}
-        onClick={(event) => setAnchorEl(event.currentTarget)}
-      >
-        <TranslateRoundedIcon fontSize="small" />
-      </IconButton>
-
-      <Menu
-        id="store-language-menu"
-        anchorEl={anchorEl}
-        open={menuOpen}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        MenuListProps={{
-          "aria-label": copy.language,
-        }}
-      >
-        {STOREFRONT_LANGUAGE_OPTIONS.map((option) => (
-          <MenuItem
-            key={option.code}
-            selected={option.code === activeOption.code}
-            onClick={() => {
-              onSelect(option.code);
-              setAnchorEl(null);
-            }}
-          >
-            {option.label}
-          </MenuItem>
-        ))}
-      </Menu>
-    </>
-  );
-}
-
 function NavLinks({ items, onNavigate, drawer = false, resolveTo }) {
   const location = useLocation();
 
@@ -268,7 +217,7 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isOwnerPreview, buildStorePreviewPath } = useOwnerStorePreview();
-  const { t, language, copy, setLanguage } = useStorefrontLanguage();
+  const { t, language, copy } = useStorefrontLanguage();
   const profileMenuOpen = Boolean(profileAnchorEl);
   const isOwnerDashboardRoute = location.pathname.startsWith("/owner");
 
@@ -940,13 +889,6 @@ export default function Navbar() {
               variant={variant}
               onSelect={setVariant}
               options={themeOptions}
-            />
-          ) : null}
-          {activeStoreSlug ? (
-            <StoreLanguageButton
-              activeLanguage={language}
-              copy={copy}
-              onSelect={setLanguage}
             />
           ) : null}
           {renderCartButton()}
