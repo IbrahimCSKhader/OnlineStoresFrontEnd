@@ -16,6 +16,7 @@ vi.mock("../../utils/customDomain.js", () => ({ getCurrentCustomDomainHost: () =
 vi.mock("../../hooks/cart/useAddToCart.js", () => ({ default: () => ({ mutate: vi.fn() }) }));
 vi.mock("../../hooks/categories/useCategories.js", () => ({ default: () => ({ data: [], isLoading: false }) }));
 vi.mock("../../hooks/products/useFeaturedProducts.js", () => ({ default: () => ({ data: [], isLoading: false }) }));
+vi.mock("../../hooks/products/useHighlightProducts.js", () => ({ default: () => ({ data: [], isLoading: false }) }));
 vi.mock("../../hooks/products/useStorefrontCatalogProducts.js", () => ({ default: () => ({ data: [], isLoading: false, pagination: {} }) }));
 
 it.each([

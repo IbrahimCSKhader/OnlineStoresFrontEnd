@@ -20,6 +20,8 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import ProductGrid, { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
 import ProductPagination from "../../components/product/ProductPagination.jsx";
+import ProductCarousel from "../../components/product/ProductCarousel.jsx";
+import useHighlightProducts from "../../hooks/products/useHighlightProducts.js";
 import storeApi from "../../API/store.api.js";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
@@ -125,6 +127,8 @@ export default function StoreDetails() {
   );
 
   useStoreBranding(store);
+  const highlightsQuery = useHighlightProducts(store?.id, language);
+  const highlights = normalizeProductList(highlightsQuery.data).filter(isProductActive);
 
   const categoriesQuery = useCategories(store?.id, {
     enabled: Boolean(store?.id),
@@ -295,7 +299,7 @@ export default function StoreDetails() {
 
       <SurfaceCard
         variant="hero"
-        className="storefront-hero page-store-details__hero"
+        className={`storefront-hero page-store-details__hero${coverImage ? " page-store-details__hero--cover" : ""}`}
       >
         {coverImage ? (
           <Box className="page-store-details__hero-media" aria-hidden>
@@ -422,6 +426,7 @@ export default function StoreDetails() {
         </Box>
       </SurfaceCard>
 
+      <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} />
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">

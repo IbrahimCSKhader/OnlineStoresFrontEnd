@@ -53,6 +53,8 @@ function createMultipartFormData(payload = {}) {
 }
 
 export const productApi = {
+  getHighlightProducts: (storeId, params) =>
+    axiosInstance.get(endpoints.products.highlights(storeId), { params }),
   getProductsByStore: (storeId, params) =>
     axiosInstance.get(endpoints.products.byStore(storeId), params ? { params } : undefined),
   getManagedProductsByStore: (storeId, params) =>

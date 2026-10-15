@@ -1,0 +1,22 @@
+.product-carousel { min-width: 0; padding-block: 24px; }
+.product-carousel__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.product-carousel__header h2 { margin: 0; font-size: 1.25rem; letter-spacing: 0; }
+.product-carousel__viewport { overflow-x: auto; scrollbar-width: none; }
+.product-carousel__track { display: flex; width: max-content; animation: storefront-products var(--duration) linear infinite; }
+.product-carousel__group { display: flex; gap: 20px; padding-right: 20px; flex-shrink: 0; }
+.product-carousel__item { display: flex; flex-direction: column; gap: 8px; width: 176px; color: inherit; text-decoration: none; }
+.product-carousel__item img { width: 176px; height: 176px; object-fit: contain; border-radius: 24%; background: #f3f5f3; }
+.product-carousel__item span { line-height: 1.5; min-height: 3em; overflow-wrap: anywhere; }
+.product-carousel__item strong { font-size: .9rem; }
+.product-carousel__item:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.product-carousel:hover .product-carousel__track, .product-carousel:focus-within .product-carousel__track, .product-carousel__track.is-paused { animation-play-state: paused; }
+.product-carousel__track.is-static { animation: none; }
+@keyframes storefront-products { to { transform: translateX(calc(-1 * var(--travel))); } }
+@media (prefers-reduced-motion: reduce) {
+  .product-carousel__track { animation: none; }
+  .product-carousel__group[aria-hidden] { display: none; }
+}
+@media (max-width: 600px) {
+  .product-carousel__item { width: 140px; }
+  .product-carousel__item img { width: 140px; height: 140px; }
+}

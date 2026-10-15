@@ -1,5 +1,8 @@
 // Storefront copy only. Content authored by merchants is translated by the API.
 export const storefrontTextRows = [
+  ["مختارات المتجر", "Store highlights", "נבחרי החנות"],
+  ["تشغيل الحركة", "Play animation", "הפעלת תנועה"],
+  ["إيقاف الحركة", "Pause animation", "השהיית תנועה"],
   ["هذه معاينة كتاجر. أزرار السلة والشراء معطلة هنا لعرض الواجهة فقط.", "This is a merchant preview. Cart and purchase actions are disabled.", "זוהי תצוגה מקדימה לסוחר. פעולות העגלה והרכישה מושבתות."],
   ["لوحة المتجر", "Store dashboard", "לוח ניהול החנות"],
   ["السوق", "Market", "השוק"],
