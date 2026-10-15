@@ -299,7 +299,7 @@ export default function StoreDetails() {
 
       <SurfaceCard
         variant="hero"
-        className={`storefront-hero page-store-details__hero${coverImage ? " page-store-details__hero--cover" : ""}`}
+        className="storefront-hero page-store-details__hero"
       >
         {coverImage ? (
           <Box className="page-store-details__hero-media" aria-hidden>

@@ -59,21 +59,6 @@ html[data-theme-mode="dark"] .page-store-details__hero {
   object-fit: cover;
 }
 
-.page-store-details__hero--cover {
-  padding: 0 !important;
-  min-height: 0;
-}
-.page-store-details__hero--cover .page-store-details__hero-media {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 3 / 1;
-}
-.page-store-details__hero--cover .page-store-details__hero-media img {
-  display: block;
-  object-fit: contain;
-}
-.page-store-details__hero--cover .page-store-details__hero-overlay { display: none; }
-.page-store-details__hero--cover .page-store-details__hero-grid { padding: 24px; }
 
 .page-store-details__hero-media--empty {
   display: grid;
