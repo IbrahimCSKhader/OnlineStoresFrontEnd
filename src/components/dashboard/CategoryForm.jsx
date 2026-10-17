@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
@@ -16,6 +18,28 @@ export default function CategoryForm({
   onReset,
   onSubmit,
 }) {
+  const [preview, setPreview] = useState("");
+  const [imageError, setImageError] = useState("");
+  useEffect(() => () => {
+    if (preview) URL.revokeObjectURL(preview);
+  }, [preview, form.imageFile]);
+  const imageSrc = form.imageFile ? preview : resolveAssetUrl(form.imageUrl);
+  const selectImage = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!/\.(jpe?g|png|webp)$/i.test(file.name) || !["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setImageError("اختر صورة بصيغة JPG أو PNG أو WebP.");
+      return;
+    }
+    if (file.size === 0 || file.size > 5 * 1024 * 1024) {
+      setImageError("حجم الصورة يجب أن يكون أكبر من صفر ولا يتجاوز 5 ميجابايت.");
+      return;
+    }
+    setImageError("");
+    setPreview(URL.createObjectURL(file));
+    onChange("imageFile", file);
+  };
   return (
     <Box className="owner-form-card">
       <Alert severity="info" className="owner-inline-alert">
@@ -57,14 +81,19 @@ export default function CategoryForm({
           onChange={(event) => onChange("displayOrder", event.target.value)}
         />
 
-        <TextField
-          label="رابط صورة التصنيف"
-          value={form.imageUrl}
-          size="small"
-          className="owner-form__wide"
-          placeholder="https://..."
-          onChange={(event) => onChange("imageUrl", event.target.value)}
-        />
+        <Stack spacing={1} className="owner-form__wide">
+          <Typography variant="body2">{"صورة التصنيف"}</Typography>
+          <AppButton component="label" variant="outlined" disabled={loading}>
+            {(imageSrc ? "تغيير الصورة" : "رفع صورة من الجهاز")}
+            <input hidden type="file" aria-label={"صورة التصنيف"}
+              accept="image/jpeg,image/png,image/webp" onChange={selectImage} disabled={loading} />
+          </AppButton>
+          <Typography variant="caption" color="text.secondary">{"JPG أو PNG أو WebP، حتى 5 ميجابايت"}</Typography>
+          {imageError ? <Alert severity="error">{imageError}</Alert> : null}
+          {imageSrc ? <Box component="img" src={imageSrc} alt={"معاينة صورة التصنيف"}
+            sx={{ width: 160, height: 120, objectFit: "cover", borderRadius: 2 }} /> : null}
+          {form.imageFile ? <Typography variant="caption">{form.imageFile.name}</Typography> : null}
+        </Stack>
 
         <TextField
           label="الوصف"
