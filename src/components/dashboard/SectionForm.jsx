@@ -1,3 +1,4 @@
+import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -14,15 +15,14 @@ export default function SectionForm({
   onReset,
   onSubmit,
 }) {
+  const { t } = useOwnerLanguage();
   return (
     <Box className="owner-form-card">
-      <Alert severity="info" className="owner-inline-alert">
-        رتّب الأقسام بالشكل الذي يساعد الزوار على التصفح بسهولة.
-      </Alert>
+      <Alert severity="info" className="owner-inline-alert">{t("رتّب الأقسام بالشكل الذي يساعد الزوار على التصفح بسهولة.")}</Alert>
 
       <Box component="form" className="owner-form" onSubmit={onSubmit}>
         <TextField
-          label="اسم القسم"
+          label={t("اسم القسم")}
           value={form.name}
           size="small"
           required
@@ -30,7 +30,7 @@ export default function SectionForm({
         />
 
         <TextField
-          label="الترتيب"
+          label={t("الترتيب")}
           value={form.displayOrder}
           size="small"
           type="number"
@@ -39,7 +39,7 @@ export default function SectionForm({
         />
 
         <TextField
-          label="الوصف"
+          label={t("الوصف")}
           value={form.description}
           size="small"
           multiline
@@ -49,7 +49,7 @@ export default function SectionForm({
         />
 
         <Box className="owner-form__switch">
-          <Typography variant="body2">إظهاره للزوار</Typography>
+          <Typography variant="body2">{t("إظهاره للزوار")}</Typography>
           <Switch
             checked={form.isActive}
             onChange={(event) => onChange("isActive", event.target.checked)}
@@ -58,12 +58,10 @@ export default function SectionForm({
 
         <Stack direction="row" spacing={1} className="owner-form__actions">
           <AppButton type="submit" variant="contained" loading={loading}>
-            {isEdit ? "حفظ القسم" : "إضافة القسم"}
+            {t(isEdit ? "حفظ القسم" : "إضافة القسم")}
           </AppButton>
           {isEdit ? (
-            <AppButton type="button" variant="outlined" onClick={onReset}>
-              إلغاء
-            </AppButton>
+            <AppButton type="button" variant="outlined" onClick={onReset}>{t("إلغاء")}</AppButton>
           ) : null}
         </Stack>
       </Box>

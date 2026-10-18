@@ -1,0 +1,1146 @@
+{
+  "الإجمالي": {
+    "E": "Total",
+    "I": "סך הכול"
+  },
+  "البريد الإلكتروني": {
+    "E": "Email",
+    "I": "דואר אלקטרוני"
+  },
+  "الترتيب": {
+    "E": "Sort",
+    "I": "מיון"
+  },
+  "التصنيف": {
+    "E": "Category",
+    "I": "קטגוריה"
+  },
+  "التصنيفات": {
+    "E": "Categories",
+    "I": "קטגוריות"
+  },
+  "الحالة": {
+    "E": "Status",
+    "I": "מצב"
+  },
+  "الدعم": {
+    "E": "Support",
+    "I": "תמיכה"
+  },
+  "الرئيسية": {
+    "E": "Home",
+    "I": "בית"
+  },
+  "الزيارات": {
+    "E": "Visits",
+    "I": "ביקורים"
+  },
+  "السعر": {
+    "E": "Price",
+    "I": "מחיר"
+  },
+  "السوق": {
+    "E": "Market",
+    "I": "השוק"
+  },
+  "العنوان": {
+    "E": "Address",
+    "I": "כתובת"
+  },
+  "القسم": {
+    "E": "Section",
+    "I": "מחלקה"
+  },
+  "الكمية": {
+    "E": "Quantity",
+    "I": "כמות"
+  },
+  "المدينة": {
+    "E": "City",
+    "I": "עיר"
+  },
+  "المنتج": {
+    "E": "Product",
+    "I": "מוצר"
+  },
+  "المنتجات": {
+    "E": "Products",
+    "I": "מוצרים"
+  },
+  "تعذر نسخ الرابط الآن.": {
+    "E": "Could not copy the link.",
+    "I": "לא ניתן להעתיק את הקישור."
+  },
+  "تم نسخ رابط المنتج.": {
+    "E": "Product link copied.",
+    "I": "קישור המוצר הועתק."
+  },
+  "حذف": {
+    "E": "Remove",
+    "I": "הסרה"
+  },
+  "رقم الهاتف": {
+    "E": "Phone number",
+    "I": "מספר טלפון"
+  },
+  "صورة": {
+    "E": "Image",
+    "I": "תמונה"
+  },
+  "غير محدد": {
+    "E": "Not specified",
+    "I": "לא צוין"
+  },
+  "غير نشط": {
+    "E": "Inactive",
+    "I": "לא פעיל"
+  },
+  "لوحة المتجر": {
+    "E": "Store dashboard",
+    "I": "לוח ניהול החנות"
+  },
+  "متجرك": {
+    "E": "Your store",
+    "I": "החנות שלך"
+  },
+  "مشاركة": {
+    "E": "Share",
+    "I": "שיתוף"
+  },
+  "ملخص الطلب": {
+    "E": "Order summary",
+    "I": "סיכום הזמנה"
+  },
+  "منتج": {
+    "E": "products",
+    "I": "מוצרים"
+  },
+  "نسخ الرابط": {
+    "E": "Copy link",
+    "I": "העתקת קישור"
+  },
+  "نشط": {
+    "E": "Active",
+    "I": "פעיל"
+  },
+  "نفد": {
+    "E": "Sold out",
+    "I": "אזל"
+  },
+  "(غير نشط)": {
+    "E": "(inactive)",
+    "I": "(לא פעיל)"
+  },
+  "(مخفي)": {
+    "E": "(hidden)",
+    "I": "(נסתר)"
+  },
+  "،": {
+    "E": ",",
+    "I": ","
+  },
+  "آخر تحديث": {
+    "E": "Latest update",
+    "I": "עדכון אחרון"
+  },
+  "آخر طلب": {
+    "E": "Last order",
+    "I": "הזמנה אחרונה"
+  },
+  "أضف أول كوبون لتسهيل العروض والتحفيز على الشراء.": {
+    "E": "Add the first coupon to facilitate offers and encourage purchases.",
+    "I": "הוסף את הקופון הראשון כדי להקל על הצעות ולעודד רכישות."
+  },
+  "أضف اسم المنتج وسعره وصوره ليظهر للزوار بشكل مرتب.": {
+    "E": "Add the product name, price, and pictures so that it appears to visitors in an organized manner.",
+    "I": "הוסף את שם המוצר, המחיר והתמונות כך שהוא יופיע בפני המבקרים בצורה מסודרת."
+  },
+  "أضف النسخ الأساسية مثل اللون والمقاس. TODO: ربط AttributeValueIds من واجهة خصائص مخصصة.": {
+    "E": "Add basic versions such as color and size. TODO: Bind AttributeValueIds from custom properties interface.",
+    "I": "הוסף גרסאות בסיסיות כגון צבע וגודל. TODO: לאגד AttributeValueIds מממשק מאפיינים מותאמים אישית."
+  },
+  "أضف تصنيفًا وقسمًا واحدًا على الأقل قبل إضافة منتج جديد.": {
+    "E": "Add at least one category and section before adding a new product.",
+    "I": "הוסף לפחות קטגוריה וקטע אחד לפני הוספת מוצר חדש."
+  },
+  "أضف قسمًا واحدًا على الأقل حتى تتمكن من توزيع المنتجات داخل الواجهة.": {
+    "E": "Add at least one section so you can distribute products within the interface.",
+    "I": "הוסף לפחות סעיף אחד כדי שתוכל להפיץ מוצרים בתוך הממשק."
+  },
+  "أضيف بتاريخ": {
+    "E": "Added on date",
+    "I": "נוסף בתאריך"
+  },
+  "أنشئ تصنيفات واضحة ليسهل على الزوار الوصول للمنتجات بسرعة.": {
+    "E": "Create clear labels to make it easy for visitors to access products quickly.",
+    "I": "צור תוויות ברורות כדי להקל על המבקרים לגשת למוצרים במהירות."
+  },
+  "أنشئ تصنيفًا رئيسيًا أو فرعيًا لتنظيم منتجات المتجر.": {
+    "E": "Create a main or subcategory to organize your store's products.",
+    "I": "צור קטגוריה ראשית או משנה כדי לארגן את מוצרי החנות שלך."
+  },
+  "أنشئ عروضًا سريعة وواضحة يمكن تفعيلها أو تعطيلها مباشرة.": {
+    "E": "Create fast, clear offers that can be activated or disabled directly.",
+    "I": "צור הצעות מהירות וברורות שניתן להפעיל או לבטל ישירות."
+  },
+  "أول صورة ستصبح الصورة الرئيسية تلقائيًا": {
+    "E": "The first photo will automatically become the main photo",
+    "I": "התמונה הראשונה תהפוך אוטומטית לתמונה הראשית"
+  },
+  "أُنشئ في": {
+    "E": "Created in",
+    "I": "נוצר ב"
+  },
+  "إجراءات": {
+    "E": "Actions",
+    "I": "פעולות"
+  },
+  "إجمالي المشتريات": {
+    "E": "Total purchases",
+    "I": "סך כל הרכישות"
+  },
+  "إدارة الأقسام": {
+    "E": "Department management",
+    "I": "הנהלת המחלקה"
+  },
+  "إدارة التصنيفات": {
+    "E": "Categories management",
+    "I": "ניהול קטגוריות"
+  },
+  "إدارة الكوبونات": {
+    "E": "Coupon management",
+    "I": "ניהול קופונים"
+  },
+  "إدارة المتجر": {
+    "E": "Store management",
+    "I": "ניהול חנות"
+  },
+  "إدارة المنتجات": {
+    "E": "Product management",
+    "I": "ניהול מוצר"
+  },
+  "إذا استمرت المشكلة، راجع البيانات القادمة من الـ API لهذا الطلب.": {
+    "E": "If the problem persists, review the data coming from the API for this request.",
+    "I": "אם הבעיה נמשכת, בדוק את הנתונים המגיעים מהממשק ה-API עבור בקשה זו."
+  },
+  "إزالة": {
+    "E": "Remove",
+    "I": "הסר"
+  },
+  "إضافة التصنيف": {
+    "E": "Add classification",
+    "I": "הוסף סיווג"
+  },
+  "إضافة القسم": {
+    "E": "Add section",
+    "I": "הוסף סעיף"
+  },
+  "إضافة المنتج": {
+    "E": "Add product",
+    "I": "הוסף מוצר"
+  },
+  "إضافة كوبون": {
+    "E": "Add coupon",
+    "I": "הוסף קופון"
+  },
+  "إضافة منتجات أو تعديلها مع دعم صور متعددة ونشر مباشر.": {
+    "E": "Add or edit products with support for multiple images and live publishing.",
+    "I": "הוסף או ערוך מוצרים עם תמיכה במספר תמונות ופרסום חי."
+  },
+  "إضافة نسخة": {
+    "E": "Add a copy",
+    "I": "הוסף עותק"
+  },
+  "إضافة وتعديل ونشر المنتجات": {
+    "E": "Add, edit and publish products",
+    "I": "הוסף, ערוך ופרסם מוצרים"
+  },
+  "إظهاره للزوار": {
+    "E": "Show it to visitors",
+    "I": "הצג אותו למבקרים"
+  },
+  "إعدادات الحساب": {
+    "E": "Account settings",
+    "I": "הגדרות חשבון"
+  },
+  "إغلاق": {
+    "E": "Close",
+    "I": "סגור"
+  },
+  "إغلاق القائمة الإدارية": {
+    "E": "Close the administrative menu",
+    "I": "סגור את תפריט הניהול"
+  },
+  "إلغاء": {
+    "E": "Cancel",
+    "I": "בטל"
+  },
+  "إلغاء التعديل": {
+    "E": "Cancel modification",
+    "I": "בטל את השינוי"
+  },
+  "إنشاء تصنيفات رئيسية وفرعية بشكل هرمي وواضح.": {
+    "E": "Create main and subcategories in a hierarchical and clear manner.",
+    "I": "צור קטגוריות עיקריות ותתי בצורה היררכית וברורה."
+  },
+  "ابحث داخل التبويب الحالي...": {
+    "E": "Search within the current tab...",
+    "I": "חפש בכרטיסייה הנוכחית..."
+  },
+  "ابحث عن منتج بالاسم أو الوصف": {
+    "E": "Search for a product by name or description",
+    "I": "חפש מוצר לפי שם או תיאור"
+  },
+  "ابدأ بإضافة أول منتج، وسيتم نشره مباشرة إذا أبقيت خيار النشر المباشر مفعّلًا.": {
+    "E": "Start by adding your first product, and it will go live if you keep the go live option enabled.",
+    "I": "התחל על ידי הוספת המוצר הראשון שלך, והוא יעלה לאוויר אם תשמור על אפשרות ההפעלה פעילה."
+  },
+  "احفظ النسخ الجديدة من زر حفظ النسخة قبل حفظ المنتج.": {
+    "E": "Save new copies from the Save Version button before saving the product.",
+    "I": "שמור עותקים חדשים מהלחצן שמור גרסה לפני שמירת המוצר."
+  },
+  "اختر صورة أو أكثر واحفظ الصنف": {
+    "E": "Choose one or more images and save the category",
+    "I": "בחר תמונה אחת או יותר ושמור את הקטגוריה"
+  },
+  "اختر عميلًا من الجدول بالأسفل لتعديل الخصم أو حالة الحساب. إنشاء عميل جديد لم يعد جزءًا من هذه الشاشة.": {
+    "E": "Select a customer from the table below to modify the discount or account status. Create a new client is no longer part of this screen.",
+    "I": "בחר לקוח מהטבלה למטה כדי לשנות את ההנחה או סטטוס החשבון. יצירת לקוח חדש כבר אינה חלק מהמסך הזה."
+  },
+  "اختر مستخدمًا مسجلًا من القائمة بالأسفل وحدد له نسبة خصم ليبدأ برؤية سعر الجملة.": {
+    "E": "Choose a registered user from the list below and set a discount percentage for them to start seeing the wholesale price.",
+    "I": "בחר משתמש רשום מהרשימה למטה והגדר לו אחוז הנחה כדי שיתחיל לראות את המחיר הסיטונאי."
+  },
+  "اختر من المستخدمين المسجلين من يحصل على تسعير خاص داخل متجرك، ثم عدل نسبة الخصم أو أوقفها متى احتجت.": {
+    "E": "Choose from registered users who get special pricing within your store, then adjust or stop the discount percentage whenever you need.",
+    "I": "בחר מבין משתמשים רשומים שמקבלים תמחור מיוחד בחנות שלך, ולאחר מכן התאם או הפסק את אחוז ההנחה בכל עת שתצטרך."
+  },
+  "اسم التصنيف": {
+    "E": "Category name",
+    "I": "שם הקטגוריה"
+  },
+  "اسم العميل": {
+    "E": "Customer name",
+    "I": "שם הלקוח"
+  },
+  "اسم القسم": {
+    "E": "Department name",
+    "I": "שם המחלקה"
+  },
+  "اسم المنتج": {
+    "E": "Product name",
+    "I": "שם המוצר"
+  },
+  "اسم النسخة": {
+    "E": "Version name",
+    "I": "שם הגרסה"
+  },
+  "اضغط لعرض النص كامل": {
+    "E": "Click to view full text",
+    "I": "לחץ לצפייה בטקסט המלא"
+  },
+  "الأب": {
+    "E": "Father",
+    "I": "אבא"
+  },
+  "الأقسام": {
+    "E": "Sections",
+    "I": "מחלקות"
+  },
+  "الأقسام تساعد في توزيع المنتجات على واجهة المتجر بشكل أوضح.": {
+    "E": "Sections help distribute products across the storefront more clearly.",
+    "I": "מדורים עוזרים להפיץ מוצרים על פני חזית החנות בצורה ברורה יותר."
+  },
+  "الإجمالي النهائي": {
+    "E": "Final total",
+    "I": "סך הכל סופי"
+  },
+  "الإجمالي قبل الخصم": {
+    "E": "Total before discount",
+    "I": "סך הכל לפני הנחה"
+  },
+  "الاسم": {
+    "E": "Name",
+    "I": "שם"
+  },
+  "البريد": {
+    "E": "mail",
+    "I": "דואר"
+  },
+  "التصنيف الأعلى": {
+    "E": "Top rating",
+    "I": "דירוג גבוה"
+  },
+  "التفاصيل": {
+    "E": "Details",
+    "I": "פרטים"
+  },
+  "التوصيل والملاحظات": {
+    "E": "Delivery and feedback",
+    "I": "משלוח ומשוב"
+  },
+  "الجملة:": {
+    "E": "Sentence:",
+    "I": "משפט:"
+  },
+  "الحالة الحالية": {
+    "E": "Current status",
+    "I": "מצב נוכחי"
+  },
+  "الحساب مفعل": {
+    "E": "The account is activated",
+    "I": "החשבון מופעל"
+  },
+  "الخصم": {
+    "E": "discount",
+    "I": "הנחה"
+  },
+  "الرابط": {
+    "E": "Link",
+    "I": "קישור"
+  },
+  "السعر الأصلي": {
+    "E": "Original price",
+    "I": "מחיר מקורי"
+  },
+  "السعر الاختياري": {
+    "E": "Optional price",
+    "I": "מחיר אופציונלי"
+  },
+  "السعر قبل التخفيض": {
+    "E": "Price before discount",
+    "I": "מחיר לפני הנחה"
+  },
+  "السعر قبل الخصم": {
+    "E": "Price before discount",
+    "I": "מחיר לפני הנחה"
+  },
+  "الصور الحالية": {
+    "E": "Current photos",
+    "I": "תמונות עדכניות"
+  },
+  "الصور المضافة الآن": {
+    "E": "Pictures added now",
+    "I": "תמונות נוספו עכשיו"
+  },
+  "الصورة": {
+    "E": "Photo",
+    "I": "תמונה"
+  },
+  "الطلب غير موجود": {
+    "E": "The request does not exist",
+    "I": "הבקשה לא קיימת"
+  },
+  "الطلبات": {
+    "E": "Orders",
+    "I": "הזמנות"
+  },
+  "الطلبات المفتوحة": {
+    "E": "Open orders",
+    "I": "הזמנות פתוחות"
+  },
+  "العميل": {
+    "E": "Client",
+    "I": "לקוח"
+  },
+  "العميل غير موجود": {
+    "E": "The client does not exist",
+    "I": "הלקוח לא קיים"
+  },
+  "العناصر": {
+    "E": "Items",
+    "I": "פריטים"
+  },
+  "العودة إلى الطلبات": {
+    "E": "Back to orders",
+    "I": "חזרה להזמנות"
+  },
+  "العودة إلى العملاء": {
+    "E": "Back to customers",
+    "I": "חזרה ללקוחות"
+  },
+  "الكمية:": {
+    "E": "Quantity:",
+    "I": "כמות:"
+  },
+  "الكوبون": {
+    "E": "Coupon",
+    "I": "קופון"
+  },
+  "الكوبونات": {
+    "E": "Coupons",
+    "I": "קופונים"
+  },
+  "الكود": {
+    "E": "Code",
+    "I": "קוד"
+  },
+  "المتجر غير نشط": {
+    "E": "The store is inactive",
+    "I": "החנות לא פעילה"
+  },
+  "المتجر نشط": {
+    "E": "The store is active",
+    "I": "החנות פעילה"
+  },
+  "المحتوى": {
+    "E": "Content",
+    "I": "תוכן"
+  },
+  "المخزون": {
+    "E": "Inventory",
+    "I": "מלאי"
+  },
+  "المستوى:": {
+    "E": "Level:",
+    "I": "רמה:"
+  },
+  "المعرف": {
+    "E": "ID",
+    "I": "תעודה מזהה"
+  },
+  "المنتجات الظاهرة حاليًا في المتجر": {
+    "E": "Products currently visible in the store",
+    "I": "מוצרים הנראים כעת בחנות"
+  },
+  "المنتجات المنشورة": {
+    "E": "Published products",
+    "I": "מוצרים שפורסמו"
+  },
+  "النوع": {
+    "E": "Type",
+    "I": "הקלד"
+  },
+  "الهاتف": {
+    "E": "Phone",
+    "I": "טלפון"
+  },
+  "الوصف": {
+    "E": "Description",
+    "I": "תיאור"
+  },
+  "الوصف القصير للصنف": {
+    "E": "Short description of the item",
+    "I": "תיאור קצר של הפריט"
+  },
+  "بدون تصنيف أعلى": {
+    "E": "No higher rating",
+    "I": "אין דירוג גבוה יותר"
+  },
+  "بدون وصف": {
+    "E": "Without description",
+    "I": "בלי תיאור"
+  },
+  "بناء العروض السريعة": {
+    "E": "Manage quick promotions",
+    "I": "ניהול מבצעים מהירים"
+  },
+  "بناء شجرة الكاتيجوريز": {
+    "E": "Building a category tree",
+    "I": "בניית עץ קטגוריות"
+  },
+  "بيانات العميل": {
+    "E": "Customer data",
+    "I": "נתוני לקוחות"
+  },
+  "تأكد من وجود متجر مرتبط بصاحب الحساب أو تواصل مع الإدارة.": {
+    "E": "Make sure there is a store associated with the account holder or contact the administration.",
+    "I": "ודא שיש חנות הקשורה לבעל החשבון או פנה למנהלה."
+  },
+  "تابع حالة الطلبات وغيّرها باسم واضح بدل الأرقام.": {
+    "E": "Follow the status of orders and change them with a clear name instead of numbers.",
+    "I": "עקבו אחר מצב ההזמנות ושנו אותן בשם ברור במקום מספרים."
+  },
+  "تاريخ الإنشاء": {
+    "E": "Creation date",
+    "I": "תאריך יצירה"
+  },
+  "تاريخ الطلب": {
+    "E": "Order date",
+    "I": "תאריך הזמנה"
+  },
+  "تحديث": {
+    "E": "Update",
+    "I": "עדכון"
+  },
+  "تحديث الحالة": {
+    "E": "Status update",
+    "I": "עדכון סטטוס"
+  },
+  "تحديد من يشاهد سعر الجملة داخل المتجر": {
+    "E": "Determine who sees the wholesale price within the store",
+    "I": "קבע מי רואה את המחיר הסיטונאי בתוך החנות"
+  },
+  "تعديل": {
+    "E": "Edit",
+    "I": "ערוך"
+  },
+  "تعذر تجهيز رابط هذا المنتج الآن.": {
+    "E": "The link for this product cannot be processed at this time.",
+    "I": "לא ניתן לעבד את הקישור למוצר זה בשלב זה."
+  },
+  "تعذر تحديد متجر المالك الحالي.": {
+    "E": "The current owner's store could not be determined.",
+    "I": "לא ניתן היה לקבוע את החנות של הבעלים הנוכחי."
+  },
+  "تعذر تحميل أحدث نسخة من الطلب، لذلك يتم عرض البيانات المتوفرة حاليًا.": {
+    "E": "The latest version of the order could not be loaded, so currently available data is displayed.",
+    "I": "לא ניתן היה לטעון את הגרסה העדכנית ביותר של ההזמנה, ולכן הנתונים הזמינים כרגע מוצגים."
+  },
+  "تعذر تحميل بيانات عملاء المتجر حالياً.": {
+    "E": "The store's customer data cannot be downloaded at this time.",
+    "I": "לא ניתן להוריד את נתוני הלקוחות של החנות בשלב זה."
+  },
+  "تعذر تحميل طلبات هذا العميل حالياً.": {
+    "E": "This customer's orders cannot be loaded at this time.",
+    "I": "לא ניתן לטעון את ההזמנות של לקוח זה בשלב זה."
+  },
+  "تعذر تحميل هذا الطلب. تأكد من أن الطلب يتبع لمتجرك الحالي.": {
+    "E": "This application could not be loaded. Make sure the order follows your current store.",
+    "I": "לא ניתן היה לטעון את האפליקציה הזו. ודא שההזמנה תואמת את החנות הנוכחית שלך."
+  },
+  "تعذر تنفيذ العملية. حاول مرة أخرى.": {
+    "E": "The operation could not be performed. Try again.",
+    "I": "לא ניתן היה לבצע את הפעולה. נסה שוב."
+  },
+  "تعطيل": {
+    "E": "Disable",
+    "I": "השבת"
+  },
+  "تفاصيل الطلب": {
+    "E": "Order details",
+    "I": "פרטי ההזמנה"
+  },
+  "تم التأكيد": {
+    "E": "Confirmed",
+    "I": "אושרה"
+  },
+  "تم التسليم": {
+    "E": "Delivered",
+    "I": "נמסרה"
+  },
+  "تم الشحن": {
+    "E": "Shipped",
+    "I": "נשלחה"
+  },
+  "تم تجهيز الرابط للمشاركة.": {
+    "E": "The link is ready to share.",
+    "I": "הקישור מוכן לשיתוף."
+  },
+  "تمييز المنتج": {
+    "E": "Product differentiation",
+    "I": "בידול מוצרים"
+  },
+  "تنظيم عرض المنتجات في الواجهة": {
+    "E": "Organizing the display of products in the interface",
+    "I": "ארגון תצוגת המוצרים בממשק"
+  },
+  "جارٍ تحميل بيانات العميل...": {
+    "E": "Loading customer data...",
+    "I": "טוען נתוני לקוחות..."
+  },
+  "جارٍ تحميل بيانات المتجر...": {
+    "E": "Loading store data...",
+    "I": "טוען נתוני חנות..."
+  },
+  "جارٍ تحميل تفاصيل الطلب...": {
+    "E": "Loading order details...",
+    "I": "טוען פרטי הזמנה..."
+  },
+  "حتى 5MB للصورة": {
+    "E": "Up to 5MB per image",
+    "I": "עד 5MB לתמונה"
+  },
+  "حفظ إعدادات العميل": {
+    "E": "Save client settings",
+    "I": "שמור את הגדרות הלקוח"
+  },
+  "حفظ التصنيف": {
+    "E": "Save classification",
+    "I": "שמור סיווג"
+  },
+  "حفظ الصنف": {
+    "E": "Save the item",
+    "I": "שמור את הפריט"
+  },
+  "حفظ القسم": {
+    "E": "Save the section",
+    "I": "שמור את הקטע"
+  },
+  "حفظ الكوبون": {
+    "E": "Save coupon",
+    "I": "שמור קופון"
+  },
+  "حفظ المنتج": {
+    "E": "Save the product",
+    "I": "שמור את המוצר"
+  },
+  "حفظ تعديل الصنف": {
+    "E": "Save the item modification",
+    "I": "שמור את שינוי הפריט"
+  },
+  "خصم الجملة": {
+    "E": "Wholesale discount",
+    "I": "הנחה סיטונאית"
+  },
+  "خصم زبون المتجر لا يؤثر على شاشة الإدارة فقط، بل يغيّر السعر الظاهر للعميل بعد تسجيل الدخول ويُثبت داخل السلة ثم ينتقل إلى الطلب.": {
+    "E": "The store customer discount does not only affect the management screen, but also changes the price that appears to the customer after logging in, installs it inside the basket, and then moves to the order.",
+    "I": "הנחת לקוח החנות לא משפיעה רק על מסך הניהול, אלא גם משנה את המחיר שיופיע ללקוח לאחר הכניסה, מתקין אותו בתוך הסל, ואז עובר להזמנה."
+  },
+  "رئيسي": {
+    "E": "Main",
+    "I": "ראשי"
+  },
+  "رئيسية": {
+    "E": "Main",
+    "I": "ראשי"
+  },
+  "رابط صورة التصنيف": {
+    "E": "Category image link",
+    "I": "קישור לתמונת קטגוריה"
+  },
+  "راجع بيانات الطلب، العميل، وعناصر الشراء من صفحة واحدة.": {
+    "E": "See order, customer, and purchase item data from one page.",
+    "I": "ראה נתוני הזמנה, לקוחות ופריטי רכישה מדף אחד."
+  },
+  "رتّب الأقسام بالشكل الذي يساعد الزوار على التصفح بسهولة.": {
+    "E": "Arrange the sections in a way that helps visitors browse easily.",
+    "I": "סדר את המדורים בצורה שתעזור למבקרים לגלוש בקלות."
+  },
+  "رتّب المنتجات، تابع الطلبات، ونسّق التصنيفات والعروض من مساحة أوضح تساعدك على العمل بسرعة وراحة.": {
+    "E": "Arrange products, track orders, and coordinate categories and offers from a clearer space that helps you work quickly and comfortably.",
+    "I": "ארגן מוצרים, עקוב אחר הזמנות ותאם קטגוריות והצעות ממקום פנוי יותר שעוזר לך לעבוד במהירות ובנוחות."
+  },
+  "رقم الطلب": {
+    "E": "Order number",
+    "I": "מספר הזמנה"
+  },
+  "رقم العميل": {
+    "E": "Customer number",
+    "I": "מספר לקוח"
+  },
+  "زبائن المتجر": {
+    "E": "Store customers",
+    "I": "לקוחות החנות"
+  },
+  "زبائن المتجر الحاليون": {
+    "E": "Current store customers",
+    "I": "לקוחות חנות נוכחיים"
+  },
+  "زبائن المتجر وسعر الجملة": {
+    "E": "Store customers and wholesale price",
+    "I": "לקוחות חנות ומחיר סיטונאי"
+  },
+  "زيارات المتجر": {
+    "E": "Store visits",
+    "I": "ביקורים בחנות"
+  },
+  "ستظهر هنا الطلبات الجديدة القادمة من المتجر.": {
+    "E": "New orders coming from the store will appear here.",
+    "I": "הזמנות חדשות שיגיעו מהחנות יופיעו כאן."
+  },
+  "سعر الجملة": {
+    "E": "Wholesale price",
+    "I": "מחיר סיטונאי"
+  },
+  "سعر الوحدة:": {
+    "E": "Unit price:",
+    "I": "מחיר יחידה:"
+  },
+  "سيظهر البريد الإلكتروني هنا.": {
+    "E": "The email will appear here.",
+    "I": "המייל יופיע כאן."
+  },
+  "شجرة الكاتيجوريز الحالية": {
+    "E": "Current Categories Tree",
+    "I": "עץ הקטגוריות הנוכחיות"
+  },
+  "صورة النسخة": {
+    "E": "Copy image",
+    "I": "העתק תמונה"
+  },
+  "صورة رئيسية": {
+    "E": "Main image",
+    "I": "תמונה ראשית"
+  },
+  "صورة محفوظة": {
+    "E": "Saved image",
+    "I": "תמונה נשמרה"
+  },
+  "طلب": {
+    "E": "Request",
+    "I": "בקשה"
+  },
+  "طلب #": {
+    "E": "Request#",
+    "I": "בקשה #"
+  },
+  "طلبات العميل": {
+    "E": "Customer requests",
+    "I": "בקשות של לקוחות"
+  },
+  "طلبات تحتاج متابعة أو تأكيد": {
+    "E": "Orders needing follow-up or confirmation",
+    "I": "הזמנות הדורשות מעקב או אישור"
+  },
+  "ظاهر": {
+    "E": "It is apparent",
+    "I": "זה ברור"
+  },
+  "عدد الطلبات": {
+    "E": "Number of requests",
+    "I": "מספר בקשות"
+  },
+  "عدد القطع": {
+    "E": "Number of pieces",
+    "I": "מספר חלקים"
+  },
+  "عدد مرات فتح رابط المتجر": {
+    "E": "Number of times the store link was opened",
+    "I": "מספר הפעמים שהקישור לחנות נפתח"
+  },
+  "عدّل تفاصيل المنتج وصوره ثم احفظ التغييرات مباشرة.": {
+    "E": "Edit product details and images, then save the changes directly.",
+    "I": "ערוך את פרטי המוצר והתמונות ולאחר מכן שמור את השינויים ישירות."
+  },
+  "عرض التفاصيل": {
+    "E": "View details",
+    "I": "הצג פרטים"
+  },
+  "عرض المتجر كزائر": {
+    "E": "View the store as a visitor",
+    "I": "הצג את החנות כמבקר"
+  },
+  "عميل المتجر": {
+    "E": "Store customer",
+    "I": "לקוח בחנות"
+  },
+  "عناصر الطلب": {
+    "E": "Request items",
+    "I": "בקש פריטים"
+  },
+  "عند إنشاء طلب جديد سيظهر هنا مباشرة.": {
+    "E": "When you create a new order, it will appear directly here.",
+    "I": "כאשר אתה יוצר הזמנה חדשה, היא תופיע ישירות כאן."
+  },
+  "عنصر": {
+    "E": "items",
+    "I": "פריטים"
+  },
+  "غير محددة": {
+    "E": "Not specified",
+    "I": "לא צוין"
+  },
+  "فتح إدارة المتجر": {
+    "E": "Open store management",
+    "I": "ניהול חנות פתוח"
+  },
+  "قبل الخصم:": {
+    "E": "Before discount:",
+    "I": "לפני הנחה:"
+  },
+  "قد يكون الطلب محذوفاً أو لا يتبع لهذا المتجر.": {
+    "E": "The order may have been deleted or may not belong to this store.",
+    "I": "ייתכן שההזמנה נמחקה או שאינה שייכת לחנות זו."
+  },
+  "قد يكون العميل غير مضاف لهذا المتجر أو تم إزالته.": {
+    "E": "The customer may not have been added to this store or may have been removed.",
+    "I": "ייתכן שהלקוח לא צורף לחנות זו או שהוסר."
+  },
+  "قطعة": {
+    "E": "items",
+    "I": "פריטים"
+  },
+  "قيد الانتظار": {
+    "E": "Pending",
+    "I": "ממתינה"
+  },
+  "قيد التجهيز": {
+    "E": "Processing",
+    "I": "בטיפול"
+  },
+  "قيمة الخصم": {
+    "E": "Discount value",
+    "I": "ערך הנחה"
+  },
+  "قيمة ثابتة": {
+    "E": "Fixed value",
+    "I": "ערך קבוע"
+  },
+  "كل ما تحتاجه لإدارة متجرك في شاشة واحدة": {
+    "E": "Everything you need to manage your store in one screen",
+    "I": "כל מה שאתה צריך כדי לנהל את החנות שלך במסך אחד"
+  },
+  "كود الكوبون": {
+    "E": "Coupon code",
+    "I": "קוד קופון"
+  },
+  "لا توجد أقسام": {
+    "E": "There are no sections",
+    "I": "אין סעיפים"
+  },
+  "لا توجد تصنيفات": {
+    "E": "There are no ratings",
+    "I": "אין דירוגים"
+  },
+  "لا توجد تفاصيل منتجات مرفقة بهذا الطلب من الـ API الحالي.": {
+    "E": "There are no product details attached to this request from the current API.",
+    "I": "אין פרטי מוצר מצורפים לבקשה זו מהממשק ה-API הנוכחי."
+  },
+  "لا توجد طلبات": {
+    "E": "There are no requests",
+    "I": "אין בקשות"
+  },
+  "لا توجد طلبات لهذا العميل": {
+    "E": "There are no orders for this customer",
+    "I": "אין הזמנות ללקוח זה"
+  },
+  "لا توجد عناصر لهذا الطلب": {
+    "E": "There are no items for this order",
+    "I": "אין פריטים להזמנה זו"
+  },
+  "لا توجد كوبونات": {
+    "E": "There are no coupons",
+    "I": "אין קופונים"
+  },
+  "لا توجد ملاحظات مضافة على هذا الطلب.": {
+    "E": "There are no notes added for this order.",
+    "I": "לא נוספו הערות להזמנה זו."
+  },
+  "لا توجد منتجات منشورة": {
+    "E": "There are no published products",
+    "I": "אין מוצרים שפורסמו"
+  },
+  "لا يوجد زبائن متجر بعد": {
+    "E": "There are no store customers yet",
+    "I": "אין עדיין לקוחות בחנות"
+  },
+  "لا يوجد متجر مرتبط بهذا الحساب": {
+    "E": "There is no store associated with this account",
+    "I": "אין חנות המשויכת לחשבון זה"
+  },
+  "لم يتم إضافة وصف للمتجر بعد.": {
+    "E": "No store description has been added yet.",
+    "I": "עדיין לא התווסף תיאור של החנות."
+  },
+  "مؤرشف": {
+    "E": "Archived",
+    "I": "בארכיון"
+  },
+  "متابعة الحالة والتجهيز": {
+    "E": "Follow up on status and preparation",
+    "I": "מעקב אחר סטטוס והכנה"
+  },
+  "متابعة الكمية": {
+    "E": "Follow the quantity",
+    "I": "עקוב אחר הכמות"
+  },
+  "متجر مرتب، إدارة أسرع": {
+    "E": "Tidy store, faster management",
+    "I": "חנות מסודרת, ניהול מהיר יותר"
+  },
+  "متوقف": {
+    "E": "Stopped",
+    "I": "נעצר"
+  },
+  "محتويات الطلب": {
+    "E": "Contents of the application",
+    "I": "תוכן הבקשה"
+  },
+  "مستخدم": {
+    "E": "User",
+    "I": "משתמש"
+  },
+  "مسترجع": {
+    "E": "Returned",
+    "I": "הוחזרה"
+  },
+  "مسودة": {
+    "E": "Draft",
+    "I": "טיוטה"
+  },
+  "معرف العميل": {
+    "E": "Customer ID",
+    "I": "זיהוי לקוח"
+  },
+  "معلومات التواصل": {
+    "E": "Contact information",
+    "I": "פרטי התקשרות"
+  },
+  "معلومات العميل": {
+    "E": "Customer information",
+    "I": "מידע על הלקוח"
+  },
+  "معلومات العميل والطلبات المرتبطة به داخل هذا المتجر فقط.": {
+    "E": "Customer information and related orders within this store only.",
+    "I": "מידע על לקוחות והזמנות נלוות בחנות זו בלבד."
+  },
+  "مفعل": {
+    "E": "Activated",
+    "I": "הופעל"
+  },
+  "ملاحظات العميل": {
+    "E": "Customer feedback",
+    "I": "משוב לקוחות"
+  },
+  "ملخص الطلبات": {
+    "E": "Order summary",
+    "I": "סיכום הזמנה"
+  },
+  "ملخص المتجر السريع": {
+    "E": "Quick store summary",
+    "I": "סיכום מהיר של החנות"
+  },
+  "ملخص عام للمنتج (اختياري)": {
+    "E": "General product summary (optional)",
+    "I": "סיכום מוצר כללי (אופציונלי)"
+  },
+  "ملغي": {
+    "E": "Cancelled",
+    "I": "בוטלה"
+  },
+  "ملف العميل": {
+    "E": "Client file",
+    "I": "קובץ לקוח"
+  },
+  "من 0 إلى 100%": {
+    "E": "0 to 100%",
+    "I": "0 עד 100%"
+  },
+  "نسبة الخصم": {
+    "E": "Discount percentage",
+    "I": "אחוז הנחה"
+  },
+  "نسبة مئوية": {
+    "E": "Percentage",
+    "I": "אחוז"
+  },
+  "نسخ المنتج": {
+    "E": "Copy the product",
+    "I": "העתק את המוצר"
+  },
+  "نشر مباشر": {
+    "E": "Live posting",
+    "I": "פרסום חי"
+  },
+  "نظرة عامة": {
+    "E": "Overview",
+    "I": "סקירה כללית"
+  },
+  "نفد مخزونه": {
+    "E": "Out of stock",
+    "I": "אזל המלאי"
+  },
+  "نوع الخصم": {
+    "E": "Discount type",
+    "I": "סוג הנחה"
+  },
+  "هؤلاء هم المستخدمون الذين يشاهدون تسعيرًا خاصًا داخل هذا المتجر.": {
+    "E": "These are users who see special pricing within that store.",
+    "I": "אלו הם משתמשים שרואים תמחור מיוחד בתוך אותה חנות."
+  },
+  "هذه الواجهة مخصصة فقط لإدارة العملاء المسجلين في المتجر، مثل الخصم والحالة، وليست لإنشاء عميل جديد.": {
+    "E": "This interface is only for managing customers registered in the store, such as discount and status, not for creating a new customer.",
+    "I": "ממשק זה מיועד רק לניהול לקוחות הרשומים בחנות, כגון הנחה וסטטוס, לא ליצירת לקוח חדש."
+  },
+  "هل تريد تعطيل هذه النسخة؟": {
+    "E": "Do you want to disable this version?",
+    "I": "האם ברצונך להשבית את הגרסה הזו?"
+  },
+  "هل تريد حذف هذه الصورة من المنتج؟": {
+    "E": "Do you want to delete this image from the product?",
+    "I": "האם ברצונך למחוק תמונה זו מהמוצר?"
+  },
+  "يجب أن تكون الصور بصيغة JPG أو JPEG أو PNG أو WEBP، وبحجم لا يتجاوز 5MB للصورة.": {
+    "E": "Images must be in JPG, JPEG, PNG or WEBP format, with a size not exceeding 5MB per image.",
+    "I": "התמונות חייבות להיות בפורמט JPG, JPEG, PNG או WEBP, בגודל שלא יעלה על 5MB לתמונה."
+  },
+  "يجب أن تكون الصورة بصيغة JPG أو JPEG أو PNG أو WEBP، وبحجم لا يتجاوز 5MB.": {
+    "E": "The image must be in JPG, JPEG, PNG or WEBP format, and a size not exceeding 5MB.",
+    "I": "התמונה חייבת להיות בפורמט JPG, JPEG, PNG או WEBP, וגודלה אינו עולה על 5MB."
+  },
+  "يرجى إدخال اسم النسخة قبل حفظها.": {
+    "E": "Please enter a copy name before saving it.",
+    "I": "אנא הזן שם עותק לפני שמירתו."
+  },
+  "يرجى إدخال اسم لكل نسخة تمت إضافتها.": {
+    "E": "Please enter a name for each version added.",
+    "I": "נא להזין שם עבור כל גרסה שנוספה."
+  },
+  "يمكنك إضافة صور جديدة أو حذف الصور الحالية": {
+    "E": "You can add new photos or delete existing photos",
+    "I": "אתה יכול להוסיף תמונות חדשות או למחוק תמונות קיימות"
+  },
+  "الطلب": {
+    "E": "Order",
+    "I": "הזמנה"
+  },
+  "حالة الطلب": {
+    "E": "Order status",
+    "I": "סטטוס ההזמנה"
+  },
+  "الفئات": {
+    "E": "Categories",
+    "I": "קטגוריות"
+  },
+  "القسائم": {
+    "E": "Coupons",
+    "I": "קופונים"
+  },
+  "العملاء": {
+    "E": "Customers",
+    "I": "לקוחות"
+  },
+  "المراجعات": {
+    "E": "Reviews",
+    "I": "ביקורות"
+  },
+  "الاشتراك": {
+    "E": "Subscription",
+    "I": "מנוי"
+  },
+  "تواصل": {
+    "E": "Contact",
+    "I": "יצירת קשר"
+  },
+  "من نحن": {
+    "E": "About",
+    "I": "אודות"
+  },
+  "الخطة الحالية:": {
+    "E": "Current plan:",
+    "I": "תוכנית נוכחית:"
+  },
+  "المتاجر": {
+    "E": "Stores",
+    "I": "חנויות"
+  },
+  "المتجر جاهز": {
+    "E": "The store is ready",
+    "I": "החנות מוכנה"
+  },
+  "المتجر غير ظاهر": {
+    "E": "The store is not visible",
+    "I": "החנות לא נראית"
+  },
+  "تابع المنتجات والعروض والطلبات من مساحة واحدة مرتبة وواضحة طوال اليوم.": {
+    "E": "Keep track of products, offers and orders from one clear, organized space throughout the day.",
+    "I": "עקוב אחר מוצרים, הצעות והזמנות ממקום אחד ברור ומאורגן לאורך כל היום."
+  },
+  "روابط سريعة": {
+    "E": "Quick links",
+    "I": "קישורים מהירים"
+  },
+  "قسم": {
+    "E": "section",
+    "I": "מחלקה"
+  },
+  "منتج منشور": {
+    "E": "Published product",
+    "I": "מוצר שפורסם"
+  },
+  "يوجد طلبات تحتاج متابعة أو تأكيد": {
+    "E": "Orders need follow-up or confirmation",
+    "I": "הזמנות דורשות מעקב או אישור"
+  }
+}

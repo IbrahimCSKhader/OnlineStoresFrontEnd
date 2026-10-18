@@ -1,3 +1,4 @@
+import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { useMemo, useState } from "react";
 import { Link as RouterLink, Navigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
@@ -18,8 +19,8 @@ import useStoreOrders from "../../hooks/orders/useStoreOrders.js";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
 import DashboardLayout from "../../layout/DashboardLayout.jsx";
 import { normalizeListResponse } from "../../utils/collections.js";
-import { formatCurrency } from "../../utils/formatCurrency.js";
-import { formatUiDateTime } from "../../utils/numberFormat.js";
+
+
 import { normalizeOrderDetails } from "../../utils/orders.js";
 import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import "./OwnerDashboard.css";
@@ -38,11 +39,10 @@ function getOrderStatusLabel(status) {
   return ORDER_STATUS_LABELS[Number(status)] || "غير محدد";
 }
 
-function formatDateTimeLabel(value) {
-  return formatUiDateTime(value);
-}
+
 
 function DetailValue({ label, value }) {
+  const { t } = useOwnerLanguage();
   const [open, setOpen] = useState(false);
   const displayValue = value === null || value === undefined || value === "" ? "-" : String(value);
   const canExpand = displayValue !== "-" && displayValue.length > 12;
@@ -53,10 +53,10 @@ function DetailValue({ label, value }) {
         type="button"
         className={`owner-detail-value${canExpand ? " owner-detail-value--expandable" : ""}`}
         onClick={canExpand ? () => setOpen(true) : undefined}
-        aria-label={canExpand ? `${label}: ${displayValue}` : undefined}
-        title={canExpand ? "اضغط لعرض النص كامل" : displayValue}
+        aria-label={t(canExpand ? `${label}: ${displayValue}` : undefined)}
+        title={t(canExpand ? "اضغط لعرض النص كامل" : displayValue)}
       >
-        {displayValue}
+        {t(displayValue)}
       </button>
 
       <Dialog
@@ -66,10 +66,10 @@ function DetailValue({ label, value }) {
         maxWidth="sm"
         PaperProps={{ className: "owner-detail-value-dialog" }}
       >
-        <DialogTitle>{label}</DialogTitle>
+        <DialogTitle>{t(label)}</DialogTitle>
         <DialogContent>
           <Typography className="owner-detail-value-dialog__text">
-            {displayValue}
+            {t(displayValue)}
           </Typography>
         </DialogContent>
       </Dialog>
@@ -101,31 +101,25 @@ function normalizeStoreCustomer(item) {
 }
 
 function DetailSidebar({ store }) {
+  const { t } = useOwnerLanguage();
   return (
     <Paper className="owner-sidebar" elevation={0}>
       <Box className="owner-sidebar__brand">
-        <Typography variant="overline" className="owner-sidebar__eyebrow">
-          ملف العميل
-        </Typography>
-        <Typography variant="h5">{store?.name || "متجرك"}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          معلومات العميل والطلبات المرتبطة به داخل هذا المتجر فقط.
-        </Typography>
+        <Typography variant="overline" className="owner-sidebar__eyebrow">{t("ملف العميل")}</Typography>
+        <Typography variant="h5">{t(store?.name || "متجرك")}</Typography>
+        <Typography variant="body2" color="text.secondary">{t("معلومات العميل والطلبات المرتبطة به داخل هذا المتجر فقط.")}</Typography>
       </Box>
 
       <Stack spacing={1.2}>
-        <AppButton component={RouterLink} to="/owner/customers" variant="contained">
-          العودة إلى العملاء
-        </AppButton>
-        <AppButton component={RouterLink} to="/owner/orders" variant="outlined">
-          الطلبات
-        </AppButton>
+        <AppButton component={RouterLink} to="/owner/customers" variant="contained">{t("العودة إلى العملاء")}</AppButton>
+        <AppButton component={RouterLink} to="/owner/orders" variant="outlined">{t("الطلبات")}</AppButton>
       </Stack>
     </Paper>
   );
 }
 
 export default function CustomerDetailsPage() {
+  const { t , dateTime, currency} = useOwnerLanguage();
   const { customerId = "" } = useParams();
   const { isAuthenticated, role } = useAuth();
   const isOwner = isOwnerRole(role);
@@ -171,14 +165,14 @@ export default function CustomerDetailsPage() {
   }
 
   if (ownerStoreQuery.isLoading) {
-    return <LoadingState label="جارٍ تحميل بيانات المتجر..." />;
+    return <LoadingState label={t("جارٍ تحميل بيانات المتجر...")} />;
   }
 
   if (!store) {
     return (
       <EmptyState
-        title="لا يوجد متجر مرتبط بهذا الحساب"
-        description="تعذر تحديد متجر المالك الحالي."
+        title={t("لا يوجد متجر مرتبط بهذا الحساب")}
+        description={t("تعذر تحديد متجر المالك الحالي.")}
       />
     );
   }
@@ -187,34 +181,29 @@ export default function CustomerDetailsPage() {
     <DashboardLayout sidebar={<DetailSidebar store={store} />}>
       <Box className="owner-dashboard owner-detail-shell">
         {customersQuery.isLoading ? (
-          <LoadingState label="جارٍ تحميل بيانات العميل..." />
+          <LoadingState label={t("جارٍ تحميل بيانات العميل...")} />
         ) : customersQuery.error ? (
-          <Alert severity="error">
-            تعذر تحميل بيانات عملاء المتجر حالياً.
-          </Alert>
+          <Alert severity="error">{t("تعذر تحميل بيانات عملاء المتجر حالياً.")}</Alert>
         ) : !customer ? (
           <EmptyState
-            title="العميل غير موجود"
-            description="قد يكون العميل غير مضاف لهذا المتجر أو تم إزالته."
+            title={t("العميل غير موجود")}
+            description={t("قد يكون العميل غير مضاف لهذا المتجر أو تم إزالته.")}
           />
         ) : (
           <>
             <Paper className="owner-panel owner-detail-hero" elevation={0}>
               <Box>
-                <Typography variant="overline" className="owner-hero__eyebrow">
-                  عميل المتجر
-                </Typography>
+                <Typography variant="overline" className="owner-hero__eyebrow">{t("عميل المتجر")}</Typography>
                 <Typography variant="h4" className="owner-panel__title">
-                  {customer.fullName}
+                  {t(customer.fullName)}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  أضيف بتاريخ {formatDateTimeLabel(customer.createdAt)}
+                <Typography variant="body2" color="text.secondary">{t("أضيف بتاريخ")}{t(dateTime(customer.createdAt))}
                 </Typography>
               </Box>
 
               <Chip
                 size="small"
-                label={customer.isActive ? "نشط" : "متوقف"}
+                label={t(customer.isActive ? "نشط" : "متوقف")}
                 color={customer.isActive ? "primary" : "default"}
                 variant={customer.isActive ? "filled" : "outlined"}
               />
@@ -222,67 +211,67 @@ export default function CustomerDetailsPage() {
 
             <Box className="owner-detail-grid">
               <Paper className="owner-panel owner-detail-card" elevation={0}>
-                <Typography variant="h6">معلومات التواصل</Typography>
+                <Typography variant="h6">{t("معلومات التواصل")}</Typography>
                 <Box className="owner-detail-card__row">
-                  <span>الاسم</span>
+                  <span>{t("الاسم")}</span>
                   <strong>
-                    <DetailValue label="الاسم" value={customer.fullName} />
+                    <DetailValue label={t("الاسم")} value={customer.fullName} />
                   </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
-                  <span>البريد</span>
+                  <span>{t("البريد")}</span>
                   <strong>
-                    <DetailValue label="البريد" value={customer.email || "-"} />
+                    <DetailValue label={t("البريد")} value={customer.email || "-"} />
                   </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
-                  <span>الهاتف</span>
+                  <span>{t("الهاتف")}</span>
                   <strong>
-                    <DetailValue label="الهاتف" value={customer.phone || "-"} />
+                    <DetailValue label={t("الهاتف")} value={customer.phone || "-"} />
                   </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
-                  <span>المعرف</span>
+                  <span>{t("المعرف")}</span>
                   <strong>
-                    <DetailValue label="المعرف" value={customer.id} />
-                  </strong>
-                </Box>
-              </Paper>
-
-              <Paper className="owner-panel owner-detail-card" elevation={0}>
-                <Typography variant="h6">إعدادات الحساب</Typography>
-                <Box className="owner-detail-card__row">
-                  <span>خصم الجملة</span>
-                  <strong>
-                    <DetailValue label="خصم الجملة" value={`${customer.discountPercentage}%`} />
-                  </strong>
-                </Box>
-                <Box className="owner-detail-card__row">
-                  <span>الحالة</span>
-                  <strong>{customer.isActive ? "نشط" : "متوقف"}</strong>
-                </Box>
-                <Box className="owner-detail-card__row">
-                  <span>آخر تحديث</span>
-                  <strong>
-                    <DetailValue label="آخر تحديث" value={formatDateTimeLabel(customer.updatedAt)} />
+                    <DetailValue label={t("المعرف")} value={customer.id} />
                   </strong>
                 </Box>
               </Paper>
 
               <Paper className="owner-panel owner-detail-card" elevation={0}>
-                <Typography variant="h6">ملخص الطلبات</Typography>
+                <Typography variant="h6">{t("إعدادات الحساب")}</Typography>
                 <Box className="owner-detail-card__row">
-                  <span>عدد الطلبات</span>
+                  <span>{t("خصم الجملة")}</span>
                   <strong>
-                    <DetailValue label="عدد الطلبات" value={customerOrders.length} />
+                    <DetailValue label={t("خصم الجملة")} value={`${customer.discountPercentage}%`} />
                   </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
-                  <span>إجمالي المشتريات</span>
+                  <span>{t("الحالة")}</span>
+                  <strong>{t(customer.isActive ? "نشط" : "متوقف")}</strong>
+                </Box>
+                <Box className="owner-detail-card__row">
+                  <span>{t("آخر تحديث")}</span>
+                  <strong>
+                    <DetailValue label={t("آخر تحديث")} value={dateTime(customer.updatedAt)} />
+                  </strong>
+                </Box>
+              </Paper>
+
+              <Paper className="owner-panel owner-detail-card" elevation={0}>
+                <Typography variant="h6">{t("ملخص الطلبات")}</Typography>
+                <Box className="owner-detail-card__row">
+                  <span>{t("عدد الطلبات")}</span>
+                  <strong>
+                    <DetailValue label={t("عدد الطلبات")} value={customerOrders.length} />
+                  </strong>
+                </Box>
+                <Box className="owner-detail-card__row">
+                  <span>{t("إجمالي المشتريات")}</span>
                   <strong>
                     <DetailValue
-                      label="إجمالي المشتريات"
-                      value={formatCurrency(
+                      label={t("إجمالي المشتريات")}
+                      value={currency(
                         customerOrders.reduce(
                           (sum, order) => sum + Number(order.totalAmount || 0),
                           0,
@@ -292,13 +281,13 @@ export default function CustomerDetailsPage() {
                   </strong>
                 </Box>
                 <Box className="owner-detail-card__row">
-                  <span>آخر طلب</span>
+                  <span>{t("آخر طلب")}</span>
                   <strong>
                     <DetailValue
-                      label="آخر طلب"
+                      label={t("آخر طلب")}
                       value={
                         customerOrders[0]
-                          ? formatDateTimeLabel(customerOrders[0].createdAt)
+                          ? dateTime(customerOrders[0].createdAt)
                           : "-"
                       }
                     />
@@ -309,18 +298,15 @@ export default function CustomerDetailsPage() {
 
             <Paper className="owner-panel owner-detail-card" elevation={0}>
               <Box className="owner-order-dialog__items-head">
-                <Typography variant="h6">طلبات العميل</Typography>
+                <Typography variant="h6">{t("طلبات العميل")}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {customerOrders.length} طلب
-                </Typography>
+                  {t(customerOrders.length)}{t("طلب")}</Typography>
               </Box>
 
               {ordersQuery.isLoading ? (
                 <LoadingState />
               ) : ordersQuery.error ? (
-                <Alert severity="warning">
-                  تعذر تحميل طلبات هذا العميل حالياً.
-                </Alert>
+                <Alert severity="warning">{t("تعذر تحميل طلبات هذا العميل حالياً.")}</Alert>
               ) : customerOrders.length ? (
                 <Stack spacing={1.2}>
                   {customerOrders.map((order) => (
@@ -332,21 +318,21 @@ export default function CustomerDetailsPage() {
                           variant="subtitle2"
                           className="owner-order-card__link"
                         >
-                          {order.orderNumber || order.id}
+                          {t(order.orderNumber || order.id)}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" component="div">
-                          <DetailValue label="تاريخ الطلب" value={formatDateTimeLabel(order.createdAt)} />
+                          <DetailValue label={t("تاريخ الطلب")} value={dateTime(order.createdAt)} />
                         </Typography>
                       </Box>
 
                       <Stack direction="row" spacing={1} alignItems="center">
                         <Chip
                           size="small"
-                          label={order.statusText || getOrderStatusLabel(order.status)}
+                          label={t(order.statusText || getOrderStatusLabel(order.status))}
                           variant="outlined"
                         />
                         <Typography variant="body2" fontWeight={700}>
-                          {formatCurrency(order.totalAmount)}
+                          {t(currency(order.totalAmount))}
                         </Typography>
                       </Stack>
                     </Box>
@@ -354,8 +340,8 @@ export default function CustomerDetailsPage() {
                 </Stack>
               ) : (
                 <EmptyState
-                  title="لا توجد طلبات لهذا العميل"
-                  description="عند إنشاء طلب جديد سيظهر هنا مباشرة."
+                  title={t("لا توجد طلبات لهذا العميل")}
+                  description={t("عند إنشاء طلب جديد سيظهر هنا مباشرة.")}
                 />
               )}
             </Paper>

@@ -34,6 +34,8 @@ import useCart from "../../hooks/cart/useCart.js";
 import useLogout from "../../hooks/auth/useLogout.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
+import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
+import OwnerLanguageMenu from "./OwnerLanguageMenu.jsx";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
@@ -104,7 +106,9 @@ function getCustomerInitials(user) {
 }
 
 function ThemeToggleButton({ variant, onSelect, options, className }) {
-  const { t } = useStorefrontLanguage();
+  const storefrontLanguage = useStorefrontLanguage();
+  const ownerLanguage = useOwnerLanguage();
+  const { t } = ownerLanguage.enabled ? ownerLanguage : storefrontLanguage;
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
   const activeTheme = options.find((option) => option.value === variant) ?? options[0];
@@ -217,7 +221,9 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isOwnerPreview, buildStorePreviewPath } = useOwnerStorePreview();
-  const { t, language, copy } = useStorefrontLanguage();
+  const storefrontLanguage = useStorefrontLanguage();
+  const ownerLanguage = useOwnerLanguage();
+  const { t, language, copy } = ownerLanguage.enabled ? ownerLanguage : storefrontLanguage;
   const profileMenuOpen = Boolean(profileAnchorEl);
   const isOwnerDashboardRoute = location.pathname.startsWith("/owner");
 
@@ -884,6 +890,7 @@ export default function Navbar() {
         )}
 
         <Box className="store-navbar__actions">
+          <OwnerLanguageMenu />
           {!shouldHideThemeToggle ? (
             <ThemeToggleButton
               variant={variant}

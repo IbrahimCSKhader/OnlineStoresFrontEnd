@@ -1,3 +1,4 @@
+import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
@@ -14,11 +15,12 @@ export default function CouponForm({
   onReset,
   onSubmit,
 }) {
+  const { t } = useOwnerLanguage();
   return (
     <Box className="owner-form-card">
       <Box component="form" className="owner-form" onSubmit={onSubmit}>
         <TextField
-          label="كود الكوبون"
+          label={t("كود الكوبون")}
           value={form.code}
           size="small"
           required
@@ -28,16 +30,16 @@ export default function CouponForm({
         <TextField
           select
           size="small"
-          label="نوع الخصم"
+          label={t("نوع الخصم")}
           value={form.discountType}
           onChange={(event) => onChange("discountType", event.target.value)}
         >
-          <MenuItem value="0">نسبة مئوية</MenuItem>
-          <MenuItem value="1">قيمة ثابتة</MenuItem>
+          <MenuItem value="0">{t("نسبة مئوية")}</MenuItem>
+          <MenuItem value="1">{t("قيمة ثابتة")}</MenuItem>
         </TextField>
 
         <TextField
-          label="قيمة الخصم"
+          label={t("قيمة الخصم")}
           value={form.discountValue}
           size="small"
           required
@@ -47,7 +49,7 @@ export default function CouponForm({
         />
 
         <Box className="owner-form__switch">
-          <Typography variant="body2">نشط</Typography>
+          <Typography variant="body2">{t("نشط")}</Typography>
           <Switch
             checked={form.isActive}
             onChange={(event) => onChange("isActive", event.target.checked)}
@@ -56,12 +58,10 @@ export default function CouponForm({
 
         <Stack direction="row" spacing={1} className="owner-form__actions">
           <AppButton type="submit" variant="contained" loading={loading}>
-            {isEdit ? "حفظ الكوبون" : "إضافة كوبون"}
+            {t(isEdit ? "حفظ الكوبون" : "إضافة كوبون")}
           </AppButton>
           {isEdit ? (
-            <AppButton type="button" variant="outlined" onClick={onReset}>
-              إلغاء التعديل
-            </AppButton>
+            <AppButton type="button" variant="outlined" onClick={onReset}>{t("إلغاء التعديل")}</AppButton>
           ) : null}
         </Stack>
       </Box>

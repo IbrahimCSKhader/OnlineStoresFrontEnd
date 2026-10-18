@@ -3,6 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import CategoryForm from "./CategoryForm.jsx";
 
+vi.mock("../../hooks/storefront/useOwnerLanguage.js", () => ({ default: () => ({ t: value => value }) }));
 beforeEach(() => {
   URL.createObjectURL = vi.fn(() => "blob:category-preview");
   URL.revokeObjectURL = vi.fn();

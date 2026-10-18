@@ -46,6 +46,7 @@ export function formatUiNumber(value, options = {}, fallback = 0) {
 }
 
 export function formatUiDateTime(value, options = {}) {
+  const { locale = UI_ARABIC_LATIN_LOCALE, ...formatOptions } = options;
   if (!value) {
     return "-";
   }
@@ -57,13 +58,13 @@ export function formatUiDateTime(value, options = {}) {
   }
 
   return toEnglishDigits(
-    parsedValue.toLocaleString(UI_ARABIC_LATIN_LOCALE, {
+    parsedValue.toLocaleString(locale, {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      ...options,
+      ...formatOptions,
     }),
   );
 }

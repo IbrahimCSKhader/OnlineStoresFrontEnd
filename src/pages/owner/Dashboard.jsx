@@ -1,4 +1,7 @@
+import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import OrderProductImage from "../../components/order/OrderProductImage.jsx";
+import OrderProductPreviews from "../../components/order/OrderProductPreviews.jsx";
 import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -75,7 +78,7 @@ import {
   serializeAuthFlowUser,
 } from "../../utils/authFlowDebug.js";
 import extractApiError from "../../utils/extractApiError.js";
-import { formatCurrency } from "../../utils/formatCurrency.js";
+
 import {
   formatUiDateTime,
   formatUiNumber,
@@ -709,100 +712,97 @@ function formatProductStatus(value) {
 }
 
 function SectionHeader({ title, description, onRefresh, isRefreshing }) {
+  const { t } = useOwnerLanguage();
   return (
     <Box className="owner-panel__head">
       <Box>
         <Typography variant="h5" className="owner-panel__title">
-          {title}
+          {t(title)}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {description}
+          {t(description)}
         </Typography>
       </Box>
 
-      <AppButton variant="outlined" onClick={onRefresh} loading={isRefreshing}>
-        تحديث
-      </AppButton>
+      <AppButton variant="outlined" onClick={onRefresh} loading={isRefreshing}>{t("تحديث")}</AppButton>
     </Box>
   );
 }
 
 function OrderDetailsDialog({ open, order, loading, error, onClose }) {
+  const { t , dateTime, currency} = useOwnerLanguage();
   const displayStatus =
     order?.statusText || order?.statusLabel || getOrderStatusLabel(order?.status);
-  const createdAtLabel = order?.createdAtLabel || formatDateTimeLabel(order?.createdAt);
+  const createdAtLabel = dateTime(order?.createdAt);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>تفاصيل الطلب</DialogTitle>
+      <DialogTitle>{t("تفاصيل الطلب")}</DialogTitle>
 
       <DialogContent dividers>
-        {loading && !order ? <LoadingState label="جارٍ تحميل تفاصيل الطلب..." /> : null}
+        {loading && !order ? <LoadingState label={t("جارٍ تحميل تفاصيل الطلب...")} /> : null}
 
         {!loading && error && !order ? (
-          <Alert severity="error">{getApiErrorMessage(error)}</Alert>
+          <Alert severity="error">{t(getApiErrorMessage(error))}</Alert>
         ) : null}
 
         {order ? (
           <Box className="owner-order-dialog">
             {error ? (
-              <Alert severity="warning">
-                تعذر تحميل أحدث نسخة من الطلب، لذلك يتم عرض البيانات المتوفرة حاليًا.
-              </Alert>
+              <Alert severity="warning">{t("تعذر تحميل أحدث نسخة من الطلب، لذلك يتم عرض البيانات المتوفرة حاليًا.")}</Alert>
             ) : null}
 
             <Box className="owner-order-dialog__grid">
               <Box className="owner-order-dialog__meta">
-                <span>رقم الطلب</span>
-                <strong>{order.orderNumber || order.id || "-"}</strong>
+                <span>{t("رقم الطلب")}</span>
+                <strong>{t(order.orderNumber || order.id || "-")}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>العميل</span>
+                <span>{t("العميل")}</span>
                 <strong>
-                  {order.customerName || "Customer not found"} ({order.customerId || order.storeCustomerId || "-"})
+                  {t(order.customerName || "Customer not found")} ({t(order.customerId || order.storeCustomerId || "-")})
                 </strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>تاريخ الإنشاء</span>
-                <strong>{createdAtLabel}</strong>
+                <span>{t("تاريخ الإنشاء")}</span>
+                <strong>{t(createdAtLabel)}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>الحالة</span>
-                <strong>{displayStatus || "غير محددة"}</strong>
+                <span>{t("الحالة")}</span>
+                <strong>{t(displayStatus || "غير محددة")}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>العنوان</span>
-                <strong>{order.deliveryAddress || "-"}</strong>
+                <span>{t("العنوان")}</span>
+                <strong>{t(order.deliveryAddress || "-")}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>المدينة</span>
-                <strong>{order.deliveryCity || "-"}</strong>
+                <span>{t("المدينة")}</span>
+                <strong>{t(order.deliveryCity || "-")}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>الهاتف</span>
-                <strong>{order.deliveryPhone || "-"}</strong>
+                <span>{t("الهاتف")}</span>
+                <strong>{t(order.deliveryPhone || "-")}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
-                <span>الكوبون</span>
-                <strong>{order.couponCode || "-"}</strong>
+                <span>{t("الكوبون")}</span>
+                <strong>{t(order.couponCode || "-")}</strong>
               </Box>
             </Box>
 
             {order.customerNotes ? (
               <Box className="owner-order-dialog__note">
-                <Typography variant="subtitle2">ملاحظات العميل</Typography>
+                <Typography variant="subtitle2">{t("ملاحظات العميل")}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {order.customerNotes}
+                  {t(order.customerNotes)}
                 </Typography>
               </Box>
             ) : null}
 
             <Box className="owner-order-dialog__items">
               <Box className="owner-order-dialog__items-head">
-                <Typography variant="h6">محتويات الطلب</Typography>
+                <Typography variant="h6">{t("محتويات الطلب")}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {order.itemsCount ?? 0} قطعة
-                </Typography>
+                  {t(order.itemsCount ?? 0)}{t("قطعة")}</Typography>
               </Box>
 
               {order.items?.length ? (
@@ -813,48 +813,47 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
                       className="owner-order-item"
                     >
                       <Box className="owner-order-item__head">
+                        <OrderProductImage item={item} />
                         <Box>
                           <Typography variant="subtitle2">
-                            {item.productName || `منتج ${index + 1}`}
+                            {t(item.productName || `منتج ${index + 1}`)}
                           </Typography>
                           {item.variantName ? (
                             <Typography variant="caption" color="text.secondary">
-                              {item.variantName}
+                              {t(item.variantName)}
                             </Typography>
                           ) : null}
                         </Box>
 
                         <Typography variant="subtitle2">
-                          {formatCurrency(item.totalPrice)}
+                          {t(currency(item.totalPrice))}
                         </Typography>
                       </Box>
 
                       <Box className="owner-order-item__meta">
-                        <span>الكمية: {item.quantity}</span>
-                        <span>سعر الوحدة: {formatCurrency(item.unitPrice)}</span>
+                        <span>{t("الكمية:")}{t(item.quantity)}</span>
+                        <span>{t("سعر الوحدة:")}{t(currency(item.unitPrice))}</span>
                       </Box>
                     </Box>
                   ))}
                 </Stack>
               ) : (
-                <Alert severity="info">
-                  لا توجد تفاصيل منتجات مرفقة بهذا الطلب من الـ API الحالي.
-                </Alert>
+                <Alert severity="info">{t("لا توجد تفاصيل منتجات مرفقة بهذا الطلب من الـ API الحالي.")}</Alert>
               )}
             </Box>
 
             <Box className="owner-order-dialog__summary">
               <Box className="owner-order-dialog__summary-row">
-                <span>السعر الأصلي</span>
-                <strong>{formatCurrency(order.subtotal)}</strong>
+                <span>{t("السعر الأصلي")}</span>
+                <strong>{t(currency(order.subtotal))}</strong>
               </Box>
               <Box className="owner-order-dialog__summary-row">
-                <span>الخصم</span>
-                <strong>{formatCurrency(order.discount)}</strong>
+                <span>{t("الخصم")}</span>
+                <strong>{t(currency(order.discount))}</strong>
               </Box>
               <Box className="owner-order-dialog__summary-row owner-order-dialog__summary-row--total">
-                <span>الإجمالي النهائي</span>
-                <strong>{formatCurrency(order.totalAmount)}</strong>
+                <span>{t("الإجمالي النهائي")}</span>
+                <strong>{t(currency(order.totalAmount))}</strong>
               </Box>
             </Box>
           </Box>
@@ -862,15 +861,14 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
       </DialogContent>
 
       <DialogActions>
-        <AppButton variant="outlined" onClick={onClose}>
-          إغلاق
-        </AppButton>
+        <AppButton variant="outlined" onClick={onClose}>{t("إغلاق")}</AppButton>
       </DialogActions>
     </Dialog>
   );
 }
 
 export default function OwnerDashboard({ initialTab = "overview" }) {
+  const { t, currency, dateTime } = useOwnerLanguage();
   const navigate = useNavigate();
   const isCompactScreen = useMediaQuery("(max-width:1080px)");
   const mobileSidebarDragRef = useRef({
@@ -1237,12 +1235,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     {
       key: "createdAtLabel",
       title: "تاريخ الطلب",
-      render: (row) => row.createdAtLabel || "-",
+      render: (row) => dateTime(row.createdAt),
     },
     {
       key: "totalAmount",
       title: "الإجمالي",
-      render: (row) => formatCurrency(row.totalAmount),
+      render: (row) => currency(row.totalAmount),
     },
     {
       key: "status",
@@ -1258,9 +1256,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           variant="outlined"
             component={RouterLink}
             to={`/owner/orders/${row.id}`}
-        >
-          عرض التفاصيل
-        </AppButton>
+        >{t("عرض التفاصيل")}</AppButton>
       ),
     },
     {
@@ -1282,7 +1278,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         >
           {OWNER_ORDER_STATUS_OPTIONS.map((option) => (
             <MenuItem key={option.value} value={String(option.value)}>
-              {option.label}
+              {t(option.label)}
             </MenuItem>
           ))}
         </TextField>
@@ -1489,18 +1485,16 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   }
 
   if (ownerStoreQuery.isLoading) {
-    return <LoadingState label="جارٍ تحميل بيانات المتجر..." />;
+    return <LoadingState label={t("جارٍ تحميل بيانات المتجر...")} />;
   }
 
   if (!store) {
     return (
       <EmptyState
-        title="لا يوجد متجر مرتبط بهذا الحساب"
-        description="تأكد من وجود متجر مرتبط بصاحب الحساب أو تواصل مع الإدارة."
+        title={t("لا يوجد متجر مرتبط بهذا الحساب")}
+        description={t("تأكد من وجود متجر مرتبط بصاحب الحساب أو تواصل مع الإدارة.")}
         action={
-          <AppButton component={RouterLink} to="/" variant="contained">
-            الرئيسية
-          </AppButton>
+          <AppButton component={RouterLink} to="/" variant="contained">{t("الرئيسية")}</AppButton>
         }
       />
     );
@@ -2325,10 +2319,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       render: (row) => (
         <Stack spacing={0.3}>
           <Typography variant="body2" fontWeight={700}>
-            {row.fullName}
+            {t(row.fullName)}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {row.email}
+            {t(row.email)}
           </Typography>
         </Stack>
       ),
@@ -2349,7 +2343,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       render: (row) => (
         <Chip
           size="small"
-          label={row.isActive ? "مفعل" : "متوقف"}
+          label={t(row.isActive ? "مفعل" : "متوقف")}
           color={row.isActive ? "primary" : "default"}
           variant={row.isActive ? "filled" : "outlined"}
         />
@@ -2364,9 +2358,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             size="small"
             variant="outlined"
             onClick={() => openCustomerStoreEditor(row)}
-          >
-            تعديل
-          </AppButton>
+          >{t("تعديل")}</AppButton>
           <AppButton
             size="small"
             variant="outlined"
@@ -2382,9 +2374,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 row.id,
               )
             }
-          >
-            حذف
-          </AppButton>
+          >{t("حذف")}</AppButton>
         </Stack>
       ),
     },
@@ -2399,7 +2389,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     {
       key: "totalAmount",
       title: "الإجمالي",
-      render: (row) => formatCurrency(row.totalAmount),
+      render: (row) => currency(row.totalAmount),
     },
     {
       key: "statusLabel",
@@ -2409,7 +2399,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     {
       key: "createdAtLabel",
       title: "تاريخ الإنشاء",
-      render: (row) => row.createdAtLabel,
+      render: (row) => dateTime(row.createdAt),
     },
     {
       key: "actions",
@@ -2430,7 +2420,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         >
           {OWNER_ORDER_STATUS_OPTIONS.map((option) => (
             <MenuItem key={option.value} value={String(option.value)}>
-              {option.label}
+              {t(option.label)}
             </MenuItem>
           ))}
         </TextField>
@@ -2464,12 +2454,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               onPointerMove={handleMobileSidebarPointerMove}
               onPointerUp={handleMobileSidebarPointerUp}
               onPointerCancel={handleMobileSidebarPointerCancel}
-              aria-label="فتح إدارة المتجر"
+              aria-label={t("فتح إدارة المتجر")}
             >
               <span className="owner-mobile-launcher__icon" aria-hidden>
                 <AdminPanelSettingsRoundedIcon fontSize="small" />
               </span>
-              <span className="owner-mobile-launcher__text">إدارة المتجر</span>
+              <span className="owner-mobile-launcher__text">{t("إدارة المتجر")}</span>
               <span className="owner-mobile-launcher__drag" aria-hidden>
                 <DragIndicatorRoundedIcon fontSize="inherit" />
               </span>
@@ -2490,16 +2480,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   <Typography
                     variant="overline"
                     className="owner-mobile-drawer__eyebrow"
-                  >
-                    إدارة المتجر
-                  </Typography>
+                  >{t("إدارة المتجر")}</Typography>
                   <Typography variant="h6">
-                    {store?.name || "متجرك"}
+                    {t(store?.name || "متجرك")}
                   </Typography>
                 </Box>
 
                 <IconButton
-                  aria-label="إغلاق القائمة الإدارية"
+                  aria-label={t("إغلاق القائمة الإدارية")}
                   onClick={() => setIsMobileSidebarOpen(false)}
                 >
                   <CloseRoundedIcon />
@@ -2525,7 +2513,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           >
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <ContactDeveloperButton
-                label="الدعم"
+                label={t("الدعم")}
                 variant="outlined"
               />
             </Stack>
@@ -2534,23 +2522,16 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
         <Paper className="owner-hero" elevation={0}>
           <Box className="owner-hero__copy">
-            <Typography variant="overline" className="owner-hero__eyebrow">
-              متجر مرتب، إدارة أسرع
-            </Typography>
-            <Typography variant="h3" className="owner-hero__title">
-              كل ما تحتاجه لإدارة متجرك في شاشة واحدة
-            </Typography>
-            <Typography variant="body1" className="owner-hero__desc">
-              رتّب المنتجات، تابع الطلبات، ونسّق التصنيفات والعروض من مساحة أوضح
-              تساعدك على العمل بسرعة وراحة.
-            </Typography>
+            <Typography variant="overline" className="owner-hero__eyebrow">{t("متجر مرتب، إدارة أسرع")}</Typography>
+            <Typography variant="h3" className="owner-hero__title">{t("كل ما تحتاجه لإدارة متجرك في شاشة واحدة")}</Typography>
+            <Typography variant="body1" className="owner-hero__desc">{t("رتّب المنتجات، تابع الطلبات، ونسّق التصنيفات والعروض من مساحة أوضح تساعدك على العمل بسرعة وراحة.")}</Typography>
 
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Chip
-                label={`${productsRaw.length} منتج منشور`}
+                label={`${productsRaw.length} ${t("المنتجات المنشورة")}`}
                 variant="outlined"
               />
-              <Chip label={`${sectionsRaw.length} قسم`} variant="outlined" />
+              <Chip label={`${sectionsRaw.length} ${t("الأقسام")}`} variant="outlined" />
             </Stack>
           </Box>
 
@@ -2558,7 +2539,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             <SearchInput
               value={searchText}
               onChange={setSearchText}
-              placeholder="ابحث داخل التبويب الحالي..."
+              placeholder={t("ابحث داخل التبويب الحالي...")}
             />
 
             <Stack direction="row" spacing={1}>
@@ -2573,23 +2554,19 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       : "/"
                 }
                 variant="outlined"
-              >
-                عرض المتجر كزائر
-              </AppButton>
+              >{t("عرض المتجر كزائر")}</AppButton>
               <AppButton
                 component={RouterLink}
                 to="/"
                 sx={{ display: "none" }}
                 variant="contained"
-              >
-                السوق
-              </AppButton>
+              >{t("السوق")}</AppButton>
             </Stack>
           </Box>
         </Paper>
 
         {mutationError ? (
-          <Alert severity="error">{getApiErrorMessage(mutationError)}</Alert>
+          <Alert severity="error">{t(getApiErrorMessage(mutationError))}</Alert>
         ) : null}
 
         {activeTab === "overview" ? (
@@ -2597,18 +2574,18 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             <Paper className="owner-store-banner" elevation={0}>
               <Box className="owner-store-banner__content">
                 <Box>
-                  <Typography variant="h5">{store.name}</Typography>
+                  <Typography variant="h5">{t(store.name)}</Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {store.description || "لم يتم إضافة وصف للمتجر بعد."}
+                    {t(store.description || "لم يتم إضافة وصف للمتجر بعد.")}
                   </Typography>
                 </Box>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap">
                   {store.businessType ? (
-                    <Chip label={store.businessType} />
+                    <Chip label={t(store.businessType)} />
                   ) : null}
                   <Chip
-                    label={store.isActive ? "المتجر نشط" : "المتجر غير نشط"}
+                    label={t(store.isActive ? "المتجر نشط" : "المتجر غير نشط")}
                     color={store.isActive ? "primary" : "default"}
                     variant={store.isActive ? "filled" : "outlined"}
                   />
@@ -2617,9 +2594,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             </Paper>
 
             <Box className="owner-stats-grid">
-              {overviewStats.map((item) => (
+              {t(overviewStats.map((item) => (
                 <StatCard key={item.label} {...item} />
-              ))}
+              )))}
             </Box>
           </>
         ) : null}
@@ -2627,14 +2604,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "products" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="إدارة المنتجات"
-              description="إضافة منتجات أو تعديلها مع دعم صور متعددة ونشر مباشر."
+              title={t("إدارة المنتجات")}
+              description={t("إضافة منتجات أو تعديلها مع دعم صور متعددة ونشر مباشر.")}
               onRefresh={productsQuery.refetch}
               isRefreshing={productsQuery.isFetching}
             />
 
             {productFormError ? (
-              <Alert severity="error">{productFormError}</Alert>
+              <Alert severity="error">{t(productFormError)}</Alert>
             ) : null}
 
             <ProductForm
@@ -2690,17 +2667,16 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               <SearchInput
                 value={productSearchText}
                 onChange={setProductSearchText}
-                placeholder="ابحث عن منتج بالاسم أو الوصف"
+                placeholder={t("ابحث عن منتج بالاسم أو الوصف")}
                 className="owner-panel__search"
               />
               <Typography variant="body2" color="text.secondary">
-                {products.length} منتج
-              </Typography>
+                {t(products.length)}{t("منتج")}</Typography>
             </Box>
 
             {productLinkFeedback.message ? (
               <Alert severity={productLinkFeedback.severity || "success"}>
-                {productLinkFeedback.message}
+                {t(productLinkFeedback.message)}
               </Alert>
             ) : null}
 
@@ -2720,7 +2696,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         <Box
                           component="img"
                           src={imageUrl}
-                          alt={row.name}
+                          alt={t(row.name)}
                           sx={{
                             width: 48,
                             height: 48,
@@ -2746,7 +2722,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             <Box
                               component="img"
                               src={resolveAssetUrl(row.thumbnailUrl)}
-                              alt={row.name}
+                              alt={t(row.name)}
                               className="owner-thumb"
                             />
                           ) : (
@@ -2757,10 +2733,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         </Box>
                         <Box>
                           <Typography variant="body2" fontWeight={700}>
-                            {row.fullName}
+                            {t(row.fullName)}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {row.shortDescription || row.categoryName || row.sectionName || "بدون وصف"}
+                            {t(row.shortDescription || row.categoryName || row.sectionName || "بدون وصف")}
                           </Typography>
                         </Box>
                       </Stack>
@@ -2772,14 +2748,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     render: (row) => (
                       <Stack spacing={0.25}>
                         <Typography variant="body2">
-                          {categoryLookup.get(row.categoryId)?.pathLabel ||
+                          {t(categoryLookup.get(row.categoryId)?.pathLabel ||
                             row.categoryName ||
-                            "-"}
+                            "-")}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {sectionLookup.get(row.sectionId)?.name ||
+                          {t(sectionLookup.get(row.sectionId)?.name ||
                             row.sectionName ||
-                            "-"}
+                            "-")}
                         </Typography>
                       </Stack>
                     ),
@@ -2790,14 +2766,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     render: (row) => (
                       <Stack spacing={0.25}>
                         <Typography variant="body2" fontWeight={700}>
-                          {formatCurrency(row.price)}
+                          {t(currency(row.price))}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          الجملة: {formatCurrency(row.wholesalePrice || 0)}
+                        <Typography variant="caption" color="text.secondary">{t("الجملة:")}{t(currency(row.wholesalePrice || 0))}
                         </Typography>
                         {row.compareAtPrice ? (
-                          <Typography variant="caption" color="text.secondary">
-                            قبل الخصم: {formatCurrency(row.compareAtPrice)}
+                          <Typography variant="caption" color="text.secondary">{t("قبل الخصم:")}{t(currency(row.compareAtPrice))}
                           </Typography>
                         ) : null}
                       </Stack>
@@ -2810,7 +2784,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       <Stack spacing={0.4}>
                         <Chip
                           size="small"
-                          label={formatProductStatus(row.status)}
+                          label={t(formatProductStatus(row.status))}
                           color={
                             Number(row.status) === 1 ? "primary" : "default"
                           }
@@ -2819,8 +2793,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           }
                         />
                         <Typography variant="caption" color="text.secondary">
-                          {row.images?.length ?? 0} صورة
-                        </Typography>
+                          {t(row.images?.length ?? 0)}{t("صورة")}</Typography>
                       </Stack>
                     ),
                   },
@@ -2840,23 +2813,17 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           variant="outlined"
                           loading={editingProductId === row.id}
                           onClick={() => handleOpenProductEditor(row)}
-                        >
-                          تعديل
-                        </AppButton>
+                        >{t("تعديل")}</AppButton>
                         <AppButton
                           size="small"
                           variant="outlined"
                           onClick={() => handleCopyProductLink(row)}
-                        >
-                          نسخ الرابط
-                        </AppButton>
+                        >{t("نسخ الرابط")}</AppButton>
                         <AppButton
                           size="small"
                           variant="text"
                           onClick={() => handleShareProductLink(row)}
-                        >
-                          مشاركة
-                        </AppButton>
+                        >{t("مشاركة")}</AppButton>
                         <AppButton
                           size="small"
                           variant="outlined"
@@ -2872,17 +2839,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               row.id,
                             )
                           }
-                        >
-                          حذف
-                        </AppButton>
+                        >{t("حذف")}</AppButton>
                       </Stack>
                     ),
                   },
                 ]}
                 emptyState={
                   <EmptyState
-                    title="لا توجد منتجات منشورة"
-                    description="ابدأ بإضافة أول منتج، وسيتم نشره مباشرة إذا أبقيت خيار النشر المباشر مفعّلًا."
+                    title={t("لا توجد منتجات منشورة")}
+                    description={t("ابدأ بإضافة أول منتج، وسيتم نشره مباشرة إذا أبقيت خيار النشر المباشر مفعّلًا.")}
                   />
                 }
               />
@@ -2893,8 +2858,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "categories" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="إدارة التصنيفات"
-              description="إنشاء تصنيفات رئيسية وفرعية بشكل هرمي وواضح."
+              title={t("إدارة التصنيفات")}
+              description={t("إنشاء تصنيفات رئيسية وفرعية بشكل هرمي وواضح.")}
               onRefresh={categoriesQuery.refetch}
               isRefreshing={categoriesQuery.isFetching}
             />
@@ -2926,10 +2891,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     render: (row) => (
                       <Stack spacing={0.3}>
                         <Typography variant="body2" fontWeight={700}>
-                          {row.pathLabel}
+                          {t(row.pathLabel)}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          المستوى: {row.depth + 1}
+                        <Typography variant="caption" color="text.secondary">{t("المستوى:")}{t(row.depth + 1)}
                         </Typography>
                       </Stack>
                     ),
@@ -2946,7 +2910,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     render: (row) => (
                       <Chip
                         size="small"
-                        label={row.isActive ? "نشط" : "غير نشط"}
+                        label={t(row.isActive ? "نشط" : "غير نشط")}
                         color={row.isActive ? "primary" : "default"}
                         variant={row.isActive ? "filled" : "outlined"}
                       />
@@ -2973,17 +2937,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               isActive: Boolean(row.isActive),
                             })
                           }
-                        >
-                          تعديل
-                        </AppButton>
+                        >{t("تعديل")}</AppButton>
                       </Stack>
                     ),
                   },
                 ].filter((column) => column.key !== "slug")}
                 emptyState={
                   <EmptyState
-                    title="لا توجد تصنيفات"
-                    description="أنشئ تصنيفًا رئيسيًا أو فرعيًا لتنظيم منتجات المتجر."
+                    title={t("لا توجد تصنيفات")}
+                    description={t("أنشئ تصنيفًا رئيسيًا أو فرعيًا لتنظيم منتجات المتجر.")}
                   />
                 }
               />
@@ -2994,8 +2956,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "sections" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="إدارة الأقسام"
-              description="الأقسام تساعد في توزيع المنتجات على واجهة المتجر بشكل أوضح."
+              title={t("إدارة الأقسام")}
+              description={t("الأقسام تساعد في توزيع المنتجات على واجهة المتجر بشكل أوضح.")}
               onRefresh={sectionsQuery.refetch}
               isRefreshing={sectionsQuery.isFetching}
             />
@@ -3029,7 +2991,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     render: (row) => (
                       <Chip
                         size="small"
-                        label={row.isActive ? "نشط" : "غير نشط"}
+                        label={t(row.isActive ? "نشط" : "غير نشط")}
                         color={row.isActive ? "primary" : "default"}
                         variant={row.isActive ? "filled" : "outlined"}
                       />
@@ -3053,17 +3015,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               isActive: Boolean(row.isActive),
                             })
                           }
-                        >
-                          تعديل
-                        </AppButton>
+                        >{t("تعديل")}</AppButton>
                       </Stack>
                     ),
                   },
                 ].filter((column) => column.key !== "slug")}
                 emptyState={
                   <EmptyState
-                    title="لا توجد أقسام"
-                    description="أضف قسمًا واحدًا على الأقل حتى تتمكن من توزيع المنتجات داخل الواجهة."
+                    title={t("لا توجد أقسام")}
+                    description={t("أضف قسمًا واحدًا على الأقل حتى تتمكن من توزيع المنتجات داخل الواجهة.")}
                   />
                 }
               />
@@ -3074,8 +3034,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "coupons" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="إدارة الكوبونات"
-              description="أنشئ عروضًا سريعة وواضحة يمكن تفعيلها أو تعطيلها مباشرة."
+              title={t("إدارة الكوبونات")}
+              description={t("أنشئ عروضًا سريعة وواضحة يمكن تفعيلها أو تعطيلها مباشرة.")}
               onRefresh={couponsQuery.refetch}
               isRefreshing={couponsQuery.isFetching}
             />
@@ -3108,7 +3068,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     render: (row) =>
                       Number(row.discountType) === 0
                         ? `${row.discountValue}%`
-                        : formatCurrency(row.discountValue),
+                        : currency(row.discountValue),
                   },
                   {
                     key: "discountType",
@@ -3124,7 +3084,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     render: (row) => (
                       <Chip
                         size="small"
-                        label={row.isActive ? "نشط" : "غير نشط"}
+                        label={t(row.isActive ? "نشط" : "غير نشط")}
                         color={row.isActive ? "primary" : "default"}
                         variant={row.isActive ? "filled" : "outlined"}
                       />
@@ -3148,9 +3108,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               isActive: Boolean(row.isActive),
                             })
                           }
-                        >
-                          تعديل
-                        </AppButton>
+                        >{t("تعديل")}</AppButton>
                         <AppButton
                           size="small"
                           variant="outlined"
@@ -3166,17 +3124,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               row.id,
                             )
                           }
-                        >
-                          حذف
-                        </AppButton>
+                        >{t("حذف")}</AppButton>
                       </Stack>
                     ),
                   },
                 ]}
                 emptyState={
                   <EmptyState
-                    title="لا توجد كوبونات"
-                    description="أضف أول كوبون لتسهيل العروض والتحفيز على الشراء."
+                    title={t("لا توجد كوبونات")}
+                    description={t("أضف أول كوبون لتسهيل العروض والتحفيز على الشراء.")}
                   />
                 }
               />
@@ -3187,19 +3143,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "customers" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="زبائن المتجر وسعر الجملة"
-              description="اختر من المستخدمين المسجلين من يحصل على تسعير خاص داخل متجرك، ثم عدل نسبة الخصم أو أوقفها متى احتجت."
+              title={t("زبائن المتجر وسعر الجملة")}
+              description={t("اختر من المستخدمين المسجلين من يحصل على تسعير خاص داخل متجرك، ثم عدل نسبة الخصم أو أوقفها متى احتجت.")}
               onRefresh={() => {
                 storeCustomersQuery.refetch();
               }}
               isRefreshing={storeCustomersQuery.isFetching}
             />
 
-            <Alert severity="info" className="owner-inline-alert">
-              خصم زبون المتجر لا يؤثر على شاشة الإدارة فقط، بل يغيّر السعر
-              الظاهر للعميل بعد تسجيل الدخول ويُثبت داخل السلة ثم ينتقل إلى
-              الطلب.
-            </Alert>
+            <Alert severity="info" className="owner-inline-alert">{t("خصم زبون المتجر لا يؤثر على شاشة الإدارة فقط، بل يغيّر السعر الظاهر للعميل بعد تسجيل الدخول ويُثبت داخل السلة ثم ينتقل إلى الطلب.")}</Alert>
 
             {customerStoreForm.id ? (
               <CustomerStoreForm
@@ -3212,30 +3164,22 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                 onSubmit={handleSubmitCustomerStore}
               />
             ) : (
-              <Alert severity="info" className="owner-inline-alert">
-                اختر عميلًا من الجدول بالأسفل لتعديل الخصم أو حالة الحساب. إنشاء
-                عميل جديد لم يعد جزءًا من هذه الشاشة.
-              </Alert>
+              <Alert severity="info" className="owner-inline-alert">{t("اختر عميلًا من الجدول بالأسفل لتعديل الخصم أو حالة الحساب. إنشاء عميل جديد لم يعد جزءًا من هذه الشاشة.")}</Alert>
             )}
 
             <Divider />
 
             <Box className="owner-subsection">
               <Box>
-                <Typography variant="h6" className="owner-subsection__title">
-                  زبائن المتجر الحاليون
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  هؤلاء هم المستخدمون الذين يشاهدون تسعيرًا خاصًا داخل هذا
-                  المتجر.
-                </Typography>
+                <Typography variant="h6" className="owner-subsection__title">{t("زبائن المتجر الحاليون")}</Typography>
+                <Typography variant="body2" color="text.secondary">{t("هؤلاء هم المستخدمون الذين يشاهدون تسعيرًا خاصًا داخل هذا المتجر.")}</Typography>
               </Box>
 
               {storeCustomersQuery.isLoading ? (
                 <LoadingState />
               ) : storeCustomersQuery.error ? (
                 <Alert severity="error">
-                  {getApiErrorMessage(storeCustomersQuery.error)}
+                  {t(getApiErrorMessage(storeCustomersQuery.error))}
                 </Alert>
               ) : (
                 <AppDataTable
@@ -3247,10 +3191,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       render: (row) => (
                         <Stack spacing={0.3}>
                           <Typography variant="body2" fontWeight={700}>
-                            {row.name}
+                            {t(row.name)}
                           </Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {row.email}
+                            {t(row.email)}
                           </Typography>
                         </Stack>
                       ),
@@ -3267,7 +3211,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                       render: (row) => (
                         <Chip
                           size="small"
-                          label={row.isActive ? "مفعل" : "متوقف"}
+                          label={t(row.isActive ? "مفعل" : "متوقف")}
                           color={row.isActive ? "primary" : "default"}
                           variant={row.isActive ? "filled" : "outlined"}
                         />
@@ -3282,9 +3226,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             size="small"
                             variant="outlined"
                             onClick={() => openCustomerStoreEditor(row)}
-                          >
-                            تعديل
-                          </AppButton>
+                          >{t("تعديل")}</AppButton>
                           <AppButton
                             size="small"
                             variant="outlined"
@@ -3300,17 +3242,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                                 row.id,
                               )
                             }
-                          >
-                            حذف
-                          </AppButton>
+                          >{t("حذف")}</AppButton>
                         </Stack>
                       ),
                     },
                   ]}
                   emptyState={
                     <EmptyState
-                      title="لا يوجد زبائن متجر بعد"
-                      description="اختر مستخدمًا مسجلًا من القائمة بالأسفل وحدد له نسبة خصم ليبدأ برؤية سعر الجملة."
+                      title={t("لا يوجد زبائن متجر بعد")}
+                      description={t("اختر مستخدمًا مسجلًا من القائمة بالأسفل وحدد له نسبة خصم ليبدأ برؤية سعر الجملة.")}
                     />
                   }
                 />
@@ -3323,8 +3263,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         {activeTab === "orders" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
-              title="الطلبات"
-              description="تابع حالة الطلبات وغيّرها باسم واضح بدل الأرقام."
+              title={t("الطلبات")}
+              description={t("تابع حالة الطلبات وغيّرها باسم واضح بدل الأرقام.")}
               onRefresh={ordersQuery.refetch}
               isRefreshing={ordersQuery.isFetching}
             />
@@ -3352,22 +3292,20 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     <Box key={row.id} className="owner-order-card">
                       <Box className="owner-order-card__head">
                         <Box className="owner-order-card__title">
-                          <Typography variant="caption" color="text.secondary">
-                            رقم الطلب
-                          </Typography>
+                          <Typography variant="caption" color="text.secondary">{t("رقم الطلب")}</Typography>
                           <Typography
                             component={RouterLink}
                             to={"/owner/orders/" + row.id}
                             variant="h6"
                             className="owner-order-card__link"
                           >
-                            {row.orderNumber || row.id || "-"}
+                            {t(row.orderNumber || row.id || "-")}
                           </Typography>
                         </Box>
 
                         <Chip
                           size="small"
-                          label={statusLabel}
+                          label={t(statusLabel)}
                           color={statusTone}
                           variant={statusTone === "default" ? "outlined" : "filled"}
                         />
@@ -3375,9 +3313,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
                       <Box className="owner-order-card__meta">
                         <Box className="owner-order-card__meta-item">
-                          <Typography variant="caption" color="text.secondary">
-                            العميل
-                          </Typography>
+                          <Typography variant="caption" color="text.secondary">{t("العميل")}</Typography>
                           {customerId ? (
                             <Typography
                               component={RouterLink}
@@ -3385,45 +3321,45 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               variant="body1"
                               className="owner-order-card__link"
                             >
-                              {customerName}
+                              {t(customerName)}
                             </Typography>
                           ) : (
-                            <Typography variant="body1">{customerName}</Typography>
+                            <Typography variant="body1">{t(customerName)}</Typography>
                           )}
                           {row.customerPhone ? (
                             <Typography variant="caption" color="text.secondary">
-                              {row.customerPhone}
+                              {t(row.customerPhone)}
                             </Typography>
                           ) : null}
                         </Box>
 
                         <Box className="owner-order-card__meta-item">
-                          <Typography variant="caption" color="text.secondary">
-                            تاريخ الطلب
-                          </Typography>
+                          <Typography variant="caption" color="text.secondary">{t("تاريخ الطلب")}</Typography>
                           <Typography variant="body1">
-                            {row.createdAtLabel || "-"}
+                            {t(dateTime(row.createdAt))}
                           </Typography>
                           {row.title ? (
                             <Typography variant="caption" color="text.secondary">
-                              {row.title}
+                              {t(row.title)}
                             </Typography>
                           ) : null}
                         </Box>
                       </Box>
 
+                      <OrderProductPreviews order={row} t={t} />
+
                       <Box className="owner-order-card__summary">
                         <Box className="owner-order-card__summary-item">
-                          <span>المحتوى</span>
-                          <strong>{row.itemsCount ?? 0} قطعة</strong>
+                          <span>{t("المحتوى")}</span>
+                          <strong>{t(row.itemsCount ?? 0)}{t("قطعة")}</strong>
                         </Box>
                         <Box className="owner-order-card__summary-item">
-                          <span>الخصم</span>
-                          <strong>{formatCurrency(row.discount)}</strong>
+                          <span>{t("الخصم")}</span>
+                          <strong>{t(currency(row.discount))}</strong>
                         </Box>
                         <Box className="owner-order-card__summary-item">
-                          <span>الإجمالي</span>
-                          <strong>{formatCurrency(row.totalAmount)}</strong>
+                          <span>{t("الإجمالي")}</span>
+                          <strong>{t(currency(row.totalAmount))}</strong>
                         </Box>
                       </Box>
 
@@ -3446,7 +3382,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                               key={option.value}
                               value={String(option.value)}
                             >
-                              {option.label}
+                              {t(option.label)}
                             </MenuItem>
                           ))}
                         </TextField>
@@ -3457,18 +3393,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                             to={"/owner/orders/" + row.id}
                             size="small"
                             variant="outlined"
-                          >
-                            تفاصيل الطلب
-                          </AppButton>
+                          >{t("تفاصيل الطلب")}</AppButton>
                           {customerId ? (
                             <AppButton
                               component={RouterLink}
                               to={"/owner/customers/" + customerId}
                               size="small"
                               variant="text"
-                            >
-                              معلومات العميل
-                            </AppButton>
+                            >{t("معلومات العميل")}</AppButton>
                           ) : null}
                         </Stack>
                       </Box>
@@ -3478,8 +3410,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               </Box>
             ) : (
               <EmptyState
-                title="لا توجد طلبات"
-                description="ستظهر هنا الطلبات الجديدة القادمة من المتجر."
+                title={t("لا توجد طلبات")}
+                description={t("ستظهر هنا الطلبات الجديدة القادمة من المتجر.")}
               />
             )}
           </Paper>

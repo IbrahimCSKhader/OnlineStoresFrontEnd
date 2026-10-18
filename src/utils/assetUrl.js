@@ -1,10 +1,11 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net";
+const ASSET_BASE_URL = import.meta.env.VITE_ASSET_BASE_URL || API_BASE_URL;
 
 export function resolveAssetUrl(path) {
   if (!path) return "";
 
   try {
-    return new URL(path, API_BASE_URL).toString();
+    return new URL(path, ASSET_BASE_URL).toString();
   } catch {
     return path;
   }

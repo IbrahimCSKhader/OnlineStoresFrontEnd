@@ -1,3 +1,4 @@
+import useOwnerLanguage from "../../../hooks/storefront/useOwnerLanguage.js";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -14,6 +15,7 @@ export default function AppDataTable({
   emptyState,
   zebra = false,
 }) {
+  const { t } = useOwnerLanguage();
   if (!rows.length) {
     return emptyState ?? null;
   }
@@ -33,7 +35,7 @@ export default function AppDataTable({
             <TableRow>
               {columns.map((column) => (
                 <TableCell key={column.key} className="app-data-table__head-cell">
-                  {column.title}
+                  {t(column.title)}
                 </TableCell>
               ))}
             </TableRow>
@@ -52,7 +54,7 @@ export default function AppDataTable({
                       ) : (
                         <Box>
                           <Typography variant="body2">
-                            {row[column.key] ?? "-"}
+                            {t(row[column.key] ?? "-")}
                           </Typography>
                         </Box>
                       )}

@@ -1,3 +1,4 @@
+import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
@@ -72,26 +73,25 @@ export default function ProductForm({
   onReset,
   onSubmit,
 }) {
+  const { t } = useOwnerLanguage();
   const hasRequirements = categories.length && sections.length;
   const variants = Array.isArray(form.variants) ? form.variants : [];
 
   return (
     <Box className="owner-form-card">
       {!hasRequirements ? (
-        <Alert severity="warning" className="owner-inline-alert">
-          أضف تصنيفًا وقسمًا واحدًا على الأقل قبل إضافة منتج جديد.
-        </Alert>
+        <Alert severity="warning" className="owner-inline-alert">{t("أضف تصنيفًا وقسمًا واحدًا على الأقل قبل إضافة منتج جديد.")}</Alert>
       ) : null}
 
       <Alert severity="info" className="owner-inline-alert">
-        {isEdit
+        {t(isEdit
           ? "عدّل تفاصيل المنتج وصوره ثم احفظ التغييرات مباشرة."
-          : "أضف اسم المنتج وسعره وصوره ليظهر للزوار بشكل مرتب."}
+          : "أضف اسم المنتج وسعره وصوره ليظهر للزوار بشكل مرتب.")}
       </Alert>
 
       <Box component="form" className="owner-form" onSubmit={onSubmit}>
         <TextField
-          label="اسم المنتج"
+          label={t("اسم المنتج")}
           value={form.name}
           size="small"
           required
@@ -99,7 +99,7 @@ export default function ProductForm({
         />
 
         <TextField
-          label="السعر"
+          label={t("السعر")}
           value={form.price}
           size="small"
           required
@@ -109,7 +109,7 @@ export default function ProductForm({
         />
 
         <TextField
-          label="سعر الجملة"
+          label={t("سعر الجملة")}
           value={form.wholesalePrice}
           size="small"
           type="number"
@@ -118,7 +118,7 @@ export default function ProductForm({
         />
 
         <TextField
-          label="السعر قبل التخفيض"
+          label={t("السعر قبل التخفيض")}
           value={form.compareAtPrice}
           size="small"
           type="number"
@@ -127,7 +127,7 @@ export default function ProductForm({
         />
 
         <TextField
-          label="الكمية"
+          label={t("الكمية")}
           value={form.stockQuantity}
           size="small"
           required
@@ -139,14 +139,14 @@ export default function ProductForm({
         <TextField
           select
           size="small"
-          label="التصنيف"
+          label={t("التصنيف")}
           required
           value={form.categoryId || defaultCategoryId || ""}
           onChange={(event) => onChange("categoryId", event.target.value)}
         >
           {categories.map((item) => (
             <MenuItem key={item.id} value={item.id}>
-              {item.label}
+              {t(item.label)}
             </MenuItem>
           ))}
         </TextField>
@@ -154,28 +154,28 @@ export default function ProductForm({
         <TextField
           select
           size="small"
-          label="القسم"
+          label={t("القسم")}
           required
           value={form.sectionId || defaultSectionId || ""}
           onChange={(event) => onChange("sectionId", event.target.value)}
         >
           {sections.map((item) => (
             <MenuItem key={item.id} value={item.id}>
-              {item.name}
-              {!item.isActive ? " (مخفي)" : ""}
+              {t(item.name)}
+              {t(!item.isActive ? " (مخفي)" : "")}
             </MenuItem>
           ))}
         </TextField>
 
         <TextField
-          label="ملخص عام للمنتج (اختياري)"
+          label={t("ملخص عام للمنتج (اختياري)")}
           value={form.shortDescription}
           size="small"
           onChange={(event) => onChange("shortDescription", event.target.value)}
         />
 
         <TextField
-          label="الوصف"
+          label={t("الوصف")}
           value={form.description}
           size="small"
           multiline
@@ -185,7 +185,7 @@ export default function ProductForm({
         />
 
         <Box className="owner-form__switch">
-          <Typography variant="body2">متابعة الكمية</Typography>
+          <Typography variant="body2">{t("متابعة الكمية")}</Typography>
           <Switch
             checked={form.trackInventory}
             onChange={(event) => onChange("trackInventory", event.target.checked)}
@@ -193,7 +193,7 @@ export default function ProductForm({
         </Box>
 
         <Box className="owner-form__switch">
-          <Typography variant="body2">تمييز المنتج</Typography>
+          <Typography variant="body2">{t("تمييز المنتج")}</Typography>
           <Switch
             checked={form.isFeatured}
             onChange={(event) => onChange("isFeatured", event.target.checked)}
@@ -204,19 +204,19 @@ export default function ProductForm({
           <TextField
             select
             size="small"
-            label="الحالة"
+            label={t("الحالة")}
             value={form.status}
             onChange={(event) => onChange("status", event.target.value)}
           >
             {PRODUCT_STATUS_OPTIONS.map((option) => (
               <MenuItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </MenuItem>
             ))}
           </TextField>
         ) : (
           <Box className="owner-form__switch">
-            <Typography variant="body2">نشر مباشر</Typography>
+            <Typography variant="body2">{t("نشر مباشر")}</Typography>
             <Switch
               checked={form.publishNow}
               onChange={(event) => onChange("publishNow", event.target.checked)}
@@ -234,21 +234,15 @@ export default function ProductForm({
             flexWrap="wrap"
           >
             <Box>
-              <Typography variant="subtitle2" className="owner-gallery__title">
-                نسخ المنتج
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                أضف النسخ الأساسية مثل اللون والمقاس. TODO: ربط AttributeValueIds من واجهة خصائص مخصصة.
-              </Typography>
+              <Typography variant="subtitle2" className="owner-gallery__title">{t("نسخ المنتج")}</Typography>
+              <Typography variant="caption" color="text.secondary">{t("أضف النسخ الأساسية مثل اللون والمقاس. TODO: ربط AttributeValueIds من واجهة خصائص مخصصة.")}</Typography>
             </Box>
             <AppButton
               type="button"
               variant="outlined"
               startIcon={<AddRoundedIcon fontSize="small" />}
               onClick={onAddVariant}
-            >
-              إضافة نسخة
-            </AppButton>
+            >{t("إضافة نسخة")}</AppButton>
           </Stack>
 
           {variants.length ? (
@@ -274,13 +268,13 @@ export default function ProductForm({
                 return (
                   <Box key={variant.id || variant.localId || index} className="owner-variants__item">
                     <TextField
-                      label="اسم النسخة"
+                      label={t("اسم النسخة")}
                       value={variant.name || ""}
                       size="small"
                       onChange={(event) => onChangeVariant(index, "name", event.target.value)}
                     />
                     <TextField
-                      label="الوصف القصير للصنف"
+                      label={t("الوصف القصير للصنف")}
                       value={variant.description || ""}
                       size="small"
                       multiline
@@ -291,7 +285,7 @@ export default function ProductForm({
                       }
                     />
                     <TextField
-                      label="السعر الاختياري"
+                      label={t("السعر الاختياري")}
                       value={variant.price ?? ""}
                       size="small"
                       type="number"
@@ -299,7 +293,7 @@ export default function ProductForm({
                       onChange={(event) => onChangeVariant(index, "price", event.target.value)}
                     />
                     <TextField
-                      label="السعر قبل الخصم"
+                      label={t("السعر قبل الخصم")}
                       value={variant.compareAtPrice ?? ""}
                       size="small"
                       type="number"
@@ -307,7 +301,7 @@ export default function ProductForm({
                       onChange={(event) => onChangeVariant(index, "compareAtPrice", event.target.value)}
                     />
                     <TextField
-                      label="المخزون"
+                      label={t("المخزون")}
                       value={variant.stockQuantity ?? ""}
                       size="small"
                       type="number"
@@ -315,15 +309,13 @@ export default function ProductForm({
                       onChange={(event) => onChangeVariant(index, "stockQuantity", event.target.value)}
                     />
                     <Box className="owner-variant-image">
-                      <Typography variant="caption" color="text.secondary">
-                        صورة النسخة
-                      </Typography>
+                      <Typography variant="caption" color="text.secondary">{t("صورة النسخة")}</Typography>
                       <Box className="owner-variant-image__row">
                         <Box className="owner-variant-image__preview">
                           {variantImage ? (
                             <img
                               src={variantImage}
-                              alt={variant.name || form.name || "variant"}
+                              alt={t(variant.name || form.name || "variant")}
                             />
                           ) : (
                             <ImageRoundedIcon fontSize="small" />
@@ -347,7 +339,7 @@ export default function ProductForm({
                           {variantPreviewItems.length ? (
                             <Stack direction="row" spacing={0.5} alignItems="center">
                               <Typography variant="caption" color="text.secondary">
-                                {variantPreviewItems.map((item) => item.name).join("، ")}
+                                {t(variantPreviewItems.map((item) => item.name).join("، "))}
                               </Typography>
                               <IconButton
                                 size="small"
@@ -358,9 +350,7 @@ export default function ProductForm({
                               </IconButton>
                             </Stack>
                           ) : (
-                            <Typography variant="caption" color="text.secondary">
-                              اختر صورة أو أكثر واحفظ الصنف
-                            </Typography>
+                            <Typography variant="caption" color="text.secondary">{t("اختر صورة أو أكثر واحفظ الصنف")}</Typography>
                           )}
                         </Box>
                       </Box>
@@ -372,7 +362,7 @@ export default function ProductForm({
                               key={image.id || image.url}
                               size="small"
                               icon={<ImageRoundedIcon />}
-                              label={image.isPrimary ? "صورة رئيسية" : "صورة محفوظة"}
+                              label={t(image.isPrimary ? "صورة رئيسية" : "صورة محفوظة")}
                               onDelete={() => onDeleteExistingImage?.(image)}
                               disabled={deletingImageId === image.id}
                             />
@@ -381,7 +371,7 @@ export default function ProductForm({
                       ) : null}
                     </Box>
                     <TextField
-                      label="الترتيب"
+                      label={t("الترتيب")}
                       value={variant.sortOrder ?? ""}
                       size="small"
                       type="number"
@@ -398,7 +388,7 @@ export default function ProductForm({
                           loading={variantActionLoading === (variant.id || variant.localId)}
                           onClick={() => onSaveVariant(index)}
                         >
-                          {isExistingVariant ? "حفظ تعديل الصنف" : "حفظ الصنف"}
+                          {t(isExistingVariant ? "حفظ تعديل الصنف" : "حفظ الصنف")}
                         </AppButton>
                       ) : null}
                       <AppButton
@@ -410,7 +400,7 @@ export default function ProductForm({
                         loading={variantActionLoading === (variant.id || variant.localId)}
                         onClick={() => onRemoveVariant(index)}
                       >
-                        {isExistingVariant ? "تعطيل" : "إزالة"}
+                        {t(isExistingVariant ? "تعطيل" : "إزالة")}
                       </AppButton>
                     </Stack>
                   </Box>
@@ -429,28 +419,24 @@ export default function ProductForm({
             onChange={(event) => onAppendImages(Array.from(event.target.files ?? []))}
           />
           <Stack direction="row" spacing={1} flexWrap="wrap">
-            <Chip icon={<ImageRoundedIcon />} label="حتى 5MB للصورة" />
+            <Chip icon={<ImageRoundedIcon />} label={t("حتى 5MB للصورة")} />
             <Chip
               variant="outlined"
-              label={
-                isEdit
+              label={t(isEdit
                   ? "يمكنك إضافة صور جديدة أو حذف الصور الحالية"
-                  : "أول صورة ستصبح الصورة الرئيسية تلقائيًا"
-              }
+                  : "أول صورة ستصبح الصورة الرئيسية تلقائيًا")}
             />
-            {categoryHint ? <Chip color="secondary" label={categoryHint} /> : null}
+            {categoryHint ? <Chip color="secondary" label={t(categoryHint)} /> : null}
           </Stack>
         </Box>
 
         {form.existingImages.length ? (
           <Box className="owner-form__wide">
-            <Typography variant="subtitle2" className="owner-gallery__title">
-              الصور الحالية
-            </Typography>
+            <Typography variant="subtitle2" className="owner-gallery__title">{t("الصور الحالية")}</Typography>
             <Box className="owner-gallery">
               {form.existingImages.map((image) => (
                 <Box key={image.id} className="owner-gallery__item">
-                  <img src={resolveAssetUrl(image.url)} alt={image.altText || form.name} />
+                  <img src={resolveAssetUrl(image.url)} alt={t(image.altText || form.name)} />
                   <Stack
                     direction="row"
                     justifyContent="space-between"
@@ -458,7 +444,7 @@ export default function ProductForm({
                     className="owner-gallery__meta"
                   >
                     <Typography variant="caption">
-                      {image.isPrimary ? "رئيسية" : "صورة"}
+                      {t(image.isPrimary ? "رئيسية" : "صورة")}
                     </Typography>
                     <IconButton
                       size="small"
@@ -477,20 +463,18 @@ export default function ProductForm({
 
         {newImagePreviews.length ? (
           <Box className="owner-form__wide">
-            <Typography variant="subtitle2" className="owner-gallery__title">
-              الصور المضافة الآن
-            </Typography>
+            <Typography variant="subtitle2" className="owner-gallery__title">{t("الصور المضافة الآن")}</Typography>
             <Box className="owner-gallery">
               {newImagePreviews.map((image, index) => (
                 <Box key={`${image.name}-${index}`} className="owner-gallery__item">
-                  <img src={image.url} alt={image.name} />
+                  <img src={image.url} alt={t(image.name)} />
                   <Stack
                     direction="row"
                     justifyContent="space-between"
                     alignItems="center"
                     className="owner-gallery__meta"
                   >
-                    <Typography variant="caption">{image.name}</Typography>
+                    <Typography variant="caption">{t(image.name)}</Typography>
                     <IconButton
                       size="small"
                       color="error"
@@ -507,12 +491,10 @@ export default function ProductForm({
 
         <Stack direction="row" spacing={1} className="owner-form__actions">
           <AppButton type="submit" variant="contained" loading={loading}>
-            {isEdit ? "حفظ المنتج" : "إضافة المنتج"}
+            {t(isEdit ? "حفظ المنتج" : "إضافة المنتج")}
           </AppButton>
           {isEdit ? (
-            <AppButton type="button" variant="outlined" onClick={onReset}>
-              إلغاء
-            </AppButton>
+            <AppButton type="button" variant="outlined" onClick={onReset}>{t("إلغاء")}</AppButton>
           ) : null}
         </Stack>
       </Box>

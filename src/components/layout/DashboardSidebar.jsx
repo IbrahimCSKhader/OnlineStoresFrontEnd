@@ -1,3 +1,4 @@
+import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Paper from "@mui/material/Paper";
@@ -10,24 +11,21 @@ export default function DashboardSidebar({
   items,
   onNavigate,
 }) {
+  const { t } = useOwnerLanguage();
   return (
     <Paper className="owner-sidebar" elevation={0}>
       <Box className="owner-sidebar__brand">
-        <Typography variant="overline" className="owner-sidebar__eyebrow">
-          إدارة المتجر
-        </Typography>
-        <Typography variant="h5">{store?.name || "متجرك"}</Typography>
-        <Typography variant="body2" color="text.secondary">
-          تابع المنتجات والعروض والطلبات من مساحة واحدة مرتبة وواضحة طوال اليوم.
-        </Typography>
+        <Typography variant="overline" className="owner-sidebar__eyebrow">{t("إدارة المتجر")}</Typography>
+        <Typography variant="h5">{t(store?.name || "متجرك")}</Typography>
+        <Typography variant="body2" color="text.secondary">{t("تابع المنتجات والعروض والطلبات من مساحة واحدة مرتبة وواضحة طوال اليوم.")}</Typography>
 
         <Stack direction="row" spacing={1} flexWrap="wrap">
-          {store?.slug ? <Chip label={`/${store.slug}`} variant="outlined" /> : null}
-          {store?.businessType ? <Chip label={store.businessType} /> : null}
+          {store?.slug ? <Chip label={t(`/${store.slug}`)} variant="outlined" /> : null}
+          {store?.businessType ? <Chip label={t(store.businessType)} /> : null}
           <Chip
             color={store?.isActive ? "primary" : "default"}
             variant={store?.isActive ? "filled" : "outlined"}
-            label={store?.isActive ? "المتجر جاهز" : "المتجر غير ظاهر"}
+            label={t(store?.isActive ? "المتجر جاهز" : "المتجر غير ظاهر")}
           />
         </Stack>
       </Box>
@@ -44,7 +42,7 @@ export default function DashboardSidebar({
               onClick={() => onNavigate(item.key)}
             >
               <Box className="owner-sidebar__nav-icon" aria-hidden>
-                {item.icon}
+                {t(item.icon)}
               </Box>
 
               <Box className="owner-sidebar__nav-copy">
@@ -54,13 +52,13 @@ export default function DashboardSidebar({
                   alignItems="center"
                   gap={1}
                 >
-                  <Typography variant="subtitle2">{item.label}</Typography>
+                  <Typography variant="subtitle2">{t(item.label)}</Typography>
                   {item.count !== undefined ? (
-                    <span className="owner-sidebar__nav-count">{item.count}</span>
+                    <span className="owner-sidebar__nav-count">{t(item.count)}</span>
                   ) : null}
                 </Stack>
                 <Typography variant="caption" color="text.secondary">
-                  {item.description}
+                  {t(item.description)}
                 </Typography>
               </Box>
             </button>
