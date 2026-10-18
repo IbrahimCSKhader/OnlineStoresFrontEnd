@@ -264,7 +264,7 @@ function parseRequestPayload(data) {
 
 function extractPathStoreScope(pathname) {
   const patterns = [
-    /^\/api\/cart\/([^/]+)$/i,
+    /^\/api\/cart\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i,
     /^\/api\/cart\/clear\/([^/]+)$/i,
     /^\/api\/product\/store\/([^/]+)$/i,
     /^\/api\/store-customer-auth\/store\/([^/]+)\/set-password-from-auth-user$/i,
