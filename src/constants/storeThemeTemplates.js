@@ -1,5 +1,16 @@
 export const STORE_THEME_TEMPLATES = [
   {
+    value: "T",
+    label: "إلكترو بالس",
+    template: "electropulse",
+    lightVariant: "electropulse",
+    darkVariant: "electropulse-dark",
+    preview: {
+      light: ["#0391A7", "#24A0B3", "#101318"],
+      dark: ["#101318", "#1A252D", "#0391A7"],
+    },
+  },
+  {
     value: "D",
     label: "رمادي",
     template: "default",

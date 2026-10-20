@@ -1,4 +1,8 @@
 const themeConfigs = {
+  electropulse: {
+    defaultVariant: "electropulse-dark",
+    availableVariants: ["electropulse", "electropulse-dark"],
+  },
   default: {
     defaultVariant: "light",
     availableVariants: ["light", "dark"],
@@ -69,6 +73,9 @@ function resolveTemplate(store) {
 
 export function resolveStoreThemeConfig(store) {
   switch (resolveTemplate(store)) {
+    case "t":
+    case "electropulse":
+      return themeConfigs.electropulse;
     case "p":
     case "pink":
       return themeConfigs.pink;

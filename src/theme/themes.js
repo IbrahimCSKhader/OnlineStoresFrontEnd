@@ -46,8 +46,8 @@ function attachUtilityPalette(palette, isDark) {
 
   return {
     ...palette,
-    buttonText: pickTextColor(palette.primary, "#101317", "#FFFFFF"),
-    accentText: pickTextColor(palette.accent, "#101317", "#FFFFFF"),
+    buttonText: palette.buttonText || pickTextColor(palette.primary, "#101317", "#FFFFFF"),
+    accentText: palette.accentText || pickTextColor(palette.accent, "#101317", "#FFFFFF"),
     focusRing: withAlpha(primaryContainer, isDark ? 0.26 : 0.16),
     pageGlowA: withAlpha(primaryContainer, isDark ? 0.28 : 0.1),
     pageGlowB: withAlpha(palette.accent, isDark ? 0.22 : 0.14),
