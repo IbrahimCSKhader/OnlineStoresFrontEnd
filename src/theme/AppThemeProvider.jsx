@@ -14,6 +14,7 @@ import createCache from "@emotion/cache";
 import { prefixer } from "stylis";
 import rtlPlugin from "stylis-plugin-rtl";
 import { buildThemeProfile, createAppTheme, THEME_VARIANTS } from "./themes.js";
+import "./electropulse.css";
 import {
   getStorageItem,
   getStorageJson,

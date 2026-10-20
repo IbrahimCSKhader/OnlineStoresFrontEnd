@@ -6,8 +6,8 @@ export const STORE_THEME_TEMPLATES = [
     lightVariant: "electropulse",
     darkVariant: "electropulse-dark",
     preview: {
-      light: ["#0391A7", "#24A0B3", "#101318"],
-      dark: ["#101318", "#1A252D", "#0391A7"],
+      light: ["#0391A7", "#DCE8EB", "#101318"],
+      dark: ["#101318", "#181E23", "#63F5FA"],
     },
   },
   {

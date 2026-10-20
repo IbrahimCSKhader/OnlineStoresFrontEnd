@@ -1,0 +1,80 @@
+/* Every rule belongs to ElectroPulse; other templates retain their own styles. */
+html[data-theme-template="electropulse"] {
+  --ep-edge: rgba(3, 145, 167, 0.44);
+  --ep-glow: rgba(3, 145, 167, 0.18);
+  --ep-metal: linear-gradient(155deg, #f0f5f6, #bdd4da 48%, #dce8eb);
+}
+
+html[data-theme="electropulse-dark"] {
+  --ep-edge: rgba(99, 245, 250, 0.34);
+  --ep-glow: rgba(3, 145, 167, 0.22);
+  --ep-metal: linear-gradient(155deg, #30383d, #14191d 38%, #181e23 72%, #263138);
+}
+
+html[data-theme-template="electropulse"] :is(.storefront-hero, .app-surface-card, .product-card, .storefront-product-card, .storefront-metric) {
+  border: 1px solid var(--ep-edge);
+  background: var(--ep-metal);
+  box-shadow: inset 0 1px 0 rgba(228, 236, 239, 0.16), var(--shadow-soft);
+}
+
+html[data-theme-template="electropulse"] .storefront-hero {
+  border-radius: 32px;
+  box-shadow: inset 0 0 0 5px color-mix(in srgb, var(--surface-bright) 55%, transparent),
+    inset 0 0 0 6px var(--ep-edge), 0 0 32px var(--ep-glow), var(--shadow-medium);
+}
+
+/* Circuit traces sit above the cover image, below the hero's content. */
+html[data-theme-template="electropulse"] .storefront-hero::after {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  z-index: 0;
+  border-radius: 22px;
+  opacity: 0.28;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='360' viewBox='0 0 300 360' fill='none' stroke='%230391a7' stroke-width='1'%3E%3Cpath d='M0 20l58 58h82m-140-38 58 58h60M0 90l76 76h98M0 114l62 62v38l36 36h64M0 190l35 35v60l32 32h103M300 24l-44 44v75l-52 52v66m96-211-27 27v77l-52 52v35M300 285h-39l-38 38h-40'/%3E%3Cg fill='%23101318'%3E%3Ccircle cx='140' cy='78' r='3'/%3E%3Ccircle cx='118' cy='98' r='3'/%3E%3Ccircle cx='174' cy='166' r='3'/%3E%3Ccircle cx='162' cy='250' r='3'/%3E%3Ccircle cx='170' cy='317' r='3'/%3E%3Ccircle cx='204' cy='261' r='3'/%3E%3Ccircle cx='221' cy='241' r='3'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 300px 360px;
+}
+
+html[data-theme-template="electropulse"] .page-store-details__hero {
+  --store-hero-panel-bg: var(--surface-card);
+  --store-hero-panel-border: var(--ep-edge);
+  --store-hero-logo-bg: var(--surface-low);
+  --store-hero-logo-border: var(--ep-edge);
+  --store-hero-chip-bg: var(--surface-low);
+  --store-hero-chip-border: var(--ep-edge);
+}
+
+html[data-theme-template="electropulse"][data-theme-mode="dark"] .page-store-details__hero {
+  --store-hero-overlay: linear-gradient(90deg, rgba(9,12,16,0.76), rgba(9,12,16,0.88) 55%, rgba(16,19,24,0.96));
+}
+
+html[data-theme="electropulse-dark"] :is(.storefront-title, .store-navbar__brand-name) {
+  color: #e4ecef;
+  background: linear-gradient(180deg, #ffffff 8%, #a4b4bd 46%, #e4ecef 55%, #7c939f 100%);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 1px #000) drop-shadow(0 0 14px rgba(3,145,167,0.2));
+}
+
+html[data-theme-template="electropulse"] :is(.store-navbar__toolbar, .storefront-footer) {
+  border-block-end: 1px solid var(--ep-edge);
+  box-shadow: 0 3px 22px var(--ep-glow);
+}
+
+html[data-theme-template="electropulse"] :is(.product-card, .storefront-product-card, .page-store-details__category-card):hover {
+  border-color: var(--primary);
+  box-shadow: inset 0 1px 0 rgba(228,236,239,0.2), 0 0 22px var(--ep-glow), var(--shadow-medium);
+}
+
+html[data-theme-template="electropulse"] .MuiButton-contained {
+  border: 1px solid var(--ep-edge);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 0 16px var(--ep-glow);
+}
+
+html[data-theme="electropulse-dark"] :is(.product-card__price, .storefront-product-card__price, .storefront-eyebrow, .store-navbar__eyebrow) {
+  color: var(--accent);
+  text-shadow: 0 0 12px var(--ep-glow);
+}
