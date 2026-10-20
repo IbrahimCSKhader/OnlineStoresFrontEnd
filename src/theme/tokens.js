@@ -96,7 +96,7 @@ export const themeCatalog = {
       primaryContainer: "#101318",
       secondary: "#C7DDE1",
       accent: "#101318",
-      background: "#0391A7",
+      background: "#F1F5F8",
       surface: "#DCE8EB",
       surfaceLow: "#BDD4DA",
       surfaceCard: "#DCE8EB",
@@ -117,7 +117,7 @@ export const themeCatalog = {
       error: "#5C1522",
     },
     gradients: {
-      page: "linear-gradient(180deg, #0391A7 0%, #0391A7 100%)",
+      page: "linear-gradient(180deg, #F7F9FB 0%, #F1F5F8 50%, #E8EFF4 100%)",
       hero: "linear-gradient(135deg, #F0F5F6 0%, #BDD4DA 45%, #DCE8EB 100%)",
       accent: "linear-gradient(145deg, #303D46 0%, #101318 55%, #1A252B 100%)",
     },

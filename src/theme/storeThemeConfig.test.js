@@ -8,6 +8,7 @@ describe("resolveStoreThemeConfig", () => {
     expect(normalizeStoreThemeTemplate(" t ")).toBe("T");
     const template = STORE_THEME_TEMPLATES.find(({ value }) => value === "T");
     expect(template).toBeDefined();
+    expect(template.label).toBe("قرمزي");
     for (const store of [{ themeTemplate: "T" }, { ThemeTemplate: " t " }]) {
       expect(resolveStoreThemeConfig(store)).toEqual({
         defaultVariant: template.darkVariant,
@@ -16,14 +17,14 @@ describe("resolveStoreThemeConfig", () => {
     }
   });
 
-  it("swaps the exact background and action colors between ElectroPulse modes", () => {
+  it("uses a pale silver light background and preserves the dark palette", () => {
     const light = buildThemeProfile("electropulse");
     const dark = buildThemeProfile("electropulse-dark");
     expect(light.mode).toBe("light");
     expect(dark.mode).toBe("dark");
     expect(dark.cssVars["--background"]).toBe("#101318");
     expect(dark.cssVars["--primary"]).toBe("#0391A7");
-    expect(light.cssVars["--background"]).toBe(dark.cssVars["--primary"]);
+    expect(light.cssVars["--background"]).toBe("#F1F5F8");
     expect(light.cssVars["--primary"]).toBe(dark.cssVars["--background"]);
     expect(dark.cssVars["--button-text"]).toBe("#101318");
     expect(light.cssVars["--button-text"]).toBe("#FFFFFF");
