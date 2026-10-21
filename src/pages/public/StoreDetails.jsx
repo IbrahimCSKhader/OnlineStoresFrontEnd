@@ -219,7 +219,7 @@ export default function StoreDetails() {
   }, [currentStoreId, isOwnerPreview]);
 
   const handleAddToCart = (product) => {
-    if (isOwnerPreview || !store?.id || !product?.id) {
+    if (store?.isCatalog || isOwnerPreview || !store?.id || !product?.id) {
       return;
     }
 
@@ -407,7 +407,7 @@ export default function StoreDetails() {
                 )}
                 variant="text"
               >{t("تواصل")}</AppButton>
-              {isOwnerPreview ? (
+              {!store?.isCatalog && (isOwnerPreview ? (
                 <AppButton
                   variant="outlined"
                   startIcon={<LocalMallRoundedIcon fontSize="small" />}
@@ -420,7 +420,7 @@ export default function StoreDetails() {
                   variant="outlined"
                   startIcon={<LocalMallRoundedIcon fontSize="small" />}
                 >{t("السلة")}</AppButton>
-              )}
+              ))}
             </Stack>
           </Box>
         </Box>
@@ -507,7 +507,7 @@ export default function StoreDetails() {
           <ProductGrid
             products={featuredProducts}
             storeSlug={resolvedStoreSlug}
-            onAddToCart={handleAddToCart}
+            onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
             addingProductId={addToCartUi.activeKey}
             disableCartActions={isOwnerPreview}
             linkSearch={previewSearch}
@@ -622,7 +622,7 @@ export default function StoreDetails() {
                         <ProductGrid
                           products={group.products}
                           storeSlug={resolvedStoreSlug}
-                          onAddToCart={handleAddToCart}
+                          onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
                           addingProductId={addToCartUi.activeKey}
                           disableCartActions={isOwnerPreview}
                           linkSearch={previewSearch}
@@ -643,7 +643,7 @@ export default function StoreDetails() {
                 <ProductGrid
                   products={filteredProducts}
                   storeSlug={resolvedStoreSlug}
-                  onAddToCart={handleAddToCart}
+                  onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
                   addingProductId={addToCartUi.activeKey}
                   disableCartActions={isOwnerPreview}
                   linkSearch={previewSearch}

@@ -26,8 +26,9 @@ export default function StoreFooter({ store, slug = "" }) {
       to: buildStorePreviewPath(`/market/${slug}/cart`),
       label: t("السلة"),
       disabled: isOwnerPreview,
+      hidden: store?.isCatalog,
     },
-  ];
+  ].filter((link) => !link.hidden);
 
   return (
     <Box component="footer" className="store-local-footer">

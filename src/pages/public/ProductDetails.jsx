@@ -398,7 +398,7 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (isOwnerPreview || !effectiveStoreId || !product?.id) {
+    if (store?.isCatalog || isOwnerPreview || !effectiveStoreId || !product?.id) {
       return;
     }
 
@@ -425,7 +425,7 @@ export default function ProductDetails() {
   };
 
   const handleRelatedAddToCart = (relatedProduct) => {
-    if (isOwnerPreview || !effectiveStoreId || !relatedProduct?.id) return;
+    if (store?.isCatalog || isOwnerPreview || !effectiveStoreId || !relatedProduct?.id) return;
 
     const relatedVariant = getProductDisplayVariant(relatedProduct);
 
@@ -584,7 +584,7 @@ export default function ProductDetails() {
               variant="outlined"
               startIcon={<ArrowBackRoundedIcon fontSize="small" />}
             >{t("العودة إلى المتجر")}</AppButton>
-            {isOwnerPreview ? (
+            {!store?.isCatalog && (isOwnerPreview ? (
               <AppButton variant="text" disabled>{t("السلة")}</AppButton>
             ) : (
               <AppButton
@@ -592,7 +592,7 @@ export default function ProductDetails() {
                 to={buildStorePreviewPath(`/market/${resolvedStoreSlug}/cart`)}
                 variant="text"
               >{t("السلة")}</AppButton>
-            )}
+            ))}
           </Stack>
         </Box>
       </SurfaceCard>
@@ -731,6 +731,7 @@ export default function ProductDetails() {
               ) : null}
 
               <Box className="page-product-details__purchase">
+                {!store?.isCatalog && <>
                 <Typography variant="subtitle1" className="page-product-details__block-title">{t("الكمية")}</Typography>
 
                 <QuantityStepper
@@ -743,7 +744,10 @@ export default function ProductDetails() {
                   onChange={(nextValue) => updateUiState({ quantity: nextValue })}
                 />
 
+                </>}
+
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  {!store?.isCatalog && <>
                   <AppButton
                     variant="contained"
                     loading={addToCartUi.activeKey === "main"}
@@ -763,6 +767,7 @@ export default function ProductDetails() {
                       disabled={!isAvailable || (productHasVariants && !selectedVariant)}
                     >{t("اذهب إلى الدفع")}</AppButton>
                   )}
+                  </>}
                   <AppButton variant="outlined" onClick={handleCopyProductLink}>{t("نسخ الرابط")}</AppButton>
                   <AppButton variant="text" onClick={handleShareProduct}>{t("مشاركة")}</AppButton>
                 </Stack>
@@ -826,7 +831,7 @@ export default function ProductDetails() {
           <ProductGrid
             products={relatedProducts}
             storeSlug={store.slug}
-            onAddToCart={handleRelatedAddToCart}
+            onAddToCart={store?.isCatalog ? undefined : handleRelatedAddToCart}
             addingProductId={relatedAddToCartUi.activeKey}
             disableCartActions={isOwnerPreview}
             linkSearch={previewSearch}

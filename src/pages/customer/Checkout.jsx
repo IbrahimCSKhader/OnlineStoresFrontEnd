@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link as RouterLink, useNavigate, useParams } from "react-router-dom";
+import { Navigate, Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -286,7 +286,7 @@ export default function Checkout() {
   const storeCheckoutPath = buildStorefrontPath(resolvedStoreSlug, "/checkout");
 
   const cartQuery = useCart(store?.id, {
-    enabled: Boolean(store?.id),
+    enabled: Boolean(store?.id) && !store?.isCatalog,
   });
   const storefrontSession = useStorefrontSession(store?.id, resolvedStoreSlug);
   const createOrderMutation = useCreateOrder(store?.id);
@@ -324,6 +324,8 @@ export default function Checkout() {
       </Box>
     );
   }
+
+  if (store.isCatalog) return <Navigate to={storeHomePath} replace />;
 
   if (storefrontSession.hasConflictingStoreCustomerSession) {
     return (

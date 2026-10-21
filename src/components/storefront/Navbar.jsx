@@ -335,7 +335,7 @@ export default function Navbar() {
     isAuthenticated &&
     isStoreCustomer &&
     hasScopedStorefrontSession;
-  const canAccessStoreCart = Boolean(activeStoreSlug) && !isOwnerPreview;
+  const canAccessStoreCart = Boolean(activeStoreSlug) && !isOwnerPreview && !activeStore?.isCatalog;
   const shouldShowStoreRegisterLink =
     !activeStoreSlug && !customDomainHost && !isScopedOwnerDashboard;
 
@@ -445,6 +445,7 @@ export default function Navbar() {
   };
 
   const renderCartButton = (drawer = false) => {
+    if (activeStore?.isCatalog) return null;
     const cartIcon = (
       <Badge
         badgeContent={cartItemCount}
@@ -601,7 +602,7 @@ export default function Navbar() {
 
           <Divider />
 
-          <MenuItem
+          {!activeStore?.isCatalog && <MenuItem
             component={NavLink}
             to={cartPath}
             onClick={closeProfileMenu}
@@ -609,7 +610,7 @@ export default function Navbar() {
           >
             <ListItemIcon>
               <ShoppingCartRoundedIcon fontSize="small" />
-            </ListItemIcon>{t("السلة")}</MenuItem>
+            </ListItemIcon>{t("السلة")}</MenuItem>}
 
           <MenuItem
             component={NavLink}

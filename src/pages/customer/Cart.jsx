@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link as RouterLink, useParams } from "react-router-dom";
+import { Navigate, Link as RouterLink, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
@@ -48,7 +48,7 @@ export default function Cart() {
     : null;
 
   const cartQuery = useCart(store?.id, {
-    enabled: Boolean(store?.id),
+    enabled: Boolean(store?.id) && !store?.isCatalog,
   });
   const updateCartItemMutation = useUpdateCartItem(store?.id);
   const removeCartItemMutation = useRemoveCartItem(store?.id);
@@ -77,6 +77,8 @@ export default function Cart() {
   const storeHomePath = buildStorefrontPath(resolvedStoreSlug);
   const storeLoginPath = buildStorefrontPath(resolvedStoreSlug, "/login");
   const storeCheckoutPath = buildStorefrontPath(resolvedStoreSlug, "/checkout");
+
+  if (store.isCatalog) return <Navigate to={storeHomePath} replace />;
 
   if (storefrontSession.hasConflictingStoreCustomerSession) {
     return (

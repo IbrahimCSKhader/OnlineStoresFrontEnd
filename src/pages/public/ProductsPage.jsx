@@ -245,7 +245,7 @@ export default function ProductsPage() {
   };
 
   const handleAddToCart = (product) => {
-    if (isOwnerPreview || !store?.id || !product?.id) return;
+    if (store?.isCatalog || isOwnerPreview || !store?.id || !product?.id) return;
 
     const defaultVariant = getProductDisplayVariant(product);
 
@@ -501,7 +501,7 @@ export default function ProductsPage() {
               <ProductGrid
                 products={pagination.items}
                 storeSlug={store.slug}
-                onAddToCart={handleAddToCart}
+                onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
                 addingProductId={addToCartUi.activeKey}
                 disableCartActions={isOwnerPreview}
                 linkSearch={previewSearch}

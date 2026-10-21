@@ -5,6 +5,8 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
@@ -47,6 +49,7 @@ const initialForm = {
   email: "",
   password: "",
   storeName: "",
+  isCatalog: false,
   slug: "",
   description: "",
   businessType: "",
@@ -332,6 +335,7 @@ export default function StoreRegister() {
 
       const store = await storeApi.createStore({
         name: form.storeName.trim(),
+        isCatalog: form.isCatalog,
         slug: form.slug.trim(),
         description: form.description.trim(),
         businessType: form.businessType.trim(),
@@ -428,6 +432,11 @@ export default function StoreRegister() {
           </Box>
 
           <Divider />
+
+          <FormControlLabel
+            control={<Checkbox checked={form.isCatalog} onChange={(event) => updateForm("isCatalog", event.target.checked)} disabled={isSubmitting} />}
+            label="كاتالوج لعرض المنتجات فقط (بدون سلة أو شراء)"
+          />
 
           <Box className="store-register__grid">
             <TextField
