@@ -38,6 +38,7 @@ import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./Checkout.css";
 
 const initialForm = {
+  deliveryLocationId: "",
   deliveryAddress: "",
   deliveryCity: "",
   deliveryPhone: "",
@@ -173,6 +174,7 @@ function buildWhatsAppOrderMessage({ store, cart, form, order, t }) {
   const pricingLines = [
     t("- السعر قبل الخصم: {0}", formatCurrency(subtotal)),
     t("- إجمالي الخصومات: {0}", formatCurrency(discountAmount)),
+    t("كلفة التوصيل: {0}", formatCurrency(normalizedOrder.deliveryCost || 0)),
     t("- الإجمالي النهائي: {0}", formatCurrency(finalTotal)),
   ];
 
@@ -190,6 +192,7 @@ function buildWhatsAppOrderMessage({ store, cart, form, order, t }) {
     t("رقم الطلب: {0}", normalizedOrder.orderNumber || normalizedOrder.id || "-"),
     "",
     t("بيانات التوصيل:"),
+    t("مكان التوصيل: {0}", normalizedOrder.deliveryLocationName || "افتراضي"),
     t("- العنوان: {0}", normalizedOrder.deliveryAddress || form.deliveryAddress || "-"),
     t("- المدينة: {0}", normalizedOrder.deliveryCity || form.deliveryCity || "-"),
     t("- رقم الهاتف: {0}", normalizedOrder.deliveryPhone || form.deliveryPhone || "-"),
@@ -289,6 +292,9 @@ export default function Checkout() {
   const createOrderMutation = useCreateOrder(store?.id);
   const clearCartMutation = useClearCart(store?.id);
   const cart = normalizeCartResponse(cartQuery.data);
+  const deliveryLocations = store?.deliveryLocations || [];
+  const selectedDeliveryLocation = deliveryLocations.find((location) => location.id === form.deliveryLocationId);
+  const deliveryCost = Number(selectedDeliveryLocation?.cost || 0);
   const activeStoreCustomer = storefrontSession.hasScopedStorefrontSession
     ? storeCustomer || storefrontSession.storefrontCustomer
     : null;
@@ -401,6 +407,11 @@ export default function Checkout() {
       return;
     }
 
+    if (deliveryLocations.length && !selectedDeliveryLocation) {
+      handleValidationFailure("missing-delivery-location", t("يرجى اختيار مكان التوصيل."));
+      return;
+    }
+
     if (!String(form.deliveryAddress || "").trim()) {
       handleValidationFailure(
         "missing-delivery-address",
@@ -468,6 +479,7 @@ export default function Checkout() {
     const pendingWhatsAppWindow = openPendingWhatsAppWindow();
     const payload = {
       storeId: store?.id,
+      deliveryLocationId: deliveryLocations.length ? form.deliveryLocationId : undefined,
       deliveryAddress: String(form.deliveryAddress || "").trim(),
       deliveryCity: String(form.deliveryCity || "").trim(),
       deliveryPhone: String(form.deliveryPhone || "").trim(),
@@ -616,6 +628,7 @@ export default function Checkout() {
             <CheckoutForm
               step={step}
               form={form}
+              deliveryLocations={deliveryLocations}
               isSubmitting={createOrderMutation.isPending || clearCartMutation.isPending}
               submitLabel={t("إرسال الطلب عبر واتساب")}
               onChange={(key, value) =>
@@ -643,7 +656,8 @@ export default function Checkout() {
 
           <CartSummary
             subtotal={cart.subtotal}
-            totalAmount={cart.totalAmount}
+            totalAmount={cart.totalAmount + deliveryCost}
+            deliveryCost={deliveryLocations.length && !selectedDeliveryLocation ? undefined : deliveryCost}
             itemCount={cart.itemCount}
             checkoutPath={storeCartPath}
             actionLabel={t("مراجعة السلة")}

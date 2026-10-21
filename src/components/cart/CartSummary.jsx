@@ -12,6 +12,7 @@ export default function CartSummary({
   subtotal = 0,
   totalAmount = 0,
   itemCount = 0,
+  deliveryCost,
   checkoutPath,
   actionLabel = "متابعة إلى الدفع",
 }) {
@@ -33,7 +34,7 @@ export default function CartSummary({
         </Box>
         <Box className="cart-summary__row">
           <span>{t("الشحن")}</span>
-          <span>{t("يُحدد في خطوة الدفع")}</span>
+          <span>{deliveryCost === undefined ? t("يُحدد في خطوة الدفع") : formatCurrency(deliveryCost)}</span>
         </Box>
         <Box className="cart-summary__row cart-summary__row--total">
           <span>{t("الإجمالي")}</span>

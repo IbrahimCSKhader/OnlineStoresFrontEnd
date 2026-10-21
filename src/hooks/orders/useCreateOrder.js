@@ -20,6 +20,7 @@ function buildCreateOrderPayload(payload, storeId) {
     storeId: storeId || payload?.storeId,
     couponCode: String(payload?.couponCode || "").trim() || undefined,
     customerNotes: String(payload?.customerNotes || "").trim() || undefined,
+    deliveryLocationId: payload?.deliveryLocationId || undefined,
     deliveryAddress: String(payload?.deliveryAddress || "").trim(),
     deliveryCity: String(payload?.deliveryCity || "").trim(),
     deliveryPhone: String(payload?.deliveryPhone || "").trim(),

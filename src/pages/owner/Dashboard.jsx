@@ -33,6 +33,7 @@ import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import LoadingState from "../../components/common/loaders/LoadingState.jsx";
 import AppDataTable from "../../components/common/tables/AppDataTable.jsx";
 import ContactDeveloperButton from "../../components/common/ContactDeveloperButton.jsx";
+import DeliveryLocationsForm from "../../components/dashboard/DeliveryLocationsForm.jsx";
 import CategoryForm from "../../components/dashboard/CategoryForm.jsx";
 import CouponForm from "../../components/dashboard/CouponForm.jsx";
 import CustomerStoreForm from "../../components/dashboard/CustomerStoreForm.jsx";
@@ -774,6 +775,14 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
               <Box className="owner-order-dialog__meta">
                 <span>{t("العنوان")}</span>
                 <strong>{t(order.deliveryAddress || "-")}</strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>{t("مكان التوصيل")}</span>
+                <strong>{t(order.deliveryLocationName || "افتراضي")}</strong>
+              </Box>
+              <Box className="owner-order-dialog__meta">
+                <span>{t("كلفة التوصيل")}</span>
+                <strong>{currency(order.deliveryCost || 0)}</strong>
               </Box>
               <Box className="owner-order-dialog__meta">
                 <span>{t("المدينة")}</span>
@@ -2567,6 +2576,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
         {mutationError ? (
           <Alert severity="error">{t(getApiErrorMessage(mutationError))}</Alert>
+        ) : null}
+
+        {activeTab === "overview" ? (
+          <DeliveryLocationsForm key={store.id} store={store} />
         ) : null}
 
         {activeTab === "overview" ? (

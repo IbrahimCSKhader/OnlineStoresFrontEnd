@@ -1,5 +1,12 @@
 // Storefront copy only. Content authored by merchants is translated by the API.
 export const storefrontTextRows = [
+  ["مكان التوصيل", "Delivery location", "אזור משלוח"],
+  ["كلفة التوصيل", "Delivery cost", "עלות משלוח"],
+  ["افتراضي", "Default", "ברירת מחדל"],
+  ["يرجى اختيار مكان التوصيل.", "Please choose a delivery location.", "יש לבחור אזור משלוח."],
+  ["مكان التوصيل: {0}", "Delivery location: {0}", "אזור משלוח: {0}"],
+  ["كلفة التوصيل: {0}", "Delivery cost: {0}", "עלות משלוח: {0}"],
+
   ["مختارات المتجر", "Store highlights", "נבחרי החנות"],
   ["تشغيل الحركة", "Play animation", "הפעלת תנועה"],
   ["إيقاف الحركة", "Pause animation", "השהיית תנועה"],

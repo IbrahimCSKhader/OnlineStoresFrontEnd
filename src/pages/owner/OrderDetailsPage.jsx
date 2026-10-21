@@ -267,6 +267,8 @@ export default function OrderDetailsPage() {
                 <Box className="owner-detail-card__row">
                   <span>{t("المدينة")}</span>
                   <strong>
+                    <DetailValue label={t("مكان التوصيل")} value={order.deliveryLocationName || "افتراضي"} />
+                    <DetailValue label={t("كلفة التوصيل")} value={currency(order.deliveryCost || 0)} />
                     <DetailValue label={t("المدينة")} value={order.deliveryCity || "-"} />
                   </strong>
                 </Box>

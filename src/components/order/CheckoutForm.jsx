@@ -1,4 +1,6 @@
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
+import MenuItem from "@mui/material/MenuItem";
+import { formatCurrency } from "../../utils/formatCurrency.js";
 import Box from "@mui/material/Box";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
@@ -13,6 +15,7 @@ const checkoutSteps = ["بيانات الطلب", "المراجعة"];
 export default function CheckoutForm({
   step,
   form,
+  deliveryLocations = [],
   isSubmitting = false,
   submitLabel = "تأكيد الطلب",
   onChange,
@@ -21,6 +24,7 @@ export default function CheckoutForm({
   onSubmit,
 }) {
   const { t } = useStorefrontLanguage();
+  const selectedLocation = deliveryLocations.find((location) => location.id === form.deliveryLocationId);
   const isLastStep = step === checkoutSteps.length - 1;
 
   return (
@@ -36,6 +40,16 @@ export default function CheckoutForm({
       <Box className="checkout-form__body">
         {step === 0 ? (
           <Box className="checkout-form__grid">
+            {deliveryLocations.length ? (
+              <AppTextField select required label={t("مكان التوصيل")} value={selectedLocation?.id || ""}
+                onChange={(event) => onChange("deliveryLocationId", event.target.value)}>
+                {deliveryLocations.map((location) => (
+                  <MenuItem key={location.id} value={location.id}>
+                    {location.name} — {formatCurrency(location.cost)}
+                  </MenuItem>
+                ))}
+              </AppTextField>
+            ) : null}
             <AppTextField
               label={t("عنوان التوصيل")}
               value={form.deliveryAddress}
@@ -72,6 +86,12 @@ export default function CheckoutForm({
           <Box className="checkout-form__review">
             <Typography variant="h6">{t("مراجعة البيانات")}</Typography>
             <Box className="checkout-form__review-grid">
+              {deliveryLocations.length ? (
+                <div>
+                  <span>{t("مكان التوصيل")}</span>
+                  <strong>{selectedLocation ? `${selectedLocation.name} — ${formatCurrency(selectedLocation.cost)}` : t("يرجى اختيار مكان التوصيل.")}</strong>
+                </div>
+              ) : null}
               <div>
                 <span>{t("العنوان")}</span>
                 <strong>{form.deliveryAddress || "-"}</strong>
@@ -103,7 +123,7 @@ export default function CheckoutForm({
         <AppButton
           variant="contained"
           onClick={isLastStep ? onSubmit : onNext}
-          disabled={isSubmitting}
+          disabled={isSubmitting || (deliveryLocations.length > 0 && !selectedLocation)}
         >
           {isLastStep ? (isSubmitting ? t("جارٍ التنفيذ...") : t(submitLabel)) : t("التالي")}
         </AppButton>
