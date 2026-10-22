@@ -888,9 +888,6 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   });
   const mobileSidebarIgnoreClickRef = useRef(false);
   const { isAuthenticated, role, user } = useAuth();
-  const activeTab = TAB_CONFIG.some((tab) => tab.key === initialTab)
-    ? initialTab
-    : "overview";
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileSidebarDragging, setIsMobileSidebarDragging] = useState(false);
   const [mobileSidebarLauncherTop, setMobileSidebarLauncherTop] = useState(
@@ -901,6 +898,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const ownerStoreQuery = useOwnerStore({ refetchOnWindowFocus: false });
   const store = ownerStoreQuery.ownerStore;
   const storeId = store?.id;
+  const availableTabs = TAB_CONFIG.filter((tab) =>
+    !store?.isCatalog || !["orders", "coupons", "customers"].includes(tab.key));
+  const activeTab = availableTabs.some((tab) => tab.key === initialTab) ? initialTab : "overview";
 
   useEffect(() => {
     logAuthFlow("Owner dashboard state", {
@@ -951,15 +951,15 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     staleTime: 30000,
   });
   const couponsQuery = useCoupons(storeId, {
-    enabled: Boolean(storeId) && shouldLoadCoupons,
+    enabled: Boolean(storeId) && !store?.isCatalog && shouldLoadCoupons,
     staleTime: 30000,
   });
   const storeCustomersQuery = useStoreCustomers(storeId, {
-    enabled: Boolean(storeId) && shouldLoadCustomerStores,
+    enabled: Boolean(storeId) && !store?.isCatalog && shouldLoadCustomerStores,
     staleTime: 30000,
   });
   const ordersQuery = useStoreOrders(storeId, {
-    enabled: Boolean(storeId) && shouldLoadOrders,
+    enabled: Boolean(storeId) && !store?.isCatalog && shouldLoadOrders,
     staleTime: 30000,
   });
   const createProductMutation = useCreateProduct(storeId);
@@ -1309,6 +1309,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     },
     {
       label: "الطلبات المفتوحة",
+      hidden: store?.isCatalog,
       value: pendingOrdersCount,
       help: "طلبات تحتاج متابعة أو تأكيد",
       icon: <LocalMallRoundedIcon fontSize="small" />,
@@ -1328,9 +1329,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
       icon: <VisibilityRoundedIcon fontSize="small" />,
       tone: "cool",
     },
-  ];
+  ].filter((item) => !item.hidden);
 
-  const sidebarItems = TAB_CONFIG.map((item) => {
+  const sidebarItems = availableTabs.map((item) => {
     let count;
 
     switch (item.key) {
@@ -1595,7 +1596,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   };
 
   const handleTabNavigate = (key) => {
-    const nextTab = TAB_CONFIG.find((item) => item.key === key);
+    const nextTab = availableTabs.find((item) => item.key === key);
     if (!nextTab) return;
     navigate(nextTab.route);
   };
@@ -2578,7 +2579,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           <Alert severity="error">{t(getApiErrorMessage(mutationError))}</Alert>
         ) : null}
 
-        {activeTab === "overview" ? (
+        {activeTab === "overview" && !store.isCatalog ? (
           <DeliveryLocationsForm key={store.id} store={store} />
         ) : null}
 

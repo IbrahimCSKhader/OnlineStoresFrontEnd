@@ -115,7 +115,7 @@ export default function OrderDetailsPage() {
   const store = ownerStoreQuery.ownerStore;
   const storeId = store?.id;
   const orderQuery = useStoreOrderDetails(storeId, orderId, {
-    enabled: isAuthenticated && isOwner && Boolean(storeId) && Boolean(orderId),
+    enabled: isAuthenticated && isOwner && !store?.isCatalog && Boolean(storeId) && Boolean(orderId),
     staleTime: 30000,
   });
   const order = useMemo(
@@ -131,6 +131,8 @@ export default function OrderDetailsPage() {
   if (ownerStoreQuery.isLoading) {
     return <LoadingState label={t("جارٍ تحميل بيانات المتجر...")} />;
   }
+
+  if (store?.isCatalog) return <Navigate to="/owner" replace />;
 
   if (!store) {
     return (

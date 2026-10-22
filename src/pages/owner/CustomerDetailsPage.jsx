@@ -130,11 +130,11 @@ export default function CustomerDetailsPage() {
   const store = ownerStoreQuery.ownerStore;
   const storeId = store?.id;
   const customersQuery = useStoreCustomers(storeId, {
-    enabled: isAuthenticated && isOwner && Boolean(storeId),
+    enabled: isAuthenticated && isOwner && !store?.isCatalog && Boolean(storeId),
     staleTime: 30000,
   });
   const ordersQuery = useStoreOrders(storeId, {
-    enabled: isAuthenticated && isOwner && Boolean(storeId),
+    enabled: isAuthenticated && isOwner && !store?.isCatalog && Boolean(storeId),
     staleTime: 30000,
   });
 
@@ -167,6 +167,8 @@ export default function CustomerDetailsPage() {
   if (ownerStoreQuery.isLoading) {
     return <LoadingState label={t("جارٍ تحميل بيانات المتجر...")} />;
   }
+
+  if (store?.isCatalog) return <Navigate to="/owner" replace />;
 
   if (!store) {
     return (

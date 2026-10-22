@@ -9,9 +9,12 @@ vi.mock("../../utils/metaPixel.js", () => ({ trackCompleteRegistration: vi.fn() 
 afterEach(() => { cleanup(); vi.clearAllMocks(); });
 it.each([false, true])("registration sends isCatalog=%s as multipart form data", async isCatalog => {
   render(<MemoryRouter><StoreRegister /></MemoryRouter>);
-  const checkbox = screen.getByRole("checkbox", { name: /كاتالوج/ });
-  expect(checkbox).not.toBeChecked();
-  if (isCatalog) fireEvent.click(checkbox);
+  const selector = screen.getByRole("combobox", { name: "نوع الصفحة" });
+  expect(selector).toHaveTextContent("متجر");
+  if (isCatalog) {
+    fireEvent.mouseDown(selector);
+    fireEvent.click(screen.getByRole("option", { name: "كاتالوج" }));
+  }
   for (const [label, value] of [["الاسم الأول", "Test"], ["اسم العائلة", "Owner"],
     ["البريد الإلكتروني", "owner@example.com"], ["كلمة المرور", "Password123!"], ["اسم المتجر", "demo"]]) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });

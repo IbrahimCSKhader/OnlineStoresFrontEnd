@@ -5,8 +5,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
-import Checkbox from "@mui/material/Checkbox";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
 import IconButton from "@mui/material/IconButton";
 import InputLabel from "@mui/material/InputLabel";
@@ -433,10 +431,16 @@ export default function StoreRegister() {
 
           <Divider />
 
-          <FormControlLabel
-            control={<Checkbox checked={form.isCatalog} onChange={(event) => updateForm("isCatalog", event.target.checked)} disabled={isSubmitting} />}
-            label="كاتالوج لعرض المنتجات فقط (بدون سلة أو شراء)"
-          />
+          <TextField
+            select fullWidth label="نوع الصفحة"
+            value={form.isCatalog ? "catalog" : "store"}
+            onChange={(event) => updateForm("isCatalog", event.target.value === "catalog")}
+            disabled={isSubmitting}
+            helperText="المتجر يتيح الشراء، والكاتالوج لعرض المنتجات فقط."
+          >
+            <MenuItem value="store">متجر</MenuItem>
+            <MenuItem value="catalog">كاتالوج</MenuItem>
+          </TextField>
 
           <Box className="store-register__grid">
             <TextField
