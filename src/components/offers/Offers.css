@@ -140,48 +140,42 @@
 }
 
 .offer-badge {
-  position:absolute;
-  inset-inline-end:10px;
-  top:10px;
-  z-index:3;
-  width:88px;
-  height:58px;
-  display:grid;
-  place-items:center;
-  color:#ca2027;
-  font-size:.85rem;
-  font-weight:900;
-  transform:rotate(-9deg);
-  filter:drop-shadow(0 3px 3px #8b3b1524);
-  pointer-events:none;
+  position: absolute;
+  inset-inline-end: -4px;
+  top: -6px;
+  z-index: 3;
+  width: 120px;
+  height: 120px;
+  color: #c51e25;
+  font-size: .95rem;
+  font-weight: 900;
+  pointer-events: none;
 }
 
-.offer-badge svg {
-  position:absolute;
-  width:100%;
-  height:100%;
-  inset:0;
-  fill:#ffdf37;
-  stroke:#ca2027;
-  stroke-width:3;
-  stroke-linejoin:round;
+.offer-badge > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-.offer-badge>span {
-  z-index:1;
-  text-align:center;
-  padding:8px;
-  line-height:1.2;
+.offer-badge > span {
+  position: absolute;
+  left: 52%;
+  top: 59%;
+  width: 68%;
+  transform: translate(-50%, -50%) rotate(48deg);
+  text-align: center;
+  line-height: 1.25;
 }
 
-.product-carousel__item {
-  position:relative;
-}
-
-.product-carousel__item .offer-badge {
-  width:75px;
-  height:50px;
-  font-size:.7rem;
+.product-carousel__item { position: relative; }
+.product-carousel__item .offer-badge,
+.product-card__media .offer-badge {
+  width: 102px;
+  height: 102px;
+  font-size: .8rem;
 }
 
 .bundle-cart-components {
@@ -274,4 +268,51 @@
 .bundle-order-summary p {
   margin:7px 0;
   font-size:.85rem;
+}
+
+.bundle-card__details {
+  display: block;
+  text-align: center;
+  border: 1px solid var(--primary, #283c30);
+  color: var(--primary, #283c30);
+  border-radius: 13px;
+  padding: 12px;
+  margin-block: 12px;
+  text-decoration: none;
+  font-weight: 700;
+}
+.bundle-card__more { font-size: .85rem; }
+.offer-details { max-width: 1120px; margin-inline: auto; padding: 24px; }
+.offer-details__back { display: inline-block; margin-block: 12px 24px; }
+.offer-details__header {
+  position: relative;
+  border: 1px solid #eadfbd;
+  border-radius: 24px;
+  padding: 30px;
+  padding-inline-end: 130px;
+  margin-bottom: 32px;
+  background: var(--surface, #fffef8);
+}
+.offer-details__header h1 { font-size: clamp(1.5rem, 4vw, 2.3rem); overflow-wrap: anywhere; }
+.offer-details__header .bundle-card__add { max-width: 380px; margin-top: 14px; }
+.offer-details__products { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 20px; }
+.offer-details__product { padding: 20px; border: 1px solid #eadfbd; border-radius: 20px; background: var(--surface, #fff); text-align: center; }
+.offer-details__product img { width: 100%; height: 190px; object-fit: contain; }
+.offer-details__product a { color: inherit; text-decoration: none; }
+@media (max-width: 480px) {
+  .offer-details { padding: 16px; }
+  .offer-details__header { padding: 20px; padding-top: 100px; }
+}
+
+/* Keep carousel media/text rules from stretching the transparent tag artwork. */
+.product-carousel__item .offer-badge > img {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  background: transparent;
+}
+.product-carousel__item .offer-badge > span {
+  min-height: 0;
+  line-height: 1.25;
+  overflow-wrap: normal;
 }

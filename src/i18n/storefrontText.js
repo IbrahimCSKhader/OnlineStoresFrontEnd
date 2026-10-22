@@ -1,5 +1,13 @@
 // Storefront copy only. Content authored by merchants is translated by the API.
 export const storefrontTextRows = [
+  ["ومنتجات إضافية: {0}", "Additional products: {0}", "מוצרים נוספים: {0}"],
+  ["عرض تفاصيل الباكيج", "View bundle details", "צפייה בפרטי החבילה"],
+  ["تعذر تحميل العرض", "Could not load offer", "לא ניתן לטעון את המבצע"],
+  ["العرض غير متاح حالياً", "This offer is currently unavailable", "המבצע אינו זמין כעת"],
+  ["عدد المنتجات في الباكيج: {0}", "Products in this bundle: {0}", "מוצרים בחבילה: {0}"],
+  ["جميع منتجات الباكيج", "All bundle products", "כל מוצרי החבילה"],
+  ["الكمية ضمن الباكيج: {0}", "Quantity per bundle: {0}", "כמות בחבילה: {0}"],
+
   ["عروضات المتجر", "Store offers", "מבצעי החנות"],
   ["عرض باكيج", "Bundle offer", "מבצע חבילה"],
   ["سعر واحد، منتجات أكثر", "One price, more products", "מחיר אחד, יותר מוצרים"],

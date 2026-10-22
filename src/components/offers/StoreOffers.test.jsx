@@ -47,3 +47,18 @@ it("saves chosen product quantities and one total price through the owner editor
   await waitFor(() => expect(offerApi.create).toHaveBeenCalledWith(expect.objectContaining({ name: "باكيج جديد", bundlePrice: 22.5, type: 1,
     items: [{ productId: "p1", requiredQuantity: 3 }] })));
 });
+
+it("previews only four components while preserving the entire package for purchase", async () => {
+  localStorage.clear(); state.guest = true;
+  const large = { ...offer, items: Array.from({ length: 6 }, (_, i) => ({ id: `item-${i}`, productId: `product-${i}`, productName: `Product ${i}`, productImageUrl: `/p-${i}.png`, requiredQuantity: 1 })) };
+  offerApi.active.mockResolvedValue([large]);
+  show(<StoreOffers store={{ id: "large-store", slug: "large" }} />);
+  expect(await screen.findByRole("img", { name: "Product 0" })).toBeInTheDocument();
+  expect(screen.getAllByRole("img")).toHaveLength(4);
+  expect(screen.queryByText("Product 4")).toBeNull();
+  expect(screen.getByText("ومنتجات إضافية: 2")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "عرض تفاصيل الباكيج" })).toHaveAttribute("href", "/market/large/offers/offer");
+  fireEvent.click(screen.getByRole("button", { name: "أضف الباكيج للسلة" }));
+  await screen.findByText("تمت إضافة الباكيج للسلة");
+  expect(getGuestCart("large-store").items[0].bundleComponents).toHaveLength(6);
+});

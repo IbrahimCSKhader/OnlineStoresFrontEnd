@@ -1,3 +1,4 @@
+import { offerSavingsPercent } from "../../utils/offers.js";
 import OfferBadge from "../offers/OfferBadge.jsx";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -11,7 +12,7 @@ import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import formatCurrency from "../../utils/formatCurrency.js";
 import "./ProductCarousel.css";
 
-export default function ProductCarousel({ products, productPath, bundleProductIds = [] }) {
+export default function ProductCarousel({ products, productPath, bundleProductIds = [], bundleOffers = [] }) {
   const bundleProducts = new Set(bundleProductIds);
   const { t, dir, locale } = useStorefrontLanguage();
   const [paused, setPaused] = useState(false);
@@ -44,7 +45,7 @@ export default function ProductCarousel({ products, productPath, bundleProductId
           <div key={copy} ref={copy === 0 ? group : undefined} className="product-carousel__group" aria-hidden={copy > 0 ? true : undefined}>
             {products.map(product => <Link key={product.id} to={productPath(product.id)} tabIndex={copy ? -1 : undefined} dir={dir} className="product-carousel__item">
               <img src={resolveAssetUrl(getProductImage(product))} alt={product.name} loading="lazy" />
-              {bundleProducts.has(product.id) && <OfferBadge>{t("عرض باكيج")}</OfferBadge>}
+              {bundleProducts.has(product.id) && <OfferBadge>{t("وفر")} {offerSavingsPercent(bundleOffers.find(o => o.items.some(i => i.productId === product.id)))}%</OfferBadge>}
               <span>{product.name}</span>
               <strong>{formatCurrency(getProductDisplayPrice(product), { locale })}</strong>
             </Link>)}

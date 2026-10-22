@@ -1,3 +1,4 @@
+import { offerSavingsPercent } from "../../utils/offers.js";
 import useOffers from "../../hooks/offers/useOffers.js";
 import OfferBadge from "../offers/OfferBadge.jsx";
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
@@ -43,7 +44,7 @@ function ProductCard({
   const location = useLocation();
   const normalizedProduct = normalizeProductDto(product);
   const offers = useOffers(normalizedProduct.storeId);
-  const hasBundle = (offers.data || []).some(o => Number(o.type) === 1 && o.items.some(i => i.productId === normalizedProduct.id));
+  const bundle = (offers.data || []).find(o => Number(o.type) === 1 && o.items.some(i => i.productId === normalizedProduct.id));
   const displayVariant = getProductDisplayVariant(normalizedProduct);
   const image = resolveAssetUrl(getProductImage(normalizedProduct));
   const price = getProductDisplayPrice(normalizedProduct);
@@ -130,7 +131,7 @@ function ProductCard({
         onClickCapture={handleNavigateToDetails}
       >
         <Box className="product-card__media">
-          {hasBundle && <OfferBadge>{t("عرض باكيج")}</OfferBadge>}
+          {bundle && <OfferBadge>{t("وفر")} {offerSavingsPercent(bundle)}%</OfferBadge>}
           {image ? (
             <img
               src={image}

@@ -10,9 +10,9 @@ subscription permissions still apply on the backend.
 ## Storefront
 
 **عروضات المتجر** appears immediately after **مختارات المتجر**. Every offer card
-shows all included product images/names and required quantities, the fixed price,
-regular total when discounted, and an add-package button. The yellow hexagonal
-badge has a red outline and red text; it shows savings on packages. Products that
+shows the first four included product images/names and required quantities, the fixed price,
+regular total when discounted, and an add-package button. The supplied yellow price-tag PNG is used as the badge background with the
+calculated percentage savings overlaid in red. Products that
 belong to active packages carry the same badge in the carousel and product cards.
 Catalogs show packages without purchase buttons; owner preview disables purchase.
 Loading, empty, error and success states are translated into Arabic, English and
@@ -47,3 +47,14 @@ package components and hooks pass targeted ESLint.
 
 The backend must be deployed with the package snapshot migration before this
 frontend. No production deploy is performed by this feature commit.
+
+## Bundle detail pages
+
+Each card links to `/market/:slug/offers/:offerId`, or `/offers/:offerId` on a custom
+domain. A card previews at most four component products and reports how many more
+are included. The detail page shows every component, quantities, product detail
+links, fixed/regular prices and an add-package button. Truncation is display-only:
+adding from either page always purchases the complete package. The page resolves
+only active offers from the current store; unavailable offers cannot be purchased.
+Owner preview links preserve preview mode; catalogs have no purchase button.
+The badge artwork is the merchant-supplied `public/images/offers/discount-tag.png`.
