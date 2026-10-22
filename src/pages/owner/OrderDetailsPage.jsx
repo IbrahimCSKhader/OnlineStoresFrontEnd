@@ -1,3 +1,4 @@
+import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { useMemo, useState } from "react";
 import { Link as RouterLink, Navigate, useParams } from "react-router-dom";
@@ -296,6 +297,7 @@ export default function OrderDetailsPage() {
                   {t(order.items.length)}{t("عنصر")}</Typography>
               </Box>
 
+              <BundleOrderSummary items={order.items} t={t} />
               {order.items.length ? (
                 <Stack spacing={1.2}>
                   {order.items.map((item, index) => (
@@ -308,6 +310,7 @@ export default function OrderDetailsPage() {
                         <Box>
                           <Typography variant="subtitle2">
                             {t(item.productName || `منتج ${index + 1}`)}
+                            {item.bundleName && <Typography component="span" display="block" variant="caption" color="warning.main">{t("باكيج")}: {item.bundleName}</Typography>}
                           </Typography>
                           {item.variantName ? (
                             <Typography variant="caption" color="text.secondary">

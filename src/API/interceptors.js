@@ -154,6 +154,7 @@ function isPlatformProtectedProductPath(pathname, method) {
 }
 
 function isPlatformProtectedOfferPath(pathname, method) {
+  if (/^\/api\/offer\/store\/[^/]+$/.test(pathname) && method === "get") return true;
   if (pathname === "/api/offer" && method === "post") {
     return true;
   }

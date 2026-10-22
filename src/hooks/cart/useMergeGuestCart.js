@@ -1,9 +1,10 @@
+import { offerApi } from "../../API/offer.api.js";
 import { useQueryClient } from "@tanstack/react-query";
 import cartApi from "../../API/cart.api.js";
 import useAuthStore from "../../store/authStore.js";
 import { queryKeys } from "../../utils/queryKeys.js";
 import { isStoreCustomerRole } from "../../utils/roles.js";
-import { clearGuestCart, getAllGuestCarts } from "../../utils/guestCart.js";
+import { clearGuestCart, getAllGuestCarts, removeGuestCartItem } from "../../utils/guestCart.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
 
 function toNumber(value, fallback = 0) {
@@ -131,9 +132,16 @@ export default function useMergeGuestCart() {
         let serverCart = await resolveServerCart(storeId);
 
         for (const localItem of localCart.items) {
+          if (localItem.bundleOfferId) {
+            serverCart = await resolveServerCart(storeId, await offerApi.addBundle({
+              storeId, offerId: localItem.bundleOfferId, quantity: localItem.quantity,
+            }));
+            removeGuestCartItem(storeId, localItem.id);
+            continue;
+          }
           const localQuantity = Math.max(1, toNumber(localItem.quantity, 1));
           const matchingServerItem =
-            serverCart.items.find((item) => getCartItemKey(item) === getCartItemKey(localItem)) || null;
+            serverCart.items.find((item) => !item.bundleOfferId && getCartItemKey(item) === getCartItemKey(localItem)) || null;
           const currentServerQuantity = toNumber(matchingServerItem?.quantity, 0);
           const stockLimit = matchingServerItem
             ? resolveStockLimit(matchingServerItem, localItem)

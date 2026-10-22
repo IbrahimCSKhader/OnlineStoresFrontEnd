@@ -1,4 +1,6 @@
-﻿import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import useOffers from "../../hooks/offers/useOffers.js";
+import StoreOffers from "../../components/offers/StoreOffers.jsx";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -127,6 +129,8 @@ export default function StoreDetails() {
   );
 
   useStoreBranding(store);
+  const offersQuery = useOffers(store?.id);
+  const bundleProductIds = (offersQuery.data || []).filter(o => Number(o.type) === 1).flatMap(o => o.items.map(i => i.productId));
   const highlightsQuery = useHighlightProducts(store?.id, language);
   const highlights = normalizeProductList(highlightsQuery.data).filter(isProductActive);
 
@@ -426,7 +430,8 @@ export default function StoreDetails() {
         </Box>
       </SurfaceCard>
 
-      <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} />
+      <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} />
+      <StoreOffers store={store} disabled={isOwnerPreview} />
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">

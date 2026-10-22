@@ -297,3 +297,22 @@ export function buildProductSnapshot(product, options = {}) {
           ),
   };
 }
+
+// A local bundle is one indivisible line; server validates its current contents and price on merge.
+export function addGuestBundle(storeId, offer) {
+  if (!(offer.availableBundles > 0)) throw new Error("الكمية غير متاحة");
+  const cart = getGuestCart(storeId);
+  const id = `bundle::${offer.id}`;
+  const existing = cart.items.find(i => i.id === id);
+  const quantity = Math.min((existing?.quantity || 0) + 1, offer.availableBundles);
+  const item = { id, bundleOfferId: offer.id, bundleName: offer.name, bundleQuantity: quantity,
+    bundlePrice: offer.bundlePrice, bundleComponents: offer.items, name: `باكيج: ${offer.name}`,
+    productId: "", imageUrl: offer.items[0]?.productImageUrl || "", quantity,
+    unitPrice: offer.bundlePrice, totalPrice: Math.round(offer.bundlePrice * quantity * 100) / 100,
+    availableStock: offer.availableBundles };
+  const next = finalizeGuestCart({ ...cart, items: existing ? cart.items.map(i => i.id === id ? item : i) : [...cart.items, item] });
+  const state = getGuestCartState();
+  state[storeId] = next;
+  saveGuestCartState(state);
+  return next;
+}

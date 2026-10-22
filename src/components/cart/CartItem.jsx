@@ -1,3 +1,4 @@
+import "../offers/Offers.css";
 import { Link as RouterLink } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -91,6 +92,10 @@ export default function CartItem({ item, storeSlug }) {
         <Typography variant="subtitle1" className="cart-item__title">
           {item.name}
         </Typography>
+        {item.bundleOfferId && <Box className="bundle-cart-components">{(item.bundleComponents || []).map(component => <Box key={component.productId} sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+          {component.productImageUrl && <img src={resolveAssetUrl(component.productImageUrl)} alt={component.productName} />}
+          <Typography variant="caption">{component.productName} × {component.requiredQuantity}</Typography>
+        </Box>)}</Box>}
         {item.variantName ? (
           <Typography variant="body2" color="text.secondary">
             {item.variantName}

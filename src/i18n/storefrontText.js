@@ -1,5 +1,21 @@
 // Storefront copy only. Content authored by merchants is translated by the API.
 export const storefrontTextRows = [
+  ["عروضات المتجر", "Store offers", "מבצעי החנות"],
+  ["عرض باكيج", "Bundle offer", "מבצע חבילה"],
+  ["سعر واحد، منتجات أكثر", "One price, more products", "מחיר אחד, יותר מוצרים"],
+  ["جارٍ تحميل العروض...", "Loading offers...", "טוען מבצעים..."],
+  ["تعذر تحميل العروض", "Could not load offers", "לא ניתן לטעון מבצעים"],
+  ["ترقبوا عروضات المتجر قريباً", "Store offers are coming soon", "מבצעי החנות יגיעו בקרוב"],
+  ["إعادة المحاولة", "Retry", "ניסיון נוסף"],
+  ["تعذر إضافة الباكيج", "Could not add the bundle", "לא ניתן להוסיף את החבילה"],
+  ["تمت إضافة الباكيج للسلة", "Bundle added to cart", "החבילה נוספה לעגלה"],
+  ["باكيج المتجر", "Store bundle", "חבילת החנות"],
+  ["باكيج", "Bundle", "חבילה"],
+  ["وفر", "Save", "חיסכון"],
+  ["أضف الباكيج للسلة", "Add bundle to cart", "הוספת החבילה לעגלה"],
+  ["جارٍ الإضافة...", "Adding...", "מוסיף..."],
+  ["نفدت الكمية", "Out of stock", "אזל מהמלאי"],
+
   ["مكان التوصيل", "Delivery location", "אזור משלוח"],
   ["كلفة التوصيل", "Delivery cost", "עלות משלוח"],
   ["افتراضي", "Default", "ברירת מחדל"],

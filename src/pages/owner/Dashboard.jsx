@@ -1,3 +1,5 @@
+import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
+import BundleManager from "../../components/offers/BundleManager.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import OrderProductImage from "../../components/order/OrderProductImage.jsx";
@@ -95,6 +97,7 @@ import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import "./OwnerDashboard.css";
 
 const TAB_CONFIG = [
+  { key: "offers", label: "عروضات المتجر", route: "/owner/offers", description: "إدارة العروض والباكيجات", icon: <Inventory2RoundedIcon fontSize="small" /> },
   {
     key: "overview",
     label: "نظرة عامة",
@@ -814,6 +817,7 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
                   {t(order.itemsCount ?? 0)}{t("قطعة")}</Typography>
               </Box>
 
+              <BundleOrderSummary items={order.items} t={t} />
               {order.items?.length ? (
                 <Stack spacing={1.5}>
                   {order.items.map((item, index) => (
@@ -826,6 +830,7 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
                         <Box>
                           <Typography variant="subtitle2">
                             {t(item.productName || `منتج ${index + 1}`)}
+                            {item.bundleName && <Typography component="span" display="block" variant="caption" color="warning.main">{t("باكيج")}: {item.bundleName}</Typography>}
                           </Typography>
                           {item.variantName ? (
                             <Typography variant="caption" color="text.secondary">
@@ -928,7 +933,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   useStoreBranding(store);
 
   const isOverviewTab = activeTab === "overview";
-  const shouldLoadProducts = isOverviewTab || activeTab === "products";
+  const shouldLoadProducts = isOverviewTab || activeTab === "products" || activeTab === "offers";
   const shouldLoadCategories =
     isOverviewTab || activeTab === "categories" || activeTab === "products";
   const shouldLoadSections =
@@ -2615,6 +2620,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           </>
         ) : null}
 
+        {activeTab === "offers" && <BundleManager storeId={storeId} products={productsRaw} />}
+
         {activeTab === "products" ? (
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
@@ -3360,6 +3367,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         </Box>
                       </Box>
 
+                      {row.containsBundles && <Chip label={t("باكيج")} color="warning" size="small" />}
                       <OrderProductPreviews order={row} t={t} />
 
                       <Box className="owner-order-card__summary">

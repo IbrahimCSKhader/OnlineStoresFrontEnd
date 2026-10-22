@@ -47,8 +47,8 @@ function buildOptimisticCart(currentCart, payload, storeId) {
   const itemId = getCartLineKey(payload.productId, variantId);
   const existingItem = normalizedCart.items.find(
     (item) =>
-      item.id === itemId ||
-      getCartLineKey(item.productId, item.variantId) === itemId,
+      !item.bundleOfferId && (item.id === itemId ||
+      getCartLineKey(item.productId, item.variantId) === itemId),
   );
   const snapshot = payload.productSnapshot || {};
   const availableStock = toNumber(snapshot.availableStock, toNumber(existingItem?.availableStock, NaN));

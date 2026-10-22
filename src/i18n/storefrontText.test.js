@@ -7,6 +7,7 @@ describe("storefront copy", () => {
     const files = import.meta.glob([
       "../pages/public/*.jsx", "../pages/customer/*.jsx", "../pages/auth/*.jsx",
       "../components/product/*.jsx", "../components/cart/*.jsx",
+      "../components/offers/StoreOffers.jsx",
       "../components/storefront/Navbar.jsx", "../components/layout/StoreFooter.jsx",
       "../components/order/CheckoutForm.jsx", "../layout/StoreLayout.jsx",
       "!../**/*.test.jsx",

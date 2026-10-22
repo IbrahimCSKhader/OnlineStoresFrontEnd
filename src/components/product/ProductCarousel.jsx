@@ -1,3 +1,4 @@
+import OfferBadge from "../offers/OfferBadge.jsx";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
@@ -10,7 +11,8 @@ import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import formatCurrency from "../../utils/formatCurrency.js";
 import "./ProductCarousel.css";
 
-export default function ProductCarousel({ products, productPath }) {
+export default function ProductCarousel({ products, productPath, bundleProductIds = [] }) {
+  const bundleProducts = new Set(bundleProductIds);
   const { t, dir, locale } = useStorefrontLanguage();
   const [paused, setPaused] = useState(false);
   const [layout, setLayout] = useState({ width: 0, copies: 2 });
@@ -42,6 +44,7 @@ export default function ProductCarousel({ products, productPath }) {
           <div key={copy} ref={copy === 0 ? group : undefined} className="product-carousel__group" aria-hidden={copy > 0 ? true : undefined}>
             {products.map(product => <Link key={product.id} to={productPath(product.id)} tabIndex={copy ? -1 : undefined} dir={dir} className="product-carousel__item">
               <img src={resolveAssetUrl(getProductImage(product))} alt={product.name} loading="lazy" />
+              {bundleProducts.has(product.id) && <OfferBadge>{t("عرض باكيج")}</OfferBadge>}
               <span>{product.name}</span>
               <strong>{formatCurrency(getProductDisplayPrice(product), { locale })}</strong>
             </Link>)}

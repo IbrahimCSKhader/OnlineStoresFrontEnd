@@ -124,6 +124,7 @@ export function normalizeCartResponse(data) {
       rawVariant ? getVariantEffectiveImage(variant, product) : "",
     );
     const productImageUrl = firstString(
+      item.imageUrl,
       item.productThumbnail,
       item.ProductThumbnail,
       item.thumbnailUrl,
@@ -150,8 +151,15 @@ export function normalizeCartResponse(data) {
         item.CartItemId,
         productId && variantId ? `${productId}::${variantId}` : productId,
       ),
+      bundleOfferId: item.bundleOfferId,
+      bundleGroupId: item.bundleGroupId,
+      bundleName: item.bundleName,
+      bundleQuantity: item.bundleQuantity,
+      bundlePrice: item.bundlePrice,
+      bundleItemQuantity: item.bundleItemQuantity,
+      bundleComponents: item.bundleComponents,
       productId,
-      name: firstString(item.productName, item.ProductName, product.name, "منتج"),
+      name: firstString(item.name, item.productName, item.ProductName, product.name, "منتج"),
       slug: firstString(product.slug),
       imageUrl: firstString(
         effectiveVariantImageUrl,
@@ -208,6 +216,27 @@ export function normalizeCartResponse(data) {
     };
   });
 
+  // Collapse inventory-bearing component rows into one editable package line for every cart view.
+  const groupedItems = [];
+  const groups = new Map();
+  for (const item of normalizedItems) {
+    if (!item.bundleGroupId || item.bundleComponents?.length) { groupedItems.push(item); continue; }
+    const rows = groups.get(item.bundleGroupId) || [];
+    rows.push(item);
+    groups.set(item.bundleGroupId, rows);
+  }
+  for (const rows of groups.values()) {
+    const first = rows[0];
+    const quantity = Number(first.bundleQuantity || 1);
+    groupedItems.push({ ...first, productId: "", variantId: "", variantName: "", variantSku: "", variantAttributes: "",
+      name: `باكيج: ${first.bundleName}`, quantity, unitPrice: Number(first.bundlePrice),
+      totalPrice: rows.reduce((sum, row) => sum + row.totalPrice, 0),
+      availableStock: Math.min(...rows.map(row => Math.floor(row.availableStock / Math.max(1, row.bundleItemQuantity)))),
+      bundleComponents: rows.map(row => ({ productId: row.productId, productName: row.name,
+        productImageUrl: row.imageUrl, requiredQuantity: row.bundleItemQuantity })),
+    });
+  }
+
   const serverSubtotal = firstNumber(entity?.subtotal, entity?.subTotal);
   const serverDiscount = firstNumber(entity?.discount, entity?.discountAmount);
   const serverFinalTotal = firstNumber(
@@ -226,7 +255,7 @@ export function normalizeCartResponse(data) {
     customerStoreId: storeCustomerId,
     userId: storeCustomerId,
     storeId: firstString(entity?.storeId),
-    items: normalizedItems,
+    items: groupedItems,
     discount: serverDiscount,
     appliedOffers: normalizeListResponse(entity?.appliedOffers),
     itemCount:
