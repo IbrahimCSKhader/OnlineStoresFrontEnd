@@ -1,7 +1,10 @@
 import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
 import BundleManager from "../../components/offers/BundleManager.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import OrderFilters from "../../components/order/OrderFilters.jsx";
+import { emptyOrderFilters, filterStoreOrders, orderCustomerKey } from "../../utils/orderFilters.js";
+import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
 import OrderProductImage from "../../components/order/OrderProductImage.jsx";
 import OrderProductPreviews from "../../components/order/OrderProductPreviews.jsx";
 import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
@@ -882,7 +885,7 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
 }
 
 export default function OwnerDashboard({ initialTab = "overview" }) {
-  const { t, currency, dateTime } = useOwnerLanguage();
+  const { t, currency, dateTime, locale } = useOwnerLanguage();
   const navigate = useNavigate();
   const isCompactScreen = useMediaQuery("(max-width:1080px)");
   const mobileSidebarDragRef = useRef({
@@ -899,6 +902,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     MOBILE_SIDEBAR_LAUNCHER_DEFAULT_TOP,
   );
   const [searchText, setSearchText] = useState("");
+  const [orderFilters, setOrderFilters] = useState({ ...emptyOrderFilters });
   const deferredSearchText = useDeferredValue(searchText);
   const ownerStoreQuery = useOwnerStore({ refetchOnWindowFocus: false });
   const store = ownerStoreQuery.ownerStore;
@@ -1210,7 +1214,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   );
   const orders = useMemo(
     () =>
-      ordersAll.filter((item) =>
+      filterStoreOrders(ordersAll.filter((item) =>
         matchesText(item, deferredSearchText, [
           "orderNumber",
           "customerName",
@@ -1222,8 +1226,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           "statusLabel",
           "createdAtLabel",
         ]),
-      ),
-    [deferredSearchText, ordersAll],
+      ), orderFilters, locale),
+    [deferredSearchText, ordersAll, orderFilters, locale],
   );
   const storeOrderColumns = [
     {
@@ -3290,11 +3294,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               isRefreshing={ordersQuery.isFetching}
             />
 
+            <OrderFilters value={orderFilters} onChange={setOrderFilters} onReset={() => { setOrderFilters({ ...emptyOrderFilters }); setSearchText(""); }} t={t} />
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{t("عدد الطلبات المطابقة")}: {orders.length}</Typography>
+
             {ordersQuery.isLoading ? (
               <LoadingState />
             ) : orders.length ? (
               <Box className="owner-orders-grid">
-                {orders.map((row) => {
+                {orders.map((row, index) => {
                   const statusLabel =
                     row.statusText || row.statusLabel || "غير محددة";
                   const customerName =
@@ -3310,7 +3317,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           : "default";
 
                   return (
-                    <Box key={row.id} className="owner-order-card">
+                    <Fragment key={row.id}>
+                    {orderFilters.sort === "customer" && (index === 0 || orderCustomerKey(row) !== orderCustomerKey(orders[index - 1])) ? (
+                      <Box sx={{ gridColumn: "1 / -1", borderBottom: "1px solid", borderColor: "divider", pb: 1, mt: index ? 2 : 0 }}>
+                        <Typography variant="h6">{customerName}</Typography>
+                        {row.customerEmail ? <Typography variant="body2" color="text.secondary">{row.customerEmail}</Typography> : null}
+                      </Box>
+                    ) : null}
+                    <Box className="owner-order-card">
                       <Box className="owner-order-card__head">
                         <Box className="owner-order-card__title">
                           <Typography variant="caption" color="text.secondary">{t("رقم الطلب")}</Typography>
@@ -3410,6 +3424,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         </TextField>
 
                         <Stack direction="row" spacing={1} flexWrap="wrap">
+                          <AppButton component={RouterLink} to={`/owner/orders/${row.id}?print=1`} size="small" variant="contained" startIcon={<PrintRoundedIcon />}>{t("طباعة الفاتورة")}</AppButton>
                           <AppButton
                             component={RouterLink}
                             to={"/owner/orders/" + row.id}
@@ -3427,13 +3442,14 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         </Stack>
                       </Box>
                     </Box>
+                    </Fragment>
                   );
                 })}
               </Box>
             ) : (
               <EmptyState
-                title={t("لا توجد طلبات")}
-                description={t("ستظهر هنا الطلبات الجديدة القادمة من المتجر.")}
+                title={t(ordersAll.length ? "لا توجد طلبات مطابقة" : "لا توجد طلبات")}
+                description={t(ordersAll.length ? "جرّب تغيير العميل أو الفترة الزمنية أو مسح البحث." : "ستظهر هنا الطلبات الجديدة القادمة من المتجر.")}
               />
             )}
           </Paper>

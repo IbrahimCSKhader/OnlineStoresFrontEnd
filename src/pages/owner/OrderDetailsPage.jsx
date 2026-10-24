@@ -1,7 +1,7 @@
 import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { useMemo, useState } from "react";
-import { Link as RouterLink, Navigate, useParams } from "react-router-dom";
+import { Link as RouterLink, Navigate, useParams, useSearchParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
@@ -108,6 +108,7 @@ function DetailSidebar({ store }) {
 export default function OrderDetailsPage() {
   const { t , dateTime, currency} = useOwnerLanguage();
   const { orderId = "" } = useParams();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, role, platformUser } = useAuth();
   const isOwner = isOwnerRole(role);
   const ownerStoreQuery = useOwnerStore({
@@ -176,7 +177,7 @@ export default function OrderDetailsPage() {
               </Box>
 
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                <OrderInvoiceDialog data={orderQuery.data} store={store} owner={platformUser} />
+                <OrderInvoiceDialog data={orderQuery.data} store={store} owner={platformUser} autoOpen={searchParams.get("print") === "1"} />
                 <Chip
                   size="small"
                   label={t(statusLabel)}

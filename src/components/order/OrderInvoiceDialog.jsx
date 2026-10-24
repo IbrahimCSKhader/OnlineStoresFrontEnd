@@ -6,10 +6,11 @@ import DialogActions from "@mui/material/DialogActions";
 import AppButton from "../common/buttons/AppButton.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { buildOrderInvoice } from "../../utils/orderInvoice.js";
+import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
 
-export default function OrderInvoiceDialog({ data, store, owner }) {
+export default function OrderInvoiceDialog({ data, store, owner, autoOpen = false }) {
   const { t, locale, dir } = useOwnerLanguage();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpen);
   const [ready, setReady] = useState(false);
   const [printing, setPrinting] = useState(false);
   const frame = useRef(null);
@@ -35,7 +36,7 @@ export default function OrderInvoiceDialog({ data, store, owner }) {
     } finally { setPrinting(false); }
   }
   return <>
-    <AppButton variant="outlined" size="small" onClick={() => { setReady(false); setOpen(true); }}>{t("طباعة الفاتورة")}</AppButton>
+    <AppButton variant="contained" startIcon={<PrintRoundedIcon />} onClick={() => { setReady(false); setOpen(true); }}>{t("طباعة الفاتورة")}</AppButton>
     <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="lg" dir={dir}>
       <DialogTitle>{t("معاينة فاتورة الطلب")}</DialogTitle>
       <DialogContent><iframe ref={frame} title={t("فاتورة الطلب")} srcDoc={html} sandbox="allow-same-origin allow-modals" onLoad={() => setReady(true)} style={{ width: "100%", height: "70vh", border: "1px solid #d8e2e0", background: "white" }} /></DialogContent>
