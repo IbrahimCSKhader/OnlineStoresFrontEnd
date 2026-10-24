@@ -24,6 +24,7 @@ import { normalizeOrderDetails } from "../../utils/orders.js";
 import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import "./OwnerDashboard.css";
 import OrderProductImage from "../../components/order/OrderProductImage.jsx";
+import OrderInvoiceDialog from "../../components/order/OrderInvoiceDialog.jsx";
 
 const ORDER_STATUS_LABELS = {
   0: "قيد الانتظار",
@@ -107,7 +108,7 @@ function DetailSidebar({ store }) {
 export default function OrderDetailsPage() {
   const { t , dateTime, currency} = useOwnerLanguage();
   const { orderId = "" } = useParams();
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, role, platformUser } = useAuth();
   const isOwner = isOwnerRole(role);
   const ownerStoreQuery = useOwnerStore({
     refetchOnWindowFocus: false,
@@ -175,6 +176,7 @@ export default function OrderDetailsPage() {
               </Box>
 
               <Stack direction="row" spacing={1} flexWrap="wrap">
+                <OrderInvoiceDialog data={orderQuery.data} store={store} owner={platformUser} />
                 <Chip
                   size="small"
                   label={t(statusLabel)}
