@@ -24,6 +24,17 @@
   font-weight:700;
 }
 
+.store-offers__footer {
+  display:flex;
+  justify-content:center;
+  margin-top:24px;
+}
+
+.store-offers__footer .store-offers__all {
+  min-height:44px;
+  padding:12px 28px;
+}
+
 .store-offers h2 {
   font-size:clamp(1.35rem,3vw,1.9rem);
   margin:6px 0;

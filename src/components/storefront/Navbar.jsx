@@ -31,6 +31,7 @@ import { useAppThemeVariant } from "../../theme/AppThemeProvider.jsx";
 import { themeCatalog } from "../../theme/tokens.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useCart from "../../hooks/cart/useCart.js";
+import useOffers from "../../hooks/offers/useOffers.js";
 import useLogout from "../../hooks/auth/useLogout.js";
 import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
@@ -60,11 +61,12 @@ import {
 } from "../../utils/customDomain.js";
 import "./Navbar.css";
 
-function buildNavItems(activeStoreSlug, copy) {
+function buildNavItems(activeStoreSlug, copy, offersLabel) {
   if (activeStoreSlug) {
     return [
       { to: buildStorefrontPath(activeStoreSlug), label: copy.home, exact: true },
       { to: buildStorefrontPath(activeStoreSlug, "/products"), label: copy.products },
+      ...(offersLabel ? [{ to: buildStorefrontPath(activeStoreSlug, "/offers"), label: offersLabel }] : []),
       { to: buildStorefrontPath(activeStoreSlug, "/about"), label: copy.about },
       { to: buildStorefrontPath(activeStoreSlug, "/contact"), label: copy.contact },
     ];
@@ -245,6 +247,8 @@ export default function Navbar() {
     [storeQuery.data],
   );
   const activeStoreSlug = routeStoreSlug || activeStore?.slug || "";
+  const storefrontOffers = useOffers(!isOwnerDashboardRoute && (routeStoreSlug || customDomainHost) ? activeStore?.id : undefined);
+  const hasStoreOffers = (storefrontOffers.data || []).some(offer => Number(offer.type) === 1);
   const isOwnerPlatformUser =
     isPlatformAuthenticated && isOwnerRole(platformRole);
   const ownerSessionScope = getOwnerSessionStoreScope(platformUser);
@@ -308,8 +312,8 @@ export default function Navbar() {
     currentBrandStore?.name ||
     (isScopedOwnerDashboard ? resolvedBrandName : fallbackBrandName);
   const navItems = useMemo(
-    () => (isScopedOwnerDashboard ? [] : buildNavItems(activeStoreSlug, copy)),
-    [activeStoreSlug, copy, isScopedOwnerDashboard],
+    () => (isScopedOwnerDashboard ? [] : buildNavItems(activeStoreSlug, copy, hasStoreOffers ? t("العروض") : null)),
+    [activeStoreSlug, copy, isScopedOwnerDashboard, hasStoreOffers, t],
   );
   const shouldHideThemeToggle = false;
   const themeOptions = useMemo(

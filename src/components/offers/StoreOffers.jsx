@@ -20,7 +20,7 @@ export default function StoreOffers({ store, disabled = false, showAll = false }
   const bundles = (offers.data || []).filter(o => Number(o.type) === 1);
   const visibleBundles = showAll ? bundles : bundles.slice(0, 4);
   return <section className="storefront-section store-offers" id="store-offers" aria-label={t("عروضات المتجر")}>
-    <header className="store-offers__head"><div><span className="storefront-eyebrow">{t("سعر واحد، منتجات أكثر")}</span><h2>{t("عروضات المتجر")}</h2></div>{!showAll && bundles.length > 4 && <Link className="store-offers__all" to={buildStorePreviewPath(buildStorefrontPath(store.slug, "/offers"))}>{t("كل العروض")}</Link>}</header>
+    <header className="store-offers__head"><div><span className="storefront-eyebrow">{t("سعر واحد، منتجات أكثر")}</span><h2>{t("عروضات المتجر")}</h2></div></header>
     {offers.isLoading && <p role="status">{t("جارٍ تحميل العروض...")}</p>}
     {offers.isError && <Alert severity="error" action={<button onClick={() => offers.refetch()}>{t("إعادة المحاولة")}</button>}>{t("تعذر تحميل العروض")}</Alert>}
     {add.isError && <Alert severity="error">{extractApiError(add.error, t("تعذر إضافة الباكيج"))}</Alert>}
@@ -41,5 +41,6 @@ export default function StoreOffers({ store, disabled = false, showAll = false }
         {!store.isCatalog && <button className="bundle-card__add" disabled={disabled || add.isPending || offer.availableBundles <= 0} onClick={() => add.mutate(offer)}>{offer.availableBundles <= 0 ? t("نفدت الكمية") : add.isPending && add.variables?.id === offer.id ? t("جارٍ الإضافة...") : t("أضف الباكيج للسلة")}</button>}
       </div>
     </article>)}</div>
+    {!showAll && bundles.length > 0 && <div className="store-offers__footer"><Link className="store-offers__all" to={buildStorePreviewPath(buildStorefrontPath(store.slug, "/offers"))}>{t("عرض كل العروض")}</Link></div>}
   </section>;
 }

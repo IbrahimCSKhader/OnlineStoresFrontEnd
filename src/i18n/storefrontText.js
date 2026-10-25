@@ -1,5 +1,7 @@
 // Storefront copy only. Content authored by merchants is translated by the API.
 export const storefrontTextRows = [
+  ["العروض", "Offers", "מבצעים"],
+  ["عرض كل العروض", "View all offers", "צפייה בכל המבצעים"],
   ["كل العروض", "All offers", "כל המבצעים"],
   ["ومنتجات إضافية: {0}", "Additional products: {0}", "מוצרים נוספים: {0}"],
   ["عرض تفاصيل الباكيج", "View bundle details", "צפייה בפרטי החבילה"],

@@ -19,7 +19,11 @@ it.each([false, true])("limits the homepage to four bundles and shows all bundle
   await screen.findByText("Bundle 0");
   expect(screen.getAllByRole("article")).toHaveLength(showAll ? 7 : 4);
   expect(Boolean(screen.queryByText("Bundle 4"))).toBe(showAll);
-  if (!showAll) expect(screen.getByRole("link", { name: "كل العروض" })).toHaveAttribute("href", "/market/store/offers");
+  if (!showAll) {
+    const link = screen.getByRole("link", { name: "عرض كل العروض" });
+    expect(link).toHaveAttribute("href", "/market/store/offers");
+    expect(link.closest(".store-offers__footer")).not.toBeNull();
+  } else expect(screen.queryByRole("link", { name: "عرض كل العروض" })).toBeNull();
 });
 it("shows every component image, the discount badge and adds one indivisible guest bundle", async () => {
   localStorage.clear(); state.guest = true; offerApi.active.mockResolvedValue([offer]);
