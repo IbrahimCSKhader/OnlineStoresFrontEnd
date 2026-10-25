@@ -11,6 +11,7 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import CartItem from "../../components/cart/CartItem.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import CheckoutForm from "../../components/order/CheckoutForm.jsx";
+import { canUseStoreCoupons } from "../../utils/storeCoupons.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useCart from "../../hooks/cart/useCart.js";
@@ -399,7 +400,7 @@ export default function Checkout() {
         deliveryAddress: String(form.deliveryAddress || "").trim(),
         deliveryCity: String(form.deliveryCity || "").trim(),
         deliveryPhone: String(form.deliveryPhone || "").trim(),
-        couponCode: String(form.couponCode || "").trim(),
+        couponCode: canUseStoreCoupons(store) ? String(form.couponCode || "").trim() : "",
         customerNotes: String(form.customerNotes || "").trim(),
       },
     });
@@ -486,7 +487,7 @@ export default function Checkout() {
       deliveryCity: String(form.deliveryCity || "").trim(),
       deliveryPhone: String(form.deliveryPhone || "").trim(),
       customerNotes: String(form.customerNotes || "").trim() || undefined,
-      couponCode: String(form.couponCode || "").trim() || undefined,
+      couponCode: canUseStoreCoupons(store) ? String(form.couponCode || "").trim() || undefined : undefined,
       debugSource: "customer-checkout-page",
     };
 
@@ -631,6 +632,7 @@ export default function Checkout() {
               step={step}
               form={form}
               deliveryLocations={deliveryLocations}
+              couponsEnabled={canUseStoreCoupons(store)}
               isSubmitting={createOrderMutation.isPending || clearCartMutation.isPending}
               submitLabel={t("إرسال الطلب عبر واتساب")}
               onChange={(key, value) =>

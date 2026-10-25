@@ -10,6 +10,16 @@ const props = { step: 0, form: {}, onChange: vi.fn(), onNext: vi.fn(), onBack: v
 const locations = [{ id: "one", name: "Hebron", cost: 15.5 }, { id: "two", name: "Jerusalem", cost: 0 }];
 
 describe("checkout delivery selection", () => {
+  it.each([0, 1])("hides coupons from checkout step %s when disabled", (step) => {
+    render(<CheckoutForm {...props} step={step} couponsEnabled={false} form={{ couponCode: "OLD" }} />);
+    expect(screen.queryByText(/كود الخصم/)).not.toBeInTheDocument();
+    expect(screen.queryByText("OLD")).not.toBeInTheDocument();
+  });
+
+  it("keeps coupons available by default for other stores", () => {
+    render(<CheckoutForm {...props} />);
+    expect(screen.getByLabelText("كود الخصم (اختياري)")).toBeInTheDocument();
+  });
   it("does not request a selection when the store has no locations", () => {
     render(<CheckoutForm {...props} />);
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();

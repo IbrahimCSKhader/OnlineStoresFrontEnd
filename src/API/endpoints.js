@@ -105,6 +105,7 @@ export const endpoints = {
     storeDetail: (storeId, orderId) =>
       withPrefix(`/Order/store/${storeId}/${orderId}`),
     updateStatus: (orderId) => withPrefix(`/Order/${orderId}/status`),
+    updateReceivedAmount: (orderId) => withPrefix(`/Order/${orderId}/received-amount`),
   },
   superAdminDashboard: {
     summary: withPrefix("/super-admin-dashboard/summary"),

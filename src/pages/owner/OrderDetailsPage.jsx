@@ -1,4 +1,6 @@
 import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
+import OrderReceivedAmount from "../../components/order/OrderReceivedAmount.jsx";
+import { canUseStoreCoupons } from "../../utils/storeCoupons.js";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { useMemo, useState } from "react";
 import { Link as RouterLink, Navigate, useParams, useSearchParams } from "react-router-dom";
@@ -206,6 +208,7 @@ export default function OrderDetailsPage() {
             <Box className="owner-detail-grid">
               <Paper className="owner-panel owner-detail-card" elevation={0}>
                 <Typography variant="h6">{t("ملخص الطلب")}</Typography>
+                <OrderReceivedAmount order={order} storeId={storeId} />
                 <Box className="owner-detail-card__row">
                   <span>{t("رقم الطلب")}</span>
                   <strong>
@@ -285,7 +288,7 @@ export default function OrderDetailsPage() {
                 <Box className="owner-detail-card__row">
                   <span>{t("الكوبون")}</span>
                   <strong>
-                    <DetailValue label={t("الكوبون")} value={order.couponCode || "-"} />
+                    {canUseStoreCoupons(store) ? <DetailValue label={t("الكوبون")} value={order.couponCode || "-"} /> : null}
                   </strong>
                 </Box>
                 <Box className="owner-detail-note">

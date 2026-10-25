@@ -10,6 +10,8 @@ export const orderApi = {
     axiosInstance.get(endpoints.orders.storeDetail(storeId, orderId)),
   updateOrderStatus: (orderId, payload) =>
     axiosInstance.put(endpoints.orders.updateStatus(orderId), payload),
+  updateReceivedAmount: (orderId, payload) =>
+    axiosInstance.put(endpoints.orders.updateReceivedAmount(orderId), payload),
 };
 
 export default orderApi;

@@ -1,4 +1,6 @@
 import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
+import OrderReceivedAmount from "../../components/order/OrderReceivedAmount.jsx";
+import { canUseStoreCoupons } from "../../utils/storeCoupons.js";
 import BundleManager from "../../components/offers/BundleManager.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
@@ -799,10 +801,10 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
                 <span>{t("الهاتف")}</span>
                 <strong>{t(order.deliveryPhone || "-")}</strong>
               </Box>
-              <Box className="owner-order-dialog__meta">
+              {canUseStoreCoupons({ id: order.storeId }) ? <Box className="owner-order-dialog__meta">
                 <span>{t("الكوبون")}</span>
                 <strong>{t(order.couponCode || "-")}</strong>
-              </Box>
+              </Box> : null}
             </Box>
 
             {order.customerNotes ? (
@@ -909,7 +911,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const store = ownerStoreQuery.ownerStore;
   const storeId = store?.id;
   const availableTabs = TAB_CONFIG.filter((tab) =>
-    !store?.isCatalog || !["orders", "coupons", "customers"].includes(tab.key));
+    (!store?.isCatalog || !["orders", "coupons", "customers"].includes(tab.key)) &&
+    (tab.key !== "coupons" || canUseStoreCoupons(store)));
   const activeTab = availableTabs.some((tab) => tab.key === initialTab) ? initialTab : "overview";
 
   useEffect(() => {
@@ -961,7 +964,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     staleTime: 30000,
   });
   const couponsQuery = useCoupons(storeId, {
-    enabled: Boolean(storeId) && !store?.isCatalog && shouldLoadCoupons,
+    enabled: Boolean(storeId) && canUseStoreCoupons(store) && shouldLoadCoupons,
     staleTime: 30000,
   });
   const storeCustomersQuery = useStoreCustomers(storeId, {
@@ -3401,6 +3404,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           <strong>{t(currency(row.totalAmount))}</strong>
                         </Box>
                       </Box>
+
+                      <OrderReceivedAmount order={row} storeId={storeId} />
 
                       <Box className="owner-order-card__actions">
                         <TextField

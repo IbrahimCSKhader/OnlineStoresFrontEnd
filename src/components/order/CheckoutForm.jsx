@@ -16,6 +16,7 @@ export default function CheckoutForm({
   step,
   form,
   deliveryLocations = [],
+  couponsEnabled = true,
   isSubmitting = false,
   submitLabel = "تأكيد الطلب",
   onChange,
@@ -67,11 +68,11 @@ export default function CheckoutForm({
               value={form.deliveryPhone}
               onChange={(event) => onChange("deliveryPhone", event.target.value)}
             />
-            <AppTextField
+            {couponsEnabled ? <AppTextField
               label={t("كود الخصم (اختياري)")}
               value={form.couponCode}
               onChange={(event) => onChange("couponCode", event.target.value)}
-            />
+            /> : null}
             <AppTextField
               label={t("ملاحظات الطلب")}
               value={form.customerNotes}
@@ -104,10 +105,10 @@ export default function CheckoutForm({
                 <span>{t("رقم الهاتف")}</span>
                 <strong>{form.deliveryPhone || "-"}</strong>
               </div>
-              <div>
+              {couponsEnabled ? <div>
                 <span>{t("كود الخصم")}</span>
                 <strong>{form.couponCode || "-"}</strong>
-              </div>
+              </div> : null}
               <div>
                 <span>{t("الملاحظات")}</span>
                 <strong>{form.customerNotes || "-"}</strong>
