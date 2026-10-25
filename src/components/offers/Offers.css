@@ -330,3 +330,41 @@
   line-height: 1.25;
   overflow-wrap: normal;
 }
+
+@media (max-width: 600px) {
+  .store-offers__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .store-offers .bundle-card { border-radius: 14px; }
+  .store-offers .bundle-card__media { padding: 20px 6px 6px; }
+  .store-offers .bundle-card__images { gap: 4px; }
+  .store-offers .bundle-card__images figure { padding: 6px 3px; border-radius: 8px; }
+  .store-offers .bundle-card__images img,
+  .store-offers .bundle-card__placeholder { height: 60px; }
+  .store-offers .bundle-card__images figcaption {
+    margin-top: 4px;
+    font-size: .7rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  .store-offers .bundle-card__body { padding: 10px; }
+  .store-offers .bundle-card__eyebrow { font-size: .65rem; }
+  .store-offers .bundle-card h3 { font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; }
+  .store-offers .bundle-card p { font-size: .75rem; line-height: 1.5; overflow-wrap: anywhere; }
+  .store-offers .bundle-card__price { flex-wrap: wrap; gap: 4px 8px; margin-block: 10px; }
+  .store-offers .bundle-card__price strong { font-size: 1.05rem; }
+  .store-offers .bundle-card__price del { font-size: .75rem; }
+  .store-offers .bundle-card__details,
+  .store-offers .bundle-card__add {
+    padding: 8px 4px;
+    min-height: 40px;
+    border-radius: 8px;
+    font-size: .75rem;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+  .store-offers .bundle-card__details { margin-block: 8px; }
+  .store-offers .offer-badge { width: 68px; height: 68px; font-size: .65rem; inset-inline-end: 0; top: 0; }
+}
