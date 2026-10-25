@@ -21,3 +21,23 @@ it("opens a preview and prints only the invoice frame after it loads", async () 
   expect(frame.getAttribute("srcdoc")).toContain("ORD-1");
   expect(frame.getAttribute("sandbox")).toContain("allow-modals");
 });
+
+it("does not count previewing and retries saving the same attempt without printing twice", async () => {
+  const onPrint = vi.fn().mockRejectedValueOnce(new Error("offline")).mockResolvedValueOnce({});
+  render(<OrderInvoiceDialog data={{ orderNumber: "ORD-1", items: [] }} store={{ name: "Shop" }} owner={{}} onPrint={onPrint} autoOpen />);
+  expect(onPrint).not.toHaveBeenCalled();
+  const frame = screen.getByTitle("فاتورة الطلب");
+  const print = vi.fn();
+  Object.defineProperty(frame.contentWindow, "print", { value: print, configurable: true });
+  Object.defineProperty(frame.contentWindow, "focus", { value: vi.fn(), configurable: true });
+  fireEvent.load(frame);
+  const button = screen.getAllByRole("button", { name: "طباعة الفاتورة" }).find(b => b.closest('[role="dialog"]'));
+  fireEvent.click(button);
+  await screen.findByText("تم فتح الطباعة، لكن تعذر حفظ العداد. أعد حفظ المحاولة دون طباعة جديدة.");
+  expect(button).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "إعادة حفظ المحاولة" }));
+  await waitFor(() => expect(onPrint).toHaveBeenCalledTimes(2));
+  expect(onPrint.mock.calls[0][0]).toBe(onPrint.mock.calls[1][0]);
+  expect(print).toHaveBeenCalledOnce();
+  await waitFor(() => expect(button).not.toBeDisabled());
+});

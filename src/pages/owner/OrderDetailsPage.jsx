@@ -25,6 +25,8 @@ import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import "./OwnerDashboard.css";
 import OrderProductImage from "../../components/order/OrderProductImage.jsx";
 import OrderInvoiceDialog from "../../components/order/OrderInvoiceDialog.jsx";
+import OrderPrintCount from "../../components/order/OrderPrintCount.jsx";
+import { useRecordOrderPrint } from "../../hooks/orders/useOrderPrints.js";
 
 const ORDER_STATUS_LABELS = {
   0: "قيد الانتظار",
@@ -117,6 +119,7 @@ export default function OrderDetailsPage() {
   });
   const store = ownerStoreQuery.ownerStore;
   const storeId = store?.id;
+  const recordPrint = useRecordOrderPrint(storeId);
   const orderQuery = useStoreOrderDetails(storeId, orderId, {
     enabled: isAuthenticated && isOwner && !store?.isCatalog && Boolean(storeId) && Boolean(orderId),
     staleTime: 30000,
@@ -177,7 +180,8 @@ export default function OrderDetailsPage() {
               </Box>
 
               <Stack direction="row" spacing={1} flexWrap="wrap">
-                <OrderInvoiceDialog data={orderQuery.data} store={store} owner={platformUser} autoOpen={searchParams.get("print") === "1"} />
+                <OrderPrintCount storeId={storeId} orderId={order.id} />
+                <OrderInvoiceDialog data={orderQuery.data} store={store} owner={platformUser} autoOpen={searchParams.get("print") === "1"} onPrint={requestId => recordPrint.mutateAsync({ orderId: order.id, requestId })} />
                 <Chip
                   size="small"
                   label={t(statusLabel)}

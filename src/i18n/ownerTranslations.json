@@ -1310,5 +1310,29 @@
   "جرّب تغيير العميل أو الفترة الزمنية أو مسح البحث.": {
     "E": "Try a different customer or date range, or clear the search.",
     "I": "נסו לקוח אחר או טווח תאריכים אחר, או נקו את החיפוש."
+  },
+  "محاولات الطباعة": {
+    "E": "Print attempts",
+    "I": "ניסיונות הדפסה"
+  },
+  "آخر محاولة طباعة": {
+    "E": "Last print attempt",
+    "I": "ניסיון ההדפסה האחרון"
+  },
+  "تعذر تحميل عداد الطباعة": {
+    "E": "Could not load print count",
+    "I": "לא ניתן לטעון את מונה ההדפסות"
+  },
+  "يتم احتساب فتح نافذة الطباعة، حتى عند إلغائها.": {
+    "E": "Opening the print dialog counts as an attempt, even if cancelled.",
+    "I": "פתיחת חלון ההדפסה נספרת כניסיון, גם אם ההדפסה בוטלה."
+  },
+  "إعادة حفظ المحاولة": {
+    "E": "Retry saving attempt",
+    "I": "שמירת הניסיון מחדש"
+  },
+  "تم فتح الطباعة، لكن تعذر حفظ العداد. أعد حفظ المحاولة دون طباعة جديدة.": {
+    "E": "Printing was opened, but the count could not be saved. Retry saving without printing again.",
+    "I": "חלון ההדפסה נפתח, אך לא ניתן לשמור את המונה. נסו לשמור שוב ללא הדפסה נוספת."
   }
 }

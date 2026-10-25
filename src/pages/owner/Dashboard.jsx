@@ -5,6 +5,7 @@ import { Fragment, useDeferredValue, useEffect, useMemo, useRef, useState } from
 import OrderFilters from "../../components/order/OrderFilters.jsx";
 import { emptyOrderFilters, filterStoreOrders, orderCustomerKey } from "../../utils/orderFilters.js";
 import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
+import OrderPrintCount from "../../components/order/OrderPrintCount.jsx";
 import OrderProductImage from "../../components/order/OrderProductImage.jsx";
 import OrderProductPreviews from "../../components/order/OrderProductPreviews.jsx";
 import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
@@ -3345,6 +3346,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           variant={statusTone === "default" ? "outlined" : "filled"}
                         />
                       </Box>
+
+                      <OrderPrintCount storeId={storeId} orderId={row.id} />
 
                       <Box className="owner-order-card__meta">
                         <Box className="owner-order-card__meta-item">
