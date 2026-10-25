@@ -92,6 +92,7 @@ const StoreDetails = lazyWithRetry(
   "store-details",
 );
 const OfferDetails = lazyWithRetry(() => import("./pages/public/OfferDetails.jsx"), "offer-details");
+const StoreOffersPage = lazyWithRetry(() => import("./pages/public/StoreOffersPage.jsx"), "store-offers");
 const ProductDetails = lazyWithRetry(
   () => import("./pages/public/ProductDetails.jsx"),
   "product-details",
@@ -269,6 +270,10 @@ const router = createBrowserRouter([
             ),
           },
           {
+            path: "offers",
+            element: <CustomDomainElement>{withRouteSuspense(<StoreOffersPage />)}</CustomDomainElement>,
+          },
+          {
             path: "offers/:offerId",
             element: <CustomDomainElement>{withRouteSuspense(<OfferDetails />)}</CustomDomainElement>,
           },
@@ -388,6 +393,7 @@ const router = createBrowserRouter([
             path: "product/:productId",
             element: withRouteSuspense(<ProductDetails />),
           },
+          { path: "offers", element: withRouteSuspense(<StoreOffersPage />) },
           { path: "offers/:offerId", element: withRouteSuspense(<OfferDetails />) },
           { path: "cart", element: withRouteSuspense(<Cart />) },
           { path: "checkout", element: withRouteSuspense(<Checkout />) },

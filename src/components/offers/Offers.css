@@ -8,6 +8,20 @@
   align-items:center;
   justify-content:space-between;
   margin-bottom:20px;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+.store-offers__all {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 20px;
+  border:1px solid currentColor;
+  border-radius:12px;
+  color:var(--text-primary,#302b29);
+  text-decoration:none;
+  font-weight:700;
 }
 
 .store-offers h2 {

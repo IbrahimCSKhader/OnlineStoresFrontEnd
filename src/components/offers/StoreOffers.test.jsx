@@ -13,6 +13,14 @@ const offer = { id: "offer", name: "عرض العناية", type: 1, bundlePrice
   items: [{ id: "i1", productId: "p1", productName: "شامبو", requiredQuantity: 2, productImageUrl: "/shampoo.png" },
     { id: "i2", productId: "p2", productName: "صابون", requiredQuantity: 1, productImageUrl: "/soap.png" }] };
 function show(element) { return render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><MemoryRouter>{element}</MemoryRouter></QueryClientProvider>); }
+it.each([false, true])("limits the homepage to four bundles and shows all bundles on the offers page (showAll=%s)", async showAll => {
+  offerApi.active.mockResolvedValue(Array.from({ length: 7 }, (_, i) => ({ ...offer, id: `offer-${i}`, name: `Bundle ${i}` })));
+  show(<StoreOffers store={{ id: `store-${showAll}`, slug: "store" }} showAll={showAll} />);
+  await screen.findByText("Bundle 0");
+  expect(screen.getAllByRole("article")).toHaveLength(showAll ? 7 : 4);
+  expect(Boolean(screen.queryByText("Bundle 4"))).toBe(showAll);
+  if (!showAll) expect(screen.getByRole("link", { name: "كل العروض" })).toHaveAttribute("href", "/market/store/offers");
+});
 it("shows every component image, the discount badge and adds one indivisible guest bundle", async () => {
   localStorage.clear(); state.guest = true; offerApi.active.mockResolvedValue([offer]);
   show(<StoreOffers store={{ id: "store", slug: "store" }} />);

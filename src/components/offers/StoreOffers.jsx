@@ -12,20 +12,21 @@ import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.
 import OfferBadge from "./OfferBadge.jsx";
 import "./Offers.css";
 
-export default function StoreOffers({ store, disabled = false }) {
+export default function StoreOffers({ store, disabled = false, showAll = false }) {
   const { t, locale } = useStorefrontLanguage();
   const offers = useOffers(store?.id);
   const add = useAddBundle(store);
   const { buildStorePreviewPath } = useOwnerStorePreview();
   const bundles = (offers.data || []).filter(o => Number(o.type) === 1);
+  const visibleBundles = showAll ? bundles : bundles.slice(0, 4);
   return <section className="storefront-section store-offers" id="store-offers" aria-label={t("عروضات المتجر")}>
-    <header className="store-offers__head"><div><span className="storefront-eyebrow">{t("سعر واحد، منتجات أكثر")}</span><h2>{t("عروضات المتجر")}</h2></div></header>
+    <header className="store-offers__head"><div><span className="storefront-eyebrow">{t("سعر واحد، منتجات أكثر")}</span><h2>{t("عروضات المتجر")}</h2></div>{!showAll && bundles.length > 4 && <Link className="store-offers__all" to={buildStorePreviewPath(buildStorefrontPath(store.slug, "/offers"))}>{t("كل العروض")}</Link>}</header>
     {offers.isLoading && <p role="status">{t("جارٍ تحميل العروض...")}</p>}
     {offers.isError && <Alert severity="error" action={<button onClick={() => offers.refetch()}>{t("إعادة المحاولة")}</button>}>{t("تعذر تحميل العروض")}</Alert>}
     {add.isError && <Alert severity="error">{extractApiError(add.error, t("تعذر إضافة الباكيج"))}</Alert>}
     {add.isSuccess && <Alert severity="success">{t("تمت إضافة الباكيج للسلة")}</Alert>}
     {!offers.isLoading && !offers.isError && !bundles.length && <p className="store-offers__empty">{t("ترقبوا عروضات المتجر قريباً")}</p>}
-    <div className="store-offers__grid">{bundles.map(offer => <article className="bundle-card" key={offer.id}>
+    <div className="store-offers__grid">{visibleBundles.map(offer => <article className="bundle-card" key={offer.id}>
       <div className="bundle-card__media">
         <div className="bundle-card__images">{offer.items.slice(0, 4).map(item => <figure key={item.id || item.productId}>
           {item.productImageUrl ? <img src={resolveAssetUrl(item.productImageUrl)} alt={item.productName} loading="lazy" /> : <span className="bundle-card__placeholder">{item.productName}</span>}
