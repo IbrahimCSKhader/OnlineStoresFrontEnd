@@ -5,7 +5,16 @@ import { loadEnv } from "vite";
 import { normalizeListResponse } from "../src/utils/collections.js";
 import { absoluteHttpUrl, renderStorePreview } from "./store-preview-html.mjs";
 
-export async function generateStorePreviews({ distDir, apiUrl, frontendUrl, assetUrl = apiUrl, fetchImpl = fetch }) {
+export function normalizeStorefrontDomain(value) {
+  const url = new URL(String(value).includes("://") ? value : `https://${value}`);
+  if (!["https:", "http:"].includes(url.protocol) || url.username || url.password ||
+      url.port || url.pathname !== "/" || url.search || url.hash) {
+    throw new Error("STOREFRONT_DOMAIN must contain only a domain name.");
+  }
+  return url.hostname.toLowerCase().replace(/^www\./, "");
+}
+
+export async function generateStorePreviews({ distDir, apiUrl, frontendUrl, assetUrl = apiUrl, storefrontDomain, fetchImpl = fetch }) {
   if (!absoluteHttpUrl(apiUrl) || !absoluteHttpUrl(frontendUrl) || !absoluteHttpUrl(assetUrl)) {
     throw new Error("Store previews require absolute HTTP(S) API, frontend, and asset URLs.");
   }
@@ -23,6 +32,18 @@ export async function generateStorePreviews({ distDir, apiUrl, frontendUrl, asse
   if (!response?.ok) throw new Error("Unable to load stores for link previews.");
   const stores = normalizeListResponse(await response.json()).filter(store => store.isActive !== false);
   if (!stores.length) throw new Error("Store API returned no active stores; refusing to publish missing previews.");
+  let domainStore;
+  let domain;
+  if (storefrontDomain) {
+    domain = normalizeStorefrontDomain(storefrontDomain);
+    const matches = stores.filter(store => {
+      if (!store.customDomain) return false;
+      try { return normalizeStorefrontDomain(store.customDomain) === domain; }
+      catch { return false; }
+    });
+    if (matches.length !== 1) throw new Error(`Expected one active store assigned to domain ${domain}; found ${matches.length}.`);
+    domainStore = matches[0];
+  }
   const slugs = new Set();
   for (const store of stores) {
     const slug = String(store.slug || "");
@@ -38,6 +59,11 @@ export async function generateStorePreviews({ distDir, apiUrl, frontendUrl, asse
     await mkdir(previewDirectory, { recursive: true });
     await writeFile(path.join(previewDirectory, `${slug}.html`), html);
   }
+  if (domainStore) {
+    await writeFile(path.join(distDir, "index.html"), renderStorePreview(template, domainStore, {
+      frontendUrl, assetUrl, canonicalUrl: `https://${domain}/`,
+    }));
+  }
   return stores.length;
 }
 
@@ -49,6 +75,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
       apiUrl: env.VITE_API_BASE_URL || "https://mawja.premiumasp.net",
       frontendUrl: env.VITE_FRONTEND_BASE_URL || "https://mawja.site",
       assetUrl: env.VITE_ASSET_BASE_URL || env.VITE_API_BASE_URL || "https://mawja.premiumasp.net",
+      storefrontDomain: env.STOREFRONT_DOMAIN,
     });
     console.log(`Generated link previews for ${count} active stores.`);
   } catch (error) {

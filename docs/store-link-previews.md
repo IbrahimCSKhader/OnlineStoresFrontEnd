@@ -44,10 +44,22 @@ Logo URLs are absolute and public. If a store has no usable logo, its cover is
 used; if both are missing, no share image is declared. Store content is escaped
 before insertion in HTML. Store names and logos are never hardcoded.
 
-This supports platform links under `/market/<slug>`. A custom domain's root
-served from the same static site cannot vary its HTML based on hostname; it
-needs a separate domain-specific publish or a server/edge proxy. Do not claim
-this changes custom-domain root previews.
+## Dedicated custom-domain Static Site
+
+If a store has its own Render Static Site, set `STOREFRONT_DOMAIN` on **that
+service only** to its domain, for example `alakhwa.store`, then rebuild/deploy.
+The build finds the unique active store assigned that `customDomain` in the
+API and generates `dist/index.html` with its name, logo, description, and
+`https://alakhwa.store/` canonical URL. The existing `/*` → `/index.html` Rewrite
+also serves the correct store metadata for nested routes. React still resolves
+the store from the visitor's hostname as before.
+
+Do not set `STOREFRONT_DOMAIN` on the shared Mawja Static Site. Without it, the
+platform homepage stays unchanged. A single static service serving several
+domains cannot vary its root HTML by hostname; those domains need separate
+publishes or a server/edge proxy. A separate domain registrar does not imply a
+separate Render service. The build fails if the configured domain is invalid,
+unassigned, inactive, or assigned to more than one active store.
 
 After deployment, inspect the raw source for two different store links: each
 must contain its own `og:title` and `og:image`, and still reference Vite's JS/CSS.

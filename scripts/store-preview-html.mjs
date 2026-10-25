@@ -14,11 +14,11 @@ export function absoluteHttpUrl(value, baseUrl) {
   }
 }
 
-export function renderStorePreview(template, store, { frontendUrl, assetUrl }) {
+export function renderStorePreview(template, store, { frontendUrl, assetUrl, canonicalUrl }) {
   const name = String(store.name || store.slug);
   const description = String(store.description || name).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240);
   const image = absoluteHttpUrl(store.logoUrl, assetUrl) || absoluteHttpUrl(store.coverImageUrl, assetUrl);
-  const canonical = new URL(`/market/${encodeURIComponent(store.slug)}`, frontendUrl).href;
+  const canonical = canonicalUrl || new URL(`/market/${encodeURIComponent(store.slug)}`, frontendUrl).href;
   const languages = { A: ["ar", "ar_AR", "rtl"], E: ["en", "en_US", "ltr"], H: ["he", "he_IL", "rtl"] };
   const [language, locale, direction] = languages[store.language] || languages.A;
   const meta = (key, value, attribute = "property") => `<meta ${attribute}="${key}" content="${escapeHtml(value)}" />`;

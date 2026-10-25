@@ -41,10 +41,10 @@ it("uses the cover for a missing logo and never accepts script or data image URL
   expect(missing.querySelector('meta[property="og:image"]')).toBeNull();
   expect(missing.querySelector('link[rel="icon"]')).toBeNull();
 });
-async function generateWith(stores, fetchImpl = vi.fn(async () => ({ ok: true, json: async () => stores }))) {
+async function generateWith(stores, fetchImpl = vi.fn(async () => ({ ok: true, json: async () => stores })), extra = {}) {
   temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), "mawja-previews-"));
   await writeFile(path.join(temporaryDirectory, "index.html"), shell);
-  return generateStorePreviews({ ...settings, apiUrl: "https://api.example", distDir: temporaryDirectory, fetchImpl });
+  return generateStorePreviews({ ...settings, apiUrl: "https://api.example", distDir: temporaryDirectory, fetchImpl, ...extra });
 }
 it("generates isolated previews for all active stores and leaves the platform homepage intact", async () => {
   expect(await generateWith([store, { ...store, slug: "other", name: "متجر ثاني", logoUrl: "/second.png", language: "A" }, { ...store, slug: "inactive", isActive: false }])).toBe(2);
@@ -67,4 +67,21 @@ it("fails the build on API failure or empty data rather than publishing missing 
 });
 it("rejects an empty store response", async () => {
   await expect(generateWith([])).rejects.toThrow("no active stores");
+});
+it("uses the assigned store at the custom domain root while preserving platform previews", async () => {
+  const customStore = { ...store, name: "معرض الأخوين للمفروشات", customDomain: "alakhwa.store" };
+  await generateWith([customStore, { ...store, slug: "second", name: "Second store" }], undefined, { storefrontDomain: "https://www.alakhwa.store" });
+  const document = new JSDOM(await readFile(path.join(temporaryDirectory, "index.html"), "utf8")).window.document;
+  expect(document.title).toBe(customStore.name);
+  expect(document.querySelector('meta[property="og:url"]').content).toBe("https://alakhwa.store/");
+  expect(document.querySelector('link[rel="canonical"]').href).toBe("https://alakhwa.store/");
+  expect(document.querySelector('meta[property="og:image"]').content).toBe("https://api.example/uploads/logo.jpeg");
+  expect(document.querySelector('script[type="module"]')).not.toBeNull();
+  const second = new JSDOM(await readFile(path.join(temporaryDirectory, "store-previews/second.html"), "utf8")).window.document;
+  expect(second.title).toBe("Second store");
+  expect(second.querySelector('meta[property="og:url"]').content).toBe("https://mawja.site/market/second");
+});
+it.each(["unknown.store", "alakhwa.store/path", "user:pass@alakhwa.store", "alakhwa.store?other=1"])("refuses to publish a mismatched or malformed dedicated domain %s", async storefrontDomain => {
+  await expect(generateWith([{ ...store, customDomain: "alakhwa.store" }], undefined, { storefrontDomain })).rejects.toThrow();
+  expect(await readFile(path.join(temporaryDirectory, "index.html"), "utf8")).toBe(shell);
 });
