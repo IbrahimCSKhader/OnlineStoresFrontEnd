@@ -43,7 +43,6 @@ import {
   getProductDisplayVariant,
   getProductImage,
   isProductActive,
-  isProductInStock,
   normalizeProductList,
 } from "../../utils/products.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
@@ -160,6 +159,10 @@ export default function StoreDetails() {
     staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);
+  const inventoryProductsQuery = useStorefrontCatalogProducts(store?.id, {
+    enabled: Boolean(store?.id),
+    staleTime: 30000,
+  });
   const addToCartUi = useTransientBusyState();
 
   const featuredProducts = useMemo(
@@ -183,8 +186,8 @@ export default function StoreDetails() {
     [categories, filteredProducts, t],
   );
   const availableProductsCount = useMemo(
-    () => products.filter((product) => isProductInStock(product)).length,
-    [products],
+    () => (inventoryProductsQuery.data || []).filter((product) => Number(product.stockQuantity) > 0).length,
+    [inventoryProductsQuery.data],
   );
   const catalogPagination = catalogProductsQuery.pagination;
   const currentStoreId = String(store?.id || "").trim();
@@ -384,7 +387,7 @@ export default function StoreDetails() {
                 <Inventory2RoundedIcon fontSize="small" />
                 <span className="storefront-metric__label">{t("المتوفر الآن")}</span>
                 <strong className="storefront-metric__value">
-                  {availableProductsCount}
+                  {inventoryProductsQuery.isLoading || inventoryProductsQuery.error ? "—" : availableProductsCount}
                 </strong>
               </Box>
 
