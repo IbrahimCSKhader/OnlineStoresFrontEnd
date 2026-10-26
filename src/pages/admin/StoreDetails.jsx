@@ -52,6 +52,7 @@ import {
   getStoreThemeTemplateLabel,
   STORE_THEME_TEMPLATES,
 } from "../../constants/storeThemeTemplates.js";
+import StoreAppearanceDialog from "../../components/admin/StoreAppearanceDialog.jsx";
 import "./SuperAdminPages.css";
 
 const CONTACT_PLATFORM_OPTIONS = Object.values(STORE_CONTACT_PLATFORMS);
@@ -381,6 +382,7 @@ export default function StoreDetails() {
   const { notify } = useOutletContext();
   const navigate = useNavigate();
   const { storeId = "" } = useParams();
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
   const [customersSearch, setCustomersSearch] = useState("");
   const deferredCustomersSearch = useDeferredValue(customersSearch);
@@ -539,6 +541,7 @@ export default function StoreDetails() {
 
       {!storeQuery.isLoading && !storeQuery.isError && store ? (
         <>
+          {appearanceOpen && <StoreAppearanceDialog key={store.id} store={store} onClose={() => setAppearanceOpen(false)} />}
           <Paper className="super-admin-detail-hero" elevation={0}>
             <Stack spacing={2}>
               <Stack
@@ -567,6 +570,7 @@ export default function StoreDetails() {
                   >
                     تعديل المتجر
                   </AppButton>
+                  <Button variant="contained" onClick={() => setAppearanceOpen(true)}>تخصيص المظهر</Button>
                   <AppButton
                     variant="outlined"
                     appearance={store.isActive !== false ? "destructive" : "primary"}

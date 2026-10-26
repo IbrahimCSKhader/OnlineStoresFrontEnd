@@ -8,7 +8,7 @@ function resolveStoreThemeKey(store) {
   return String(store?.id ?? store?.storeId ?? store?.StoreId ?? "").trim();
 }
 
-export default function useStoreBranding(store) {
+export default function useStoreBranding(store, { appearanceEnabled = true } = {}) {
   const { setStoreDefaultVariant, clearStoreDefaultVariant } =
     useAppThemeVariant();
 
@@ -26,6 +26,7 @@ export default function useStoreBranding(store) {
 
   useEffect(() => {
     if (!store || typeof store !== "object") {
+      clearStoreDefaultVariant();
       return;
     }
 
@@ -36,10 +37,13 @@ export default function useStoreBranding(store) {
       resolveStoreThemeKey(store),
       {
         availableVariants: themeConfig.availableVariants,
+        appearance: appearanceEnabled ? store.appearance ?? null : null,
       },
     );
   }, [
+    appearanceEnabled,
     setStoreDefaultVariant,
+    clearStoreDefaultVariant,
     store,
     store?.id,
     store?.storeId,

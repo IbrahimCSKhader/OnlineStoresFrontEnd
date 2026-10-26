@@ -15,6 +15,7 @@ import { prefixer } from "stylis";
 import rtlPlugin from "stylis-plugin-rtl";
 import { buildThemeProfile, createAppTheme, THEME_VARIANTS } from "./themes.js";
 import "./electropulse.css";
+import { buildAppearanceCss } from "./storeAppearance.js";
 import {
   getStorageItem,
   getStorageJson,
@@ -134,7 +135,9 @@ export default function AppThemeProvider({ children }) {
       ) ??
       defaultVariant
     : resolvedGlobalUserVariant ?? defaultVariant;
-  const themeProfile = useMemo(() => buildThemeProfile(variant), [variant]);
+  const appearance = scopedStoreKey ? storeThemeScope.appearance : null;
+  const themeProfile = useMemo(() => buildThemeProfile(variant, appearance), [variant, appearance]);
+  const appearanceCss = buildAppearanceCss(appearance?.[themeProfile.mode]);
   const theme = useMemo(() => createAppTheme(themeProfile), [themeProfile]);
 
   const persistStoreThemeVariants = useCallback((nextState) => {
@@ -199,6 +202,7 @@ export default function AppThemeProvider({ children }) {
       storeKey: normalizedStoreKey,
       defaultVariant: normalizedVariant,
       availableVariants,
+      appearance: options.appearance ?? null,
     });
   }, []);
 
@@ -218,6 +222,9 @@ export default function AppThemeProvider({ children }) {
     document.documentElement.dir = "rtl";
     document.documentElement.lang = "ar-u-nu-latn";
     applyCssVariables(themeProfile.cssVars);
+    return () => {
+      Object.keys(themeProfile.cssVars).forEach((key) => document.documentElement.style.removeProperty(key));
+    };
   }, [themeProfile, variant]);
 
   const contextValue = useMemo(
@@ -254,6 +261,7 @@ export default function AppThemeProvider({ children }) {
       <ThemeVariantContext.Provider value={contextValue}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
+          {appearanceCss ? <style data-store-appearance>{appearanceCss}</style> : null}
           {children}
         </ThemeProvider>
       </ThemeVariantContext.Provider>

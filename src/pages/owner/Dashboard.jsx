@@ -938,7 +938,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   ]);
 
   // Apply store branding (theme, colors, etc.)
-  useStoreBranding(store);
+  useStoreBranding(store, { appearanceEnabled: false });
 
   const isOverviewTab = activeTab === "overview";
   const shouldLoadProducts = isOverviewTab || activeTab === "products" || activeTab === "offers";

@@ -95,6 +95,10 @@ function isStorefrontProtectedPath(pathname, method) {
 }
 
 function isPlatformProtectedStorePath(pathname, method) {
+  if (/^\/api\/store\/[^/]+\/appearance(?:\/[^/]+){0,2}$/.test(pathname)) {
+    return true;
+  }
+
   if (pathname === "/api/store/owned" && method === "get") {
     return true;
   }

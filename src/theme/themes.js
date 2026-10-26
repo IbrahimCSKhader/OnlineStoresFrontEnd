@@ -1,3 +1,4 @@
+import { applyAppearanceProfile } from "./storeAppearance.js";
 import { alpha, createTheme } from "@mui/material/styles";
 import { themeCatalog, tokens } from "./tokens.js";
 import { lighten, pickTextColor, withAlpha } from "./branding.js";
@@ -194,12 +195,9 @@ export function buildThemeProfile(variant = "light", branding = null) {
     "--transition-slow": `${tokens.motion.durationSlow} ${tokens.motion.easing}`,
   };
 
-  return {
-    ...preset,
-    palette,
-    cssVars,
-    template: preset.template || "default",
-  };
+  return applyAppearanceProfile({
+    ...preset, palette, cssVars, template: preset.template || "default",
+  }, branding);
 }
 
 const sharedTypography = {
