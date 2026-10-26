@@ -21,6 +21,7 @@ import AppFeedbackSnackbar from "../../components/common/feedback/AppFeedbackSna
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import QuantityStepper from "../../components/common/inputs/QuantityStepper.jsx";
 import ProductGallery from "../../components/product/ProductGallery.jsx";
+import { getProductImagesForVariant } from "../../utils/productGallery.js";
 import ProductGrid from "../../components/product/ProductGrid.jsx";
 import ProductVariantPicker from "../../components/product/ProductVariantPicker.jsx";
 import productApi from "../../API/product.api.js";
@@ -52,54 +53,6 @@ import {
 import { buildStorefrontPath } from "../../utils/customDomain.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./ProductDetails.css";
-
-function getProductImages(product) {
-  const images = Array.isArray(product?.images) ? product.images : [];
-
-  if (images.length) {
-    return images;
-  }
-
-  if (product?.thumbnailUrl) {
-    return [
-      {
-        id: "thumbnail",
-        url: product.thumbnailUrl,
-        altText: product.name,
-      },
-    ];
-  }
-
-  return [];
-}
-
-function getProductImagesForVariant(product, variant) {
-  const productImages = getProductImages(product);
-
-  if (!variant) {
-    return productImages;
-  }
-
-  const variantImages = Array.isArray(variant.images) ? variant.images : [];
-  const mergedImages = [];
-  const directVariantImageUrl = variant.imageUrl || variant.ImageUrl || "";
-
-  if (directVariantImageUrl) {
-    mergedImages.push({
-      id: `variant-primary-${variant.id}`,
-      url: directVariantImageUrl,
-      altText: `${product?.name || ""} ${variant.name || ""}`.trim(),
-    });
-  }
-
-  variantImages.forEach((image) => {
-    if (!mergedImages.some((item) => item.url && item.url === image.url)) {
-      mergedImages.push(image);
-    }
-  });
-
-  return mergedImages;
-}
 
 function isPlaceholderDefaultVariant(variant) {
   if (!variant?.isDefault) {
