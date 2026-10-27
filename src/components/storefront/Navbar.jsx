@@ -606,6 +606,9 @@ export default function Navbar() {
 
           <Divider />
 
+          <MenuItem component={NavLink} to={buildStorefrontPath(activeStoreSlug, "/profile")} onClick={closeProfileMenu}>
+            <ListItemIcon><PersonRoundedIcon fontSize="small" /></ListItemIcon>{t("الملف الشخصي")}
+          </MenuItem>
           {!activeStore?.isCatalog && <MenuItem
             component={NavLink}
             to={cartPath}
@@ -671,6 +674,7 @@ export default function Navbar() {
         ) : null}
 
         <Stack spacing={1}>
+          <AppButton component={NavLink} to={buildStorefrontPath(activeStoreSlug, "/profile")} onClick={() => setDrawerOpen(false)} variant="outlined" fullWidth>{t("الملف الشخصي")}</AppButton>
           {renderCartButton(true)}
           <AppButton
             component={NavLink}

@@ -80,7 +80,7 @@ export default function Cart() {
 
   if (store.isCatalog) return <Navigate to={storeHomePath} replace />;
 
-  if (storefrontSession.hasConflictingStoreCustomerSession) {
+  if (store.requireCustomerLoginForCheckout !== false && storefrontSession.hasConflictingStoreCustomerSession) {
     return (
       <Box className="storefront-page page-cart">
         <EmptyState
@@ -103,7 +103,7 @@ export default function Cart() {
   return (
     <Box className="storefront-page page-cart">
       {storefrontSession.useLocalGuestCart && !activeStoreCustomer ? (
-        <Alert severity="info">{t("يمكنك استعراض السلة كزائر، لكن عند إتمام الطلب سيُطلب منك تسجيل الدخول لهذا المتجر.")}</Alert>
+        <Alert severity="info">{store.requireCustomerLoginForCheckout === false ? t("يمكنك إتمام الطلب كزائر دون إنشاء حساب.") : t("يمكنك استعراض السلة كزائر، لكن عند إتمام الطلب سيُطلب منك تسجيل الدخول لهذا المتجر.")}</Alert>
       ) : null}
 
       {updateCartItemMutation.isError ? (

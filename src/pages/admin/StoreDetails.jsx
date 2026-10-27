@@ -85,6 +85,7 @@ function createStoreFormState(store) {
     storeStory: store?.storeStory || "",
     themeTemplate: store?.themeTemplate || "D",
     isActive: store?.isActive !== false,
+    requireCustomerLoginForCheckout: store?.requireCustomerLoginForCheckout !== false,
     contactAccounts: Array.isArray(store?.contactAccounts)
       ? store.contactAccounts.map((account, index) => createContactAccount(account, index))
       : [],
@@ -150,11 +151,14 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                 storeStory: sanitizeNullableString(form.storeStory),
                 themeTemplate: sanitizeNullableString(form.themeTemplate),
                 isActive: Boolean(form.isActive),
+                requireCustomerLoginForCheckout: form.requireCustomerLoginForCheckout,
                 contactAccounts: sanitizeContactAccounts(contactAccounts),
               });
             }}
             className="super-admin-modal-grid"
           >
+            <FormControlLabel label="يشترط تسجيل دخول الزبون لإتمام الطلب" control={<Switch checked={form.requireCustomerLoginForCheckout} onChange={(e) => setForm((v) => ({ ...v, requireCustomerLoginForCheckout: e.target.checked }))} />} />
+            <Typography variant="body2" color="text.secondary">عند إيقاف الخيار يستطيع الزائر إدخال بياناته وإرسال الطلب دون حساب.</Typography>
             <AppTextField
               label="اسم المتجر"
               value={form.name}

@@ -14,7 +14,7 @@ export default function CartSummary({
   itemCount = 0,
   deliveryCost,
   checkoutPath,
-  actionLabel = "متابعة إلى الدفع",
+  actionLabel = "متابعة لتأكيد الطلب",
 }) {
   const { t } = useStorefrontLanguage();
   return (

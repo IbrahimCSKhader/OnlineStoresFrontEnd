@@ -41,6 +41,8 @@ export default function CheckoutForm({
       <Box className="checkout-form__body">
         {step === 0 ? (
           <Box className="checkout-form__grid">
+            <AppTextField required label={t("اسم العميل")} value={form.customerName || ""} onChange={(e) => onChange("customerName", e.target.value)} slotProps={{ htmlInput: { maxLength: 200, autoComplete: "name" } }} />
+            <AppTextField label={t("البريد الإلكتروني (اختياري)")} type="email" value={form.customerEmail || ""} onChange={(e) => onChange("customerEmail", e.target.value)} slotProps={{ htmlInput: { maxLength: 256, autoComplete: "email" } }} />
             {deliveryLocations.length ? (
               <AppTextField select required label={t("مكان التوصيل")} value={selectedLocation?.id || ""}
                 onChange={(event) => onChange("deliveryLocationId", event.target.value)}>
@@ -87,6 +89,8 @@ export default function CheckoutForm({
           <Box className="checkout-form__review">
             <Typography variant="h6">{t("مراجعة البيانات")}</Typography>
             <Box className="checkout-form__review-grid">
+              <div><span>{t("اسم العميل")}</span><strong>{form.customerName || "-"}</strong></div>
+              <div><span>{t("البريد الإلكتروني")}</span><strong>{form.customerEmail || "-"}</strong></div>
               {deliveryLocations.length ? (
                 <div>
                   <span>{t("مكان التوصيل")}</span>

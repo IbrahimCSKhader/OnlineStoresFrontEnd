@@ -243,6 +243,7 @@ export default function OrderDetailsPage() {
 
               <Paper className="owner-panel owner-detail-card" elevation={0}>
                 <Typography variant="h6">{t("بيانات العميل")}</Typography>
+                <Typography color="text.secondary">{t(order.isGuest ? "زائر — غير مسجل في المتجر" : "عميل مسجل في المتجر")}</Typography>
                 <Box className="owner-detail-card__row">
                   <span>{t("الاسم")}</span>
                   <strong>

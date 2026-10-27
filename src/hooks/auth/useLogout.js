@@ -41,6 +41,7 @@ export default function useLogout(options = {}) {
     queryClient.removeQueries({ queryKey: ["orders"] });
     queryClient.removeQueries({ queryKey: ["reviews"] });
     queryClient.removeQueries({ queryKey: ["customer-stores"] });
+    queryClient.removeQueries({ queryKey: ["customer-profile"] });
   }
 
   return useMutation({

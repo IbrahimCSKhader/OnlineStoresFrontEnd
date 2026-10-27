@@ -63,6 +63,7 @@ function isOptionalStorefrontCatalogPath(pathname, method) {
 }
 
 function isStorefrontProtectedPath(pathname, method) {
+  if (/^\/api\/store-customer-auth\/store\/[^/]+\/profile$/.test(pathname)) return true;
   if (pathname.startsWith("/api/cart/") || pathname === "/api/cart/add") {
     return true;
   }
@@ -269,6 +270,7 @@ function parseRequestPayload(data) {
 
 function extractPathStoreScope(pathname) {
   const patterns = [
+    /^\/api\/store-customer-auth\/store\/([^/]+)\/profile$/i,
     /^\/api\/cart\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i,
     /^\/api\/cart\/clear\/([^/]+)$/i,
     /^\/api\/product\/store\/([^/]+)$/i,

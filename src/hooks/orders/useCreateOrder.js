@@ -24,6 +24,9 @@ function buildCreateOrderPayload(payload, storeId) {
     deliveryAddress: String(payload?.deliveryAddress || "").trim(),
     deliveryCity: String(payload?.deliveryCity || "").trim(),
     deliveryPhone: String(payload?.deliveryPhone || "").trim(),
+    customerName: String(payload?.customerName || "").trim() || undefined,
+    customerEmail: String(payload?.customerEmail || "").trim() || undefined,
+    ...(payload?.guestItems ? { items: payload.guestItems } : {}),
   });
 }
 
@@ -49,7 +52,7 @@ export default function useCreateOrder(storeId, options = {}) {
       });
 
       try {
-        return await orderApi.createOrder(requestPayload);
+        return payload?.guestItems ? await orderApi.createGuestOrder(requestPayload) : await orderApi.createOrder(requestPayload);
       } catch (error) {
         logOrderCartFlow("Create Order Request Failed", {
           status: "request-failed",

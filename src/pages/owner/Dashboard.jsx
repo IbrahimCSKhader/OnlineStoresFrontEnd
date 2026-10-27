@@ -41,6 +41,7 @@ import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import LoadingState from "../../components/common/loaders/LoadingState.jsx";
 import AppDataTable from "../../components/common/tables/AppDataTable.jsx";
 import ContactDeveloperButton from "../../components/common/ContactDeveloperButton.jsx";
+import CheckoutLoginSetting from "../../components/dashboard/CheckoutLoginSetting.jsx";
 import DeliveryLocationsForm from "../../components/dashboard/DeliveryLocationsForm.jsx";
 import CategoryForm from "../../components/dashboard/CategoryForm.jsx";
 import CouponForm from "../../components/dashboard/CouponForm.jsx";
@@ -1194,12 +1195,12 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         const customer =
           customersById.get(String(normalizedOrder.storeCustomerId || "")) || null;
         const customerName =
-          customer?.fullName ||
           normalizedOrder.customerName ||
+          customer?.fullName ||
           normalizedOrder.customerEmail ||
           "عميل المتجر";
         const customerEmail =
-          customer?.email || normalizedOrder.customerEmail || "";
+          normalizedOrder.customerEmail || customer?.email || "";
         const customerPhone =
           customer?.phone === "-"
             ? normalizedOrder.customerPhone || ""
@@ -1242,7 +1243,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
     {
       key: "customerName",
       title: "العميل",
-      render: (row) => row.customerName || "غير محدد",
+      render: (row) => `${row.customerName || "غير محدد"}${row.isGuest ? " (زائر غير مسجل)" : ""}`,
     },
     {
       key: "customerId",
@@ -2593,7 +2594,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         ) : null}
 
         {activeTab === "overview" && !store.isCatalog ? (
-          <DeliveryLocationsForm key={store.id} store={store} />
+          <>
+            <CheckoutLoginSetting key={`${store.id}:${store.requireCustomerLoginForCheckout}`} store={store} />
+            <DeliveryLocationsForm key={store.id} store={store} />
+          </>
         ) : null}
 
         {activeTab === "overview" ? (
@@ -3325,6 +3329,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                     {orderFilters.sort === "customer" && (index === 0 || orderCustomerKey(row) !== orderCustomerKey(orders[index - 1])) ? (
                       <Box sx={{ gridColumn: "1 / -1", borderBottom: "1px solid", borderColor: "divider", pb: 1, mt: index ? 2 : 0 }}>
                         <Typography variant="h6">{customerName}</Typography>
+                        {row.isGuest && <Typography variant="caption">{t("زائر — غير مسجل في المتجر")}</Typography>}
                         {row.customerEmail ? <Typography variant="body2" color="text.secondary">{row.customerEmail}</Typography> : null}
                       </Box>
                     ) : null}
@@ -3367,6 +3372,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           ) : (
                             <Typography variant="body1">{t(customerName)}</Typography>
                           )}
+                          {row.isGuest && <Typography variant="caption" color="text.secondary">{t("زائر — غير مسجل في المتجر")}</Typography>}
                           {row.customerPhone ? (
                             <Typography variant="caption" color="text.secondary">
                               {t(row.customerPhone)}

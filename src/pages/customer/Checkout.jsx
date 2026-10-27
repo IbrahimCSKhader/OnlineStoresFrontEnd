@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Navigate, Link as RouterLink, useNavigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -38,7 +38,12 @@ import { buildStorefrontPath } from "../../utils/customDomain.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./Checkout.css";
 
+import useCustomerProfile from "../../hooks/auth/useCustomerProfile.js";
+import { buildGuestOrderItems } from "../../utils/guestCheckout.js";
+
 const initialForm = {
+  customerName: "",
+  customerEmail: "",
   deliveryLocationId: "",
   deliveryAddress: "",
   deliveryCity: "",
@@ -193,6 +198,9 @@ function buildWhatsAppOrderMessage({ store, cart, form, order, t }) {
     t("رقم الطلب: {0}", normalizedOrder.orderNumber || normalizedOrder.id || "-"),
     "",
     t("بيانات التوصيل:"),
+    t("- الاسم: {0}", normalizedOrder.customerName || form.customerName || "-"),
+    t("- البريد: {0}", normalizedOrder.customerEmail || form.customerEmail || "-"),
+    normalizedOrder.isGuest ? t("زائر — غير مسجل في المتجر") : "",
     t("مكان التوصيل: {0}", normalizedOrder.deliveryLocationName || "افتراضي"),
     t("- العنوان: {0}", normalizedOrder.deliveryAddress || form.deliveryAddress || "-"),
     t("- المدينة: {0}", normalizedOrder.deliveryCity || form.deliveryCity || "-"),
@@ -263,11 +271,17 @@ function redirectToWhatsApp(url, popup) {
 
 export default function Checkout() {
   const { slug } = useParams();
+  return <CheckoutPage key={slug || "custom-domain"} />;
+}
+
+function CheckoutPage() {
+  const { slug } = useParams();
   const navigate = useNavigate();
   const auth = useAuth();
   const { storeCustomer } = auth;
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState(initialForm);
+  const submitting = useRef(false);
+  const [formOverrides, setForm] = useState({});
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
   const { t, language } = useStorefrontLanguage();
@@ -290,6 +304,18 @@ export default function Checkout() {
     enabled: Boolean(store?.id) && !store?.isCatalog,
   });
   const storefrontSession = useStorefrontSession(store?.id, resolvedStoreSlug);
+  const isGuest = !storefrontSession.hasScopedStorefrontSession;
+  const guestAllowed = store?.requireCustomerLoginForCheckout === false;
+  const profileQuery = useCustomerProfile(store?.id, !isGuest);
+  const profile = profileQuery.data;
+  const form = { ...initialForm,
+    customerName: profile ? `${profile.firstName} ${profile.lastName}`.trim() : "",
+    customerEmail: profile?.email || "",
+    deliveryPhone: profile?.phone || "",
+    deliveryAddress: profile?.address || "",
+    deliveryCity: profile?.city || "",
+    ...formOverrides,
+  };
   const createOrderMutation = useCreateOrder(store?.id);
   const clearCartMutation = useClearCart(store?.id);
   const cart = normalizeCartResponse(cartQuery.data);
@@ -328,7 +354,7 @@ export default function Checkout() {
 
   if (store.isCatalog) return <Navigate to={storeHomePath} replace />;
 
-  if (storefrontSession.hasConflictingStoreCustomerSession) {
+  if (!guestAllowed && storefrontSession.hasConflictingStoreCustomerSession) {
     return (
       <Box className="storefront-page page-checkout">
         <EmptyState
@@ -400,16 +426,18 @@ export default function Checkout() {
         deliveryAddress: String(form.deliveryAddress || "").trim(),
         deliveryCity: String(form.deliveryCity || "").trim(),
         deliveryPhone: String(form.deliveryPhone || "").trim(),
-        couponCode: canUseStoreCoupons(store) ? String(form.couponCode || "").trim() : "",
+        couponCode: !isGuest && canUseStoreCoupons(store) ? String(form.couponCode || "").trim() : "",
         customerNotes: String(form.customerNotes || "").trim(),
       },
     });
 
-    if (!activeStoreCustomer || !storefrontSession.hasScopedStorefrontSession) {
+    if (!guestAllowed && (!activeStoreCustomer || !storefrontSession.hasScopedStorefrontSession)) {
       redirectToStoreLogin();
       return;
     }
 
+    if (!String(form.customerName || "").trim()) { setSubmitError(t("يرجى إدخال اسم العميل")); return; }
+    if (form.customerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.customerEmail.trim())) { setSubmitError(t("البريد الإلكتروني غير صالح")); return; }
     if (deliveryLocations.length && !selectedDeliveryLocation) {
       handleValidationFailure("missing-delivery-location", t("يرجى اختيار مكان التوصيل."));
       return;
@@ -479,15 +507,20 @@ export default function Checkout() {
       whatsappUrl,
     });
 
+    if (submitting.current) return;
+    submitting.current = true;
     const pendingWhatsAppWindow = openPendingWhatsAppWindow();
     const payload = {
       storeId: store?.id,
+      customerName: form.customerName.trim(),
+      customerEmail: form.customerEmail.trim() || undefined,
+      ...(isGuest ? { guestItems: buildGuestOrderItems(cart.items) } : {}),
       deliveryLocationId: deliveryLocations.length ? form.deliveryLocationId : undefined,
       deliveryAddress: String(form.deliveryAddress || "").trim(),
       deliveryCity: String(form.deliveryCity || "").trim(),
       deliveryPhone: String(form.deliveryPhone || "").trim(),
       customerNotes: String(form.customerNotes || "").trim() || undefined,
-      couponCode: canUseStoreCoupons(store) ? String(form.couponCode || "").trim() || undefined : undefined,
+      couponCode: !isGuest && canUseStoreCoupons(store) ? String(form.couponCode || "").trim() || undefined : undefined,
       debugSource: "customer-checkout-page",
     };
 
@@ -496,6 +529,7 @@ export default function Checkout() {
     try {
       orderResponse = await createOrderMutation.mutateAsync(payload);
     } catch (error) {
+      submitting.current = false;
       closePendingWhatsAppWindow(pendingWhatsAppWindow);
 
       logOrderCartFlow("Checkout Order Create Failed", {
@@ -614,7 +648,7 @@ export default function Checkout() {
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">{t("إتمام الطلب")}</span>
             <Typography variant="h2">{t("إرسال الطلب عبر واتساب -")} {store.name}</Typography>
-            <Typography variant="body1" className="storefront-subtitle">{t("يمكنك مراجعة السلة كضيف، لكن إرسال الطلب نفسه يتطلب تسجيل الدخول أولًا. بعد إنشاء الطلب ستصبح حالته معلقة حتى يؤكدها صاحب المتجر، ثم سيفتح واتساب مع ملخص واضح للخصومات المطبقة.")}</Typography>
+            <Typography variant="body1" className="storefront-subtitle">{guestAllowed ? t("يمكنك إتمام الطلب دون حساب. أدخل معلوماتك ثم راجع الطلب وأرسله عبر واتساب.") : t("إتمام الطلب يتطلب تسجيل الدخول لهذا المتجر. بعد التأكيد سيفتح واتساب مع ملخص الطلب.")}</Typography>
           </Box>
 
           <AppButton
@@ -632,8 +666,8 @@ export default function Checkout() {
               step={step}
               form={form}
               deliveryLocations={deliveryLocations}
-              couponsEnabled={canUseStoreCoupons(store)}
-              isSubmitting={createOrderMutation.isPending || clearCartMutation.isPending}
+              couponsEnabled={!isGuest && canUseStoreCoupons(store)}
+              isSubmitting={createOrderMutation.isPending || clearCartMutation.isPending || Boolean(submitSuccess)}
               submitLabel={t("إرسال الطلب عبر واتساب")}
               onChange={(key, value) =>
                 setForm((previous) => ({

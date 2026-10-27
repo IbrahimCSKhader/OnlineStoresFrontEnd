@@ -26,6 +26,7 @@ const NotFound = lazyWithRetry(
   "not-found",
 );
 
+const CustomerProfile = lazyWithRetry(() => import("./pages/customer/Profile.jsx"), "customer-profile");
 const Login = lazyWithRetry(() => import("./pages/auth/Login.jsx"), "login");
 const Register = lazyWithRetry(
   () => import("./pages/auth/Register.jsx"),
@@ -293,6 +294,7 @@ const router = createBrowserRouter([
               </CustomDomainElement>
             ),
           },
+          { path: "profile", element: <CustomDomainElement>{withRouteSuspense(<CustomerProfile />)}</CustomDomainElement> },
           {
             path: "checkout",
             element: (
@@ -397,6 +399,7 @@ const router = createBrowserRouter([
           { path: "offers/:offerId", element: withRouteSuspense(<OfferDetails />) },
           { path: "cart", element: withRouteSuspense(<Cart />) },
           { path: "checkout", element: withRouteSuspense(<Checkout />) },
+          { path: "profile", element: withRouteSuspense(<CustomerProfile />) },
           { path: "login", element: withRouteSuspense(<Login />) },
           { path: "register", element: withRouteSuspense(<Register />) },
           { path: "verify-email", element: withRouteSuspense(<VerifyEmail />) },
