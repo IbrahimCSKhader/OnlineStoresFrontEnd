@@ -1,4 +1,4 @@
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
@@ -8,6 +8,7 @@ import Cart from "../customer/Cart.jsx";
 import Checkout from "../customer/Checkout.jsx";
 
 const state = vi.hoisted(() => ({ signedIn: false, store: {}, product: { id: "p", storeId: "s", name: "Sample product", price: 20, status: 1, stockQuantity: 10 } }));
+const cartAdd = vi.hoisted(() => vi.fn(async () => ({})));
 vi.mock("../../hooks/stores/useStoreBySlug.js", () => ({ default: () => ({ data: state.store }) }));
 vi.mock("../../hooks/products/useProductDetails.js", () => ({ default: () => ({ data: state.product }) }));
 vi.mock("../../hooks/products/useProductsByCategory.js", () => ({ default: () => ({ data: [] }) }));
@@ -21,7 +22,7 @@ vi.mock("../../hooks/stores/useOwnerStorePreview.js", () => ({ default: () => ({
 vi.mock("../../hooks/auth/useAuth.js", () => ({ default: () => ({ isAuthenticated: state.signedIn, storeCustomer: state.signedIn ? { id: "customer" } : null }) }));
 vi.mock("../../hooks/auth/useStorefrontSession.js", () => ({ default: () => ({ hasScopedStorefrontSession: state.signedIn, useLocalGuestCart: !state.signedIn }) }));
 vi.mock("../../hooks/cart/useCart.js", () => ({ default: () => ({ data: { items: [] } }) }));
-vi.mock("../../hooks/cart/useAddToCart.js", () => ({ default: () => ({ mutate: vi.fn() }) }));
+vi.mock("../../hooks/cart/useAddToCart.js", () => ({ default: () => ({ mutate: cartAdd, mutateAsync: cartAdd }) }));
 vi.mock("../../theme/useStoreBranding.js", () => ({ default: () => {} }));
 vi.mock("../../API/store.api.js", () => ({ default: { visitStore: async () => ({}) } }));
 vi.mock("../../API/product.api.js", () => ({ default: { visitProduct: async () => ({}) } }));
@@ -43,6 +44,17 @@ it.each([[false, false], [false, true], [true, false], [true, true]])("store pro
   expect(screen.getByText("Sample product")).toBeInTheDocument();
   expect(screen.queryAllByRole("button", { name: "أضف" }).length > 0).toBe(!isCatalog);
   expect(screen.queryAllByRole("link", { name: "السلة" }).length > 0).toBe(!isCatalog);
+});
+it("store home cards submit the selected quantity and reset after success", async () => {
+  cartAdd.mockClear();
+  show(StoreDetails, false);
+  const card = within(screen.getByText("Sample product").closest(".product-card"));
+  fireEvent.click(card.getByRole("button", { name: "زيادة الكمية" }));
+  fireEvent.click(card.getByRole("button", { name: "زيادة الكمية" }));
+  fireEvent.click(card.getByRole("button", { name: "زيادة الكمية" }));
+  fireEvent.click(card.getByRole("button", { name: "أضف" }));
+  await waitFor(() => expect(cartAdd).toHaveBeenCalledWith(expect.objectContaining({ productId: "p", quantity: 3 })));
+  await waitFor(() => expect(card.getByLabelText("الكمية", { selector: "output" })).toHaveTextContent("0"));
 });
 it.each([[false, false], [false, true], [true, false], [true, true]])("product details respect catalog=%s, signedIn=%s while keeping sharing", (isCatalog, signedIn) => {
   show(ProductDetails, isCatalog, undefined, signedIn);

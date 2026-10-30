@@ -225,17 +225,17 @@ export default function StoreDetails() {
       });
   }, [currentStoreId, isOwnerPreview]);
 
-  const handleAddToCart = (product) => {
+  const handleAddToCart = (product, quantity = 1) => {
     if (store?.isCatalog || isOwnerPreview || !store?.id || !product?.id) {
-      return;
+      return false;
     }
 
     const defaultVariant = getProductDisplayVariant(product);
 
     addToCartUi.markBusy(product.id);
-    addToCartMutation.mutate({
+    return addToCartMutation.mutateAsync({
       productId: product.id,
-      quantity: 1,
+      quantity,
       storeId: store.id,
       variantId: defaultVariant?.id || null,
       productSnapshot: buildProductSnapshot(product, {

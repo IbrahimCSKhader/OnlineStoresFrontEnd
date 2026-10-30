@@ -377,15 +377,15 @@ export default function ProductDetails() {
     });
   };
 
-  const handleRelatedAddToCart = (relatedProduct) => {
-    if (store?.isCatalog || isOwnerPreview || !effectiveStoreId || !relatedProduct?.id) return;
+  const handleRelatedAddToCart = (relatedProduct, quantity = 1) => {
+    if (store?.isCatalog || isOwnerPreview || !effectiveStoreId || !relatedProduct?.id) return false;
 
     const relatedVariant = getProductDisplayVariant(relatedProduct);
 
     relatedAddToCartUi.markBusy(relatedProduct.id);
-    addToCartMutation.mutate({
+    return addToCartMutation.mutateAsync({
       productId: relatedProduct.id,
-      quantity: 1,
+      quantity,
       storeId: effectiveStoreId,
       variantId: relatedVariant?.id || null,
       productSnapshot: buildProductSnapshot(relatedProduct, {

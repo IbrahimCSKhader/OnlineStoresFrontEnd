@@ -2,7 +2,10 @@ import { offerSavingsPercent } from "../../utils/offers.js";
 import useOffers from "../../hooks/offers/useOffers.js";
 import OfferBadge from "../offers/OfferBadge.jsx";
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
-﻿import { memo } from "react";
+import { memo, useRef, useState } from "react";
+import IconButton from "@mui/material/IconButton";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
+import RemoveRoundedIcon from "@mui/icons-material/RemoveRounded";
 import { Link as RouterLink, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -42,6 +45,10 @@ function ProductCard({
 }) {
   const { t } = useStorefrontLanguage();
   const location = useLocation();
+  const [quantity, setQuantity] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [addError, setAddError] = useState(false);
+  const inFlight = useRef(false);
   const normalizedProduct = normalizeProductDto(product);
   const offers = useOffers(normalizedProduct.storeId);
   const bundle = (offers.data || []).find(o => Number(o.type) === 1 && o.items.some(i => i.productId === normalizedProduct.id));
@@ -86,6 +93,26 @@ function ProductCard({
   const stockQuantity = displayVariant
     ? Number(displayVariant.stockQuantity ?? 0)
     : Number(normalizedProduct.effectiveStockQuantity ?? normalizedProduct.stockQuantity ?? 0);
+  const maxQuantity = normalizedProduct.trackInventory
+    ? Math.max(0, Math.floor(stockQuantity)) : Number.MAX_SAFE_INTEGER;
+  const selectedQuantity = Math.min(quantity, maxQuantity);
+  const cartDisabled = disableCartActions || !normalizedProduct.id || !isAvailable;
+  const busy = submitting || adding;
+  const handleAdd = async () => {
+    if (cartDisabled || busy || inFlight.current || selectedQuantity < 1) return;
+    inFlight.current = true;
+    setSubmitting(true);
+    setAddError(false);
+    try {
+      const result = await onAddToCart(normalizedProduct, selectedQuantity);
+      if (result !== false) setQuantity(0);
+    } catch {
+      setAddError(true);
+    } finally {
+      inFlight.current = false;
+      setSubmitting(false);
+    }
+  };
   const cardDescription =
     displayVariant?.description ||
     normalizedProduct.shortDescription ||
@@ -219,6 +246,16 @@ function ProductCard({
         </Stack>
       </Box>
 
+      {onAddToCart ? (
+        <Box className="product-card__quantity" role="group" aria-label={t("الكمية")}>
+          <IconButton size="small" aria-label={t("تقليل الكمية")} disabled={cartDisabled || busy || selectedQuantity === 0}
+            onClick={() => setQuantity(Math.max(0, selectedQuantity - 1))}><RemoveRoundedIcon fontSize="small" /></IconButton>
+          <Box component="output" aria-live="polite" aria-label={t("الكمية")}>{selectedQuantity}</Box>
+          <IconButton size="small" aria-label={t("زيادة الكمية")} disabled={cartDisabled || busy || selectedQuantity >= maxQuantity}
+            onClick={() => setQuantity(Math.min(maxQuantity, selectedQuantity + 1))}><AddRoundedIcon fontSize="small" /></IconButton>
+        </Box>
+      ) : null}
+      {addError ? <Typography role="alert" variant="caption" className="product-card__cart-error">{t("تعذر إضافة المنتج للسلة. حاول مرة أخرى.")}</Typography> : null}
       <Stack direction="row" spacing={1} className="product-card__actions">
         {detailPath ? (
           <AppButton
@@ -235,10 +272,10 @@ function ProductCard({
           <AppButton
             variant="contained"
             size="small"
-            loading={adding}
+            loading={busy}
             loadingLabel="..."
-            onClick={() => onAddToCart(normalizedProduct)}
-            disabled={disableCartActions || !normalizedProduct.id || !isAvailable}
+            onClick={handleAdd}
+            disabled={cartDisabled || selectedQuantity < 1}
             startIcon={<LocalMallRoundedIcon fontSize="small" />}
             className={
               detailPath
@@ -254,6 +291,7 @@ function ProductCard({
 
 export default memo(ProductCard, (previousProps, nextProps) => (
   previousProps.product === nextProps.product &&
+  previousProps.onAddToCart === nextProps.onAddToCart &&
   previousProps.storeSlug === nextProps.storeSlug &&
   previousProps.adding === nextProps.adding &&
   previousProps.disableCartActions === nextProps.disableCartActions &&

@@ -251,6 +251,38 @@
   margin-top: auto;
 }
 
+.product-card__quantity {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0 7px 10px;
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface-low);
+}
+
+.product-card__quantity .MuiIconButton-root {
+  width: 36px;
+  height: 36px;
+  min-width: 28px;
+  flex: 0 1 36px;
+  color: var(--primary);
+}
+
+.product-card__quantity output {
+  min-width: 2ch;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.product-card__cart-error {
+  padding: 0 10px 8px;
+  color: var(--status-error);
+}
+
 .product-card__detail-button {
   min-height: auto !important;
   padding: 0 !important;

@@ -1,6 +1,10 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import IconButton from "@mui/material/IconButton";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import Chip from "@mui/material/Chip";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Slider from "@mui/material/Slider";
@@ -92,7 +96,9 @@ export default function ProductsPage() {
   const { slug = "" } = useParams();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
-  const { t, language } = useStorefrontLanguage();
+  const { t, language, dir } = useStorefrontLanguage();
+  const compactFilters = useMediaQuery("(max-width: 1199px)");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [searchText, setSearchText] = useState("");
   const deferredSearchText = useDeferredValue(searchText);
   const [selectedCategoryId, setSelectedCategoryId] = useState("all");
@@ -244,15 +250,15 @@ export default function ProductsPage() {
     setPage(1);
   };
 
-  const handleAddToCart = (product) => {
-    if (store?.isCatalog || isOwnerPreview || !store?.id || !product?.id) return;
+  const handleAddToCart = (product, quantity = 1) => {
+    if (store?.isCatalog || isOwnerPreview || !store?.id || !product?.id) return false;
 
     const defaultVariant = getProductDisplayVariant(product);
 
     addToCartUi.markBusy(product.id);
-    addToCartMutation.mutate({
+    return addToCartMutation.mutateAsync({
       productId: product.id,
-      quantity: 1,
+      quantity,
       storeId: store.id,
       variantId: defaultVariant?.id || null,
       productSnapshot: buildProductSnapshot(product, {
@@ -281,32 +287,7 @@ export default function ProductsPage() {
     );
   }
 
-  return (
-    <Box className="storefront-page page-products">
-      <SurfaceCard variant="hero" className="page-products__hero">
-        <Box className="page-products__hero-copy">
-          <span className="storefront-eyebrow">{t("المنتجات")}</span>
-          <Typography variant="h2">{t("كل تشكيلات")} {store.name}</Typography>
-          <Typography variant="body1" className="storefront-subtitle">{t("فلترة سريعة حسب السعر، الفئة، القسم، التوفر والعروض.")}</Typography>
-        </Box>
-
-        <Stack direction="row" className="page-products__hero-stats">
-          <Box className="page-products__stat">
-            <Inventory2RoundedIcon fontSize="small" />
-            <span>{products.length.toLocaleString("ar")} {t("منتج")}</span>
-          </Box>
-          <Box className="page-products__stat">
-            <FilterAltRoundedIcon fontSize="small" />
-            <span>{filteredProducts.length.toLocaleString("ar")} {t("نتيجة")}</span>
-          </Box>
-          <Box className="page-products__stat">
-            <LocalOfferRoundedIcon fontSize="small" />
-            <span>{formatCurrency(activePriceRange[0])} - {formatCurrency(activePriceRange[1])}</span>
-          </Box>
-        </Stack>
-      </SurfaceCard>
-
-      <Box className="page-products__layout">
+  const filterPanel = (
         <SurfaceCard className="page-products__filters">
           <Box className="page-products__filters-head">
             <Box>
@@ -476,6 +457,56 @@ export default function ProductsPage() {
             />
           </Box>
         </SurfaceCard>
+  );
+
+  return (
+    <Box className="storefront-page page-products">
+      <SurfaceCard variant="hero" className="page-products__hero">
+        <Box className="page-products__hero-copy">
+          <span className="storefront-eyebrow">{t("المنتجات")}</span>
+          <Typography variant="h2">{t("كل تشكيلات")} {store.name}</Typography>
+          <Typography variant="body1" className="storefront-subtitle">{t("فلترة سريعة حسب السعر، الفئة، القسم، التوفر والعروض.")}</Typography>
+        </Box>
+
+        <Stack direction="row" className="page-products__hero-stats">
+          <Box className="page-products__stat">
+            <Inventory2RoundedIcon fontSize="small" />
+            <span>{products.length.toLocaleString("ar")} {t("منتج")}</span>
+          </Box>
+          <Box className="page-products__stat">
+            <FilterAltRoundedIcon fontSize="small" />
+            <span>{filteredProducts.length.toLocaleString("ar")} {t("نتيجة")}</span>
+          </Box>
+          <Box className="page-products__stat">
+            <LocalOfferRoundedIcon fontSize="small" />
+            <span>{formatCurrency(activePriceRange[0])} - {formatCurrency(activePriceRange[1])}</span>
+          </Box>
+        </Stack>
+      </SurfaceCard>
+
+      <Box className="page-products__layout">
+        {compactFilters ? (
+          <>
+            <AppButton variant="outlined" startIcon={<FilterAltRoundedIcon />}
+              aria-expanded={filtersOpen} aria-controls="products-filter-drawer"
+              onClick={() => setFiltersOpen(true)} className="page-products__filter-toggle">
+              {t("البحث والفلاتر")}
+            </AppButton>
+            <Drawer anchor={dir === "ltr" ? "left" : "right"} open={filtersOpen}
+              onClose={() => setFiltersOpen(false)}
+              slotProps={{ paper: { id: "products-filter-drawer", className: "page-products__filter-drawer", dir,
+                role: "dialog", "aria-modal": true, "aria-label": t("البحث والفلاتر") } }}>
+              <Box className="page-products__drawer-head">
+                <Typography variant="h6">{t("البحث والفلاتر")}</Typography>
+                <IconButton aria-label={t("إغلاق الفلاتر")} onClick={() => setFiltersOpen(false)}><CloseRoundedIcon /></IconButton>
+              </Box>
+              {filterPanel}
+              <Box className="page-products__drawer-footer">
+                <AppButton fullWidth onClick={() => setFiltersOpen(false)}>{t("عرض النتائج")} ({filteredProducts.length})</AppButton>
+              </Box>
+            </Drawer>
+          </>
+        ) : filterPanel}
 
         <SurfaceCard className="page-products__results" id="products-results">
           <Box className="page-products__results-head">

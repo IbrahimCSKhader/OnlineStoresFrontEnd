@@ -16,6 +16,47 @@
   gap: var(--space-2);
 }
 
+.page-products__filter-toggle {
+  justify-self: start;
+}
+
+.page-products__filter-drawer.MuiDrawer-paper {
+  width: min(360px, 92vw);
+  background: var(--surface-card);
+  color: var(--text-primary);
+}
+
+.page-products__drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.page-products__filter-drawer .page-products__filters {
+  position: static;
+  max-height: none;
+  overflow: visible;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.page-products__filter-drawer .page-products__filter-grid {
+  grid-template-columns: 1fr;
+}
+
+.page-products__drawer-footer {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+  background: var(--surface-card);
+  border-top: 1px solid var(--border-subtle);
+}
+
 .page-products__hero-stats {
   flex-wrap: wrap;
   justify-content: flex-end;

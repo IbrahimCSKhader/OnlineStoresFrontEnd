@@ -1,5 +1,9 @@
 // Storefront copy only. Content authored by merchants is translated by the API.
 export const storefrontTextRows = [
+  ["تعذر إضافة المنتج للسلة. حاول مرة أخرى.", "Could not add the product to your cart. Try again.", "לא ניתן להוסיף את המוצר לעגלה. נסו שוב."],
+  ["البحث والفلاتر", "Search and filters", "חיפוש וסינון"],
+  ["إغلاق الفلاتر", "Close filters", "סגירת המסננים"],
+  ["عرض النتائج", "Show results", "הצגת תוצאות"],
   ["متابعة لتأكيد الطلب", "Continue to confirm order", "המשך לאישור ההזמנה"],
   ["اسم العميل", "Customer name", "שם הלקוח"],
   ["البريد الإلكتروني (اختياري)", "Email (optional)", "דוא״ל (רשות)"],
