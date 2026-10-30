@@ -9,6 +9,7 @@ import useOwnerStorePreview from "../hooks/stores/useOwnerStorePreview.js";
 import { normalizeEntityResponse } from "../utils/collections.js";
 import { getCurrentCustomDomainHost } from "../utils/customDomain.js";
 import useStoreBranding from "../theme/useStoreBranding.js";
+import useStoreInstallManifest from "../hooks/useStoreInstallManifest.js";
 import "./StoreLayout.css";
 
 export default function StoreLayout() {
@@ -24,6 +25,7 @@ export default function StoreLayout() {
   const store = normalizeEntityResponse(storeQuery.data);
   const effectiveSlug = slug || store?.slug || "";
 
+  useStoreInstallManifest(effectiveSlug);
   useStoreBranding(store);
 
   if (isLanguageLoading) {
