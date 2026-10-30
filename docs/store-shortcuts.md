@@ -21,7 +21,8 @@ the specific historical cause is not established.
 ## Implementation and deployment
 
 Deploy the backend **first**, then this frontend. No migration, build-time store
-list, service worker, hosting rewrite or new dependency is required.
+list, service worker or hosting rewrite is required. The backend uses SkiaSharp
+to produce installation icons with real PNG dimensions.
 
 `GET /api/store-install/{slug}/manifest.webmanifest?url=<encoded full launch URL>`
 looks up the current active store and returns `application/manifest+json` with
@@ -35,10 +36,12 @@ uses anonymous CORS and needs no authentication or cookies.
 it on SPA navigation, and restores any pre-existing platform manifest on exit.
 The manifest URL is durable HTTP(S), not a temporary blob/data URL. Store name
 and logo come from existing store data, with the Mawja icon as fallback. The
-logo must be publicly accessible; for good Android installation results use a
-square raster logo at least 512px across. The manifest does not claim invented
-192/512 dimensions for uploaded images. Browser install eligibility and UI vary
-with browser version and actual logo suitability.
+logo must be publicly accessible. The backend reads local public logo files,
+fits them into real 192×192 and 512×512 PNG icons without cropping, and caches
+the result for five minutes. A wave icon is used if the source is missing or
+unsupported. The original logo also remains in the manifest for browser use.
+This conversion does not fetch arbitrary remote URLs or read private files.
+Browser install eligibility and UI still vary with browser version.
 
 `start_url` is the selected public page, including supported query parameters
 and fragment. `id` is that launch URL too: different stores **and different
@@ -89,10 +92,25 @@ platform manifest restoration and existing store-preview generation.
 They cannot simulate Android's launcher or WebAPK installation.
 
 Local validation: all 217 frontend tests passed (40 files), including the new
-shortcut tests and existing preview tests; all 15 new backend manifest cases
-passed. Targeted frontend ESLint and the production build passed. The production
-build successfully generated previews for 29 active stores. No deployment or
-physical Android test was performed.
+shortcut tests and existing preview tests. The full backend suite passed 93
+tests with two skipped, including the manifest and PNG generation cases.
+Frontend tests used `--maxWorkers=2 --testTimeout=30000` after the default
+five-second timeout was exceeded during concurrent builds. Targeted frontend
+ESLint and the production build passed. The frontend build generated previews
+for 29 active stores.
+
+On 2026-10-30 the backend was deployed through the existing Web Deploy profile.
+The previous deployed assembly's SHA256 matched the pre-change local Release
+assembly, and the assembly and dependency manifest were backed up before the
+update. Only the application assembly/dependency manifest, SkiaSharp assembly
+and Windows x64/x86 native libraries were changed; no server files were deleted,
+and settings, uploaded images and web.config were not part of the upload.
+Live requests confirmed 200 responses, anonymous CORS for `https://mawja.site`,
+`Cache-Control: no-store, no-cache`, the exact selected Products start URL and
+separate identities/scopes for two stores. Both stores' icon endpoints returned
+real 192×192 and 512×512 PNG files. The frontend's live DOM links to the new
+manifest, and the Mawja root still returns its original URL. No physical Android
+installation test was performed.
 
 After deploying, use an Android tablet with internet access:
 
