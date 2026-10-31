@@ -41,3 +41,21 @@ it("does not count previewing and retries saving the same attempt without printi
   expect(print).toHaveBeenCalledOnce();
   await waitFor(() => expect(button).not.toBeDisabled());
 });
+
+it("refreshes image preview without counting a print attempt", () => {
+  const onPrint = vi.fn();
+  render(<OrderInvoiceDialog autoOpen data={{ items: [{ productName: "Juice", productImageUrl: "/juice.jpg", quantity: 1, unitPrice: 5 }] }} store={{}} owner={{}} onPrint={onPrint} />);
+  const frame = screen.getByTitle("فاتورة الطلب");
+  const option = screen.getByRole("checkbox", { name: "طباعة صور المنتجات" });
+  const button = screen.getAllByRole("button", { name: "طباعة الفاتورة" }).find(b => b.closest('[role="dialog"]'));
+  expect(option).not.toBeChecked();
+  fireEvent.load(frame);
+  fireEvent.click(option);
+  expect(frame.getAttribute("srcdoc")).toContain('class="product-image"');
+  expect(button).toBeDisabled();
+  expect(onPrint).not.toHaveBeenCalled();
+  fireEvent.load(frame);
+  expect(button).not.toBeDisabled();
+  fireEvent.click(option);
+  expect(frame.getAttribute("srcdoc")).not.toContain('class="product-image"');
+});

@@ -35,3 +35,20 @@ describe("merchant invoice", () => {
     expect(html).toContain("Test Customer");
   });
 });
+
+it("adds images only when requested and prefers the variant image", () => {
+  const order = { ...data, items: [{ ...data.items[0], effectiveVariantImageUrl: "/variant.jpg", productImageUrl: "/product.jpg" }] };
+  const parse = options => new DOMParser().parseFromString(build({data: order, ...options}), "text/html");
+  expect(parse({}).querySelectorAll("tbody img")).toHaveLength(0);
+  expect(parse({}).querySelectorAll("thead th")).toHaveLength(5);
+  const doc = parse({showProductImages:true});
+  expect(doc.querySelectorAll("thead th")).toHaveLength(6);
+  expect(doc.querySelector("tbody img").getAttribute("src")).toContain("/variant.jpg");
+});
+it("keeps missing images aligned and rejects unsafe sources", () => {
+  const order = { ...data, items: [{ ...data.items[0], productImageUrl: "javascript:alert(1)" }] };
+  const doc = new DOMParser().parseFromString(build({data:order, showProductImages:true}), "text/html");
+  expect(doc.querySelectorAll("tbody td")).toHaveLength(6);
+  expect(doc.querySelectorAll("tbody img")).toHaveLength(0);
+  expect(doc.querySelector(".image-placeholder")).toBeTruthy();
+});
