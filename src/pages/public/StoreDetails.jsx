@@ -2,16 +2,12 @@ import useOffers from "../../hooks/offers/useOffers.js";
 import StoreOffers from "../../components/offers/StoreOffers.jsx";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
-import Accordion from "@mui/material/Accordion";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import Inventory2RoundedIcon from "@mui/icons-material/Inventory2Rounded";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
@@ -20,8 +16,9 @@ import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
-import ProductGrid, { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
-import ProductPagination from "../../components/product/ProductPagination.jsx";
+import { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
+import CategoryProductSections from "../../components/product/CategoryProductSections.jsx";
+import { groupProductsByCategory } from "../../utils/categoryProductGroups.js";
 import ProductCarousel from "../../components/product/ProductCarousel.jsx";
 import useHighlightProducts from "../../hooks/products/useHighlightProducts.js";
 import storeApi from "../../API/store.api.js";
@@ -58,48 +55,6 @@ function buildStoreDescription(store, t) {
   );
 }
 
-function buildCategoryProductGroups(products, categories, t) {
-  const groups = categories.map((category) => ({
-    ...category,
-    groupId: String(category.id),
-    products: [],
-    count: 0,
-    isVirtual: false,
-  }));
-  const groupsById = new Map(
-    groups.map((group) => [String(group.id), group]),
-  );
-  const uncategorizedProducts = [];
-
-  products.forEach((product) => {
-    const matchingGroup = groupsById.get(String(product?.categoryId || ""));
-
-    if (matchingGroup) {
-      matchingGroup.products.push(product);
-      matchingGroup.count += 1;
-      return;
-    }
-
-    uncategorizedProducts.push(product);
-  });
-
-  const nonEmptyGroups = groups.filter((group) => group.products.length > 0);
-
-  if (uncategorizedProducts.length) {
-    nonEmptyGroups.push({
-      id: "uncategorized",
-      groupId: "uncategorized",
-      name: t("منتجات أخرى"),
-      description: t("منتجات غير مرتبطة بفئة محددة."),
-      products: uncategorizedProducts,
-      count: uncategorizedProducts.length,
-      isVirtual: true,
-    });
-  }
-
-  return nonEmptyGroups;
-}
-
 function normalizeVisitCount(value) {
   const count = Number(value);
   return Number.isFinite(count) && count > 0 ? count : 0;
@@ -108,9 +63,7 @@ function normalizeVisitCount(value) {
 export default function StoreDetails() {
   const { slug = "" } = useParams();
   const [searchText, setSearchText] = useState("");
-  const [catalogPage, setCatalogPage] = useState(1);
-  const [catalogView, setCatalogView] = useState("grid");
-  const [expandedCategoryIds, setExpandedCategoryIds] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
   const [recordedVisit, setRecordedVisit] = useState({
     storeId: "",
     count: null,
@@ -150,19 +103,11 @@ export default function StoreDetails() {
   );
   const catalogProductsQuery = useStorefrontCatalogProducts(store?.id, {
     enabled: Boolean(store?.id),
-    params: {
-      page: catalogPage,
-      pageSize: CATALOG_PAGE_SIZE,
-      search: deferredSearchText.trim() || undefined,
-    },
     language,
     staleTime: 30000,
   });
   const addToCartMutation = useAddToCart(store?.id);
-  const inventoryProductsQuery = useStorefrontCatalogProducts(store?.id, {
-    enabled: Boolean(store?.id),
-    staleTime: 30000,
-  });
+  const inventoryProductsQuery = catalogProductsQuery;
   const addToCartUi = useTransientBusyState();
 
   const featuredProducts = useMemo(
@@ -176,20 +121,32 @@ export default function StoreDetails() {
     () => normalizeProductList(catalogProductsQuery.data),
     [catalogProductsQuery.data],
   );
-  const filteredProducts = products;
+  const allProductGroups = useMemo(
+    () => groupProductsByCategory(products, categories, t("منتجات أخرى")),
+    [products, categories, t],
+  );
+  const filteredProducts = useMemo(() => products.filter(product => {
+    const keyword = deferredSearchText.trim().toLocaleLowerCase();
+    return (selectedCategoryId === "all" || String(product.categoryId || "uncategorized") === selectedCategoryId) &&
+      (!keyword || [product.name, product.description, product.shortDescription, product.categoryName, product.sku]
+        .some(value => String(value || "").toLocaleLowerCase().includes(keyword)));
+  }), [products, deferredSearchText, selectedCategoryId]);
   const categorySummary = useMemo(
     () => categories.slice(0, 8),
     [categories],
   );
-  const catalogProductGroups = useMemo(
-    () => buildCategoryProductGroups(filteredProducts, categories, t),
+  const filteredGroups = useMemo(
+    () => groupProductsByCategory(filteredProducts, categories, t("منتجات أخرى")),
     [categories, filteredProducts, t],
+  );
+  const featuredGroups = useMemo(
+    () => groupProductsByCategory(featuredProducts, categories, t("منتجات أخرى")),
+    [featuredProducts, categories, t],
   );
   const availableProductsCount = useMemo(
     () => (inventoryProductsQuery.data || []).filter((product) => Number(product.stockQuantity) > 0).length,
     [inventoryProductsQuery.data],
   );
-  const catalogPagination = catalogProductsQuery.pagination;
   const currentStoreId = String(store?.id || "").trim();
   const displayedVisitCount = useMemo(
     () => {
@@ -245,27 +202,8 @@ export default function StoreDetails() {
     });
   };
 
-  const handleCategoryExpansion = (groupId) => (_, isExpanded) => {
-    setExpandedCategoryIds((currentIds) =>
-      isExpanded
-        ? [...new Set([...currentIds, groupId])]
-        : currentIds.filter((currentId) => currentId !== groupId),
-    );
-  };
-
-  const handleCatalogPageChange = (nextPage) => {
-    setCatalogPage(nextPage);
-
-    if (typeof document !== "undefined") {
-      document
-        .getElementById("store-catalog")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
   const handleSearchChange = (value) => {
     setSearchText(value);
-    setCatalogPage(1);
   };
 
   if (storeQuery.isLoading) {
@@ -379,7 +317,7 @@ export default function StoreDetails() {
                 <StorefrontRoundedIcon fontSize="small" />
                 <span className="storefront-metric__label">{t("المنتجات")}</span>
                 <strong className="storefront-metric__value">
-                  {(catalogPagination?.totalCount || products.length).toLocaleString("ar")}
+                  {products.length.toLocaleString("ar")}
                 </strong>
               </Box>
 
@@ -512,14 +450,14 @@ export default function StoreDetails() {
         {featuredProductsQuery.isLoading && !featuredProducts.length ? (
           <ProductGridSkeleton count={5} />
         ) : featuredProducts.length ? (
-          <ProductGrid
-            products={featuredProducts}
+          <CategoryProductSections
+            groups={featuredGroups}
+            scope="store-featured-products"
             storeSlug={resolvedStoreSlug}
             onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
             addingProductId={addToCartUi.activeKey}
             disableCartActions={isOwnerPreview}
             linkSearch={previewSearch}
-            scrollAnchorScope="store-featured-products"
           />
         ) : (
           <EmptyState title={t("لا توجد منتجات مختارة")} />
@@ -538,23 +476,6 @@ export default function StoreDetails() {
           </Box>
 
           <Box className="page-store-details__catalog-toolbar">
-            <Stack
-              direction="row"
-              spacing={1}
-              useFlexGap
-              flexWrap="wrap"
-              className="page-store-details__view-toggle"
-            >
-              <AppButton
-                variant={catalogView === "grid" ? "contained" : "outlined"}
-                onClick={() => setCatalogView("grid")}
-              >{t("عرض شبكي")}</AppButton>
-              <AppButton
-                variant={catalogView === "grouped" ? "contained" : "outlined"}
-                onClick={() => setCatalogView("grouped")}
-              >{t("حسب الفئات")}</AppButton>
-            </Stack>
-
             <Box className="page-store-details__search">
               <SearchInput
                 value={searchText}
@@ -565,110 +486,25 @@ export default function StoreDetails() {
           </Box>
         </Box>
 
+        {allProductGroups.length > 0 && <Box component="nav" aria-label={t("التصنيفات")} className="store-category-nav">
+          <AppButton variant={selectedCategoryId === "all" ? "contained" : "outlined"}
+            aria-pressed={selectedCategoryId === "all"} onClick={() => { setSelectedCategoryId("all"); }}>
+            {t("كل الفئات")}
+          </AppButton>
+          {allProductGroups.map(group => <AppButton key={group.id}
+            variant={selectedCategoryId === group.id ? "contained" : "outlined"}
+            aria-pressed={selectedCategoryId === group.id} onClick={() => { setSelectedCategoryId(group.id); }}>
+            {group.name} ({group.products.length})
+          </AppButton>)}
+        </Box>}
         <Box className="page-store-details__catalog-body">
-          {catalogProductsQuery.isLoading ? (
-            <ProductGridSkeleton
-              count={CATALOG_PAGE_SIZE}
-              className={
-                catalogView === "grouped"
-                  ? "page-store-details__grouped-products-grid"
-                  : ""
-              }
-            />
-          ) : catalogProductsQuery.error ? (
-            <EmptyState
-              title={t("تعذر تحميل المنتجات")}
-              description={t("حاول تحديث الصفحة أو افتح المتجر مرة أخرى.")}
-            />
-          ) : filteredProducts.length ? (
-            catalogView === "grouped" ? (
-              <Box className="page-store-details__category-accordions">
-                {catalogProductGroups.map((group) => {
-                  const groupId = String(group.groupId || group.id);
-
-                  return (
-                    <Accordion
-                      key={groupId}
-                      expanded={expandedCategoryIds.includes(groupId)}
-                      onChange={handleCategoryExpansion(groupId)}
-                      disableGutters
-                      className="page-store-details__category-accordion"
-                    >
-                      <AccordionSummary
-                        expandIcon={<ExpandMoreRoundedIcon />}
-                        aria-controls={`store-category-panel-${groupId}`}
-                        id={`store-category-header-${groupId}`}
-                      >
-                        <Box className="page-store-details__category-accordion-summary">
-                          <Box className="page-store-details__category-accordion-copy">
-                            <Typography variant="h6">{group.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {group.description || t("استعرض منتجات هذه الفئة من هنا.")}
-                            </Typography>
-                          </Box>
-                          <Typography
-                            variant="caption"
-                            className="page-store-details__category-accordion-count"
-                          >
-                            {group.count} {t("منتج")}</Typography>
-                        </Box>
-                      </AccordionSummary>
-
-                      <AccordionDetails>
-                        {!group.isVirtual ? (
-                          <Box className="page-store-details__category-accordion-actions">
-                            <AppButton
-                              component={RouterLink}
-                              to={buildStorePreviewPath(
-                                `/market/${resolvedStoreSlug}/category/${group.id}`,
-                              )}
-                              variant="text"
-                            >{t("فتح صفحة الفئة")}</AppButton>
-                          </Box>
-                        ) : null}
-
-                        <ProductGrid
-                          products={group.products}
-                          storeSlug={resolvedStoreSlug}
-                          onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
-                          addingProductId={addToCartUi.activeKey}
-                          disableCartActions={isOwnerPreview}
-                          linkSearch={previewSearch}
-                          className="page-store-details__grouped-products-grid"
-                          scrollAnchorScope={`store-category-${groupId}`}
-                        />
-                      </AccordionDetails>
-                    </Accordion>
-                  );
-                })}
-                <ProductPagination
-                  pagination={catalogPagination}
-                  onPageChange={handleCatalogPageChange}
-                />
-              </Box>
-            ) : (
-              <>
-                <ProductGrid
-                  products={filteredProducts}
-                  storeSlug={resolvedStoreSlug}
-                  onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
-                  addingProductId={addToCartUi.activeKey}
-                  disableCartActions={isOwnerPreview}
-                  linkSearch={previewSearch}
-                  scrollAnchorScope="store-catalog"
-                />
-                <ProductPagination
-                  pagination={catalogPagination}
-                  onPageChange={handleCatalogPageChange}
-                />
-              </>
-            )
-          ) : (
-            <EmptyState
-              title={t("لا توجد نتائج")}
-              description={t("جرّب كلمة بحث أخرى أو ارجع إلى جميع التصنيفات.")}
-            />
-          )}
+          {catalogProductsQuery.isLoading ? <ProductGridSkeleton count={CATALOG_PAGE_SIZE} />
+            : catalogProductsQuery.error ? <EmptyState title={t("تعذر تحميل المنتجات")} description={t("حاول تحديث الصفحة أو افتح المتجر مرة أخرى.")} />
+            : filteredProducts.length ? <>
+              <CategoryProductSections groups={filteredGroups} scope="store-catalog"
+                storeSlug={resolvedStoreSlug} onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
+                addingProductId={addToCartUi.activeKey} disableCartActions={isOwnerPreview} linkSearch={previewSearch} />
+            </> : <EmptyState title={t("لا توجد نتائج")} description={t("جرّب كلمة بحث أخرى أو ارجع إلى جميع التصنيفات.")} />}
         </Box>
       </Box>
     </Box>
