@@ -381,6 +381,50 @@ html[data-theme-template="pink"] .store-navbar__drawer {
   background: rgba(255, 240, 247, 0.96);
 }
 
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__toolbar {
+  border-color: var(--border-strong);
+  background: var(--nav-background);
+  box-shadow: var(--shadow-soft);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__brand-logo,
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__brand-mark {
+  border-color: var(--border-strong);
+  background: var(--surface-card);
+  color: var(--primary);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__brand-name {
+  color: var(--primary);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__link {
+  color: var(--text-secondary);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__link:hover,
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__link--active {
+  color: var(--primary);
+  background: var(--interactive-hover);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__profile-trigger,
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__icon-button,
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__theme-option {
+  color: var(--primary) !important;
+  background: var(--surface-bright) !important;
+  border-color: var(--border) !important;
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__theme-option--active {
+  color: var(--button-text) !important;
+  background: var(--primary) !important;
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .store-navbar__drawer {
+  background: var(--surface-elevated);
+}
+
 html[data-theme-template="black"] .store-navbar__toolbar {
   border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent);
   background: color-mix(in srgb, var(--surface-bright) 72%, transparent);

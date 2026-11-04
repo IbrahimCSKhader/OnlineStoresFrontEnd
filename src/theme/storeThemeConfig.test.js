@@ -2,8 +2,17 @@ import { describe, expect, it } from "vitest";
 import { resolveStoreThemeConfig } from "./storeThemeConfig.js";
 import { STORE_THEME_TEMPLATES, normalizeStoreThemeTemplate } from "../constants/storeThemeTemplates.js";
 import { buildThemeProfile } from "./themes.js";
+import { relativeLuminance } from "./branding.js";
 
 describe("resolveStoreThemeConfig", () => {
+  it("keeps pink dark button text readable across both ends of its gradient", () => {
+    const { palette } = buildThemeProfile("pink-dark");
+    const text = relativeLuminance(palette.buttonText);
+    for (const background of [palette.primary, palette.primaryContainer]) {
+      const fill = relativeLuminance(background);
+      expect((Math.max(text, fill) + 0.05) / (Math.min(text, fill) + 0.05)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
   it("offers ElectroPulse and resolves both API property formats", () => {
     expect(normalizeStoreThemeTemplate(" t ")).toBe("T");
     const template = STORE_THEME_TEMPLATES.find(({ value }) => value === "T");

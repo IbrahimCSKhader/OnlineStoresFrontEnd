@@ -237,6 +237,37 @@ html[data-theme-template="pink"] .page-store-details__hero .storefront-metric {
   border-radius: 22px;
 }
 
+html[data-theme-template="pink"][data-theme-mode="dark"] .page-store-details__hero {
+  --store-hero-text: var(--text-primary);
+  --store-hero-muted: var(--text-secondary);
+  --store-hero-overlay: linear-gradient(
+    to left,
+    rgba(33, 19, 28, 0.94) 0%,
+    rgba(33, 19, 28, 0.9) 48%,
+    rgba(33, 19, 28, 0.82) 100%
+  );
+  --store-hero-panel-bg: var(--surface-card);
+  --store-hero-panel-border: var(--border-strong);
+  --store-hero-logo-bg: var(--surface-card);
+  --store-hero-logo-border: var(--border-strong);
+  box-shadow: var(--shadow-medium);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .page-store-details__hero .storefront-title {
+  color: var(--store-hero-text);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .page-store-details__hero .storefront-metric {
+  color: var(--store-hero-text);
+  border-color: var(--store-hero-panel-border);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .page-store-details__hero .MuiChip-root {
+  color: var(--primary);
+  border-color: var(--border-strong);
+  background: var(--surface-bright);
+}
+
 html[data-theme-template="pink"] .page-store-details__categories-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

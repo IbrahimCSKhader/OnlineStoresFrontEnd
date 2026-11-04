@@ -537,6 +537,22 @@ html[data-theme-template="pink"] .app-button--ghost.MuiButton-root {
   background: rgba(255, 255, 255, 0.72);
 }
 
+html[data-theme-template="pink"][data-theme-mode="dark"] {
+  --card-theme-border: 1px solid var(--border-strong);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .app-button--secondary.MuiButton-root,
+html[data-theme-template="pink"][data-theme-mode="dark"] .app-button--ghost.MuiButton-root {
+  color: var(--primary);
+  border-color: var(--border-strong);
+  background: var(--surface-bright);
+}
+
+html[data-theme-template="pink"][data-theme-mode="dark"] .app-button--secondary.MuiButton-root:hover,
+html[data-theme-template="pink"][data-theme-mode="dark"] .app-button--ghost.MuiButton-root:hover {
+  background: var(--interactive-hover);
+}
+
 html[data-theme-template="pink"] .app-surface-card:not(.app-surface-card--hero),
 html[data-theme-template="black"] .app-surface-card:not(.app-surface-card--hero),
 html[data-theme-template="green"] .app-surface-card:not(.app-surface-card--hero),

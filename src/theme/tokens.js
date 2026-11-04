@@ -507,6 +507,7 @@ export const themeCatalog = {
     palette: {
       primary: "#FF93C9",
       primaryContainer: "#F05CA8",
+      buttonText: "#21131C",
       secondary: "#3A1E31",
       accent: "#F7B1D5",
       background: "#21131C",
