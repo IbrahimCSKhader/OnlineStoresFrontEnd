@@ -19,6 +19,8 @@ export default function useSuperAdminUpdateStore(options = {}) {
         queryKey: queryKeys.superAdmin.storeCustomers(variables?.storeId),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.stores.all });
+      queryClient.invalidateQueries({ queryKey: ["storefront-language"] });
+      queryClient.removeQueries({ queryKey: ["storefront-language-selection"] });
       queryClient.invalidateQueries({
         queryKey: queryKeys.stores.detail(variables?.storeId),
       });

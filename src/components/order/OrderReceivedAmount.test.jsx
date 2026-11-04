@@ -23,7 +23,7 @@ it("saves the cumulative received amount and refreshes the list and detail", asy
   fireEvent.change(screen.getByLabelText("مبلغ الاستلام"), { target: { value: "80.25" } });
   fireEvent.click(screen.getByRole("button", { name: "حفظ مبلغ الاستلام" }));
   await waitFor(() => expect(orderApi.updateReceivedAmount).toHaveBeenCalledWith("order", { receivedAmount: 80.25 }));
-  await waitFor(() => expect(invalidate).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(invalidate).toHaveBeenCalledTimes(3));
 });
 it("clears the receipt without converting an empty field to zero", async () => {
   show(50);

@@ -22,11 +22,13 @@ export default function OrderReceivedAmount({ order, storeId }) {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.orders.byStore(storeId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.orders.storeDetail(storeId, order.id) }),
+        queryClient.invalidateQueries({ queryKey: ["customerAccounts", storeId] }),
       ]);
     },
   });
   const hasAmount = order.receivedAmount !== null && order.receivedAmount !== undefined;
-  const difference = hasAmount ? Math.round((Number(order.totalAmount) - Number(order.receivedAmount)) * 100) / 100 : null;
+  const charge = [5, 6].includes(Number(order.status)) ? 0 : Number(order.totalAmount);
+  const difference = hasAmount ? Math.round((charge - Number(order.receivedAmount)) * 100) / 100 : null;
   const handleSave = (event) => {
     event.preventDefault();
     const amount = String(value).trim() === "" ? null : Number(value);

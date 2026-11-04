@@ -21,7 +21,9 @@ import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import AppTextField from "../../components/common/inputs/AppTextField.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
-import ProductGrid, { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
+import { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
+import CategoryProductSections from "../../components/product/CategoryProductSections.jsx";
+import { groupProductsByCategory, paginateCategoryGroups } from "../../utils/categoryProductGroups.js";
 import ProductPagination from "../../components/product/ProductPagination.jsx";
 import useAddToCart from "../../hooks/cart/useAddToCart.js";
 import useCategories from "../../hooks/categories/useCategories.js";
@@ -73,23 +75,6 @@ function getPriceBounds(products) {
   }
 
   return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
-}
-
-function buildPagination(items, page, pageSize) {
-  const totalCount = items.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const normalizedPage = Math.min(Math.max(page, 1), totalPages);
-  const start = (normalizedPage - 1) * pageSize;
-
-  return {
-    items: items.slice(start, start + pageSize),
-    page: normalizedPage,
-    pageSize,
-    totalCount,
-    totalPages,
-    hasPreviousPage: normalizedPage > 1,
-    hasNextPage: normalizedPage < totalPages,
-  };
 }
 
 export default function ProductsPage() {
@@ -212,9 +197,17 @@ export default function ProductsPage() {
     sortValue,
   ]);
 
+  const productGroups = useMemo(
+    () => groupProductsByCategory(filteredProducts, categories, t("منتجات أخرى")),
+    [filteredProducts, categories, t],
+  );
   const pagination = useMemo(
-    () => buildPagination(filteredProducts, page, PRODUCTS_PAGE_SIZE),
-    [filteredProducts, page],
+    () => paginateCategoryGroups(productGroups, page, PRODUCTS_PAGE_SIZE),
+    [productGroups, page],
+  );
+  const pageGroups = useMemo(
+    () => groupProductsByCategory(pagination.items, categories, t("منتجات أخرى")),
+    [pagination.items, categories, t],
   );
   const hasActiveFilters =
     keyword ||
@@ -529,15 +522,15 @@ export default function ProductsPage() {
             />
           ) : pagination.items.length ? (
             <>
-              <ProductGrid
-                products={pagination.items}
+              <CategoryProductSections
+                groups={pageGroups}
+                scope="products-results"
                 storeSlug={store.slug}
                 onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
                 addingProductId={addToCartUi.activeKey}
                 disableCartActions={isOwnerPreview}
                 linkSearch={previewSearch}
                 className="page-products__products-grid"
-                scrollAnchorScope="products-results"
               />
               <ProductPagination
                 pagination={pagination}

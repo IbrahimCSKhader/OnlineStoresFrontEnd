@@ -37,6 +37,7 @@ import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import OwnerLanguageMenu from "./OwnerLanguageMenu.jsx";
+import StorefrontLanguageMenu from "./StorefrontLanguageMenu.jsx";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
@@ -900,6 +901,7 @@ export default function Navbar() {
 
         <Box className="store-navbar__actions">
           <OwnerLanguageMenu />
+          <StorefrontLanguageMenu />
           {!shouldHideThemeToggle ? (
             <ThemeToggleButton
               variant={variant}

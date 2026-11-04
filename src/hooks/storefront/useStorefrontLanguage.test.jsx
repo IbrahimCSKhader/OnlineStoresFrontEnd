@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -28,6 +28,21 @@ beforeEach(() => {
 });
 
 describe("storefront language", () => {
+  it("starts with the registered language and shares a visitor selection only within this store", async () => {
+    storeApi.getStoreBySlug.mockResolvedValue({ id: "store", language: "I", defaultLanguage: "I", enableLanguageSwitching: true });
+    const wrapper = wrapperFor("/market/shomanhome");
+    const first = renderHook(useStorefrontLanguage, { wrapper });
+    const second = renderHook(useStorefrontLanguage, { wrapper });
+    await waitFor(() => expect(first.result.current.canSwitchLanguage).toBe(true));
+    expect(first.result.current.language).toBe("I");
+    act(() => first.result.current.setLanguage("E"));
+    await waitFor(() => expect(second.result.current.language).toBe("E"));
+    expect(second.result.current.dir).toBe("ltr");
+    const other = renderHook(useStorefrontLanguage, { wrapper: wrapperFor("/market/another") });
+    await waitFor(() => expect(other.result.current.canSwitchLanguage).toBe(true));
+    expect(other.result.current.language).toBe("I");
+  });
+
   it("uses a Hebrew store default without a URL language and ignores the old global preference", async () => {
     window.localStorage.setItem("mawja.storefront.language", "A");
     const { result } = renderHook(useStorefrontLanguage, { wrapper: wrapperFor("/market/shomanhome") });

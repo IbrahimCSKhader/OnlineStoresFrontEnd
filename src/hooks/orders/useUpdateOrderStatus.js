@@ -16,6 +16,7 @@ export default function useUpdateOrderStatus(storeId, options = {}) {
       const orderItems = Array.isArray(data?.items) ? data.items : [];
 
       if (resolvedStoreId) {
+        queryClient.invalidateQueries({ queryKey: ["customerAccounts", resolvedStoreId] });
         queryClient.invalidateQueries({
           queryKey: queryKeys.orders.byStore(resolvedStoreId),
         });

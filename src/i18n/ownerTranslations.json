@@ -1,4 +1,24 @@
 {
+  "تحويل اللغة": {
+    "E": "Language switching",
+    "I": "החלפת שפה"
+  },
+  "تفعيل تبديل اللغة للزوار": {
+    "E": "Allow visitors to switch language",
+    "I": "אפשר למבקרים להחליף שפה"
+  },
+  "يظهر خيار تبديل اللغة للزوار، وتبدأ الواجهة بلغة تسجيل المتجر.": {
+    "E": "Visitors can switch language. The storefront starts in the store's registered language.",
+    "I": "מבקרים יכולים להחליף שפה. החנות נפתחת בשפת הרישום שלה."
+  },
+  "يختفي خيار تبديل اللغة وتظهر الواجهة بلغة تسجيل المتجر فقط.": {
+    "E": "The language switcher is hidden. The storefront uses only the store's registered language.",
+    "I": "אפשרות החלפת השפה מוסתרת. החנות מוצגת רק בשפת הרישום שלה."
+  },
+  "حفظ إعداد اللغة": {
+    "E": "Save language setting",
+    "I": "שמירת הגדרת השפה"
+  },
   "الإجمالي": {
     "E": "Total",
     "I": "סך הכול"

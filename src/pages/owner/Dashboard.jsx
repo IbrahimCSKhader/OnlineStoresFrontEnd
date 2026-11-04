@@ -1,5 +1,6 @@
 import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
 import OrderReceivedAmount from "../../components/order/OrderReceivedAmount.jsx";
+import { CustomerDirectory } from "../../components/dashboard/CustomerAccounts.jsx";
 import { canUseStoreCoupons } from "../../utils/storeCoupons.js";
 import BundleManager from "../../components/offers/BundleManager.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
@@ -42,6 +43,7 @@ import LoadingState from "../../components/common/loaders/LoadingState.jsx";
 import AppDataTable from "../../components/common/tables/AppDataTable.jsx";
 import ContactDeveloperButton from "../../components/common/ContactDeveloperButton.jsx";
 import CheckoutLoginSetting from "../../components/dashboard/CheckoutLoginSetting.jsx";
+import LanguageSwitchingSetting from "../../components/dashboard/LanguageSwitchingSetting.jsx";
 import DeliveryLocationsForm from "../../components/dashboard/DeliveryLocationsForm.jsx";
 import CategoryForm from "../../components/dashboard/CategoryForm.jsx";
 import CouponForm from "../../components/dashboard/CouponForm.jsx";
@@ -1212,7 +1214,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           customerName,
           customerEmail,
           customerPhone,
-          customerId: customer?.id || normalizedOrder.storeCustomerId || "",
+          customerId: normalizedOrder.accountCustomerId || customer?.id || normalizedOrder.storeCustomerId || "",
         };
       }),
     [customersById, ordersRaw],
@@ -2593,6 +2595,10 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           <Alert severity="error">{t(getApiErrorMessage(mutationError))}</Alert>
         ) : null}
 
+        {activeTab === "overview" ? (
+          <LanguageSwitchingSetting key={`${store.id}:${store.enableLanguageSwitching}`} store={store} />
+        ) : null}
+
         {activeTab === "overview" && !store.isCatalog ? (
           <>
             <CheckoutLoginSetting key={`${store.id}:${store.requireCustomerLoginForCheckout}`} store={store} />
@@ -3174,6 +3180,8 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
         ) : null}
 
         {activeTab === "customers" ? (
+          <>
+          <CustomerDirectory storeId={storeId} />
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
               title={t("زبائن المتجر وسعر الجملة")}
@@ -3291,6 +3299,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
             </Box>
 
           </Paper>
+          </>
         ) : null}
 
         {activeTab === "orders" ? (

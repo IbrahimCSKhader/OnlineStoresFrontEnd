@@ -1,5 +1,6 @@
 import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
 import OrderReceivedAmount from "../../components/order/OrderReceivedAmount.jsx";
+import { OrderCustomerAccount } from "../../components/dashboard/CustomerAccounts.jsx";
 import { canUseStoreCoupons } from "../../utils/storeCoupons.js";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import { useMemo, useState } from "react";
@@ -194,10 +195,10 @@ export default function OrderDetailsPage() {
                       : "filled"
                   }
                 />
-                {order.storeCustomerId ? (
+                {order.accountCustomerId || order.storeCustomerId ? (
                   <AppButton
                     component={RouterLink}
-                    to={`/owner/customers/${order.storeCustomerId}`}
+                    to={`/owner/customers/${order.accountCustomerId || order.storeCustomerId}`}
                     variant="outlined"
                     size="small"
                   >{t("ملف العميل")}</AppButton>
@@ -205,6 +206,7 @@ export default function OrderDetailsPage() {
               </Stack>
             </Paper>
 
+            <OrderCustomerAccount storeId={storeId} order={order} />
             <Box className="owner-detail-grid">
               <Paper className="owner-panel owner-detail-card" elevation={0}>
                 <Typography variant="h6">{t("ملخص الطلب")}</Typography>

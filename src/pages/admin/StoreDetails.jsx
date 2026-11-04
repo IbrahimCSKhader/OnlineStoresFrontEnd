@@ -86,6 +86,7 @@ function createStoreFormState(store) {
     themeTemplate: store?.themeTemplate || "D",
     isActive: store?.isActive !== false,
     requireCustomerLoginForCheckout: store?.requireCustomerLoginForCheckout !== false,
+    enableLanguageSwitching: store?.enableLanguageSwitching === true,
     contactAccounts: Array.isArray(store?.contactAccounts)
       ? store.contactAccounts.map((account, index) => createContactAccount(account, index))
       : [],
@@ -152,11 +153,13 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                 themeTemplate: sanitizeNullableString(form.themeTemplate),
                 isActive: Boolean(form.isActive),
                 requireCustomerLoginForCheckout: form.requireCustomerLoginForCheckout,
+                enableLanguageSwitching: form.enableLanguageSwitching,
                 contactAccounts: sanitizeContactAccounts(contactAccounts),
               });
             }}
             className="super-admin-modal-grid"
           >
+            <FormControlLabel label="تفعيل تبديل اللغة للزوار" control={<Switch checked={form.enableLanguageSwitching} onChange={(e) => setForm((v) => ({ ...v, enableLanguageSwitching: e.target.checked }))} />} />
             <FormControlLabel label="يشترط تسجيل دخول الزبون لإتمام الطلب" control={<Switch checked={form.requireCustomerLoginForCheckout} onChange={(e) => setForm((v) => ({ ...v, requireCustomerLoginForCheckout: e.target.checked }))} />} />
             <Typography variant="body2" color="text.secondary">عند إيقاف الخيار يستطيع الزائر إدخال بياناته وإرسال الطلب دون حساب.</Typography>
             <AppTextField

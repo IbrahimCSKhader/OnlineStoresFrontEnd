@@ -35,9 +35,13 @@ function fill() {
 
 it("creates a guest order with contact details and opens WhatsApp without login", async () => {
   show(); fill();
+  const email = screen.getByRole("textbox", { name: /البريد الإلكتروني/ });
+  expect(email).toHaveValue("");
+  expect(email).not.toBeRequired();
   fireEvent.click(screen.getByRole("button", { name: "التالي" }));
   fireEvent.click(screen.getByRole("button", { name: "إرسال الطلب عبر واتساب" }));
   await waitFor(() => expect(state.create).toHaveBeenCalledWith(expect.objectContaining({ customerName: "Guest", deliveryPhone: "0591234567", deliveryAddress: "Street", guestItems: [{ productId: "product", quantity: 2 }] })));
+  expect(state.create.mock.calls[0][0].customerEmail).toBeUndefined();
   await waitFor(() => expect(state.replace).toHaveBeenCalled());
   const message = decodeURIComponent(state.replace.mock.calls[0][0]);
   expect(message).toContain("Guest"); expect(message).toContain("0591234567"); expect(message).toContain("غير مسجل");
