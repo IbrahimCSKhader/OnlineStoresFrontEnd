@@ -384,8 +384,7 @@ export default function StoreDetails() {
         {categoriesQuery.isLoading && !categorySummary.length ? (
           <EmptyState title={t("جاري تحميل التصنيفات...")} />
         ) : categorySummary.length ? (
-          <Box className="storefront-cards-grid page-store-details__categories-grid">
-
+          <Box className="page-store-details__categories-grid">
             {categorySummary.map((category) => {
               const configuredCategoryImage = resolveAssetUrl(category.imageUrl);
               const categoryProductImage = resolveAssetUrl(
