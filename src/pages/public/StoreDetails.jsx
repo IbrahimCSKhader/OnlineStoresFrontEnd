@@ -42,10 +42,12 @@ import {
   isProductActive,
   normalizeProductList,
 } from "../../utils/products.js";
+import useCatalogViewState from "../../hooks/storefront/useCatalogViewState.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./StoreDetails.css";
 
 const CATALOG_PAGE_SIZE = 12;
+const initialView = { searchText: "", selectedCategoryId: "all" };
 
 function buildStoreDescription(store, t) {
   return (
@@ -62,8 +64,7 @@ function normalizeVisitCount(value) {
 
 export default function StoreDetails() {
   const { slug = "" } = useParams();
-  const [searchText, setSearchText] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
+  const [{ searchText, selectedCategoryId }, updateView] = useCatalogViewState(initialView);
   const [recordedVisit, setRecordedVisit] = useState({
     storeId: "",
     count: null,
@@ -203,7 +204,7 @@ export default function StoreDetails() {
   };
 
   const handleSearchChange = (value) => {
-    setSearchText(value);
+    updateView({ searchText: value });
   };
 
   if (storeQuery.isLoading) {
@@ -487,12 +488,12 @@ export default function StoreDetails() {
 
         {allProductGroups.length > 0 && <Box component="nav" aria-label={t("التصنيفات")} className="store-category-nav">
           <AppButton variant={selectedCategoryId === "all" ? "contained" : "outlined"}
-            aria-pressed={selectedCategoryId === "all"} onClick={() => { setSelectedCategoryId("all"); }}>
+            aria-pressed={selectedCategoryId === "all"} onClick={() => updateView({ selectedCategoryId: "all" })}>
             {t("كل الفئات")}
           </AppButton>
           {allProductGroups.map(group => <AppButton key={group.id}
             variant={selectedCategoryId === group.id ? "contained" : "outlined"}
-            aria-pressed={selectedCategoryId === group.id} onClick={() => { setSelectedCategoryId(group.id); }}>
+            aria-pressed={selectedCategoryId === group.id} onClick={() => updateView({ selectedCategoryId: group.id })}>
             {group.name} ({group.products.length})
           </AppButton>)}
         </Box>}

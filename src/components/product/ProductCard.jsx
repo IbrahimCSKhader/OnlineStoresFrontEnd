@@ -27,7 +27,7 @@ import {
 } from "../../utils/products.js";
 import {
   buildProductScrollAnchorId,
-  buildScrollRestoreKey,
+  getCatalogEntryKey,
   captureElementScrollSnapshot,
 } from "../../utils/scrollRestoration.js";
 import { buildStorefrontPath } from "../../utils/customDomain.js";
@@ -40,8 +40,7 @@ function ProductCard({
   adding,
   disableCartActions = false,
   linkSearch = "",
-  scrollAnchorScope = "products",
-  scrollAnchorIndex = 0,
+  anchorId,
 }) {
   const { t } = useStorefrontLanguage();
   const location = useLocation();
@@ -65,29 +64,17 @@ function ProductCard({
     resolvedStoreSlug && normalizedProduct.id
       ? buildStorefrontPath(resolvedStoreSlug, `/product/${normalizedProduct.id}`)
       : "";
-  const currentSearch = location.search || "";
-  const returnSearch = currentSearch || linkSearch || "";
-  const detailSearch = linkSearch || currentSearch;
-  const scrollRestoreKey = buildScrollRestoreKey(
-    location.pathname,
-    returnSearch,
-  );
-  const scrollAnchorId = buildProductScrollAnchorId({
-    scope: scrollAnchorScope,
-    productId:
-      normalizedProduct.id || normalizedProduct.slug || normalizedProduct.name,
-    index: scrollAnchorIndex,
+  const returnSearch = location.search || linkSearch;
+  const detailSearch = linkSearch || location.search;
+  const scrollRestoreKey = getCatalogEntryKey(location);
+  const scrollAnchorId = anchorId || buildProductScrollAnchorId({
+    productId: normalizedProduct.id || normalizedProduct.slug || normalizedProduct.name,
   });
-  const detailTarget = detailPath
-    ? {
-        pathname: detailPath,
-        search: detailSearch,
-        state: {
-          returnTo: `${location.pathname}${returnSearch}`,
-          scrollRestoreKey,
-        },
-      }
-    : undefined;
+  const detailTarget = detailPath ? { pathname: detailPath, search: detailSearch } : undefined;
+  const detailState = detailPath ? {
+    returnTo: `${location.pathname}${returnSearch}`,
+    scrollRestoreKey,
+  } : undefined;
   const categoryLabel =
     normalizedProduct.categoryName || normalizedProduct.sectionName || "";
   const stockQuantity = displayVariant
@@ -129,8 +116,9 @@ function ProductCard({
         ? t("عرض")
         : "";
 
-  const handleNavigateToDetails = () => {
-    if (typeof document === "undefined" || !detailTarget) {
+  const handleNavigateToDetails = (event) => {
+    if (!detailTarget || event.defaultPrevented || event.button !== 0 ||
+        event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
       return;
     }
 
@@ -154,6 +142,7 @@ function ProductCard({
       <Box
         component={detailTarget ? RouterLink : "div"}
         to={detailTarget}
+        state={detailState}
         className="product-card__link"
         onClickCapture={handleNavigateToDetails}
       >
@@ -261,6 +250,7 @@ function ProductCard({
           <AppButton
             component={RouterLink}
             to={detailTarget}
+            state={detailState}
             variant="text"
             endIcon={<OpenInNewRoundedIcon fontSize="small" />}
             className="product-card__detail-button"
@@ -296,7 +286,6 @@ export default memo(ProductCard, (previousProps, nextProps) => (
   previousProps.adding === nextProps.adding &&
   previousProps.disableCartActions === nextProps.disableCartActions &&
   previousProps.linkSearch === nextProps.linkSearch &&
-  previousProps.scrollAnchorScope === nextProps.scrollAnchorScope &&
-  previousProps.scrollAnchorIndex === nextProps.scrollAnchorIndex
+  previousProps.anchorId === nextProps.anchorId
 ));
 

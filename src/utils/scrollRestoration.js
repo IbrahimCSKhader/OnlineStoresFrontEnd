@@ -1,8 +1,11 @@
+import { matchPath } from "react-router-dom";
+import { isCustomDomainStorefront } from "./customDomain.js";
 import { getStorageJson, setStorageJson, storageKeys } from "./storage.js";
 
 const MAX_SCROLL_ENTRIES = 40;
 const ANCHOR_PRESERVE_WINDOW_MS = 1500;
 const RESTORE_TOLERANCE_PX = 4;
+const RESTORE_TIMEOUT_MS = 2600;
 
 function isBrowser() {
   return typeof window !== "undefined" && typeof document !== "undefined";
@@ -14,6 +17,8 @@ function toNumber(value, fallback = 0) {
 }
 
 function toNullableNumber(value) {
+  if (value == null) return null;
+
   const normalizedValue = Number(value);
   return Number.isFinite(normalizedValue) ? normalizedValue : null;
 }
@@ -86,7 +91,7 @@ function scrollWindowTo(top, left = 0) {
   window.scrollTo({
     top: targetTop,
     left: toNumber(left, 0),
-    behavior: "auto",
+    behavior: "instant",
   });
 
   return targetTop;
@@ -98,31 +103,6 @@ function resolveRestoreElement(elementId) {
   }
 
   return document.getElementById(elementId);
-}
-
-function attemptAnchorRestore(element, desiredOffsetTop, left) {
-  const elementRect = element.getBoundingClientRect();
-  const absoluteElementTop = window.scrollY + elementRect.top;
-  const targetTop = scrollWindowTo(absoluteElementTop - desiredOffsetTop, left);
-  const currentOffsetTop = element.getBoundingClientRect().top;
-
-  return {
-    stable: Math.abs(currentOffsetTop - desiredOffsetTop) <= RESTORE_TOLERANCE_PX,
-    targetTop,
-  };
-}
-
-function attemptPositionRestore(snapshot) {
-  const targetTop = scrollWindowTo(snapshot.top, snapshot.left);
-  const canReachSavedPosition =
-    getMaxScrollableTop() + RESTORE_TOLERANCE_PX >= toNumber(snapshot.top, 0);
-
-  return {
-    stable:
-      canReachSavedPosition &&
-      Math.abs(window.scrollY - targetTop) <= RESTORE_TOLERANCE_PX,
-    targetTop,
-  };
 }
 
 function getScrollPositions() {
@@ -151,8 +131,25 @@ function pruneScrollPositions(positions) {
   );
 }
 
-export function buildScrollRestoreKey(pathname = "", search = "") {
-  return `${String(pathname || "")}${String(search || "")}` || "/";
+export function isProductCatalogRoute(pathname = "") {
+  return Boolean(
+    matchPath("/market/:slug", pathname) ||
+      matchPath("/market/:slug/products", pathname) ||
+      matchPath("/market/:slug/category/:categoryId", pathname) ||
+      (isCustomDomainStorefront() &&
+        (pathname === "/" || pathname === "/products" || matchPath("/category/:categoryId", pathname))),
+  );
+}
+
+export function getCatalogEntryKey({ pathname, search, key }) {
+  return `${pathname}${search}#${key}`;
+}
+
+export function getCatalogRestoreKey(location) {
+  const { restoreScroll, scrollRestoreKey } = location.state ?? {};
+  return restoreScroll && typeof scrollRestoreKey === "string" && scrollRestoreKey
+    ? scrollRestoreKey
+    : getCatalogEntryKey(location);
 }
 
 export function sanitizeScrollAnchorSegment(value, fallback = "item") {
@@ -187,18 +184,22 @@ export function saveCurrentScrollPosition(key, snapshot = {}) {
   const positions = getScrollPositions();
   const now = Date.now();
   const existingSnapshot = normalizeScrollSnapshot(positions[key]);
-  const nextSnapshotBase = shouldPreserveRestoreTarget(existingSnapshot, now)
-    ? { ...existingSnapshot }
-    : removeRestoreTarget(existingSnapshot);
   const hasIncomingRestoreTarget = Boolean(
     toStringValue(snapshot.anchorId) || toStringValue(snapshot.sectionId),
   );
+  const left = toNumber(snapshot.left, window.scrollX);
+  const top = toNumber(snapshot.top, window.scrollY);
+  // Keep the exact click snapshot when the route saves its last scroll event.
+  if (!hasIncomingRestoreTarget && shouldPreserveRestoreTarget(existingSnapshot, now)) {
+    return existingSnapshot;
+  }
+
   const nextPositions = pruneScrollPositions({
     ...positions,
     [key]: {
-      ...nextSnapshotBase,
-      left: toNumber(snapshot.left, Number(window.scrollX ?? 0) || 0),
-      top: toNumber(snapshot.top, Number(window.scrollY ?? 0) || 0),
+      ...removeRestoreTarget(existingSnapshot),
+      left,
+      top,
       updatedAt: now,
       ...(hasIncomingRestoreTarget
         ? {
@@ -251,122 +252,52 @@ export function getSavedScrollPosition(key) {
   return normalizeScrollSnapshot(getScrollPositions()[key]);
 }
 
-export function hasSavedScrollPosition(key) {
-  return Boolean(getSavedScrollPosition(key));
+function getAnchorTop(element, offset) {
+  return window.scrollY + element.getBoundingClientRect().top - offset;
 }
 
-export function restoreSavedScrollPosition(
-  key,
-  { maxWaitMs = 2600, delayMs = 90, stablePasses = 2 } = {},
-) {
-  if (!isBrowser() || !key) {
-    return false;
-  }
+export function restoreSavedScrollPosition(snapshot, onComplete) {
+  const root = document.documentElement;
+  const startedAt = performance.now();
+  let frameId;
+  let lastTarget;
 
-  const savedPosition = getSavedScrollPosition(key);
-
-  if (!savedPosition) {
-    return false;
-  }
-
-  let completed = false;
-  let timeoutId = 0;
-  let animationFrameId = 0;
-  let stableRestorePasses = 0;
-  let runScheduled = false;
-  const startedAt = Date.now();
-
-  const cleanup = () => {
-    completed = true;
-    runScheduled = false;
-
-    if (timeoutId) {
-      window.clearTimeout(timeoutId);
-    }
-
-    if (animationFrameId) {
-      window.cancelAnimationFrame(animationFrameId);
-    }
-
-    if (mutationObserver) {
-      mutationObserver.disconnect();
-    }
-
-    window.removeEventListener("load", handleLoad);
+  const cancel = () => {
+    window.cancelAnimationFrame(frameId);
+    delete root.dataset.restoringCatalogScroll;
   };
 
-  const runRestoreAttempt = () => {
-    if (completed) {
-      return;
+  const attempt = () => {
+    const { anchorId, anchorViewportOffsetTop, sectionId, sectionViewportOffsetTop, left, top } = snapshot;
+    const card = resolveRestoreElement(anchorId);
+    const shell = anchorId ? resolveRestoreElement(`${anchorId}-shell`) : null;
+    const anchor = card || shell;
+    const timedOut = performance.now() - startedAt >= RESTORE_TIMEOUT_MS;
+    const section = timedOut && !anchor ? resolveRestoreElement(sectionId) : null;
+    let target = top;
+    if (anchor && anchorViewportOffsetTop !== null) {
+      target = getAnchorTop(anchor, anchorViewportOffsetTop);
+    } else if (section && sectionViewportOffsetTop !== null) {
+      target = getAnchorTop(section, sectionViewportOffsetTop);
     }
 
-    const anchorElement = resolveRestoreElement(savedPosition.anchorId);
-    const sectionElement = anchorElement
-      ? null
-      : resolveRestoreElement(savedPosition.sectionId);
-    const restoreResult =
-      anchorElement && savedPosition.anchorViewportOffsetTop !== null
-        ? attemptAnchorRestore(
-            anchorElement,
-            savedPosition.anchorViewportOffsetTop,
-            savedPosition.left,
-          )
-        : sectionElement && savedPosition.sectionViewportOffsetTop !== null
-          ? attemptAnchorRestore(
-              sectionElement,
-              savedPosition.sectionViewportOffsetTop,
-              savedPosition.left,
-            )
-          : attemptPositionRestore(savedPosition);
+    const targetTop = scrollWindowTo(target, left);
+    // A shell can bring the lazy card into view, but only reveal the loaded card.
+    const ready = anchorId ? Boolean(card) : targetTop + RESTORE_TOLERANCE_PX >= top;
+    const stable = ready && lastTarget !== undefined &&
+      Math.abs(lastTarget - targetTop) <= RESTORE_TOLERANCE_PX &&
+      Math.abs(window.scrollY - targetTop) <= RESTORE_TOLERANCE_PX;
 
-    stableRestorePasses = restoreResult.stable ? stableRestorePasses + 1 : 0;
-
-    if (
-      stableRestorePasses >= Math.max(toNumber(stablePasses, 2), 1) ||
-      Date.now() - startedAt >= Math.max(toNumber(maxWaitMs, 2600), delayMs)
-    ) {
-      cleanup();
-      return;
+    if (timedOut || stable) {
+      cancel();
+      onComplete();
+    } else {
+      lastTarget = ready ? targetTop : undefined;
+      frameId = window.requestAnimationFrame(attempt);
     }
-
-    scheduleRestoreAttempt(delayMs);
   };
 
-  const scheduleRestoreAttempt = (nextDelayMs = delayMs) => {
-    if (completed || runScheduled) {
-      return;
-    }
-
-    runScheduled = true;
-    timeoutId = window.setTimeout(() => {
-      animationFrameId = window.requestAnimationFrame(() => {
-        runScheduled = false;
-        runRestoreAttempt();
-      });
-    }, Math.max(toNumber(nextDelayMs, delayMs), 0));
-  };
-
-  const handleLoad = () => {
-    stableRestorePasses = 0;
-    scheduleRestoreAttempt(16);
-  };
-
-  const mutationObserver =
-    typeof MutationObserver === "undefined"
-      ? null
-      : new MutationObserver(() => {
-          stableRestorePasses = 0;
-          scheduleRestoreAttempt(40);
-        });
-
-  if (mutationObserver && document.body) {
-    mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-  }
-
-  window.addEventListener("load", handleLoad, { once: true });
-  runRestoreAttempt();
-  return true;
+  root.dataset.restoringCatalogScroll = "";
+  attempt();
+  return cancel;
 }

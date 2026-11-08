@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import Skeleton from "@mui/material/Skeleton";
 import ProductCard from "./ProductCard.jsx";
+import { buildProductScrollAnchorId } from "../../utils/scrollRestoration.js";
 
-function LazyProductCard({ children }) {
+function LazyProductCard({ anchorId, children }) {
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(
     () => typeof IntersectionObserver === "undefined",
@@ -32,7 +33,7 @@ function LazyProductCard({ children }) {
   }, [isVisible]);
 
   return (
-    <Box ref={ref} className="product-card-lazy-shell">
+    <Box ref={ref} id={`${anchorId}-shell`} className="product-card-lazy-shell">
       {isVisible ? children : <Box className="product-card-placeholder" />}
     </Box>
   );
@@ -54,20 +55,26 @@ export default function ProductGrid({
         .filter(Boolean)
         .join(" ")}
     >
-      {products.map((product, index) => (
-        <LazyProductCard key={product.id ?? `${product.name}-${product.slug}`}>
-          <ProductCard
-            product={product}
-            storeSlug={storeSlug}
-            onAddToCart={onAddToCart}
-            adding={addingProductId === product.id}
-            disableCartActions={disableCartActions}
-            linkSearch={linkSearch}
-            scrollAnchorScope={scrollAnchorScope}
-            scrollAnchorIndex={index}
-          />
-        </LazyProductCard>
-      ))}
+      {products.map((product, index) => {
+        const anchorId = buildProductScrollAnchorId({
+          scope: scrollAnchorScope,
+          productId: product.id || product.slug || product.name,
+          index,
+        });
+        return (
+          <LazyProductCard key={product.id ?? `${product.name}-${product.slug}`} anchorId={anchorId}>
+            <ProductCard
+              product={product}
+              storeSlug={storeSlug}
+              onAddToCart={onAddToCart}
+              adding={addingProductId === product.id}
+              disableCartActions={disableCartActions}
+              linkSearch={linkSearch}
+              anchorId={anchorId}
+            />
+          </LazyProductCard>
+        );
+      })}
     </Box>
   );
 }

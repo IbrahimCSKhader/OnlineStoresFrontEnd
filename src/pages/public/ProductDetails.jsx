@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Link as RouterLink,
-  matchPath,
   useLocation,
   useParams,
 } from "react-router-dom";
@@ -51,6 +50,7 @@ import {
   normalizeProductList,
 } from "../../utils/products.js";
 import { buildStorefrontPath } from "../../utils/customDomain.js";
+import { isProductCatalogRoute } from "../../utils/scrollRestoration.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./ProductDetails.css";
 
@@ -77,24 +77,6 @@ function isPlaceholderDefaultVariant(variant) {
     !hasDirectImage &&
     !hasImages &&
     !hasAttributes
-  );
-}
-
-function getPathnameFromReturnTo(returnTo = "") {
-  if (!returnTo) {
-    return "";
-  }
-
-  const [pathname] = String(returnTo).split("?");
-  return pathname || "";
-}
-
-function isCatalogReturnTarget(returnTo = "") {
-  const pathname = getPathnameFromReturnTo(returnTo);
-
-  return Boolean(
-    matchPath("/market/:slug", pathname) ||
-      matchPath("/market/:slug/category/:categoryId", pathname),
   );
 }
 
@@ -303,7 +285,7 @@ export default function ProductDetails() {
   }, [product?.id, store?.slug]);
   const requestedReturnTo =
     typeof location.state?.returnTo === "string" ? location.state.returnTo : "";
-  const hasCatalogReturnTarget = isCatalogReturnTarget(requestedReturnTo);
+  const hasCatalogReturnTarget = isProductCatalogRoute(requestedReturnTo.split("?")[0]);
   const resolvedStoreSlug = store?.slug || slug || "";
   const backTarget = hasCatalogReturnTarget
     ? requestedReturnTo

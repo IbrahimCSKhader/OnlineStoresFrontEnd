@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useMemo } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import Box from "@mui/material/Box";
 import FormControlLabel from "@mui/material/FormControlLabel";
@@ -29,22 +29,28 @@ import {
   getProductDisplayVariant,
   normalizeProductList,
 } from "../../utils/products.js";
+import useCatalogViewState from "../../hooks/storefront/useCatalogViewState.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./CategoryPage.css";
 
 const CATEGORY_PAGE_SIZE = 12;
+
+const initialView = {
+  searchText: "",
+  page: 1,
+  sortValue: "newest",
+  onlyInStock: false,
+  priceInputs: { min: "", max: "" },
+};
 
 export default function CategoryPage() {
   const { slug, categoryId } = useParams();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
   const { t, language } = useStorefrontLanguage();
-  const [searchText, setSearchText] = useState("");
+  const [{ searchText, page, sortValue, onlyInStock, priceInputs }, updateView] =
+    useCatalogViewState(initialView);
   const deferredSearchText = useDeferredValue(searchText);
-  const [page, setPage] = useState(1);
-  const [sortValue, setSortValue] = useState("newest");
-  const [onlyInStock, setOnlyInStock] = useState(false);
-  const [priceInputs, setPriceInputs] = useState({ min: "", max: "" });
   const keyword = deferredSearchText.toLowerCase().trim();
 
   const storeQuery = useStoreBySlug(slug, { language });
@@ -134,7 +140,7 @@ export default function CategoryPage() {
   };
 
   const handlePageChange = (nextPage) => {
-    setPage(nextPage);
+    updateView({ page: nextPage });
 
     if (typeof document !== "undefined") {
       document
@@ -144,26 +150,19 @@ export default function CategoryPage() {
   };
 
   const handleSearchChange = (value) => {
-    setSearchText(value);
-    setPage(1);
+    updateView({ searchText: value, page: 1 });
   };
 
   const handleSortChange = (event) => {
-    setSortValue(event.target.value);
-    setPage(1);
+    updateView({ sortValue: event.target.value, page: 1 });
   };
 
   const handlePriceInputChange = (key) => (event) => {
-    setPriceInputs((previous) => ({
-      ...previous,
-      [key]: event.target.value,
-    }));
-    setPage(1);
+    updateView({ priceInputs: { ...priceInputs, [key]: event.target.value }, page: 1 });
   };
 
   const handleOnlyInStockChange = (event) => {
-    setOnlyInStock(event.target.checked);
-    setPage(1);
+    updateView({ onlyInStock: event.target.checked, page: 1 });
   };
 
   return (
@@ -254,7 +253,7 @@ export default function CategoryPage() {
                     to={buildStorePreviewPath(
                       `/market/${store.slug}/category/${category.id}`,
                     )}
-                    onClick={() => setPage(1)}
+                    onClick={() => updateView({ page: 1 })}
                     variant={String(category.id) === String(categoryId) ? "contained" : "outlined"}
                     className="page-category__category-button"
                   >

@@ -46,10 +46,22 @@ import {
   normalizeProductList,
 } from "../../utils/products.js";
 import { formatCurrency } from "../../utils/formatCurrency.js";
+import useCatalogViewState from "../../hooks/storefront/useCatalogViewState.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./ProductsPage.css";
 
 const PRODUCTS_PAGE_SIZE = 16;
+const initialView = {
+  searchText: "",
+  selectedCategoryId: "all",
+  selectedSectionId: "all",
+  sortValue: "newest",
+  onlyInStock: false,
+  onlyFeatured: false,
+  onlyDiscounted: false,
+  priceRange: null,
+  page: 1,
+};
 
 function normalizeText(value) {
   return String(value || "").trim().toLowerCase();
@@ -84,16 +96,10 @@ export default function ProductsPage() {
   const { t, language, dir } = useStorefrontLanguage();
   const compactFilters = useMediaQuery("(max-width: 1199px)");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [view, updateView] = useCatalogViewState(initialView);
+  const { searchText, selectedCategoryId, selectedSectionId, sortValue, onlyInStock,
+    onlyFeatured, onlyDiscounted, priceRange, page } = view;
   const deferredSearchText = useDeferredValue(searchText);
-  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
-  const [selectedSectionId, setSelectedSectionId] = useState("all");
-  const [sortValue, setSortValue] = useState("newest");
-  const [onlyInStock, setOnlyInStock] = useState(false);
-  const [onlyFeatured, setOnlyFeatured] = useState(false);
-  const [onlyDiscounted, setOnlyDiscounted] = useState(false);
-  const [priceRange, setPriceRange] = useState(null);
-  const [page, setPage] = useState(1);
 
   const storeQuery = useStoreBySlug(slug, { language });
   const store = useMemo(
@@ -230,18 +236,7 @@ export default function ProductsPage() {
     [categories, categoryCounts],
   );
 
-  const resetPage = () => setPage(1);
-  const resetFilters = () => {
-    setSearchText("");
-    setSelectedCategoryId("all");
-    setSelectedSectionId("all");
-    setSortValue("newest");
-    setOnlyInStock(false);
-    setOnlyFeatured(false);
-    setOnlyDiscounted(false);
-    setPriceRange([minPrice, maxPrice]);
-    setPage(1);
-  };
+  const resetFilters = () => updateView({ ...initialView, priceRange: [minPrice, maxPrice] });
 
   const handleAddToCart = (product, quantity = 1) => {
     if (store?.isCatalog || isOwnerPreview || !store?.id || !product?.id) return false;
@@ -300,8 +295,7 @@ export default function ProductsPage() {
           <SearchInput
             value={searchText}
             onChange={(value) => {
-              setSearchText(value);
-              resetPage();
+              updateView({ searchText: value, page: 1 });
             }}
             placeholder={t("ابحث باسم المنتج أو الوصف")}
           />
@@ -321,8 +315,7 @@ export default function ProductsPage() {
                   { value: maxPrice, label: formatCurrency(maxPrice) },
                 ]}
                 onChange={(_, value) => {
-                  setPriceRange(value);
-                  resetPage();
+                  updateView({ priceRange: value, page: 1 });
                 }}
                 disabled={minPrice === maxPrice}
               />
@@ -335,8 +328,7 @@ export default function ProductsPage() {
               label={t("الفئة")}
               value={selectedCategoryId}
               onChange={(event) => {
-                setSelectedCategoryId(event.target.value);
-                resetPage();
+                updateView({ selectedCategoryId: event.target.value, page: 1 });
               }}
               SelectProps={{ native: true }}
             >
@@ -353,8 +345,7 @@ export default function ProductsPage() {
               label={t("القسم")}
               value={selectedSectionId}
               onChange={(event) => {
-                setSelectedSectionId(event.target.value);
-                resetPage();
+                updateView({ selectedSectionId: event.target.value, page: 1 });
               }}
               SelectProps={{ native: true }}
             >
@@ -371,8 +362,7 @@ export default function ProductsPage() {
               label={t("الترتيب")}
               value={sortValue}
               onChange={(event) => {
-                setSortValue(event.target.value);
-                resetPage();
+                updateView({ sortValue: event.target.value, page: 1 });
               }}
               SelectProps={{ native: true }}
             >
@@ -390,8 +380,7 @@ export default function ProductsPage() {
                 <Switch
                   checked={onlyInStock}
                   onChange={(event) => {
-                    setOnlyInStock(event.target.checked);
-                    resetPage();
+                    updateView({ onlyInStock: event.target.checked, page: 1 });
                   }}
                 />
               }
@@ -402,8 +391,7 @@ export default function ProductsPage() {
                 <Switch
                   checked={onlyFeatured}
                   onChange={(event) => {
-                    setOnlyFeatured(event.target.checked);
-                    resetPage();
+                    updateView({ onlyFeatured: event.target.checked, page: 1 });
                   }}
                 />
               }
@@ -414,8 +402,7 @@ export default function ProductsPage() {
                 <Switch
                   checked={onlyDiscounted}
                   onChange={(event) => {
-                    setOnlyDiscounted(event.target.checked);
-                    resetPage();
+                    updateView({ onlyDiscounted: event.target.checked, page: 1 });
                   }}
                 />
               }
@@ -429,23 +416,20 @@ export default function ProductsPage() {
                 icon={<AutoAwesomeRoundedIcon />}
                 label={t("الأكثر تنوعاً: {0}", strongestCategory.name)}
                 onClick={() => {
-                  setSelectedCategoryId(String(strongestCategory.id));
-                  resetPage();
+                  updateView({ selectedCategoryId: String(strongestCategory.id), page: 1 });
                 }}
               />
             ) : null}
             <Chip
               label={t("الأقل سعراً")}
               onClick={() => {
-                setSortValue("price-asc");
-                resetPage();
+                updateView({ sortValue: "price-asc", page: 1 });
               }}
             />
             <Chip
               label={t("الأحدث")}
               onClick={() => {
-                setSortValue("newest");
-                resetPage();
+                updateView({ sortValue: "newest", page: 1 });
               }}
             />
           </Box>
@@ -535,7 +519,7 @@ export default function ProductsPage() {
               <ProductPagination
                 pagination={pagination}
                 onPageChange={(nextPage) => {
-                  setPage(nextPage);
+                  updateView({ page: nextPage });
                   document
                     .getElementById("products-results")
                     ?.scrollIntoView({ behavior: "smooth", block: "start" });
