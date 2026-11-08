@@ -35,7 +35,7 @@ function ProfileForm({ storeId, customer, onClose }) {
   </Stack>;
 }
 
-export function CustomerDirectory({ storeId }) {
+export function CustomerDirectory({ storeId, managementBasePath = "/owner" }) {
   const { t } = useOwnerLanguage();
   const [search, setSearch] = useState(""); const [page, setPage] = useState(1); const [create, setCreate] = useState(false);
   const refresh = useRefresh(storeId);
@@ -54,7 +54,7 @@ export function CustomerDirectory({ storeId }) {
       <TextField label={t("بحث بالاسم أو الهاتف")} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
       {query.isLoading ? <Typography>{t("جارٍ التحميل...")}</Typography> : query.data?.items?.length === 0 ? <Typography>{t("لا يوجد عملاء مطابقون")}</Typography> : null}
       {query.data?.items?.map(customer => <Box key={customer.id} className="owner-detail-list-item" sx={{ flexWrap: "wrap", gap: 1 }}>
-        <Box><Typography component={Link} to={`/owner/customers/${customer.id}`}>{customer.firstName} {customer.lastName}</Typography><Typography variant="body2" dir="ltr">{customer.phone || "—"}</Typography></Box>
+        <Box><Typography component={Link} to={`${managementBasePath}/customers/${customer.id}`}>{customer.firstName} {customer.lastName}</Typography><Typography variant="body2" dir="ltr">{customer.phone || "—"}</Typography></Box>
         <Chip size="small" label={t(customer.hasSharedPhone ? "هاتف مشترك" : customer.isGuestProfile ? "عميل دون تسجيل" : "عميل مسجل")} />
       </Box>)}
       <Stack direction="row" spacing={2} alignItems="center"><Button disabled={page <= 1} onClick={() => setPage(page - 1)}>{t("السابق")}</Button><Typography>{page}</Typography><Button disabled={page * 50 >= (query.data?.total || 0)} onClick={() => setPage(page + 1)}>{t("التالي")}</Button></Stack>
@@ -70,7 +70,7 @@ function CustomerPicker({ storeId, value, onChange, exclude }) {
     <TextField select required label={t("العميل")} value={value} onChange={e => onChange(e.target.value)}><MenuItem value="">—</MenuItem>{query.data?.items?.filter(c => c.id !== exclude).map(c => <MenuItem key={c.id} value={c.id}>{c.firstName} {c.lastName} — {c.phone || "—"}</MenuItem>)}</TextField><ErrorMessage error={query.error} /></Stack>;
 }
 
-export function CustomerAccount({ storeId, customerId, orderId }) {
+export function CustomerAccount({ storeId, customerId, orderId, managementBasePath = "/owner" }) {
   const navigate = useNavigate();
   const { t, currency, dateTime } = useOwnerLanguage(); const refresh = useRefresh(storeId);
   const query = useQuery({ queryKey: ["customerAccounts", storeId, customerId], queryFn: () => api.account(storeId, customerId), enabled: !!storeId && !!customerId });
@@ -84,7 +84,7 @@ export function CustomerAccount({ storeId, customerId, orderId }) {
     const rows = Object.entries(allocations).filter(([, value]) => Number(value) > 0).map(([id, value]) => ({ orderId: id, amount: Number(value) }));
     const payload = { requestKey, amount: Number(amount), paymentDate: new Date(`${date}T00:00:00Z`).toISOString(), method, notes, isRefund: dialog === "refund", allocations: rows };
     return dialog === "allocate" ? api.allocate(storeId, customerId, payload) : api.payment(storeId, customerId, payload);
-  }, onSuccess: async () => { if (dialog === "merge") navigate(`/owner/customers/${target}`); await refresh(); setDialog(""); } });
+  }, onSuccess: async () => { if (dialog === "merge") navigate(`${managementBasePath}/customers/${target}`); await refresh(); setDialog(""); } });
   const open = kind => { action.reset(); setClientError(""); setRequestKey(crypto.randomUUID()); setAmount(""); setNotes(""); setReason(""); setTarget(""); setAllocations({}); setDialog(kind); };
   const submit = e => {
     e.preventDefault();
@@ -111,12 +111,12 @@ export function CustomerAccount({ storeId, customerId, orderId }) {
         <Button variant="outlined" onClick={() => open("refund")}>{t("تسجيل استرداد")}</Button>
         <Button onClick={() => open("allocate")}>{t("توزيع الرصيد")}</Button>
         {!orderId && <><Button onClick={() => open("edit")}>{t("تعديل العميل")}</Button><Button onClick={() => open("merge")}>{t("دمج ملف مكرر")}</Button></>}
-        {orderId && <Button component={Link} to={`/owner/customers/${customerId}`}>{t("فتح حساب العميل")}</Button>}
+        {orderId && <Button component={Link} to={`${managementBasePath}/customers/${customerId}`}>{t("فتح حساب العميل")}</Button>}
       </Stack>
     </Paper>
     <Paper className="owner-panel" elevation={0}><Typography variant="h6" sx={{ mb: 2 }}>{t("الطلبات والمدفوعات")}</Typography>
       {orders.map(order => <Box key={order.id} className="owner-detail-list-item" sx={{ flexWrap: "wrap", gap: 2 }}>
-        <Typography component={Link} to={`/owner/orders/${order.id}`}>{order.orderNumber}</Typography><Chip label={t(statusLabels[order.paymentStatus])} size="small" />
+        <Typography component={Link} to={`${managementBasePath}/orders/${order.id}`}>{order.orderNumber}</Typography><Chip label={t(statusLabels[order.paymentStatus])} size="small" />
         <Typography>{t("إجمالي الطلبات")}: {currency(order.charge)} · {t("المدفوع")}: {currency(order.paidAmount)} · {t("المبلغ المتبقي")}: {currency(order.remainingAmount)}{order.credit > 0 ? ` · ${t("رصيد دائن")}: ${currency(order.credit)}` : ""}</Typography>
       </Box>)}
       {!orders.length && <Typography>{t("لا توجد طلبات لهذا العميل")}</Typography>}
@@ -124,7 +124,7 @@ export function CustomerAccount({ storeId, customerId, orderId }) {
     <Paper className="owner-panel" elevation={0}><Typography variant="h6" sx={{ mb: 2 }}>{t("كشف الحساب")}</Typography>
       {statement.map(row => <Box key={row.id} sx={{ py: 2, borderBottom: 1, borderColor: "divider" }}>
         <Stack direction="row" justifyContent="space-between" useFlexGap flexWrap="wrap"><Typography fontWeight={700}>{t(kindLabels[row.kind] || row.kind)} · {currency(row.amount)}</Typography><Typography variant="body2">{dateTime(row.date)}</Typography></Stack>
-        {row.orderId && <Button component={Link} to={`/owner/orders/${row.orderId}`} size="small">{row.orderNumber || t("الطلب")}</Button>}
+        {row.orderId && <Button component={Link} to={`${managementBasePath}/orders/${row.orderId}`} size="small">{row.orderNumber || t("الطلب")}</Button>}
         <Typography variant="body2">{row.method} {row.notes}</Typography>
         <Typography variant="body2">{t("الرصيد بعد الحركة")}: {currency(row.balance)}</Typography>
         {row.allocations?.map(a => <Typography key={a.orderId} variant="caption" display="block">{t("توزيع على الطلب")}: {a.orderNumber} — {currency(a.amount)}</Typography>)}
@@ -154,11 +154,11 @@ export function CustomerAccount({ storeId, customerId, orderId }) {
   </Stack>;
 }
 
-export function OrderCustomerAccount({ storeId, order }) {
+export function OrderCustomerAccount({ storeId, order, managementBasePath = "/owner" }) {
   const { t } = useOwnerLanguage(); const refresh = useRefresh(storeId); const [edit, setEdit] = useState(false); const [target, setTarget] = useState(""); const [reason, setReason] = useState("");
   const reassign = useMutation({ mutationFn: () => api.reassign(storeId, order.id, target, reason), onSuccess: async () => { await refresh(); setEdit(false); } });
   return <Stack spacing={2} sx={{ my: 3 }}>
-    {order.accountCustomerId ? <CustomerAccount key={order.accountCustomerId} storeId={storeId} customerId={order.accountCustomerId} orderId={order.id} /> : <Alert severity="info">{t("اربط الطلبات السابقة من صفحة العملاء لإظهار حساب هذا الطلب.")}</Alert>}
+    {order.accountCustomerId ? <CustomerAccount key={order.accountCustomerId} storeId={storeId} customerId={order.accountCustomerId} orderId={order.id} managementBasePath={managementBasePath} /> : <Alert severity="info">{t("اربط الطلبات السابقة من صفحة العملاء لإظهار حساب هذا الطلب.")}</Alert>}
     <Button onClick={() => setEdit(!edit)}>{t("تصحيح العميل المرتبط بالطلب")}</Button>
     {edit && <Paper className="owner-panel" component="form" onSubmit={e => { e.preventDefault(); reassign.mutate(); }}><Stack spacing={2}>
       <CustomerPicker storeId={storeId} value={target} onChange={setTarget} /><TextField label={t("سبب التصحيح")} required value={reason} onChange={e => setReason(e.target.value)} slotProps={{ htmlInput: { maxLength: 900 } }} /><ErrorMessage error={reassign.error} /><Button type="submit" disabled={reassign.isPending}>{t("حفظ الربط")}</Button>

@@ -21,6 +21,7 @@ import BadgeRoundedIcon from "@mui/icons-material/BadgeRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
+import StoreGoogleAuthButton from "../../components/auth/StoreGoogleAuthButton.jsx";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useStoreCustomerRegister from "../../hooks/auth/useStoreCustomerRegister.js";
@@ -197,6 +198,16 @@ export default function Register() {
                   )}
                 </Alert>
               ) : null}
+
+              <StoreGoogleAuthButton
+                storeId={storeCustomerAuthState.storeId}
+                storeSlug={storeCustomerAuthState.storeSlug}
+                storeName={storeLabel}
+                redirectTo={redirectTo}
+                label={t("التسجيل باستخدام Google")}
+                disabled={registerMutation.isPending}
+              />
+              <Divider />
 
               <Box className="page-register__grid">
                 <TextField

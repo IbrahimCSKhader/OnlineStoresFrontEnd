@@ -890,10 +890,10 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
   );
 }
 
-export default function OwnerDashboard({ initialTab = "overview" }) {
+export default function OwnerDashboard({ initialTab = "overview", managedStore, managementBasePath = "/owner" }) {
   const { t, currency, dateTime, locale } = useOwnerLanguage();
   const navigate = useNavigate();
-  const isCompactScreen = useMediaQuery("(max-width:1080px)");
+  const isCompactScreen = useMediaQuery("(max-width:1080px)") && !managedStore;
   const mobileSidebarDragRef = useRef({
     pointerId: null,
     startY: 0,
@@ -911,7 +911,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const [orderFilters, setOrderFilters] = useState({ ...emptyOrderFilters });
   const deferredSearchText = useDeferredValue(searchText);
   const ownerStoreQuery = useOwnerStore({ refetchOnWindowFocus: false });
-  const store = ownerStoreQuery.ownerStore;
+  const store = managedStore ?? ownerStoreQuery.ownerStore;
   const storeId = store?.id;
   const availableTabs = TAB_CONFIG.filter((tab) =>
     (!store?.isCatalog || !["orders", "coupons", "customers"].includes(tab.key)) &&
@@ -941,7 +941,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   ]);
 
   // Apply store branding (theme, colors, etc.)
-  useStoreBranding(store, { appearanceEnabled: false });
+  useStoreBranding(managedStore ? null : store, { appearanceEnabled: false });
 
   const isOverviewTab = activeTab === "overview";
   const shouldLoadProducts = isOverviewTab || activeTab === "products" || activeTab === "offers";
@@ -1280,7 +1280,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           size="small"
           variant="outlined"
             component={RouterLink}
-            to={`/owner/orders/${row.id}`}
+            to={`${managementBasePath}/orders/${row.id}`}
         >{t("عرض التفاصيل")}</AppButton>
       ),
     },
@@ -1506,7 +1506,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   }, [isCompactScreen]);
 
   if (!isAuthenticated) return <Navigate to="/" replace />;
-  if (!isOwnerRole(role)) {
+  if (managedStore ? !isSuperAdminRole(role) : !isOwnerRole(role)) {
     return <Navigate to={isSuperAdminRole(role) ? "/dashboard" : "/"} replace />;
   }
 
@@ -1614,7 +1614,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   const handleTabNavigate = (key) => {
     const nextTab = availableTabs.find((item) => item.key === key);
     if (!nextTab) return;
-    navigate(nextTab.route);
+    navigate(nextTab.route.replace("/owner", managementBasePath));
   };
 
   const handleSidebarNavigate = (key) => {
@@ -2455,8 +2455,9 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
   ];
   return (
     <DashboardLayout
+      embedded={Boolean(managedStore)}
       sidebar={
-        !isCompactScreen ? (
+        !managedStore && !isCompactScreen ? (
           <DashboardSidebar
             store={store}
             activeTab={activeTab}
@@ -2530,7 +2531,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
           </>
         ) : null}
 
-        <Paper className="owner-topbar" elevation={0}>
+        {!managedStore && <Paper className="owner-topbar" elevation={0}>
           <Stack
             direction={{ xs: "column", md: "row" }}
             alignItems={{ xs: "flex-start", md: "center" }}
@@ -2544,7 +2545,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
               />
             </Stack>
           </Stack>
-        </Paper>
+        </Paper>}
 
         <Paper className="owner-hero" elevation={0}>
           <Box className="owner-hero__copy">
@@ -2575,7 +2576,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                   store.slug
                     ? {
                         pathname: `/market/${store.slug}`,
-                        search: OWNER_PREVIEW_SEARCH,
+                        search: managedStore ? "" : OWNER_PREVIEW_SEARCH,
                       }
                       : "/"
                 }
@@ -3181,7 +3182,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
 
         {activeTab === "customers" ? (
           <>
-          <CustomerDirectory storeId={storeId} />
+          <CustomerDirectory storeId={storeId} managementBasePath={managementBasePath} />
           <Paper className="owner-panel" elevation={0}>
             <SectionHeader
               title={t("زبائن المتجر وسعر الجملة")}
@@ -3348,7 +3349,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           <Typography variant="caption" color="text.secondary">{t("رقم الطلب")}</Typography>
                           <Typography
                             component={RouterLink}
-                            to={"/owner/orders/" + row.id}
+                            to={`${managementBasePath}/orders/${row.id}`}
                             variant="h6"
                             className="owner-order-card__link"
                           >
@@ -3372,7 +3373,7 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                           {customerId ? (
                             <Typography
                               component={RouterLink}
-                              to={"/owner/customers/" + customerId}
+                              to={`${managementBasePath}/customers/${customerId}`}
                               variant="body1"
                               className="owner-order-card__link"
                             >
@@ -3447,17 +3448,17 @@ export default function OwnerDashboard({ initialTab = "overview" }) {
                         </TextField>
 
                         <Stack direction="row" spacing={1} flexWrap="wrap">
-                          <AppButton component={RouterLink} to={`/owner/orders/${row.id}?print=1`} size="small" variant="contained" startIcon={<PrintRoundedIcon />}>{t("طباعة الفاتورة")}</AppButton>
+                          <AppButton component={RouterLink} to={`${managementBasePath}/orders/${row.id}?print=1`} size="small" variant="contained" startIcon={<PrintRoundedIcon />}>{t("طباعة الفاتورة")}</AppButton>
                           <AppButton
                             component={RouterLink}
-                            to={"/owner/orders/" + row.id}
+                            to={`${managementBasePath}/orders/${row.id}`}
                             size="small"
                             variant="outlined"
                           >{t("تفاصيل الطلب")}</AppButton>
                           {customerId ? (
                             <AppButton
                               component={RouterLink}
-                              to={"/owner/customers/" + customerId}
+                              to={`${managementBasePath}/customers/${customerId}`}
                               size="small"
                               variant="text"
                             >{t("معلومات العميل")}</AppButton>

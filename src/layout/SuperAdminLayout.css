@@ -1,164 +1,108 @@
 .super-admin-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  grid-template-columns: 228px minmax(0, 1fr);
   direction: rtl;
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--primary-container) 10%, transparent), transparent 30%),
-    var(--gradient-page);
+  background: var(--gradient-page);
 }
 
 .super-admin-shell__sidebar {
   position: sticky;
   top: 0;
-  height: 100vh;
-  padding: 24px;
-  background: var(--nav-glass);
-  backdrop-filter: blur(var(--nav-blur));
-}
-
-.super-admin-shell__main {
-  min-width: 0;
-  display: grid;
-  grid-template-rows: auto 1fr;
-}
-
-.super-admin-shell__content {
-  min-width: 0;
-  padding: 0 24px 32px;
-}
-
-.super-admin-sidebar {
-  height: 100%;
-  display: grid;
-  align-content: start;
-  gap: 24px;
-}
-
-.super-admin-sidebar__eyebrow {
-  color: var(--text-secondary);
-  letter-spacing: 0.12em;
-}
-
-.super-admin-sidebar__title {
-  font-family: var(--font-heading);
-}
-
-.super-admin-sidebar__nav {
-  display: grid;
-}
-
-.super-admin-sidebar__link {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 14px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  transition:
-    background-color var(--transition-fast),
-    transform var(--transition-fast);
-}
-
-.super-admin-sidebar__link:hover {
-  transform: translateY(-1px);
-  background: var(--surface-low);
-}
-
-.super-admin-sidebar__link--active {
+  height: 100dvh;
+  overflow: auto;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
   background: var(--surface-inverse);
   color: var(--surface-inverse-text);
 }
 
-.super-admin-sidebar__icon {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
+.super-admin-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
   color: inherit;
-  background: color-mix(in srgb, var(--primary-container) 10%, transparent);
 }
 
-.super-admin-sidebar__copy {
-  min-width: 0;
-  display: grid;
-  gap: 2px;
+.super-admin-sidebar__brand img {
+  border-radius: 11px;
+  object-fit: cover;
 }
+
+.super-admin-sidebar__brand span {
+  display: grid;
+  line-height: 1.4;
+}
+
+.super-admin-sidebar__brand strong { font-size: 1.2rem; }
+.super-admin-sidebar__brand small, .super-admin-sidebar__footer { opacity: 0.72; }
+.super-admin-sidebar__nav { display: grid; gap: 5px; }
+
+.super-admin-sidebar__link {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  color: inherit;
+  font-weight: 600;
+}
+
+.super-admin-sidebar__link:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.super-admin-sidebar__link[aria-current] {
+  background: var(--primary-container);
+  color: var(--on-primary-container, var(--surface-inverse));
+}
+
+.super-admin-sidebar__link:focus-visible, .super-admin-sidebar__brand:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.super-admin-sidebar__footer {
+  margin-block-start: auto;
+  padding: 12px 8px 0;
+  font-size: 0.78rem;
+}
+
+.super-admin-shell__main, .super-admin-shell__content { min-width: 0; }
+.super-admin-shell__content { padding: clamp(14px, 2.5vw, 32px); }
+.super-admin-access { min-height: 100dvh; display: grid; place-items: center; padding: 20px; }
 
 .super-admin-topbar {
-  position: sticky;
-  top: 0;
-  z-index: 5;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  padding: 24px;
-  background: color-mix(in srgb, var(--background) 78%, transparent);
-  backdrop-filter: blur(18px);
+  padding: 20px clamp(14px, 2.5vw, 32px);
+  background: var(--surface-elevated);
+  border-block-end: 1px solid var(--border-subtle);
 }
 
-.super-admin-topbar__title {
-  margin-bottom: 4px !important;
-  font-family: var(--font-heading);
-}
-
-.super-admin-topbar__actions {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
+.super-admin-topbar__title { font-family: var(--font-heading); }
+.super-admin-topbar__actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .super-admin-topbar__avatar {
-  background: color-mix(in srgb, var(--primary) 18%, var(--surface-elevated)) !important;
-  color: var(--primary) !important;
+  background: var(--primary-container) !important;
+  color: var(--on-primary-container, var(--surface-inverse)) !important;
   font-weight: 800 !important;
 }
 
-@media (max-width: 1080px) {
-  .super-admin-shell {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .super-admin-shell__sidebar {
-    position: static;
-    height: auto;
-    padding-bottom: 0;
-    border-left: 0;
-  }
-
-  .super-admin-sidebar__nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .super-admin-sidebar__link {
-    grid-template-columns: minmax(0, 1fr);
-    text-align: center;
-  }
-
-  .super-admin-sidebar__icon {
-    margin-inline: auto;
-  }
+@media (max-width: 840px) {
+  .super-admin-shell { grid-template-columns: minmax(0, 1fr); }
+  .super-admin-shell__sidebar { position: static; height: auto; padding: 12px; gap: 12px; }
+  .super-admin-sidebar__nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .super-admin-sidebar__link { justify-content: center; padding-inline: 4px; }
+  .super-admin-sidebar__footer { display: none; }
 }
 
-@media (max-width: 720px) {
-  .super-admin-shell__sidebar,
-  .super-admin-shell__content,
-  .super-admin-topbar {
-    padding-inline: 16px;
-  }
-
-  .super-admin-sidebar__nav {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .super-admin-topbar {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .super-admin-topbar__actions {
-    width: 100%;
-    justify-content: space-between;
-  }
+@media (max-width: 500px) {
+  .super-admin-sidebar__link { flex-direction: column; gap: 4px; font-size: 0.72rem; text-align: center; }
+  .super-admin-topbar__title { font-size: 1.5rem !important; }
+  .super-admin-topbar__actions { width: 100%; }
+  .super-admin-topbar__actions > button { margin-inline-start: auto; }
 }

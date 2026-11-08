@@ -6,12 +6,10 @@ import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import AutoAwesomeRoundedIcon from "@mui/icons-material/AutoAwesomeRounded";
 import ContactsRoundedIcon from "@mui/icons-material/ContactsRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
 import RefreshRoundedIcon from "@mui/icons-material/RefreshRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
-import PersonAddAlt1RoundedIcon from "@mui/icons-material/PersonAddAlt1Rounded";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import useSuperAdminSummary from "../../hooks/superAdmin/useSuperAdminSummary.js";
@@ -45,7 +43,7 @@ function MetricCard({ label, value, help, icon, tone = "cool" }) {
 function SummarySkeleton() {
   return (
     <Box className="super-admin-kpi-grid">
-      {Array.from({ length: 8 }).map((_, index) => (
+      {Array.from({ length: 4 }).map((_, index) => (
         <Paper key={index} className="super-admin-kpi-card" elevation={0}>
           <Stack spacing={1.2}>
             <Skeleton variant="text" width="46%" height={22} />
@@ -89,7 +87,7 @@ export default function Overview() {
     {
       label: "حسابات التواصل",
       value: formatAdminNumber(summary.totalContactAccounts),
-      help: "يتم تخزين اسم المستخدم فقط، والرابط النهائي يُولد عند القراءة.",
+      help: "حسابات التواصل الظاهرة في واجهات المتاجر",
       icon: <ContactsRoundedIcon fontSize="small" />,
       tone: "cool",
     },
@@ -103,10 +101,10 @@ export default function Overview() {
             ملخص المنصة
           </Typography>
           <Typography variant="h5" className="super-admin-page__title">
-            نظرة سريعة على النظام كاملًا
+            ملخص نشاط موجة
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            حدّث الإحصاءات متى شئت، ثم انتقل مباشرة إلى الملاك أو المتاجر لإدارة التفاصيل.
+            إحصاءات المتاجر والحسابات، وروابط لأقسام الإدارة.
           </Typography>
         </Box>
 
@@ -114,8 +112,8 @@ export default function Overview() {
           variant="outlined"
           startIcon={<RefreshRoundedIcon fontSize="small" />}
           onClick={async () => {
-            await summaryQuery.refetch();
-            notify?.({ severity: "success", message: "تم تحديث الملخص بنجاح." });
+            const result = await summaryQuery.refetch();
+            if (result.isSuccess) notify?.({ message: "تم تحديث الملخص." });
           }}
           disabled={summaryQuery.isFetching}
         >
@@ -152,22 +150,13 @@ export default function Overview() {
           <Box className="super-admin-quick-grid">
             <Paper className="super-admin-quick-card" elevation={0}>
               <Stack spacing={1.2}>
-                <Typography variant="h6">مساحة أصحاب المتاجر</Typography>
+                <Typography variant="h6">أصحاب المتاجر</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  راجع كل حسابات StoreOwner، وافتح المتاجر التابعة لهم، وفعّل أو عطّل الحسابات،
-                  وغيّر كلمات المرور عند الحاجة.
+                  أنشئ حسابات الملاك، أدر تفعيلها، وغيّر كلمات المرور.
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   <Button component={RouterLink} to="/dashboard/owners" variant="contained">
                     فتح صفحة الملاك
-                  </Button>
-                  <Button
-                    component={RouterLink}
-                    to="/dashboard/owners"
-                    variant="outlined"
-                    startIcon={<PersonAddAlt1RoundedIcon fontSize="small" />}
-                  >
-                    إنشاء مالك جديد
                   </Button>
                 </Stack>
               </Stack>
@@ -175,24 +164,29 @@ export default function Overview() {
 
             <Paper className="super-admin-quick-card" elevation={0}>
               <Stack spacing={1.2}>
-                <Typography variant="h6">مساحة المتاجر</Typography>
+                <Typography variant="h6">المتاجر وعملياتها</Typography>
                 <Typography variant="body2" color="text.secondary">
-                  استعرض قصة المتجر، والواتساب، وحسابات التواصل، وحالة التفعيل، وعملاء كل متجر
-                  بدون كسر أي عقد موجود في الباك إند.
+                  اختر متجرًا لتعديل إعداداته ومظهره أو إدارة المنتجات والطلبات والعملاء.
                 </Typography>
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                   <Button component={RouterLink} to="/dashboard/stores" variant="contained">
                     فتح صفحة المتاجر
                   </Button>
-                  <Button
-                    component={RouterLink}
-                    to="/dashboard/stores"
-                    variant="outlined"
-                    startIcon={<AutoAwesomeRoundedIcon fontSize="small" />}
-                  >
-                    مراجعة التواصل
-                  </Button>
                 </Stack>
+              </Stack>
+            </Paper>
+            <Paper className="super-admin-quick-card" elevation={0}>
+              <Stack spacing={1.2} alignItems="start">
+                <Typography variant="h6">باقات الاشتراك</Typography>
+                <Typography variant="body2" color="text.secondary">أدر أسعار الباقات والحدود والميزات المتاحة لكل باقة.</Typography>
+                <Button component={RouterLink} to="/dashboard/plans" variant="contained">إدارة الباقات</Button>
+              </Stack>
+            </Paper>
+            <Paper className="super-admin-quick-card" elevation={0}>
+              <Stack spacing={1.2} alignItems="start">
+                <Typography variant="h6">صيانة التخزين</Typography>
+                <Typography variant="body2" color="text.secondary">جهّز مجلدات الصور وافحص المجلدات الفارغة.</Typography>
+                <Button component={RouterLink} to="/dashboard/system" variant="contained">أدوات الصيانة</Button>
               </Stack>
             </Paper>
           </Box>

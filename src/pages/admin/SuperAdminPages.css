@@ -234,6 +234,26 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.super-admin-workspace__nav {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-block: 12px 2px;
+}
+
+.super-admin-workspace__nav a {
+  white-space: nowrap;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.super-admin-workspace__nav a:hover,
+.super-admin-workspace__nav a[aria-current] {
+  background: var(--primary-container);
+  color: var(--on-primary-container, var(--surface-inverse));
+}
+
 .super-admin-contact-row {
   display: grid;
   gap: 12px;

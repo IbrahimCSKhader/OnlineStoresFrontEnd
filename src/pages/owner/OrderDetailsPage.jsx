@@ -110,21 +110,21 @@ function DetailSidebar({ store }) {
   );
 }
 
-export default function OrderDetailsPage() {
+export default function OrderDetailsPage({ managedStore, managementBasePath = "/owner" }) {
   const { t , dateTime, currency} = useOwnerLanguage();
   const { orderId = "" } = useParams();
   const [searchParams] = useSearchParams();
   const { isAuthenticated, role, platformUser } = useAuth();
-  const isOwner = isOwnerRole(role);
+  const canManage = managedStore ? isSuperAdminRole(role) : isOwnerRole(role);
   const ownerStoreQuery = useOwnerStore({
     refetchOnWindowFocus: false,
-    enabled: isAuthenticated && isOwner,
+    enabled: isAuthenticated && !managedStore && canManage,
   });
-  const store = ownerStoreQuery.ownerStore;
+  const store = managedStore ?? ownerStoreQuery.ownerStore;
   const storeId = store?.id;
   const recordPrint = useRecordOrderPrint(storeId);
   const orderQuery = useStoreOrderDetails(storeId, orderId, {
-    enabled: isAuthenticated && isOwner && !store?.isCatalog && Boolean(storeId) && Boolean(orderId),
+    enabled: isAuthenticated && canManage && !store?.isCatalog && Boolean(storeId) && Boolean(orderId),
     staleTime: 30000,
   });
   const order = useMemo(
@@ -133,7 +133,7 @@ export default function OrderDetailsPage() {
   );
 
   if (!isAuthenticated) return <Navigate to="/" replace />;
-  if (!isOwner) {
+  if (!canManage) {
     return <Navigate to={isSuperAdminRole(role) ? "/dashboard" : "/"} replace />;
   }
 
@@ -141,7 +141,7 @@ export default function OrderDetailsPage() {
     return <LoadingState label={t("جارٍ تحميل بيانات المتجر...")} />;
   }
 
-  if (store?.isCatalog) return <Navigate to="/owner" replace />;
+  if (store?.isCatalog) return <Navigate to={managementBasePath} replace />;
 
   if (!store) {
     return (
@@ -158,7 +158,7 @@ export default function OrderDetailsPage() {
     order?.customerName || order?.customerEmail || "عميل المتجر";
 
   return (
-    <DashboardLayout sidebar={<DetailSidebar store={store} />}>
+    <DashboardLayout embedded={Boolean(managedStore)} sidebar={<DetailSidebar store={store} />}>
       <Box className="owner-dashboard owner-detail-shell">
         {orderQuery.isLoading ? (
           <LoadingState label={t("جارٍ تحميل تفاصيل الطلب...")} />
@@ -184,7 +184,7 @@ export default function OrderDetailsPage() {
 
               <Stack direction="row" spacing={1} flexWrap="wrap">
                 <OrderPrintCount storeId={storeId} orderId={order.id} />
-                <OrderInvoiceDialog data={orderQuery.data} store={store} owner={platformUser} autoOpen={searchParams.get("print") === "1"} onPrint={requestId => recordPrint.mutateAsync({ orderId: order.id, requestId })} />
+                <OrderInvoiceDialog data={orderQuery.data} store={store} owner={managedStore ? null : platformUser} autoOpen={searchParams.get("print") === "1"} onPrint={requestId => recordPrint.mutateAsync({ orderId: order.id, requestId })} />
                 <Chip
                   size="small"
                   label={t(statusLabel)}
@@ -198,7 +198,7 @@ export default function OrderDetailsPage() {
                 {order.accountCustomerId || order.storeCustomerId ? (
                   <AppButton
                     component={RouterLink}
-                    to={`/owner/customers/${order.accountCustomerId || order.storeCustomerId}`}
+                    to={`${managementBasePath}/customers/${order.accountCustomerId || order.storeCustomerId}`}
                     variant="outlined"
                     size="small"
                   >{t("ملف العميل")}</AppButton>
@@ -206,7 +206,7 @@ export default function OrderDetailsPage() {
               </Stack>
             </Paper>
 
-            <OrderCustomerAccount storeId={storeId} order={order} />
+            <OrderCustomerAccount storeId={storeId} order={order} managementBasePath={managementBasePath} />
             <Box className="owner-detail-grid">
               <Paper className="owner-panel owner-detail-card" elevation={0}>
                 <Typography variant="h6">{t("ملخص الطلب")}</Typography>

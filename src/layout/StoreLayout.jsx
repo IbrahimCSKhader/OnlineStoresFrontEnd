@@ -3,6 +3,7 @@ import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Header from "../components/layout/Header/Header.jsx";
 import StoreFooter from "../components/layout/StoreFooter.jsx";
+import StoreRegistrationPrompt from "../components/auth/StoreRegistrationPrompt.jsx";
 import useStoreBySlug from "../hooks/stores/useStoreBySlug.js";
 import useStorefrontLanguage from "../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerStorePreview from "../hooks/stores/useOwnerStorePreview.js";
@@ -44,6 +45,9 @@ export default function StoreLayout() {
       <Box className="store-layout__footer" id="store-footer">
         <StoreFooter store={store} slug={effectiveSlug} />
       </Box>
+      {!isOwnerPreview && store?.isActive !== false && store?.enableCustomerRegistrationPrompt === true ? (
+        <StoreRegistrationPrompt store={store} slug={effectiveSlug} dir={dir} lang={locale} t={t} />
+      ) : null}
     </Box>
   );
 }

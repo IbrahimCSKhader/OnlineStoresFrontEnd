@@ -50,8 +50,11 @@
 .admin-login__panel--brand {
   padding: clamp(28px, 4vw, 40px);
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--primary) 10%, transparent), transparent 45%),
-    color-mix(in srgb, var(--surface-elevated) 94%, transparent);
+    radial-gradient(ellipse at top left, #29645a, transparent 65%),
+    #112c2a !important;
+  color: #f3fbf8 !important;
+  display: flex;
+  align-items: center;
 }
 
 .admin-login__panel--form {
@@ -84,17 +87,30 @@
 
 .admin-login__lead {
   max-width: 58ch;
+  color: #d3e7e2;
 }
 
 .admin-login__notes {
   padding-top: 8px;
+  display: flex;
 }
 
 .admin-login__notes > * {
   padding: 12px 14px;
   border-radius: 16px;
-  border: 1px solid var(--border-subtle);
-  background: color-mix(in srgb, var(--surface-muted) 74%, var(--surface-elevated));
+  border: 1px solid #ffffff26;
+  background: #ffffff0e;
+}
+
+.admin-login__panel--brand .admin-login__eyebrow { color: #b9ddd5; }
+
+.admin-login__logo {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-block-end: 12px;
 }
 
 .admin-login__form-title {
@@ -116,4 +132,7 @@
   .admin-login__panel {
     border-radius: 24px;
   }
+
+  .admin-login__title { font-size: 2rem !important; }
+  .admin-login__notes { display: none !important; }
 }

@@ -73,6 +73,9 @@ const AdminStoreDetails = lazyWithRetry(
   () => import("./pages/admin/StoreDetails.jsx"),
   "admin-store-details",
 );
+const AdminStoreWorkspace = lazyWithRetry(() => import("./pages/admin/StoreWorkspace.jsx"), "admin-store-workspace");
+const AdminPlans = lazyWithRetry(() => import("./pages/admin/Plans.jsx"), "admin-plans");
+const AdminSystemMaintenance = lazyWithRetry(() => import("./pages/admin/SystemMaintenance.jsx"), "admin-system-maintenance");
 
 const Cart = lazyWithRetry(() => import("./pages/customer/Cart.jsx"), "cart");
 const Checkout = lazyWithRetry(
@@ -198,8 +201,12 @@ const router = createBrowserRouter([
     errorElement: <AppRouteError />,
     children: [
       {
+        path: "/secretelogin",
+        element: <DomainAwareElement platform={withRouteSuspense(<AdminLogin />)} storefront={<Navigate to="/" replace />} />,
+      },
+      {
         path: "/admin/login",
-        element: withRouteSuspense(<AdminLogin />),
+        element: <Navigate to="/secretelogin" replace />,
       },
       {
         path: "/admin",
@@ -207,16 +214,22 @@ const router = createBrowserRouter([
       },
       {
         path: "/dashboard",
-        element: withRouteSuspense(<SuperAdminLayout />),
+        element: <DomainAwareElement platform={withRouteSuspense(<SuperAdminLayout />)} storefront={<Navigate to="/" replace />} />,
         errorElement: <AppRouteError />,
         children: [
           { index: true, element: withRouteSuspense(<SuperAdminOverview />) },
           { path: "owners", element: withRouteSuspense(<SuperAdminOwners />) },
           { path: "stores", element: withRouteSuspense(<SuperAdminStores />) },
+          { path: "plans", element: withRouteSuspense(<AdminPlans />) },
+          { path: "system", element: withRouteSuspense(<AdminSystemMaintenance />) },
           {
             path: "stores/:storeId",
             element: withRouteSuspense(<AdminStoreDetails />),
           },
+          { path: "stores/:storeId/manage", element: <Navigate to="products" replace /> },
+          { path: "stores/:storeId/manage/:tab", element: withRouteSuspense(<AdminStoreWorkspace />) },
+          { path: "stores/:storeId/manage/orders/:orderId", element: withRouteSuspense(<AdminStoreWorkspace detail="orders" />) },
+          { path: "stores/:storeId/manage/customers/:customerId", element: withRouteSuspense(<AdminStoreWorkspace detail="customers" />) },
           { path: "*", element: <Navigate to="/dashboard" replace /> },
         ],
       },

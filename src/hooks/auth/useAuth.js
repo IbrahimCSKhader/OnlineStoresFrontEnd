@@ -27,6 +27,7 @@ function isStorefrontRoute(pathname) {
 function isPlatformRoute(pathname) {
   return (
     pathname.startsWith("/dashboard") ||
+    /^\/secretelogin\/?$/i.test(pathname) ||
     pathname.startsWith("/admin") ||
     pathname.startsWith("/owner")
   );

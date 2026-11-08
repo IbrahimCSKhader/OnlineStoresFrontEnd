@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 
-export default function DashboardLayout({ sidebar, children }) {
+export default function DashboardLayout({ sidebar, children, embedded = false }) {
+  if (embedded) return children;
   return (
     <Box className="owner-shell">
       <Box className="owner-shell__sidebar">{sidebar}</Box>

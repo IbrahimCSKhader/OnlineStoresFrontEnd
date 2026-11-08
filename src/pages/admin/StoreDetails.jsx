@@ -87,6 +87,7 @@ function createStoreFormState(store) {
     isActive: store?.isActive !== false,
     requireCustomerLoginForCheckout: store?.requireCustomerLoginForCheckout !== false,
     enableLanguageSwitching: store?.enableLanguageSwitching === true,
+    enableCustomerRegistrationPrompt: store?.enableCustomerRegistrationPrompt === true,
     contactAccounts: Array.isArray(store?.contactAccounts)
       ? store.contactAccounts.map((account, index) => createContactAccount(account, index))
       : [],
@@ -154,12 +155,17 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
                 isActive: Boolean(form.isActive),
                 requireCustomerLoginForCheckout: form.requireCustomerLoginForCheckout,
                 enableLanguageSwitching: form.enableLanguageSwitching,
+                enableCustomerRegistrationPrompt: form.enableCustomerRegistrationPrompt,
                 contactAccounts: sanitizeContactAccounts(contactAccounts),
               });
             }}
             className="super-admin-modal-grid"
           >
             <FormControlLabel label="تفعيل تبديل اللغة للزوار" control={<Switch checked={form.enableLanguageSwitching} onChange={(e) => setForm((v) => ({ ...v, enableLanguageSwitching: e.target.checked }))} />} />
+            <FormControlLabel
+              label="تحفيز تسجيل حساب"
+              control={<Switch checked={form.enableCustomerRegistrationPrompt} onChange={(e) => setForm((v) => ({ ...v, enableCustomerRegistrationPrompt: e.target.checked }))} />}
+            />
             <FormControlLabel label="يشترط تسجيل دخول الزبون لإتمام الطلب" control={<Switch checked={form.requireCustomerLoginForCheckout} onChange={(e) => setForm((v) => ({ ...v, requireCustomerLoginForCheckout: e.target.checked }))} />} />
             <Typography variant="body2" color="text.secondary">عند إيقاف الخيار يستطيع الزائر إدخال بياناته وإرسال الطلب دون حساب.</Typography>
             <AppTextField
@@ -570,6 +576,7 @@ export default function StoreDetails() {
                 </Stack>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  <Button component={RouterLink} to="manage/products" variant="contained">إدارة العمليات</Button>
                   <AppButton
                     variant="outlined"
                     startIcon={<EditRoundedIcon fontSize="small" />}

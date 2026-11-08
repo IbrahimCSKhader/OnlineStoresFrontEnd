@@ -1,4 +1,4 @@
-import { Link as RouterLink, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link as RouterLink, Navigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -7,12 +7,13 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import ShieldRoundedIcon from "@mui/icons-material/ShieldRounded";
+import { SITE_BRAND_ASSET_PATH } from "../../constants/siteBranding.js";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import AppTextField from "../../components/common/inputs/AppTextField.jsx";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useSuperAdminLogin from "../../hooks/superAdmin/useSuperAdminLogin.js";
 import extractApiError from "../../utils/extractApiError.js";
-import { getLandingPath, isSuperAdminRole } from "../../utils/roles.js";
+import { isSuperAdminRole } from "../../utils/roles.js";
 import "./AdminLogin.css";
 
 function getLoginErrorMessage(error) {
@@ -22,17 +23,18 @@ function getLoginErrorMessage(error) {
     return error?.response?.data?.message || "يجب تأكيد البريد الإلكتروني قبل تسجيل الدخول.";
   }
 
-  if (error?.code === "NOT_SUPERADMIN") {
-    return "هذا الحساب لا يملك صلاحية الدخول إلى لوحة السوبر أدمن.";
+  if (error?.code === "NOT_SUPERADMIN" || status === 403) {
+    return "الدخول مخصص لحساب الإدارة المعتمد.";
   }
+
+  if (status === 404) return "خدمة الدخول الخاص غير متاحة على الخادم الحالي.";
 
   return extractApiError(error, "تعذر تسجيل الدخول. تأكد من البيانات ثم حاول مرة أخرى.");
 }
 
 export default function AdminLogin() {
-  const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, role, user } = useAuth();
+  const { isPlatformAuthenticated, platformRole } = useAuth();
   const loginMutation = useSuperAdminLogin();
   const {
     register,
@@ -45,32 +47,21 @@ export default function AdminLogin() {
     },
   });
 
-  const effectiveRole = role || user?.accountType;
-
-  if (isAuthenticated && isSuperAdminRole(effectiveRole)) {
-    return <Navigate to="/dashboard" replace />;
+  if (isPlatformAuthenticated && isSuperAdminRole(platformRole)) {
+    const requestedPath = location.state?.redirectTo;
+    const redirectTo = typeof requestedPath === "string" && /^\/dashboard(?:[/?#]|$)/.test(requestedPath)
+      ? requestedPath
+      : "/dashboard";
+    return <Navigate to={redirectTo} replace />;
   }
 
-  if (isAuthenticated) {
-    return <Navigate to={getLandingPath(effectiveRole)} replace />;
-  }
-
-  const onSubmit = handleSubmit(async (values) => {
-    const result = await loginMutation.mutateAsync({
-      email: values.email.trim(),
-      password: values.password,
-    });
-
-    const redirectTo =
-      location.state?.redirectTo && String(location.state.redirectTo).startsWith("/dashboard")
-        ? location.state.redirectTo
-        : "/dashboard";
-
-    navigate(redirectTo, { replace: true, state: { email: result?.data?.email || values.email } });
+  const onSubmit = handleSubmit((values) => {
+    loginMutation.mutate({ email: values.email.trim(), password: values.password });
   });
 
   return (
     <Box className="admin-login" dir="rtl">
+      <meta name="robots" content="noindex, nofollow" />
       <Box className="admin-login__orb admin-login__orb--one" aria-hidden />
       <Box className="admin-login__orb admin-login__orb--two" aria-hidden />
 
@@ -79,27 +70,26 @@ export default function AdminLogin() {
           <Stack spacing={2.25}>
             <Box className="admin-login__badge">
               <ShieldRoundedIcon fontSize="small" />
-              <span>وصول السوبر أدمن</span>
+              <span>وصول خاص</span>
             </Box>
 
             <Box>
               <Typography variant="overline" className="admin-login__eyebrow">
-                إدارة المنصة
+                موجة للأعمال
               </Typography>
-              <Typography variant="h2" className="admin-login__title">
-                راقب الملاك والمتاجر وعملاء المتاجر من لوحة واحدة.
+              <Typography variant="h2" component="h1" className="admin-login__title">
+                مركز إدارة موجة
               </Typography>
             </Box>
 
-            <Typography variant="body1" color="text.secondary" className="admin-login__lead">
-              هذا المسار مخصص فقط للحسابات التي تحمل دور <strong>SuperAdmin</strong>. مالك
-              المتجر يواصل استخدام صفحة الدخول العامة.
+            <Typography variant="body1" className="admin-login__lead">
+              المتاجر والملاك والطلبات والاشتراكات في مساحة إدارة واحدة.
             </Typography>
 
             <Stack spacing={1.2} className="admin-login__notes">
-              <Typography variant="body2">بطاقات إحصائية سريعة للمنصة كاملة</Typography>
-              <Typography variant="body2">إدارة الملاك وتفعيلهم وتغيير كلمات المرور</Typography>
-              <Typography variant="body2">تفاصيل المتاجر والعملاء وحسابات التواصل</Typography>
+              <Typography variant="body2">المتاجر والواجهة</Typography>
+              <Typography variant="body2">الحسابات والصلاحيات</Typography>
+              <Typography variant="body2">الاشتراكات والصيانة</Typography>
             </Stack>
           </Stack>
         </Paper>
@@ -107,15 +97,15 @@ export default function AdminLogin() {
         <Paper className="admin-login__panel admin-login__panel--form" elevation={0}>
           <Stack spacing={2.25} component="form" onSubmit={onSubmit}>
             <Box>
+              <img className="admin-login__logo" src={SITE_BRAND_ASSET_PATH} alt="موجة" />
               <Typography variant="overline" className="admin-login__eyebrow">
                 تسجيل الدخول
               </Typography>
               <Typography variant="h4" className="admin-login__form-title">
-                دخول السوبر أدمن
+                دخول مدير المنصة
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                نستخدم نفس endpoint الخلفي، لكن لن يدخل اللوحة إلا الحساب الذي يحمل صلاحية
-                السوبر أدمن.
+                أدخل بيانات حساب الإدارة المعتمد.
               </Typography>
             </Box>
 
@@ -158,9 +148,8 @@ export default function AdminLogin() {
             </AppButton>
 
             <Typography variant="body2" color="text.secondary">
-              تريد بوابة مالك المتجر بدلًا من ذلك؟{" "}
               <Link component={RouterLink} to="/auth/login" underline="hover">
-                افتح تسجيل الدخول العادي
+                تسجيل دخول أصحاب المتاجر
               </Link>
             </Typography>
           </Stack>

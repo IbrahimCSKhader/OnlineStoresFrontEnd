@@ -2,6 +2,10 @@ import axiosInstance from "./axiosInstance.js";
 import endpoints from "./endpoints.js";
 
 export const superAdminDashboardApi = {
+  verifyPrivateAccess: (token, signal) => axiosInstance.get("/api/super-admin-dashboard/private-access", {
+    headers: { Authorization: `Bearer ${token}` },
+    signal,
+  }).then(() => true),
   getSummary: () => axiosInstance.get(endpoints.superAdminDashboard.summary),
   getOwners: () => axiosInstance.get(endpoints.superAdminDashboard.owners),
   getOwnerDetails: (ownerId) =>

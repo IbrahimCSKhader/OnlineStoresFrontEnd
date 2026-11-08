@@ -53,16 +53,12 @@ import {
   getPendingStoreGoogleAuth,
   setPendingStoreGoogleAuth,
 } from "../../utils/pendingStoreGoogleAuth.js";
-import {
-  clearPendingGoogleAuthContext,
-  setPendingGoogleAuthContext,
-} from "../../utils/pendingGoogleAuthContext.js";
+import { clearPendingGoogleAuthContext } from "../../utils/pendingGoogleAuthContext.js";
 import { clearPendingGoogleCallbackResult } from "../../utils/pendingGoogleCallbackResult.js";
 import { setPendingVerificationEmail } from "../../utils/pendingVerificationEmail.js";
 import { getLandingPath } from "../../utils/roles.js";
 import { isOwnerSessionScopedToStore } from "../../utils/storeOwnerScope.js";
 import {
-  STORE_CUSTOMER_AUTH_MODE,
   applyStoreScopeToUser,
   assertStoreScopedAuthResult,
   buildStoreCustomerAuthState,
@@ -80,7 +76,7 @@ import {
   setStoredPlatformUser,
   setStorefrontAuthSession,
 } from "../../utils/token.js";
-import endpoints from "../../API/endpoints.js";
+import StoreGoogleAuthButton from "../../components/auth/StoreGoogleAuthButton.jsx";
 import "./Login.css";
 
 const FLOW = {
@@ -90,34 +86,6 @@ const FLOW = {
   RESET_PASSWORD: "reset-password",
   GOOGLE_STORE_SETUP: "google-store-setup",
 };
-
-function GoogleLogoIcon() {
-  return (
-    <svg
-      className="page-login__google-icon"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        fill="#4285F4"
-        d="M21.82 12.27c0-.77-.07-1.5-.2-2.2H12v4.17h5.5a4.7 4.7 0 0 1-2.04 3.08v2.56h3.3c1.93-1.78 3.06-4.4 3.06-7.61Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 22c2.76 0 5.08-.91 6.77-2.47l-3.3-2.56c-.91.61-2.08.98-3.47.98-2.67 0-4.94-1.8-5.75-4.23H2.84v2.64A10 10 0 0 0 12 22Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M6.25 13.72A6.01 6.01 0 0 1 5.92 12c0-.6.11-1.18.31-1.72V7.64H2.84A10 10 0 0 0 2 12c0 1.61.39 3.14 1.08 4.36l3.17-2.64Z"
-      />
-      <path
-        fill="#EA4335"
-        d="M12 6.05c1.5 0 2.84.52 3.9 1.54l2.92-2.92C17.07 3.04 14.75 2 12 2A10 10 0 0 0 2.84 7.64l3.39 2.64c.81-2.43 3.08-4.23 5.77-4.23Z"
-      />
-    </svg>
-  );
-}
 
 function getErrorMessage(error) {
   return extractApiError(
@@ -270,9 +238,6 @@ export default function Login() {
   const storeVerifyEmailPath = storeCustomerAuthState?.storeSlug
     ? buildStorefrontPath(storeCustomerAuthState.storeSlug, "/verify-email")
     : "/";
-  const canStartStoreGoogleLogin = Boolean(
-    resolvedGoogleStoreSlug || resolvedGoogleStoreId,
-  );
 
   const loginMutation = useLogin();
   const storeCustomerLoginMutation = useStoreCustomerLogin();
@@ -305,6 +270,8 @@ export default function Login() {
   const [successMessage, setSuccessMessage] = useState("");
   const [localError, setLocalError] = useState("");
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+  const currentStoreId = String(storeCustomerAuthState?.storeId || "");
+  const currentStoreSlug = String(storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug || "");
   const pendingStoreGoogleAuth = useMemo(() => {
     if (!isStoreCustomerMode) {
       return null;
@@ -316,9 +283,6 @@ export default function Login() {
       return null;
     }
 
-    const currentStoreId = storeCustomerAuthState?.storeId || "";
-    const currentStoreSlug =
-      storeCustomerAuthState?.storeSlug || resolvedRouteStoreSlug || "";
     const matchesStoreId =
       pendingAuth.storeId && currentStoreId && pendingAuth.storeId === currentStoreId;
     const matchesStoreSlug =
@@ -338,12 +302,7 @@ export default function Login() {
     }
 
     return pendingAuth;
-  }, [
-    isStoreCustomerMode,
-    resolvedRouteStoreSlug,
-    storeCustomerAuthState?.storeId,
-    storeCustomerAuthState?.storeSlug,
-  ]);
+  }, [isStoreCustomerMode, currentStoreId, currentStoreSlug]);
 
   const defaultValues = useMemo(
     () => ({
@@ -446,96 +405,6 @@ export default function Login() {
     resetAlerts();
     resetMutations();
     setFlow(nextFlow);
-  }
-
-  function handleGoogleLogin() {
-    if (!isStoreCustomerMode) {
-      logAuthFlow("Blocked Google login because store mode was not resolved", {
-        pathname: location.pathname,
-        routeStoreSlug,
-        stateStoreId: location.state?.storeId || "",
-        stateStoreSlug: location.state?.storeSlug || "",
-      });
-      setLocalError(t("تسجيل الدخول عبر Google متاح فقط من صفحة متجر محدد."));
-      return;
-    }
-
-    if (!canStartStoreGoogleLogin) {
-      logAuthFlow("Blocked Google login because store context was incomplete", {
-        pathname: location.pathname,
-        routeStoreSlug,
-        routeStoreId: routeStore?.id || "",
-        stateStoreId: location.state?.storeId || "",
-        stateStoreSlug: location.state?.storeSlug || "",
-        resolvedGoogleStoreId,
-        resolvedGoogleStoreSlug,
-      });
-      setLocalError(
-        t("بيانات المتجر غير مكتملة. افتح صفحة المتجر ثم أعد المحاولة."),
-      );
-      return;
-    }
-
-    try {
-      setIsLoadingGoogle(true);
-      clearPendingStoreGoogleAuth();
-      clearPendingGoogleCallbackResult();
-      const apiBaseUrl = (
-        import.meta.env.VITE_API_BASE_URL || "https://mawja.premiumasp.net"
-      ).replace(/\/+$/, "");
-      const frontendOrigin =
-        typeof window !== "undefined" ? window.location.origin : "";
-      const googleParams = new URLSearchParams();
-      const googleStoreSlug = resolvedGoogleStoreSlug;
-      const googleStoreId = resolvedGoogleStoreId;
-      const googleStoreName = resolvedGoogleStoreName || storeLabel;
-      clearPendingGoogleAuthContext();
-      setPendingGoogleAuthContext({
-        authMode: STORE_CUSTOMER_AUTH_MODE,
-        storeId: googleStoreId,
-        storeSlug: googleStoreSlug,
-        storeName: googleStoreName,
-        redirectTo,
-      });
-
-      if (googleStoreId) {
-        googleParams.set("storeId", googleStoreId);
-      }
-
-      if (googleStoreSlug) {
-        googleParams.set("storeSlug", googleStoreSlug);
-      }
-
-      if (redirectTo) {
-        googleParams.set("redirectTo", redirectTo);
-      }
-
-      if (frontendOrigin) {
-        googleParams.set("frontendOrigin", frontendOrigin);
-      }
-
-      logAuthFlow("Starting Google store login redirect", {
-        pathname: location.pathname,
-        apiBaseUrl,
-        frontendOrigin,
-        routeStoreSlug,
-        routeStoreId: routeStore?.id || "",
-        stateStoreId: location.state?.storeId || "",
-        stateStoreSlug: location.state?.storeSlug || "",
-        googleStoreId,
-        googleStoreSlug,
-        googleStoreName,
-        redirectTo,
-        googleParams: googleParams.toString(),
-      });
-
-      window.location.href = `${apiBaseUrl}${endpoints.storeCustomerAuth.google}?${googleParams.toString()}`;
-    } catch {
-      clearPendingGoogleCallbackResult();
-      clearPendingGoogleAuthContext();
-      setLocalError(t("فشل الاتصال بخادم Google. حاول مرة أخرى."));
-      setIsLoadingGoogle(false);
-    }
   }
 
   function saveSessionFromAuthResponse(data) {
@@ -1358,23 +1227,15 @@ export default function Login() {
                   <>
                     <Divider />
 
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      size="large"
-                      className="page-login__google-button"
-                      startIcon={<GoogleLogoIcon />}
-                      onClick={handleGoogleLogin}
-                      disabled={
-                        isBusy ||
-                        isLoadingGoogle ||
-                        !canStartStoreGoogleLogin
-                      }
-                    >
-                      {isLoadingGoogle
-                    ? t("جارٍ الاتصال بـ Google...")
-                    : t("الدخول عبر Google")}
-                    </Button>
+                    <StoreGoogleAuthButton
+                      storeId={resolvedGoogleStoreId}
+                      storeSlug={resolvedGoogleStoreSlug}
+                      storeName={resolvedGoogleStoreName || storeLabel}
+                      redirectTo={redirectTo}
+                      label={t("الدخول عبر Google")}
+                      disabled={isBusy}
+                      onPendingChange={setIsLoadingGoogle}
+                    />
                   </>
                 ) : null}
 

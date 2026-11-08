@@ -32,6 +32,9 @@ export default function useLogout(options = {}) {
 
   function clearRelatedQueries() {
     queryClient.removeQueries({ queryKey: queryKeys.auth.me });
+    if (authContext === "platform") {
+      queryClient.removeQueries({ queryKey: queryKeys.superAdmin.root });
+    }
     queryClient.removeQueries({ queryKey: ["cart"] });
     queryClient.removeQueries({ queryKey: ["stores"] });
     queryClient.removeQueries({ queryKey: ["products"] });

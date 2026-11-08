@@ -170,7 +170,7 @@ function isPlatformProtectedOfferPath(pathname, method) {
 function isPlatformProtectedOrderPath(pathname, method) {
   return (
     pathname.startsWith("/api/order/store/") ||
-    (/^\/api\/order\/[^/]+\/status$/.test(pathname) && method === "put")
+    (/^\/api\/order\/[^/]+\/(status|received-amount)$/.test(pathname) && method === "put")
   );
 }
 
@@ -211,6 +211,10 @@ function isPlatformProtectedPath(pathname, method) {
   }
 
   if (pathname.startsWith("/api/super-admin-dashboard")) {
+    return true;
+  }
+
+  if (pathname.startsWith("/api/system/storage/")) {
     return true;
   }
 
