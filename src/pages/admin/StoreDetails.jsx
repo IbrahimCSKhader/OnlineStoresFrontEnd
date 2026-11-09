@@ -1,4 +1,5 @@
 ﻿import { useDeferredValue, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Link as RouterLink, useNavigate, useOutletContext, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -53,6 +54,8 @@ import {
   STORE_THEME_TEMPLATES,
 } from "../../constants/storeThemeTemplates.js";
 import StoreAppearanceDialog from "../../components/admin/StoreAppearanceDialog.jsx";
+import { queryKeys } from "../../utils/queryKeys.js";
+import StoreActivity from "./StoreActivity.jsx";
 import "./SuperAdminPages.css";
 
 const CONTACT_PLATFORM_OPTIONS = Object.values(STORE_CONTACT_PLATFORMS);
@@ -394,9 +397,10 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
 export default function StoreDetails() {
   const { notify } = useOutletContext();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { storeId = "" } = useParams();
   const [appearanceOpen, setAppearanceOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("activity");
   const [customersSearch, setCustomersSearch] = useState("");
   const deferredCustomersSearch = useDeferredValue(customersSearch);
   const [customersStatusFilter, setCustomersStatusFilter] = useState("all");
@@ -495,7 +499,7 @@ export default function StoreDetails() {
             {store?.name || "تفاصيل المتجر"}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            راجع ملف المتجر، وبيانات المالك، وحسابات التواصل، وقصة المتجر، وعملاء المتجر.
+            تابع نشاط المتجر، وافتح الطلبات وملفات الزباين وإعدادات الواجهة من مكان واحد.
           </Typography>
         </Box>
 
@@ -511,15 +515,11 @@ export default function StoreDetails() {
           <Button
             variant="outlined"
             startIcon={<RefreshRoundedIcon fontSize="small" />}
-            onClick={async () => {
-              await storeQuery.refetch();
-
-              if (activeTab === "customers") {
-                await customersQuery.refetch();
-              }
-
-              notify?.({ severity: "success", message: "تم تحديث تفاصيل المتجر." });
-            }}
+            onClick={() => Promise.all([
+              queryClient.invalidateQueries({ queryKey: queryKeys.superAdmin.storeDetail(storeId) }),
+              queryClient.invalidateQueries({ queryKey: queryKeys.orders.byStore(storeId) }),
+              queryClient.invalidateQueries({ queryKey: ["customerAccounts", storeId] }),
+            ])}
             disabled={storeQuery.isFetching || customersQuery.isFetching}
           >
             تحديث
@@ -565,18 +565,29 @@ export default function StoreDetails() {
                 flexWrap="wrap"
                 useFlexGap
               >
-                <Stack spacing={0.65}>
-                  <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-                    <Typography variant="h4">{store.name || "متجر"}</Typography>
-                    <AdminStatusChip active={store.isActive !== false} />
+                <Stack direction="row" alignItems="center" gap={1.5}>
+                  {logoImage ? (
+                    <img src={logoImage} alt="" className="super-admin-logo-thumb" />
+                  ) : (
+                    <Box className="super-admin-logo-thumb super-admin-logo-thumb--empty" aria-hidden="true">
+                      {getInitials(store.name, "مت")}
+                    </Box>
+                  )}
+                  <Stack spacing={0.65}>
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                      <Typography variant="h4">{store.name || "متجر"}</Typography>
+                      <AdminStatusChip active={store.isActive !== false} />
+                    </Stack>
+                    <Typography variant="body1" color="text.secondary">
+                      /{store.slug || "بدون رابط"} - {store.businessType || "بدون نوع نشاط"}
+                    </Typography>
                   </Stack>
-                  <Typography variant="body1" color="text.secondary">
-                    /{store.slug || "بدون رابط"} - {store.businessType || "بدون نوع نشاط"}
-                  </Typography>
                 </Stack>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  <Button component={RouterLink} to="manage/products" variant="contained">إدارة العمليات</Button>
+                  {store.slug && store.isActive !== false && (
+                    <Button component={RouterLink} to={`/market/${store.slug}`} target="_blank" rel="noopener noreferrer" variant="outlined">فتح المتجر على موجة</Button>
+                  )}
                   <AppButton
                     variant="outlined"
                     startIcon={<EditRoundedIcon fontSize="small" />}
@@ -602,43 +613,6 @@ export default function StoreDetails() {
                   </Button>
                 </Stack>
               </Stack>
-
-              <Box className="super-admin-store-visual">
-                {coverImage ? (
-                  <img src={coverImage} alt={store.name || "غلاف المتجر"} />
-                ) : (
-                  <Box
-                    sx={{
-                      minHeight: 180,
-                      display: "grid",
-                      placeItems: "center",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    لا توجد صورة غلاف
-                  </Box>
-                )}
-              </Box>
-
-              <Box className="super-admin-logo-row">
-                {logoImage ? (
-                  <img
-                    src={logoImage}
-                    alt={`${store.name || "متجر"} logo`}
-                    className="super-admin-logo-thumb"
-                  />
-                ) : (
-                  <Box className="super-admin-logo-thumb super-admin-logo-thumb--empty">
-                    {getInitials(store.name, "مت")}
-                  </Box>
-                )}
-                <Stack spacing={0.35}>
-                  <Typography variant="subtitle1">{store.name || "متجر"}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    العملاء: {store.customerCount ?? 0}
-                  </Typography>
-                </Stack>
-              </Box>
             </Stack>
           </Paper>
 
@@ -646,22 +620,35 @@ export default function StoreDetails() {
             <Tabs
               value={activeTab}
               onChange={(_, nextValue) => setActiveTab(nextValue)}
+              variant="scrollable"
               sx={{ borderBottom: "1px solid var(--border-subtle)" }}
             >
-              <Tab value="overview" label="نظرة عامة" />
+              <Tab value="activity" label="نشاط المتجر" />
+              <Tab value="overview" label="بيانات المتجر" />
               <Tab
                 value="customers"
                 icon={<PeopleAltRoundedIcon fontSize="small" />}
                 iconPosition="start"
-                label="العملاء"
+                label="سجل الزباين"
               />
             </Tabs>
 
+            {activeTab === "activity" && <StoreActivity key={store.id} store={store} />}
+
             {activeTab === "overview" ? (
               <Box className="super-admin-detail-grid">
+                {coverImage && (
+                  <Box className="super-admin-store-visual" sx={{ gridColumn: "1 / -1" }}>
+                    <img src={coverImage} alt="غلاف المتجر" />
+                  </Box>
+                )}
                 <Paper className="super-admin-detail-card" elevation={0}>
                   <Typography variant="h6">معلومات المتجر</Typography>
                   <Box className="super-admin-info-list">
+                    <Box className="super-admin-info-row">
+                      <Typography variant="body2" color="text.secondary">الدومين الخاص</Typography>
+                      <Typography variant="body2" dir="ltr">{store.customDomain || "—"}</Typography>
+                    </Box>
                     <Box className="super-admin-info-row">
                       <Typography variant="body2" color="text.secondary">
                         الوصف

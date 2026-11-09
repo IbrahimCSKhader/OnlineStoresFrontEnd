@@ -1,16 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link, NavLink, Navigate, useOutletContext, useParams } from "react-router-dom";
 import { Alert, Button, Paper, Stack, Typography } from "@mui/material";
-import storeApi from "../../API/store.api.js";
 import { CustomerAccount } from "../../components/dashboard/CustomerAccounts.jsx";
 import LoadingState from "../../components/common/loaders/LoadingState.jsx";
-import useAuth from "../../hooks/auth/useAuth.js";
+import useSuperAdminStoreWorkspace from "../../hooks/superAdmin/useSuperAdminStoreWorkspace.js";
 import useStoreReviews from "../../hooks/reviews/useStoreReviews.js";
 import useUpdateReviewApproval from "../../hooks/reviews/useUpdateReviewApproval.js";
 import { normalizeEntityResponse, normalizeListResponse } from "../../utils/collections.js";
 import { canUseStoreCoupons } from "../../utils/storeCoupons.js";
 import extractApiError from "../../utils/extractApiError.js";
-import { queryKeys } from "../../utils/queryKeys.js";
 import OwnerDashboard from "../owner/Dashboard.jsx";
 import OrderDetailsPage from "../owner/OrderDetailsPage.jsx";
 import StoreSubscriptions from "./StoreSubscriptions.jsx";
@@ -61,12 +58,7 @@ function StoreReviews({ storeId }) {
 
 export default function StoreWorkspace({ detail }) {
   const { storeId, tab = "products", customerId } = useParams();
-  const { platformToken } = useAuth();
-  const query = useQuery({
-    queryKey: [...queryKeys.superAdmin.storeDetail(storeId), "workspace"],
-    queryFn: () => storeApi.getStoreByIdWithAuth(storeId, platformToken),
-    enabled: Boolean(storeId && platformToken),
-  });
+  const query = useSuperAdminStoreWorkspace(storeId);
   const store = normalizeEntityResponse(query.data);
   const settingsPath = `/dashboard/stores/${storeId}`;
   const managementBasePath = settingsPath + "/manage";
@@ -93,7 +85,7 @@ export default function StoreWorkspace({ detail }) {
             <Typography variant="overline" color="text.secondary">إدارة عمليات المتجر</Typography>
             <Typography component="h2" variant="h5">{store.name}</Typography>
           </div>
-          <Button component={Link} to={settingsPath} variant="outlined">إعدادات المتجر</Button>
+          <Button component={Link} to={settingsPath} variant="outlined">ملخص المتجر وإعداداته</Button>
         </Stack>
         <nav className="super-admin-workspace__nav" aria-label="عمليات المتجر">
           {availableTabs.map(([key, label]) => (

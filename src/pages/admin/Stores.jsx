@@ -539,7 +539,7 @@ export default function Stores() {
             variant="outlined"
             startIcon={<OpenInNewRoundedIcon fontSize="small" />}
           >
-            فتح
+            نشاط المتجر
           </Button>
           <AppButton
             size="small"
