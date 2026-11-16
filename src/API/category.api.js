@@ -8,7 +8,11 @@ function categoryRequest(payload) {
   }
   const data = new FormData();
   Object.entries(fields).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) data.append(key, String(value));
+    if (Array.isArray(value)) {
+      value.forEach((entry, index) => Object.entries(entry).forEach(([field, text]) => {
+        if (text !== undefined && text !== null) data.append(`${key}[${index}].${field}`, String(text));
+      }));
+    } else if (value !== undefined && value !== null) data.append(key, String(value));
   });
   data.append("ImageFile", imageFile);
   // Let the browser supply the multipart boundary instead of the JSON default.

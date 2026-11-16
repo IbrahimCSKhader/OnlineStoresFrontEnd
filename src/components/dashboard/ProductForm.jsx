@@ -1,3 +1,4 @@
+import CatalogTranslationFields from "./CatalogTranslationFields.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -48,6 +49,7 @@ function getVariantDisplayImage(variant, preview) {
 
 export default function ProductForm({
   form,
+  store,
   isEdit,
   loading,
   categories,
@@ -488,6 +490,8 @@ export default function ProductForm({
             </Box>
           </Box>
         ) : null}
+
+        <CatalogTranslationFields store={store} form={form} onChange={onChange} disabled={loading} product />
 
         <Stack direction="row" spacing={1} className="owner-form__actions">
           <AppButton type="submit" variant="contained" loading={loading}>

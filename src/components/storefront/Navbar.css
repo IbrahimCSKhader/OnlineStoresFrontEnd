@@ -28,6 +28,7 @@
 }
 
 .store-navbar__brand-mark {
+  flex-shrink: 0;
   width: 46px;
   height: 46px;
   display: grid;
@@ -538,9 +539,22 @@ html[data-theme-template="red"] .store-navbar__theme-option--active {
   }
 }
 
+.store-navbar__drawer-preferences {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-block: 12px;
+}
+
 @media (max-width: 1199px) {
   .store-navbar__toolbar {
     gap: var(--space-4);
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .store-navbar__spacer {
+    display: none;
   }
 
   .store-navbar__nav {
@@ -559,7 +573,7 @@ html[data-theme-template="red"] .store-navbar__theme-option--active {
 
   .store-navbar__toolbar {
     min-height: 68px;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     padding: 10px 12px;
   }
 
@@ -590,7 +604,6 @@ html[data-theme-template="red"] .store-navbar__theme-option--active {
   }
 
   .store-navbar__brand-name {
-    max-width: 28vw;
     font-size: 0.96rem;
   }
 }

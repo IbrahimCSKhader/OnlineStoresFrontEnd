@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { NavLink, matchPath, useLocation, useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
 import Avatar from "@mui/material/Avatar";
@@ -869,6 +869,16 @@ export default function Navbar() {
     );
   };
 
+  const renderPreferences = () => (
+    <>
+      <OwnerLanguageMenu />
+      <StorefrontLanguageMenu />
+      {!shouldHideThemeToggle ? (
+        <ThemeToggleButton variant={variant} onSelect={setVariant} options={themeOptions} />
+      ) : null}
+    </>
+  );
+
   return (
     <AppBar position="sticky" component="header" className="store-navbar">
       <Toolbar className="store-navbar__toolbar" disableGutters>
@@ -900,15 +910,7 @@ export default function Navbar() {
         )}
 
         <Box className="store-navbar__actions">
-          <OwnerLanguageMenu />
-          <StorefrontLanguageMenu />
-          {!shouldHideThemeToggle ? (
-            <ThemeToggleButton
-              variant={variant}
-              onSelect={setVariant}
-              options={themeOptions}
-            />
-          ) : null}
+          {!isCompactHeader ? renderPreferences() : null}
           {renderCartButton()}
           {!isCompactHeader ? (
             <ContactDeveloperButton
@@ -933,6 +935,8 @@ export default function Navbar() {
             <IconButton
               className="store-navbar__icon-button"
               aria-label={t("فتح القائمة")}
+              aria-expanded={drawerOpen}
+              aria-controls={drawerOpen ? "store-navigation-drawer" : undefined}
               onClick={() => setDrawerOpen(true)}
             >
               <MenuRoundedIcon />
@@ -943,9 +947,9 @@ export default function Navbar() {
 
       <Drawer
         anchor="right"
-        open={drawerOpen}
+        open={isCompactHeader && drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        PaperProps={{ className: "store-navbar__drawer" }}
+        PaperProps={{ id: "store-navigation-drawer", className: "store-navbar__drawer" }}
       >
         <Box className="store-navbar__drawer-head">
           <Box className="store-navbar__drawer-brand">
@@ -956,13 +960,6 @@ export default function Navbar() {
           </Box>
 
           <Box className="store-navbar__drawer-head-actions">
-            {!shouldHideThemeToggle ? (
-              <ThemeToggleButton
-                variant={variant}
-                onSelect={setVariant}
-                options={themeOptions}
-              />
-            ) : null}
             <IconButton
               className="store-navbar__icon-button"
               onClick={() => setDrawerOpen(false)}
@@ -972,6 +969,12 @@ export default function Navbar() {
             </IconButton>
           </Box>
         </Box>
+
+        {isCompactHeader ? (
+          <Box className="store-navbar__drawer-preferences">
+            {renderPreferences()}
+          </Box>
+        ) : null}
 
         {navItems.length ? <Box className="store-navbar__drawer-section">
           <Typography variant="overline" className="storefront-eyebrow">{t("التنقل")}</Typography>

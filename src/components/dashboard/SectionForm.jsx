@@ -1,3 +1,4 @@
+import CatalogTranslationFields from "./CatalogTranslationFields.jsx";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -9,6 +10,7 @@ import AppButton from "../common/buttons/AppButton.jsx";
 
 export default function SectionForm({
   form,
+  store,
   isEdit,
   loading,
   onChange,
@@ -55,6 +57,8 @@ export default function SectionForm({
             onChange={(event) => onChange("isActive", event.target.checked)}
           />
         </Box>
+
+        <CatalogTranslationFields store={store} form={form} onChange={onChange} disabled={loading} />
 
         <Stack direction="row" spacing={1} className="owner-form__actions">
           <AppButton type="submit" variant="contained" loading={loading}>

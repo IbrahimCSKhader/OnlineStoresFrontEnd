@@ -31,3 +31,12 @@ it("keeps the existing JSON contract and image when no new file is selected", ()
   expect(body).toEqual({ Name: "غرف نوم", ImageUrl: "/existing.png" });
   expect(config.headers["Content-Type"]).toBe("application/json");
 });
+
+it("preserves nested translations and empty values with an image upload", () => {
+  categoryApi.updateCategory("cat-1", { Translations: [{ language: "I", name: "כיסא", description: "" }],
+    imageFile: new File(["image"], "image.png", { type: "image/png" }) });
+  const [, body] = axiosInstance.put.mock.calls[0];
+  expect(body.get("Translations[0].language")).toBe("I");
+  expect(body.get("Translations[0].name")).toBe("כיסא");
+  expect(body.get("Translations[0].description")).toBe("");
+});

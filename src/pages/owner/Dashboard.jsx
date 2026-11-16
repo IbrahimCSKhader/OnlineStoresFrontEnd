@@ -1416,10 +1416,11 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
   const buildEditProductForm = (product) => ({
     mode: "edit",
     id: product?.id || "",
-    name: product?.name || "",
+    name: product?.baseName ?? product?.name ?? "",
+    translations: product?.translations || [],
     sku: product?.sku || "",
-    shortDescription: product?.shortDescription || "",
-    description: product?.description || "",
+    shortDescription: product?.baseShortDescription ?? product?.shortDescription ?? "",
+    description: product?.baseDescription ?? product?.description ?? "",
     price:
       product?.originalPrice !== undefined ||
       product?.OriginalPrice !== undefined ||
@@ -2016,6 +2017,9 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
 
     const payload = {
       Name: productForm.name.trim(),
+      Translations: store?.enableLanguageSwitching
+        ? productForm.translations?.filter(item => item.language !== (store.defaultLanguage || store.language || "A"))
+        : undefined,
       Slug: slugify(productForm.name),
       ShortDescription: productForm.shortDescription || undefined,
       Description: productForm.description || undefined,
@@ -2191,6 +2195,9 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
           id: categoryForm.id,
           payload: {
             Name: categoryForm.name.trim(),
+            Translations: store?.enableLanguageSwitching
+              ? categoryForm.translations?.filter(item => item.language !== (store.defaultLanguage || store.language || "A"))
+              : undefined,
             Description: categoryForm.description || undefined,
             ImageUrl: categoryForm.imageUrl || "",
             imageFile: categoryForm.imageFile,
@@ -2207,6 +2214,9 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
 
       const createdCategory = await createCategoryMutation.mutateAsync({
         name: categoryForm.name.trim(),
+        Translations: store?.enableLanguageSwitching
+          ? categoryForm.translations?.filter(item => item.language !== (store.defaultLanguage || store.language || "A"))
+          : undefined,
         slug: slugify(categoryForm.name),
         description: categoryForm.description || undefined,
         imageUrl: categoryForm.imageUrl || undefined,
@@ -2245,6 +2255,9 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
           id: sectionForm.id,
           payload: {
             Name: sectionForm.name.trim(),
+            Translations: store?.enableLanguageSwitching
+              ? sectionForm.translations?.filter(item => item.language !== (store.defaultLanguage || store.language || "A"))
+              : undefined,
             Description: sectionForm.description || undefined,
             DisplayOrder: Number(sectionForm.displayOrder || 0),
             IsActive: sectionForm.isActive,
@@ -2257,6 +2270,9 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
 
       const createdSection = await createSectionMutation.mutateAsync({
         Name: sectionForm.name.trim(),
+        Translations: store?.enableLanguageSwitching
+          ? sectionForm.translations?.filter(item => item.language !== (store.defaultLanguage || store.language || "A"))
+          : undefined,
         Slug: slugify(sectionForm.name),
         Description: sectionForm.description || undefined,
         DisplayOrder: Number(sectionForm.displayOrder || 0),
@@ -2655,6 +2671,7 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
             ) : null}
 
             <ProductForm
+              store={store}
               form={productForm}
               isEdit={productForm.mode === "edit"}
               loading={
@@ -2905,6 +2922,7 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
             />
 
             <CategoryForm
+              store={store}
               form={categoryForm}
               isEdit={categoryForm.mode === "edit"}
               categories={categoryOptions}
@@ -2968,8 +2986,9 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
                             setCategoryForm({
                               mode: "edit",
                               id: row.id,
-                              name: row.name || "",
-                              description: row.description || "",
+                              name: row.baseName ?? row.name ?? "",
+                              translations: row.translations || [],
+                              description: row.baseDescription ?? row.description ?? "",
                               imageUrl: row.imageUrl || "",
                               imageFile: null,
                               displayOrder: String(row.displayOrder ?? 0),
@@ -3003,6 +3022,7 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
             />
 
             <SectionForm
+              store={store}
               form={sectionForm}
               isEdit={sectionForm.mode === "edit"}
               loading={
@@ -3049,8 +3069,9 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
                             setSectionForm({
                               mode: "edit",
                               id: row.id,
-                              name: row.name || "",
-                              description: row.description || "",
+                              name: row.baseName ?? row.name ?? "",
+                              translations: row.translations || [],
+                              description: row.baseDescription ?? row.description ?? "",
                               displayOrder: String(row.displayOrder ?? 0),
                               isActive: Boolean(row.isActive),
                             })

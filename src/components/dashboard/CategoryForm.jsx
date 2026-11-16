@@ -1,3 +1,4 @@
+import CatalogTranslationFields from "./CatalogTranslationFields.jsx";
 import { useEffect, useState } from "react";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
@@ -12,6 +13,7 @@ import AppButton from "../common/buttons/AppButton.jsx";
 
 export default function CategoryForm({
   form,
+  store,
   isEdit,
   categories,
   loading,
@@ -112,6 +114,8 @@ export default function CategoryForm({
             onChange={(event) => onChange("isActive", event.target.checked)}
           />
         </Box>
+
+        <CatalogTranslationFields store={store} form={form} onChange={onChange} disabled={loading} />
 
         <Stack direction="row" spacing={1} className="owner-form__actions">
           <AppButton type="submit" variant="contained" loading={loading}>
