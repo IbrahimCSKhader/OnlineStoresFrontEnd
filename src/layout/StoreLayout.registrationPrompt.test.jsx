@@ -6,7 +6,9 @@ import { beforeEach, expect, it, vi } from "vitest";
 import useStorefrontSession from "../hooks/auth/useStorefrontSession.js";
 import useStoreBySlug from "../hooks/stores/useStoreBySlug.js";
 import StoreLayout from "./StoreLayout.jsx";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
+vi.mock("@mui/material/useMediaQuery", () => ({ default: vi.fn() }));
 vi.mock("../hooks/auth/useStorefrontSession.js", () => ({ default: vi.fn() }));
 vi.mock("../hooks/stores/useStoreBySlug.js", () => ({ default: vi.fn() }));
 vi.mock("../hooks/storefront/useStorefrontLanguage.js", () => ({
@@ -39,14 +41,17 @@ function openStore(path = "/market/first", enabled = true, themeTemplate) {
 
 beforeEach(() => {
   window.localStorage.clear();
+  useMediaQuery.mockReturnValue(false);
   useStorefrontSession.mockReturnValue({ hasScopedStorefrontSession: false });
 });
 
 it.each([
-  ["/market/sallabasket/products", "F", true],
-  ["/market/another-store/products", "F", false],
-  ["/market/jubeh-office-furniture", "O", true],
-])("selects the storefront navigation for %s", (path, themeTemplate, appNavbar) => {
+  ["/market/sallabasket/products", "F", true, true],
+  ["/market/sallabasket/products", "F", false, false],
+  ["/market/another-store/products", "F", true, false],
+  ["/market/jubeh-office-furniture", "O", false, true],
+])("selects navigation for %s (theme %s, compact %s)", (path, themeTemplate, compact, appNavbar) => {
+  useMediaQuery.mockReturnValue(compact);
   openStore(path, false, themeTemplate);
   if (appNavbar) {
     expect(screen.getByRole("navigation", { name: "App Navbar" })).toBeVisible();

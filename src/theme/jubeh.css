@@ -1,0 +1,60 @@
+html[data-theme-template="jubeh"] .page-store-details__hero--logo.app-surface-card--hero {
+  min-height: clamp(154px, 20vw, 238px);
+  padding: clamp(18px, 4vw, 40px);
+  border: 1px solid #583a30;
+  border-block-end: 3px solid #f47d43;
+  background: #231f20;
+}
+
+.page-store-details__hero--logo .page-store-details__brand-row {
+  gap: clamp(14px, 4vw, 34px);
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff7ef;
+}
+
+.page-store-details__hero--logo .page-store-details__brand-row .storefront-logo {
+  width: clamp(74px, 11vw, 136px);
+  height: clamp(74px, 11vw, 136px);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+  box-shadow: none;
+}
+
+.page-store-details__hero--logo .page-store-details__title {
+  max-width: 17ch;
+  color: inherit;
+  font-weight: 800;
+  text-wrap: balance;
+}
+
+html[data-theme-template="jubeh"] :is(.product-card, .storefront-metric, .store-local-footer,
+  .page-cart__item-card, .page-checkout__form-card, .page-checkout__cart-card) {
+  border: 1px solid var(--border-subtle);
+}
+
+html[data-theme-template="jubeh"] :is(.product-card__price, .page-product-details__price, .storefront-eyebrow) {
+  color: var(--primary);
+}
+
+html[data-theme-template="jubeh"] :is(.store-navbar__drawer, .store-navbar__theme-menu, .MuiDialog-paper) {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+html[data-theme-template="jubeh"] .app-navbar {
+  border-color: var(--border-strong);
+}
+
+html[data-theme-template="jubeh"] .store-local-footer .MuiChip-outlined {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--surface-alt);
+}
+
+html[data-theme-template="jubeh"] .store-local-footer__link {
+  color: var(--text-secondary);
+}

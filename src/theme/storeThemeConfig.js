@@ -1,4 +1,10 @@
+export const JUBEH_STORE_SLUG = "jubeh-office-furniture";
+
 const themeConfigs = {
+  jubeh: {
+    defaultVariant: "jubeh-dark",
+    availableVariants: ["jubeh-light", "jubeh-dark"],
+  },
   appNavbar: {
     defaultVariant: "app-navbar-dark",
     availableVariants: ["app-navbar-light", "app-navbar-dark"],
@@ -76,6 +82,9 @@ function resolveTemplate(store) {
 }
 
 export function resolveStoreThemeConfig(store) {
+  if (normalize(store?.slug ?? store?.Slug) === JUBEH_STORE_SLUG) {
+    return themeConfigs.jubeh;
+  }
   switch (resolveTemplate(store)) {
     case "o":
     case "app-navbar":

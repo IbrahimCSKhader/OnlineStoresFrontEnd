@@ -85,6 +85,62 @@ const zeroBrandMix = {
 };
 
 export const themeCatalog = {
+  "jubeh-light": {
+    id: "jubeh-light",
+    label: "Jubeh Light",
+    navigationLabel: "الجعبة صباحي",
+    template: "jubeh",
+    mode: "light",
+    palette: {
+      primary: "#A53510", primaryContainer: "#B94616", secondary: "#FFE1D1", accent: "#D04B1B",
+      buttonText: "#FFFFFF", accentText: "#FFFFFF",
+      background: "#F8F5F0", surface: "#FFFCF8", surfaceLow: "#EFE9E2",
+      surfaceCard: "#FFFFFF", surfaceBright: "#FFF5EA", surfaceAlt: "#F4EBE3",
+      surfaceElevated: "#FFFFFF", surfaceContrast: "#E9DBD1",
+      textPrimary: "#201C1A", textSecondary: "#524943", textMuted: "#675A52",
+      border: "#DDC9BB", borderStrong: "#9E7C69", outlineVariant: "#947460",
+      hover: "#FFE9DC", active: "#F9DBC9", success: "#2C643F", warning: "#784808", error: "#B42332",
+    },
+    gradients: {
+      page: "linear-gradient(180deg, #FFF9F3, #F8F5F0 40%)",
+      hero: "linear-gradient(135deg, #FFF4E9, #F4EBE3)",
+      accent: "linear-gradient(140deg, #A53510, #B94616)",
+    },
+    shadows: {
+      soft: "0 8px 28px #2F1B1010",
+      medium: "0 14px 40px #2F1B1020",
+      strong: "0 24px 58px #2F1B1030",
+    },
+    brandMix: zeroBrandMix,
+  },
+  "jubeh-dark": {
+    id: "jubeh-dark",
+    label: "Jubeh Dark",
+    navigationLabel: "الجعبة مسائي",
+    template: "jubeh",
+    mode: "dark",
+    palette: {
+      primary: "#FF8547", primaryContainer: "#FF713B", secondary: "#423026", accent: "#FFA776",
+      buttonText: "#201611", accentText: "#201611",
+      background: "#141313", surface: "#1C1918", surfaceLow: "#191716",
+      surfaceCard: "#221F1E", surfaceBright: "#332A25", surfaceAlt: "#2A2421",
+      surfaceElevated: "#2D2622", surfaceContrast: "#151312",
+      textPrimary: "#FCF3EB", textSecondary: "#DEC9BA", textMuted: "#BFA99C",
+      border: "#594239", borderStrong: "#947260", outlineVariant: "#947260",
+      hover: "#3B2B22", active: "#473227", success: "#9AD8A6", warning: "#FFD180", error: "#FF9297",
+    },
+    gradients: {
+      page: "linear-gradient(180deg, #191615, #141313 44%)",
+      hero: "linear-gradient(135deg, #30251F, #1C1918)",
+      accent: "linear-gradient(140deg, #FF8547, #FF713B)",
+    },
+    shadows: {
+      soft: "0 8px 28px #00000036",
+      medium: "0 14px 40px #00000055",
+      strong: "0 24px 60px #00000070",
+    },
+    brandMix: zeroBrandMix,
+  },
   "app-navbar-light": {
     id: "app-navbar-light",
     label: "App Navbar Light",

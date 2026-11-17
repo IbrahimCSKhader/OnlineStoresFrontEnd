@@ -13,6 +13,19 @@ function useElectroPulseTheme() {
 
 beforeEach(() => localStorage.clear());
 
+it("keeps Jubeh's existing light preference with its dedicated palette", async () => {
+  const jubeh = { id: "jubeh", slug: "jubeh-office-furniture", themeTemplate: "O" };
+  localStorage.setItem(storageKeys.storeThemeVariants, JSON.stringify({ [jubeh.id]: "app-navbar-light" }));
+  const hook = renderHook(() => {
+    useStoreBranding(jubeh);
+    return useAppThemeVariant();
+  }, { wrapper: AppThemeProvider });
+  await waitFor(() => expect(hook.result.current.variant).toBe("jubeh-light"));
+  act(() => hook.result.current.setVariant("jubeh-dark"));
+  expect(hook.result.current.themeProfile.template).toBe("jubeh");
+  expect(localStorage.getItem(storageKeys.storeThemeVariants)).toContain("jubeh-dark");
+});
+
 describe("ElectroPulse visitor theme preference", () => {
   it("starts a new visitor in dark mode even with a global light preference", async () => {
     localStorage.setItem(storageKeys.themeVariant, "light");

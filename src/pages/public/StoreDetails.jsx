@@ -38,6 +38,7 @@ import {
 } from "../../utils/products.js";
 import useCatalogViewState from "../../hooks/storefront/useCatalogViewState.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
+import { JUBEH_STORE_SLUG } from "../../theme/storeThemeConfig.js";
 import "./StoreDetails.css";
 
 const CATALOG_PAGE_SIZE = 12;
@@ -207,9 +208,10 @@ export default function StoreDetails() {
     );
   }
 
-  const coverImage = resolveStoreCoverUrl(store);
-  const logoImage = resolveAssetUrl(store.logoUrl);
   const resolvedStoreSlug = store.slug || slug;
+  const logoCover = resolvedStoreSlug.toLowerCase() === JUBEH_STORE_SLUG;
+  const coverImage = logoCover ? "" : resolveStoreCoverUrl(store);
+  const logoImage = resolveAssetUrl(store.logoUrl);
 
   return (
     <Box className="storefront-page page-store-details">
@@ -221,7 +223,7 @@ export default function StoreDetails() {
         <Alert severity="success">{t("تمت إضافة المنتج إلى السلة.")}</Alert>
       ) : null}
 
-      <SurfaceCard variant="hero" className="page-store-details__hero">
+      <SurfaceCard variant="hero" className={logoCover ? "page-store-details__hero page-store-details__hero--logo" : "page-store-details__hero"}>
         {coverImage && <img className="page-store-details__hero-media" src={coverImage} alt="" decoding="async" />}
         <Box className="page-store-details__brand-row">
           {logoImage ? (

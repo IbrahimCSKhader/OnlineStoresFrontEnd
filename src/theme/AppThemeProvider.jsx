@@ -15,6 +15,7 @@ import { prefixer } from "stylis";
 import rtlPlugin from "stylis-plugin-rtl";
 import { buildThemeProfile, createAppTheme, THEME_VARIANTS } from "./themes.js";
 import "./electropulse.css";
+import "./jubeh.css";
 import { buildAppearanceCss } from "./storeAppearance.js";
 import {
   getStorageItem,
@@ -48,9 +49,14 @@ function normalizeThemeVariant(
   fallback = null,
   allowedVariants = THEME_VARIANTS,
 ) {
-  return resolveAllowedThemeVariants(allowedVariants, THEME_VARIANTS).includes(value)
-    ? value
-    : fallback;
+  const allowed = resolveAllowedThemeVariants(allowedVariants, THEME_VARIANTS);
+  if (allowed.includes(value)) return value;
+
+  // Preserve day/night preferences from before Jubeh received its own palette.
+  const jubehVariant = value === "app-navbar-light" ? "jubeh-light"
+    : value === "app-navbar-dark" ? "jubeh-dark"
+      : null;
+  return allowed.includes(jubehVariant) ? jubehVariant : fallback;
 }
 
 function normalizeStoreThemeKey(value) {
