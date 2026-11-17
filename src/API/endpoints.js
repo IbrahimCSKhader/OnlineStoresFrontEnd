@@ -42,6 +42,13 @@ export const endpoints = {
     subscription: (id) => withPrefix(`/Store/${id}/subscription`),
     visit: (id) => withPrefix(`/Store/${id}/visit`),
     visitCount: (id) => withPrefix(`/Store/${id}/visit-count`),
+    statistics: (id) => withPrefix(`/Store/${id}/statistics`),
+    rating: (id) => withPrefix(`/Store/${id}/rating`),
+  },
+  favorites: {
+    list: (storeId) => withPrefix(`/Store/${storeId}/favorites`),
+    product: (storeId, productId) => withPrefix(`/Store/${storeId}/favorites/${productId}`),
+    merge: (storeId) => withPrefix(`/Store/${storeId}/favorites/merge`),
   },
   sections: {
     create: withPrefix("/Section"),

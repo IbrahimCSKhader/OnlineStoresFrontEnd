@@ -24,7 +24,10 @@ vi.mock("../../hooks/auth/useStorefrontSession.js", () => ({ default: () => ({ h
 vi.mock("../../hooks/cart/useCart.js", () => ({ default: () => ({ data: { items: [] } }) }));
 vi.mock("../../hooks/cart/useAddToCart.js", () => ({ default: () => ({ mutate: cartAdd, mutateAsync: cartAdd }) }));
 vi.mock("../../theme/useStoreBranding.js", () => ({ default: () => {} }));
-vi.mock("../../API/store.api.js", () => ({ default: { visitStore: async () => ({}) } }));
+vi.mock("../../API/store.api.js", () => ({ default: {
+  visitStore: async () => ({}),
+  getStoreStatistics: async () => ({ visitCount: 0, productCount: 1, ratingCount: 0, averageRating: null }),
+} }));
 vi.mock("../../API/product.api.js", () => ({ default: { visitProduct: async () => ({}) } }));
 afterEach(cleanup);
 function show(Component, isCatalog, path = "/market/demo/product/p", signedIn = false) {
@@ -42,8 +45,8 @@ function show(Component, isCatalog, path = "/market/demo/product/p", signedIn = 
 it.each([[false, false], [false, true], [true, false], [true, true]])("store product cards respect catalog=%s, signedIn=%s", (isCatalog, signedIn) => {
   show(StoreDetails, isCatalog, undefined, signedIn);
   expect(screen.getByText("Sample product")).toBeInTheDocument();
-  expect(screen.queryAllByRole("button", { name: "أضف" }).length > 0).toBe(!isCatalog);
-  expect(screen.queryAllByRole("link", { name: "السلة" }).length > 0).toBe(!isCatalog);
+  expect(screen.queryAllByRole("button", { name: "أضف إلى السلة" }).length > 0).toBe(!isCatalog);
+  expect(within(document.querySelector(".page-store-details__hero")).queryByRole("link", { name: "السلة" })).toBeNull();
 });
 it("store home cards submit the selected quantity and reset after success", async () => {
   cartAdd.mockClear();
@@ -52,7 +55,7 @@ it("store home cards submit the selected quantity and reset after success", asyn
   fireEvent.click(card.getByRole("button", { name: "زيادة الكمية" }));
   fireEvent.click(card.getByRole("button", { name: "زيادة الكمية" }));
   fireEvent.click(card.getByRole("button", { name: "زيادة الكمية" }));
-  fireEvent.click(card.getByRole("button", { name: "أضف" }));
+  fireEvent.click(card.getByRole("button", { name: "أضف إلى السلة" }));
   await waitFor(() => expect(cartAdd).toHaveBeenCalledWith(expect.objectContaining({ productId: "p", quantity: 3 })));
   await waitFor(() => expect(card.getByLabelText("الكمية", { selector: "output" })).toHaveTextContent("0"));
 });

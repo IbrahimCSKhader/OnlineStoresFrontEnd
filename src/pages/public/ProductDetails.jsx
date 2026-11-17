@@ -50,6 +50,7 @@ import {
   normalizeProductList,
 } from "../../utils/products.js";
 import { buildStorefrontPath } from "../../utils/customDomain.js";
+import { buildWhatsAppLink } from "../../utils/whatsapp.js";
 import { isProductCatalogRoute } from "../../utils/scrollRestoration.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import "./ProductDetails.css";
@@ -230,6 +231,11 @@ export default function ProductDetails() {
   const selectedVariantAttributes = getVariantAttributeLabel(selectedVariant);
   const selectedSku =
     selectedVariant?.sku ? selectedVariant.sku : product?.sku;
+  const priceOnRequest = product.isPriceOnRequest;
+  const quoteLink = priceOnRequest ? buildWhatsAppLink(
+    store?.whatsAppNumber,
+    t("مرحبًا، أود الاستفسار عن {0}", product.name),
+  ) : "";
   const selectableStockQuantity = selectableVariants.reduce(
     (sum, variant) => sum + Number(variant.stockQuantity || 0),
     0,
@@ -333,7 +339,7 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (store?.isCatalog || isOwnerPreview || !effectiveStoreId || !product?.id) {
+    if (priceOnRequest || store?.isCatalog || isOwnerPreview || !effectiveStoreId || !product?.id) {
       return;
     }
 
@@ -592,7 +598,7 @@ export default function ProductDetails() {
 
               <Box className="page-product-details__price-wrap">
                 <Typography variant="h3" className="page-product-details__price">
-                  {formatCurrency(displayPrice)}
+                  {priceOnRequest ? t("السعر عند الاستفسار") : formatCurrency(displayPrice)}
                 </Typography>
                 {hasComparePrice ? (
                   <Typography
@@ -614,7 +620,7 @@ export default function ProductDetails() {
                 </Typography>
               ) : null}
 
-              <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+              {!priceOnRequest && <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                 <Chip
                   icon={<Inventory2RoundedIcon fontSize="small" />}
                   label={
@@ -627,7 +633,7 @@ export default function ProductDetails() {
                   color={isAvailable ? "default" : "warning"}
                   variant="outlined"
                 />
-              </Stack>
+              </Stack>}
 
               <Divider />
 
@@ -666,7 +672,7 @@ export default function ProductDetails() {
               ) : null}
 
               <Box className="page-product-details__purchase">
-                {!store?.isCatalog && <>
+                {!store?.isCatalog && !priceOnRequest && <>
                 <Typography variant="subtitle1" className="page-product-details__block-title">{t("الكمية")}</Typography>
 
                 <QuantityStepper
@@ -682,7 +688,10 @@ export default function ProductDetails() {
                 </>}
 
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                  {!store?.isCatalog && <>
+                  {quoteLink && <AppButton href={quoteLink} target="_blank" rel="noopener noreferrer">
+                    {t("استفسر عبر واتساب")}
+                  </AppButton>}
+                  {!store?.isCatalog && !priceOnRequest && <>
                   <AppButton
                     variant="contained"
                     loading={addToCartUi.activeKey === "main"}

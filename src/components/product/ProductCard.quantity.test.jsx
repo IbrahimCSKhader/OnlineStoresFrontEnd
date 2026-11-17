@@ -15,10 +15,10 @@ it("adds exactly the selected quantity once and resets only after success", asyn
   let finish;
   const onAddToCart = vi.fn(() => new Promise(resolve => { finish = resolve; }));
   show({ onAddToCart });
-  expect(screen.getByRole("button", { name: "أضف" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "أضف إلى السلة" })).toBeDisabled();
   expect(count()).toHaveTextContent("0");
   increase(); increase();
-  fireEvent.click(screen.getByRole("button", { name: "أضف" }));
+  fireEvent.click(screen.getByRole("button", { name: "أضف إلى السلة" }));
   expect(onAddToCart).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ id: "p" }), 2);
   expect(count()).toHaveTextContent("2");
   expect(screen.getByRole("button", { name: "زيادة الكمية" })).toBeDisabled();
@@ -29,10 +29,10 @@ it("adds exactly the selected quantity once and resets only after success", asyn
 it("keeps the selection on failure so it can be retried", async () => {
   const onAddToCart = vi.fn().mockRejectedValueOnce(new Error("Network")).mockResolvedValueOnce({});
   show({ onAddToCart }); increase(); increase();
-  fireEvent.click(screen.getByRole("button", { name: "أضف" }));
+  fireEvent.click(screen.getByRole("button", { name: "أضف إلى السلة" }));
   expect(await screen.findByRole("alert")).toBeVisible();
   expect(count()).toHaveTextContent("2");
-  fireEvent.click(screen.getByRole("button", { name: "أضف" }));
+  fireEvent.click(screen.getByRole("button", { name: "أضف إلى السلة" }));
   await waitFor(() => expect(count()).toHaveTextContent("0"));
   expect(onAddToCart).toHaveBeenCalledTimes(2);
 });
@@ -50,10 +50,16 @@ it("clamps at zero and the chosen variant's stock", () => {
 it.each([{ disableCartActions: true }, { product: { ...product, isInStock: false, stockQuantity: 0 } }])("disables quantity in previews and for unavailable items", props => {
   show(props);
   expect(screen.getByRole("button", { name: "زيادة الكمية" })).toBeDisabled();
-  expect(screen.getByRole("button", { name: "أضف" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "أضف إلى السلة" })).toBeDisabled();
 });
 
 it("omits purchase controls for catalogs", () => {
   show({ onAddToCart: undefined });
   expect(screen.queryByRole("group", { name: "الكمية" })).not.toBeInTheDocument();
+});
+
+it("shows a quote-only product without a zero price or purchase controls", () => {
+  show({ product: { ...product, price: 0, isPriceOnRequest: true } });
+  expect(screen.getByText("السعر عند الاستفسار")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "أضف إلى السلة" })).not.toBeInTheDocument();
 });

@@ -44,7 +44,7 @@ it("keeps desktop filters visible and passes the selected quantity to the cart m
   const card = within(container.querySelector(".product-card"));
   fireEvent.click(card.getByRole("button", { name: "زيادة الكمية" }));
   fireEvent.click(card.getByRole("button", { name: "زيادة الكمية" }));
-  fireEvent.click(card.getByRole("button", { name: "أضف" }));
+  fireEvent.click(card.getByRole("button", { name: "أضف إلى السلة" }));
   await waitFor(() => expect(state.add).toHaveBeenCalledWith(expect.objectContaining({ productId: "p", quantity: 2, storeId: "s" })));
   await waitFor(() => expect(card.getByLabelText("الكمية", { selector: "output" })).toHaveTextContent("0"));
 });

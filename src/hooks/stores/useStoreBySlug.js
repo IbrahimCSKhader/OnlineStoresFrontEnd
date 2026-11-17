@@ -8,11 +8,17 @@ export default function useStoreBySlug(slug, options = {}) {
   const normalizedSlug = String(slug || "").trim();
   const { enabled = true, language, ...queryOptions } = options;
   const languageParams = language ? { language } : undefined;
+  const storeKey = normalizedSlug
+    ? queryKeys.stores.slug(normalizedSlug)
+    : queryKeys.stores.resolve(host);
 
   return useQuery({
-    queryKey: normalizedSlug
-      ? [...queryKeys.stores.slug(normalizedSlug), language || ""]
-      : [...queryKeys.stores.resolve(host), language || ""],
+    queryKey: [...storeKey, language || ""],
+    placeholderData: (previousData, previousQuery) =>
+      previousQuery?.queryKey.length === storeKey.length + 1 &&
+      storeKey.every((part, index) => previousQuery.queryKey[index] === part)
+        ? previousData
+        : undefined,
     queryFn: () =>
       normalizedSlug
         ? storeApi.getStoreBySlug(normalizedSlug, languageParams)

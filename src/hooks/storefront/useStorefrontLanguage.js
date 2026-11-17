@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { matchPath, useLocation } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
 import storeApi from "../../API/store.api.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
 import { getCurrentCustomDomainHost } from "../../utils/customDomain.js";
@@ -26,7 +26,7 @@ export default function useStorefrontLanguage() {
   });
   const baseStore = normalizeEntityResponse(baseStoreQuery.data);
   const selectionKey = ["storefront-language-selection", scope];
-  const selection = useQuery({ queryKey: selectionKey, enabled: false, initialData: null });
+  const selection = useQuery({ queryKey: selectionKey, queryFn: skipToken, initialData: null });
   const canSwitchLanguage = Boolean(scope) && baseStore?.enableLanguageSwitching === true;
   const defaultLanguage = normalizeStorefrontLanguage(baseStore?.defaultLanguage ?? baseStore?.language);
   const updateLanguage = useCallback((value) => {

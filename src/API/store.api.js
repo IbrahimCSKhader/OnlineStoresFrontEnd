@@ -87,6 +87,10 @@ export const storeApi = {
     axiosInstance.put(endpoints.stores.detail(id), payload),
   deleteStore: (id) => axiosInstance.delete(endpoints.stores.detail(id)),
   visitStore: (id) => axiosInstance.post(endpoints.stores.visit(id)),
+  getStoreStatistics: (id) => axiosInstance.get(endpoints.stores.statistics(id)),
+  rateStore: (id, payload, token) => axiosInstance.put(endpoints.stores.rating(id), payload, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  }),
   getStoreVisitCount: (id) =>
     axiosInstance.get(endpoints.stores.visitCount(id)),
 };

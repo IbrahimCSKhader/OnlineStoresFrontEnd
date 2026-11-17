@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
+import storeApi from "../../API/store.api.js";
 import StoreDetails from "./StoreDetails.jsx";
 import StoreAbout from "./StoreAbout.jsx";
 import StoreContact from "./StoreContact.jsx";
@@ -10,6 +11,7 @@ import StoreContact from "./StoreContact.jsx";
 vi.mock("../../API/store.api.js", () => ({ default: {
   getStoreBySlug: vi.fn(async () => ({ id: "shoman", slug: "shomanhome", name: "shomanhome", language: "I", description: "פריטים יפים לבית", businessType: "מוצרים לבית", storeStory: "יופי ונוחות לבית", isActive: true })),
   visitStore: vi.fn(async () => ({ visitCount: 1 })),
+  getStoreStatistics: vi.fn(async () => ({ visitCount: 1, productCount: 58, ratingCount: 0, averageRating: null })),
 } }));
 vi.mock("../../hooks/stores/useOwnerStorePreview.js", () => ({ default: () => ({ isOwnerPreview: false, previewSearch: "", buildStorePreviewPath: x => x }) }));
 vi.mock("../../theme/useStoreBranding.js", () => ({ default: () => {} }));
@@ -40,9 +42,9 @@ it.each([
   expect(container.textContent).toContain("shomanhome");
 });
 
-it.each([0, 46, 58])("counts positive product quantities across the entire store: %s", async expectedCount => {
+it("shows the full product count below the cover independently of product stock", async () => {
   const all = Array.from({ length: 58 }, (_, index) => ({
-    id: String(index), name: `Product ${index}`, stockQuantity: index < expectedCount ? 10 : 0,
+    id: String(index), name: `Product ${index}`, stockQuantity: index < 46 ? 10 : 0,
     trackInventory: false, isInStock: true,
   }));
   vi.mocked(useStorefrontCatalogProducts).mockImplementation((_id, options) => ({
@@ -55,5 +57,10 @@ it.each([0, 46, 58])("counts positive product quantities across the entire store
       <Routes><Route path="/market/:slug" element={<StoreDetails />} /></Routes>
     </MemoryRouter>
   </QueryClientProvider>);
-  await waitFor(() => expect(container.querySelectorAll(".storefront-metric__value")[2]?.textContent).toBe(String(expectedCount)));
+  await waitFor(() => expect(container.querySelectorAll(".storefront-metric__value")[1]?.textContent).toBe("58"));
+  const cover = container.querySelector(".page-store-details__hero");
+  expect(cover.querySelector("h1")).toHaveTextContent("shomanhome");
+  expect(cover.querySelector(".storefront-logo")).toBeInTheDocument();
+  expect(cover).not.toHaveTextContent("פריטים יפים לבית");
+  expect(storeApi.getStoreStatistics).toHaveBeenCalledWith("shoman");
 });

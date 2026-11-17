@@ -104,8 +104,7 @@ export function ProductGridSkeleton({
             <Skeleton variant="text" width="58%" height={16} />
           </Box>
           <Box className="product-card__skeleton-actions">
-            <Skeleton variant="rounded" width="34%" height={30} />
-            <Skeleton variant="rounded" width="38%" height={36} />
+            <Skeleton variant="rounded" width="100%" height={36} />
           </Box>
         </Box>
       ))}

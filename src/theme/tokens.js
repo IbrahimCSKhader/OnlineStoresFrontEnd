@@ -85,6 +85,62 @@ const zeroBrandMix = {
 };
 
 export const themeCatalog = {
+  "app-navbar-light": {
+    id: "app-navbar-light",
+    label: "App Navbar Light",
+    navigationLabel: "الوضع الصباحي",
+    template: "app-navbar",
+    mode: "light",
+    palette: {
+      primary: "#B93620", primaryContainer: "#B93620", secondary: "#F4DED2", accent: "#B93620",
+      buttonText: "#FFFFFF", accentText: "#FFFFFF",
+      background: "#F8F2EC", surface: "#FFFAF6", surfaceLow: "#F2E7DF",
+      surfaceCard: "#FFFFFF", surfaceBright: "#FFF5EC", surfaceAlt: "#F4E7DF",
+      surfaceElevated: "#FFFFFF", surfaceContrast: "#EFDDD0",
+      textPrimary: "#241D1C", textSecondary: "#594943", textMuted: "#685750",
+      border: "#E3D0C4", borderStrong: "#C3A697", outlineVariant: "#E3D0C4",
+      hover: "#F9E5D9", active: "#F2D3C5", success: "#30633F", warning: "#845113", error: "#B82935",
+    },
+    gradients: {
+      page: "linear-gradient(180deg, #FFF8F2, #F8F2EC)",
+      hero: "linear-gradient(135deg, #F8D5C5, #FFF6EE 68%)",
+      accent: "linear-gradient(140deg, #C13E26, #A32D1C)",
+    },
+    shadows: {
+      soft: "0 8px 26px #38201912",
+      medium: "0 16px 40px #3820191C",
+      strong: "0 24px 54px #38201927",
+    },
+    brandMix: zeroBrandMix,
+  },
+  "app-navbar-dark": {
+    id: "app-navbar-dark",
+    label: "App Navbar Dark",
+    navigationLabel: "الوضع المسائي",
+    template: "app-navbar",
+    mode: "dark",
+    palette: {
+      primary: "#FF7955", primaryContainer: "#FF7955", secondary: "#452A23", accent: "#FF976E",
+      buttonText: "#241410", accentText: "#241410",
+      background: "#191616", surface: "#211C1B", surfaceLow: "#1D1918",
+      surfaceCard: "#2A2423", surfaceBright: "#392C27", surfaceAlt: "#312725",
+      surfaceElevated: "#332926", surfaceContrast: "#181313",
+      textPrimary: "#FFF4EC", textSecondary: "#E0C6B9", textMuted: "#BEA499",
+      border: "#533E37", borderStrong: "#876256", outlineVariant: "#533E37",
+      hover: "#412E27", active: "#53372D", success: "#9AD6A5", warning: "#FFD08B", error: "#FF8B8A",
+    },
+    gradients: {
+      page: "linear-gradient(180deg, #191616, #231C1A)",
+      hero: "linear-gradient(135deg, #482B24, #211C1B 68%)",
+      accent: "linear-gradient(140deg, #FF9267, #F36543)",
+    },
+    shadows: {
+      soft: "0 8px 28px #0E090833",
+      medium: "0 16px 42px #0E09084D",
+      strong: "0 24px 60px #0E090866",
+    },
+    brandMix: zeroBrandMix,
+  },
   electropulse: {
     id: "electropulse",
     label: "ElectroPulse Light",

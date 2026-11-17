@@ -19,6 +19,8 @@ import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 import DarkModeRoundedIcon from "@mui/icons-material/DarkModeRounded";
 import DashboardRoundedIcon from "@mui/icons-material/DashboardRounded";
 import EmailRoundedIcon from "@mui/icons-material/EmailRounded";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
@@ -38,6 +40,7 @@ import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.
 import useOwnerLanguage from "../../hooks/storefront/useOwnerLanguage.js";
 import OwnerLanguageMenu from "./OwnerLanguageMenu.jsx";
 import StorefrontLanguageMenu from "./StorefrontLanguageMenu.jsx";
+import StoreFavoritesButton from "./StoreFavoritesButton.jsx";
 import useOwnerStore from "../../hooks/stores/useOwnerStore.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
@@ -61,6 +64,7 @@ import {
   getCurrentCustomDomainHost,
 } from "../../utils/customDomain.js";
 import "./Navbar.css";
+import "./AppNavbar.css";
 
 function buildNavItems(activeStoreSlug, copy, offersLabel) {
   if (activeStoreSlug) {
@@ -207,7 +211,7 @@ function NavLinks({ items, onNavigate, drawer = false, resolveTo }) {
   });
 }
 
-export default function Navbar() {
+export default function Navbar({ appNavbar = false }) {
   const theme = useTheme();
   const isCompactHeader = useMediaQuery(theme.breakpoints.down("lg"));
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -226,7 +230,7 @@ export default function Navbar() {
   const { isOwnerPreview, buildStorePreviewPath } = useOwnerStorePreview();
   const storefrontLanguage = useStorefrontLanguage();
   const ownerLanguage = useOwnerLanguage();
-  const { t, language, copy } = ownerLanguage.enabled ? ownerLanguage : storefrontLanguage;
+  const { t, language, copy, dir, locale } = ownerLanguage.enabled ? ownerLanguage : storefrontLanguage;
   const profileMenuOpen = Boolean(profileAnchorEl);
   const isOwnerDashboardRoute = location.pathname.startsWith("/owner");
 
@@ -489,6 +493,19 @@ export default function Navbar() {
     }
 
     if (!activeStoreSlug) return null;
+    if (appNavbar) {
+      return (
+        <IconButton
+          {...(isOwnerPreview ? { disabled: true } : { component: NavLink, to: cartPath })}
+          className="app-navbar__action app-navbar__cart"
+          aria-label={t("السلة")}
+        >
+          <span className="app-navbar__cart-icon">{cartIcon}</span>
+          <span className="app-navbar__label">{t("السلة")}</span>
+        </IconButton>
+      );
+    }
+
 
     if (isOwnerPreview) {
       return (
@@ -880,6 +897,28 @@ export default function Navbar() {
   );
 
   return (
+    <>
+    {appNavbar ? (
+      <Box component="nav" aria-label={t("التنقل الرئيسي")} className={activeStore?.isCatalog ? "app-navbar app-navbar--catalog" : "app-navbar"}>
+        <IconButton component={NavLink} to={brandHref} end className="app-navbar__action" aria-label={copy.home}>
+          <HomeRoundedIcon fontSize="small" />
+          <span className="app-navbar__label">{copy.home}</span>
+        </IconButton>
+        <StoreFavoritesButton storeSlug={activeStoreSlug} appNavbar />
+        {renderCartButton()}
+        <IconButton component={NavLink} to={buildStorePreviewPath(buildStorefrontPath(activeStoreSlug, "/products"))}
+          className="app-navbar__action" aria-label={copy.products}>
+          <GridViewRoundedIcon fontSize="small" />
+          <span className="app-navbar__label">{copy.products}</span>
+        </IconButton>
+        <IconButton className="app-navbar__action" aria-label={t("فتح القائمة")}
+          aria-expanded={drawerOpen} aria-controls={drawerOpen ? "store-navigation-drawer" : undefined}
+          onClick={() => setDrawerOpen(true)}>
+          <MenuRoundedIcon fontSize="small" />
+          <span className="app-navbar__label">{t("المزيد")}</span>
+        </IconButton>
+      </Box>
+    ) : (
     <AppBar position="sticky" component="header" className="store-navbar">
       <Toolbar className="store-navbar__toolbar" disableGutters>
         <Box component={NavLink} to={brandHref} className="store-navbar__brand">
@@ -912,6 +951,7 @@ export default function Navbar() {
         <Box className="store-navbar__actions">
           {!isCompactHeader ? renderPreferences() : null}
           {renderCartButton()}
+          {activeStoreSlug && <StoreFavoritesButton storeSlug={activeStoreSlug} />}
           {!isCompactHeader ? (
             <ContactDeveloperButton
               message={t("مرحبًا، أحتاج مساعدة بخصوص المتجر")}
@@ -944,12 +984,14 @@ export default function Navbar() {
           )}
         </Box>
       </Toolbar>
+    </AppBar>
+    )}
 
       <Drawer
         anchor="right"
-        open={isCompactHeader && drawerOpen}
+        open={(appNavbar || isCompactHeader) && drawerOpen}
         onClose={() => setDrawerOpen(false)}
-        PaperProps={{ id: "store-navigation-drawer", className: "store-navbar__drawer" }}
+        PaperProps={{ id: "store-navigation-drawer", className: "store-navbar__drawer", dir, lang: locale }}
       >
         <Box className="store-navbar__drawer-head">
           <Box className="store-navbar__drawer-brand">
@@ -970,7 +1012,20 @@ export default function Navbar() {
           </Box>
         </Box>
 
-        {isCompactHeader ? (
+        {appNavbar ? (
+          <Box className="app-navbar__drawer-settings">
+            {storefrontLanguage.canSwitchLanguage && (
+              <Box className="app-navbar__drawer-setting">
+                <Typography variant="body2">{copy.language}</Typography>
+                <StorefrontLanguageMenu />
+              </Box>
+            )}
+            <Box className="app-navbar__drawer-setting">
+              <Typography variant="body2">{t("الثيمات")}</Typography>
+              <ThemeToggleButton variant={variant} onSelect={setVariant} options={themeOptions} />
+            </Box>
+          </Box>
+        ) : isCompactHeader ? (
           <Box className="store-navbar__drawer-preferences">
             {renderPreferences()}
           </Box>
@@ -996,7 +1051,7 @@ export default function Navbar() {
           </Stack>
         </Box>
       </Drawer>
-    </AppBar>
+    </>
   );
 }
 

@@ -282,6 +282,7 @@ export function normalizeProductDto(product) {
     ),
     defaultVariantId: firstString(entity?.defaultVariantId, entity?.DefaultVariantId),
     effectiveStockQuantity,
+    isPriceOnRequest: toBoolean(entity?.isPriceOnRequest ?? entity?.IsPriceOnRequest, false),
     price: firstNumber(entity?.price, entity?.Price, finalPrice),
     finalPrice,
     originalPrice,

@@ -20,3 +20,19 @@
   .product-carousel__item { width: 140px; }
   .product-carousel__item img { width: 140px; height: 140px; }
 }
+.product-carousel__card { position: relative; }
+
+.product-carousel__card .product-carousel__favorite {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: 10px;
+  inset-inline-start: 10px;
+  min-width: 36px;
+  min-height: 36px;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.product-carousel__card .product-carousel__favorite:hover {
+  background: var(--surface-bright);
+}

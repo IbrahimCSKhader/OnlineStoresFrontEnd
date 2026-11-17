@@ -5,6 +5,11 @@ import { buildThemeProfile } from "./themes.js";
 import { relativeLuminance } from "./branding.js";
 
 describe("resolveStoreThemeConfig", () => {
+  it("keeps the App Navbar template in both branded color modes", () => {
+    const theme = resolveStoreThemeConfig({ themeTemplate: "O" });
+    expect(theme.defaultVariant).toBe("app-navbar-dark");
+    expect(theme.availableVariants.map(variant => buildThemeProfile(variant).template)).toEqual(["app-navbar", "app-navbar"]);
+  });
   it("keeps pink dark button text readable across both ends of its gradient", () => {
     const { palette } = buildThemeProfile("pink-dark");
     const text = relativeLuminance(palette.buttonText);

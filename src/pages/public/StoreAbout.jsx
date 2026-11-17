@@ -105,9 +105,13 @@ export default function StoreAbout() {
 
             <Box className="page-store-about__story">
               {storyParagraphs.map((paragraph, index) => (
-                <Typography key={`${index}-${paragraph.slice(0, 18)}`} variant="body1" color="text.secondary">
-                  {paragraph}
-                </Typography>
+                /^\+?\d{8,15}$/.test(paragraph) ? (
+                  <Typography component="a" key={index} href={`tel:${paragraph}`} variant="body1" color="primary" dir="ltr" sx={{ justifySelf: "start" }}>
+                    {paragraph}
+                  </Typography>
+                ) : (
+                  <Typography key={index} variant="body1" color="text.secondary">{paragraph}</Typography>
+                )
               ))}
             </Box>
           </SurfaceCard>

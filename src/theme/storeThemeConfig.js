@@ -1,4 +1,8 @@
 const themeConfigs = {
+  appNavbar: {
+    defaultVariant: "app-navbar-dark",
+    availableVariants: ["app-navbar-light", "app-navbar-dark"],
+  },
   electropulse: {
     defaultVariant: "electropulse-dark",
     availableVariants: ["electropulse", "electropulse-dark"],
@@ -73,6 +77,9 @@ function resolveTemplate(store) {
 
 export function resolveStoreThemeConfig(store) {
   switch (resolveTemplate(store)) {
+    case "o":
+    case "app-navbar":
+      return themeConfigs.appNavbar;
     case "t":
     case "electropulse":
       return themeConfigs.electropulse;

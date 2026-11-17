@@ -203,6 +203,11 @@
   font-size: .8rem;
 }
 
+.product-card__media .offer-badge {
+  inset-block-start: auto;
+  inset-block-end: -8px;
+}
+
 .bundle-cart-components {
   display:flex;
   flex-wrap:wrap;

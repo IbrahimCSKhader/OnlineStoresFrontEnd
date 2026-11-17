@@ -11,7 +11,7 @@ import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import LocalMallRoundedIcon from "@mui/icons-material/LocalMallRounded";
-import OpenInNewRoundedIcon from "@mui/icons-material/OpenInNewRounded";
+import ProductFavoriteButton from "../storefront/ProductFavoriteButton.jsx";
 import AppButton from "../common/buttons/AppButton.jsx";
 import SurfaceCard from "../common/cards/SurfaceCard.jsx";
 import { resolveAssetUrl } from "../../utils/assetUrl.js";
@@ -59,6 +59,7 @@ function ProductCard({
   const hasComparePrice = comparePrice > price;
   const hasOriginalPrice = originalPrice > price && originalPrice !== comparePrice;
   const isAvailable = isProductInStock(normalizedProduct);
+  const priceOnRequest = normalizedProduct.isPriceOnRequest;
   const resolvedStoreSlug = storeSlug || normalizedProduct.storeSlug;
   const detailPath =
     resolvedStoreSlug && normalizedProduct.id
@@ -139,6 +140,7 @@ function ProductCard({
       id={scrollAnchorId}
       data-scroll-anchor={scrollAnchorId}
     >
+      <ProductFavoriteButton product={normalizedProduct} className="product-card__favorite" />
       <Box
         component={detailTarget ? RouterLink : "div"}
         to={detailTarget}
@@ -174,7 +176,7 @@ function ProductCard({
             {normalizedProduct.isFeatured ? (
               <span className="product-card__badge">{t("مميز")}</span>
             ) : null}
-            {!isAvailable ? (
+            {!isAvailable && !priceOnRequest ? (
               <span className="product-card__badge">{t("نفد")}</span>
             ) : null}
           </Box>
@@ -197,7 +199,7 @@ function ProductCard({
 
             <Box className="product-card__price-row">
               <Typography variant="subtitle1" className="product-card__price">
-                {formatCurrency(price)}
+                {priceOnRequest ? t("السعر عند الاستفسار") : formatCurrency(price)}
               </Typography>
               {hasComparePrice ? (
                 <Typography variant="body2" className="product-card__compare">
@@ -224,18 +226,18 @@ function ProductCard({
                 t("قطعة واضحة التفاصيل مع صورة تركز على المنتج نفسه.")}
             </Typography>
 
-            <Typography
+            {!priceOnRequest && <Typography
               variant="caption"
               color="text.secondary"
               className="product-card__availability"
             >
               {availabilityLabel}
-            </Typography>
+            </Typography>}
           </Box>
         </Stack>
       </Box>
 
-      {onAddToCart ? (
+      {onAddToCart && !priceOnRequest ? (
         <Box className="product-card__quantity" role="group" aria-label={t("الكمية")}>
           <IconButton size="small" aria-label={t("تقليل الكمية")} disabled={cartDisabled || busy || selectedQuantity === 0}
             onClick={() => setQuantity(Math.max(0, selectedQuantity - 1))}><RemoveRoundedIcon fontSize="small" /></IconButton>
@@ -245,36 +247,21 @@ function ProductCard({
         </Box>
       ) : null}
       {addError ? <Typography role="alert" variant="caption" className="product-card__cart-error">{t("تعذر إضافة المنتج للسلة. حاول مرة أخرى.")}</Typography> : null}
-      <Stack direction="row" spacing={1} className="product-card__actions">
-        {detailPath ? (
-          <AppButton
-            component={RouterLink}
-            to={detailTarget}
-            state={detailState}
-            variant="text"
-            endIcon={<OpenInNewRoundedIcon fontSize="small" />}
-            className="product-card__detail-button"
-            onClick={handleNavigateToDetails}
-          >{t("عرض المنتج")}</AppButton>
-        ) : null}
-
-        {onAddToCart ? (
+      {onAddToCart && !priceOnRequest ? (
+        <Box className="product-card__actions">
           <AppButton
             variant="contained"
             size="small"
+            fullWidth
             loading={busy}
             loadingLabel="..."
             onClick={handleAdd}
             disabled={cartDisabled || selectedQuantity < 1}
             startIcon={<LocalMallRoundedIcon fontSize="small" />}
-            className={
-              detailPath
-                ? "product-card__add-button"
-                : "product-card__add-button product-card__add-button--solo"
-            }
-          >{t("أضف")}</AppButton>
-        ) : null}
-      </Stack>
+            className="product-card__add-button"
+          >{t("أضف إلى السلة")}</AppButton>
+        </Box>
+      ) : null}
     </SurfaceCard>
   );
 }

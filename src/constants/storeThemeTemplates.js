@@ -120,6 +120,17 @@ export const STORE_THEME_TEMPLATES = [
       dark: ["#220E0C", "#351815", "#FFB0A9"],
     },
   },
+  {
+    value: "O",
+    label: "App Navbar",
+    template: "app-navbar",
+    lightVariant: "app-navbar-light",
+    darkVariant: "app-navbar-dark",
+    preview: {
+      light: ["#F8F2EC", "#FFFFFF", "#B93620"],
+      dark: ["#191616", "#2A2423", "#FF7955"],
+    },
+  },
 ];
 
 export function normalizeStoreThemeTemplate(value) {

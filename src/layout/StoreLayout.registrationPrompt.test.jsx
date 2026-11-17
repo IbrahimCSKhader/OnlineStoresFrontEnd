@@ -1,6 +1,7 @@
 import { StrictMode } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, expect, it, vi } from "vitest";
 import useStorefrontSession from "../hooks/auth/useStorefrontSession.js";
 import useStoreBySlug from "../hooks/stores/useStoreBySlug.js";
@@ -14,20 +15,24 @@ vi.mock("../hooks/storefront/useStorefrontLanguage.js", () => ({
 vi.mock("../hooks/stores/useOwnerStorePreview.js", () => ({ default: () => ({ isOwnerPreview: false }) }));
 vi.mock("../hooks/useStoreInstallManifest.js", () => ({ default: () => {} }));
 vi.mock("../theme/useStoreBranding.js", () => ({ default: () => {} }));
-vi.mock("../components/layout/Header/Header.jsx", () => ({ default: () => null }));
+vi.mock("../components/layout/Header/Header.jsx", () => ({
+  default: ({ appNavbar }) => appNavbar ? <nav aria-label="App Navbar" /> : <header />,
+}));
 vi.mock("../components/layout/StoreFooter.jsx", () => ({ default: () => null }));
 
-function openStore(path = "/market/first", enabled = true) {
+function openStore(path = "/market/first", enabled = true, themeTemplate) {
   useStoreBySlug.mockImplementation((slug) => ({
-    data: { id: slug, slug, enableCustomerRegistrationPrompt: enabled },
+    data: { id: slug, slug, themeTemplate, enableCustomerRegistrationPrompt: enabled },
   }));
   return render(
     <StrictMode>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/market/:slug/*" element={<StoreLayout />} />
-        </Routes>
-      </MemoryRouter>
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/market/:slug/*" element={<StoreLayout />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
     </StrictMode>,
   );
 }
@@ -35,6 +40,21 @@ function openStore(path = "/market/first", enabled = true) {
 beforeEach(() => {
   window.localStorage.clear();
   useStorefrontSession.mockReturnValue({ hasScopedStorefrontSession: false });
+});
+
+it.each([
+  ["/market/sallabasket/products", "F", true],
+  ["/market/another-store/products", "F", false],
+  ["/market/jubeh-office-furniture", "O", true],
+])("selects the storefront navigation for %s", (path, themeTemplate, appNavbar) => {
+  openStore(path, false, themeTemplate);
+  if (appNavbar) {
+    expect(screen.getByRole("navigation", { name: "App Navbar" })).toBeVisible();
+    expect(screen.queryByRole("banner")).toBeNull();
+  } else {
+    expect(screen.getByRole("banner")).toBeVisible();
+    expect(screen.queryByRole("navigation", { name: "App Navbar" })).toBeNull();
+  }
 });
 
 it("shows Google signup once per store for a guest", async () => {

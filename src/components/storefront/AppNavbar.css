@@ -1,0 +1,120 @@
+.store-layout--app-navbar {
+  --app-navbar-clearance: calc(98px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: var(--app-navbar-clearance);
+}
+
+.app-navbar {
+  position: fixed;
+  z-index: 1050;
+  inset: auto 0 max(10px, env(safe-area-inset-bottom, 0px));
+  width: min(520px, calc(100% - 20px));
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) minmax(56px, 1.15fr) repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 2px;
+  padding: 5px;
+  border-radius: 24px;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-strong);
+}
+
+.app-navbar--catalog {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.app-navbar .app-navbar__action {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: end;
+  gap: 4px;
+  min-height: 51px;
+  min-width: 0;
+  padding: 5px 2px;
+  border-radius: 16px;
+  color: var(--text-secondary);
+  background: transparent;
+}
+
+.app-navbar .app-navbar__action:hover {
+  background: var(--surface-bright);
+}
+
+.app-navbar .app-navbar__action[aria-current="page"],
+.app-navbar .app-navbar__action[aria-expanded="true"] {
+  color: var(--primary);
+  background: var(--surface-alt);
+}
+
+.app-navbar .app-navbar__action:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.app-navbar__label {
+  max-width: 100%;
+  font-size: clamp(0.65rem, 2.8vw, 0.77rem);
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.app-navbar .app-navbar__cart {
+  color: var(--text-primary);
+  margin-top: -17px;
+}
+
+.app-navbar__cart-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: var(--cta-gradient);
+  color: var(--button-text);
+  box-shadow: var(--shadow-soft);
+}
+
+.app-navbar__cart-icon .MuiSvgIcon-root {
+  font-size: 23px;
+}
+
+html[data-theme-template="app-navbar"] .store-navbar__drawer {
+  background: var(--surface);
+  color: var(--text-primary);
+}
+
+.app-navbar__drawer-settings {
+  display: grid;
+  gap: 8px;
+}
+
+.app-navbar__drawer-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-alt);
+}
+
+html[data-theme-template="app-navbar"] .page-store-details__brand-row {
+  border: 1px solid var(--border-subtle);
+}
+
+html[data-theme-template="app-navbar"] .store-local-footer .MuiChip-outlined {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+  background: var(--surface-alt);
+}
+
+html[data-theme-template="app-navbar"] .store-local-footer__link {
+  color: var(--text-secondary);
+}
+
+html[data-theme-template="app-navbar"] :is(.product-card__price, .page-product-details__price, .storefront-eyebrow) {
+  color: var(--primary);
+}

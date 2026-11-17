@@ -1,5 +1,6 @@
 import { offerSavingsPercent } from "../../utils/offers.js";
 import OfferBadge from "../offers/OfferBadge.jsx";
+import ProductFavoriteButton from "../storefront/ProductFavoriteButton.jsx";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
@@ -43,12 +44,17 @@ export default function ProductCarousel({ products, productPath, bundleProductId
       <div className={`product-carousel__track${paused ? " is-paused" : ""}${products.length === 1 ? " is-static" : ""}`} style={{ "--travel": `${layout.width}px`, "--duration": `${Math.max(16, layout.width / 28)}s` }}>
         {Array.from({ length: products.length === 1 ? 1 : layout.copies }, (_, copy) =>
           <div key={copy} ref={copy === 0 ? group : undefined} className="product-carousel__group" aria-hidden={copy > 0 ? true : undefined}>
-            {products.map(product => <Link key={product.id} to={productPath(product.id)} tabIndex={copy ? -1 : undefined} dir={dir} className="product-carousel__item">
-              <img src={resolveAssetUrl(getProductImage(product))} alt={product.name} loading="lazy" />
-              {bundleProducts.has(product.id) && <OfferBadge>{t("وفر")} {offerSavingsPercent(bundleOffers.find(o => o.items.some(i => i.productId === product.id)))}%</OfferBadge>}
-              <span>{product.name}</span>
-              <strong>{formatCurrency(getProductDisplayPrice(product), { locale })}</strong>
-            </Link>)}
+            {products.map(product => (
+              <div key={product.id} dir={dir} className="product-carousel__card">
+                <Link to={productPath(product.id)} tabIndex={copy ? -1 : undefined} className="product-carousel__item">
+                  <img src={resolveAssetUrl(getProductImage(product))} alt={product.name} loading="lazy" />
+                  {bundleProducts.has(product.id) && <OfferBadge>{t("وفر")} {offerSavingsPercent(bundleOffers.find(o => o.items.some(i => i.productId === product.id)))}%</OfferBadge>}
+                  <span>{product.name}</span>
+                  <strong>{product.isPriceOnRequest ? t("السعر عند الاستفسار") : formatCurrency(getProductDisplayPrice(product), { locale })}</strong>
+                </Link>
+                <ProductFavoriteButton product={product} tabIndex={copy ? -1 : undefined} className="product-carousel__favorite" />
+              </div>
+            ))}
           </div>)}
       </div>
     </div>
