@@ -20,7 +20,6 @@ import "./StoreLayout.css";
 export default function StoreLayout() {
   const { slug = "" } = useParams();
   const theme = useTheme();
-  const isCompactScreen = useMediaQuery(theme.breakpoints.down("lg"));
   const { t, language, dir, locale, isLanguageLoading } = useStorefrontLanguage();
   const customDomainHost = getCurrentCustomDomainHost();
   const { isOwnerPreview } = useOwnerStorePreview();
@@ -31,9 +30,11 @@ export default function StoreLayout() {
   });
   const store = normalizeEntityResponse(storeQuery.data);
   const effectiveSlug = slug || store?.slug || "";
-  const appNavbar = effectiveSlug.toLowerCase() === "sallabasket"
-    ? isCompactScreen
-    : normalizeStoreThemeTemplate(store?.themeTemplate ?? store?.ThemeTemplate) === "O";
+  const isSallabasket = effectiveSlug.toLowerCase() === "sallabasket";
+  const useBottomNavigation = useMediaQuery(theme.breakpoints.down(isSallabasket ? "lg" : "sm"));
+  const hasAppNavbarTemplate =
+    normalizeStoreThemeTemplate(store?.themeTemplate ?? store?.ThemeTemplate) === "O";
+  const appNavbar = Boolean(store?.id) && (useBottomNavigation || (!isSallabasket && hasAppNavbarTemplate));
 
   useStoreInstallManifest(effectiveSlug);
   useStoreBranding(store);

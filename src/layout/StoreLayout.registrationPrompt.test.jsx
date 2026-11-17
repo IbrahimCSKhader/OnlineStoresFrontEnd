@@ -7,6 +7,8 @@ import useStorefrontSession from "../hooks/auth/useStorefrontSession.js";
 import useStoreBySlug from "../hooks/stores/useStoreBySlug.js";
 import StoreLayout from "./StoreLayout.jsx";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import { ThemeProvider } from "@mui/material/styles";
+import { buildThemeProfile, createAppTheme } from "../theme/themes.js";
 
 vi.mock("@mui/material/useMediaQuery", () => ({ default: vi.fn() }));
 vi.mock("../hooks/auth/useStorefrontSession.js", () => ({ default: vi.fn() }));
@@ -22,6 +24,8 @@ vi.mock("../components/layout/Header/Header.jsx", () => ({
 }));
 vi.mock("../components/layout/StoreFooter.jsx", () => ({ default: () => null }));
 
+const storefrontTheme = createAppTheme(buildThemeProfile("light"));
+
 function openStore(path = "/market/first", enabled = true, themeTemplate) {
   useStoreBySlug.mockImplementation((slug) => ({
     data: { id: slug, slug, themeTemplate, enableCustomerRegistrationPrompt: enabled },
@@ -29,11 +33,13 @@ function openStore(path = "/market/first", enabled = true, themeTemplate) {
   return render(
     <StrictMode>
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter initialEntries={[path]}>
-          <Routes>
-            <Route path="/market/:slug/*" element={<StoreLayout />} />
-          </Routes>
-        </MemoryRouter>
+        <ThemeProvider theme={storefrontTheme}>
+          <MemoryRouter initialEntries={[path]}>
+            <Routes>
+              <Route path="/market/:slug/*" element={<StoreLayout />} />
+            </Routes>
+          </MemoryRouter>
+        </ThemeProvider>
       </QueryClientProvider>
     </StrictMode>,
   );
@@ -46,13 +52,15 @@ beforeEach(() => {
 });
 
 it.each([
-  ["/market/sallabasket/products", "F", true, true],
-  ["/market/sallabasket/products", "F", false, false],
-  ["/market/another-store/products", "F", true, false],
-  ["/market/jubeh-office-furniture", "O", false, true],
-])("selects navigation for %s (theme %s, compact %s)", (path, themeTemplate, compact, appNavbar) => {
+  ["/market/sallabasket/products", "F", true, true, 1200],
+  ["/market/sallabasket/products", "F", false, false, 1200],
+  ["/market/another-store/products", "F", true, true, 640],
+  ["/market/another-store/products", "D", false, false, 640],
+  ["/market/jubeh-office-furniture", "O", false, true, 640],
+])("selects navigation for %s (theme %s, compact %s)", (path, themeTemplate, compact, appNavbar, breakpoint) => {
   useMediaQuery.mockReturnValue(compact);
   openStore(path, false, themeTemplate);
+  expect(useMediaQuery).toHaveBeenCalledWith(`@media (max-width:${breakpoint - 0.05}px)`);
   if (appNavbar) {
     expect(screen.getByRole("navigation", { name: "App Navbar" })).toBeVisible();
     expect(screen.queryByRole("banner")).toBeNull();
