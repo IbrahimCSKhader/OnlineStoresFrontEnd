@@ -78,6 +78,7 @@ const AdminPlans = lazyWithRetry(() => import("./pages/admin/Plans.jsx"), "admin
 const AdminSystemMaintenance = lazyWithRetry(() => import("./pages/admin/SystemMaintenance.jsx"), "admin-system-maintenance");
 
 const Cart = lazyWithRetry(() => import("./pages/customer/Cart.jsx"), "cart");
+const Favorites = lazyWithRetry(() => import("./pages/customer/Favorites.jsx"), "favorites");
 const Checkout = lazyWithRetry(
   () => import("./pages/customer/Checkout.jsx"),
   "checkout",
@@ -308,6 +309,7 @@ const router = createBrowserRouter([
             ),
           },
           { path: "profile", element: <CustomDomainElement>{withRouteSuspense(<CustomerProfile />)}</CustomDomainElement> },
+          { path: "favorites", element: <CustomDomainElement>{withRouteSuspense(<Favorites />)}</CustomDomainElement> },
           {
             path: "checkout",
             element: (
@@ -411,6 +413,7 @@ const router = createBrowserRouter([
           { path: "offers", element: withRouteSuspense(<StoreOffersPage />) },
           { path: "offers/:offerId", element: withRouteSuspense(<OfferDetails />) },
           { path: "cart", element: withRouteSuspense(<Cart />) },
+          { path: "favorites", element: withRouteSuspense(<Favorites />) },
           { path: "checkout", element: withRouteSuspense(<Checkout />) },
           { path: "profile", element: withRouteSuspense(<CustomerProfile />) },
           { path: "login", element: withRouteSuspense(<Login />) },

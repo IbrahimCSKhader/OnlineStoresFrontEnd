@@ -135,9 +135,10 @@ export function isProductCatalogRoute(pathname = "") {
   return Boolean(
     matchPath("/market/:slug", pathname) ||
       matchPath("/market/:slug/products", pathname) ||
+      matchPath("/market/:slug/favorites", pathname) ||
       matchPath("/market/:slug/category/:categoryId", pathname) ||
       (isCustomDomainStorefront() &&
-        (pathname === "/" || pathname === "/products" || matchPath("/category/:categoryId", pathname))),
+        (pathname === "/" || pathname === "/products" || pathname === "/favorites" || matchPath("/category/:categoryId", pathname))),
   );
 }
 
