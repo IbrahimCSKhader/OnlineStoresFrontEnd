@@ -1,4 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
+import Alert from "@mui/material/Alert";
+import Dialog from "@mui/material/Dialog";
 import CheckRoundedIcon from "@mui/icons-material/CheckRounded";
 import ErrorOutlineRoundedIcon from "@mui/icons-material/ErrorOutlineRounded";
 import Box from "@mui/material/Box";
@@ -16,7 +18,9 @@ const FEEDBACK_ICONS = {
 
 export default function AppFeedbackSnackbar({ toast, onClose }) {
   const theme = useTheme();
+  const messageId = useId();
   const severity = toast?.severity || "success";
+  const requiresAttention = severity === "error" || severity === "warning";
   const AccentIcon = FEEDBACK_ICONS[severity] || CheckRoundedIcon;
   const accentColor =
     severity === "error"
@@ -26,7 +30,7 @@ export default function AppFeedbackSnackbar({ toast, onClose }) {
         : theme.palette.primary.main;
 
   useEffect(() => {
-    if (!toast?.open) {
+    if (!toast?.open || requiresAttention) {
       return undefined;
     }
 
@@ -37,10 +41,22 @@ export default function AppFeedbackSnackbar({ toast, onClose }) {
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [toast?.duration, toast?.id, toast?.open, onClose]);
+  }, [toast?.duration, toast?.id, toast?.open, onClose, requiresAttention]);
 
   if (!toast?.open || !toast?.message) {
     return null;
+  }
+
+  if (requiresAttention) {
+    return (
+      <Dialog open onClose={onClose} fullWidth maxWidth="xs"
+        aria-labelledby={messageId} sx={{ zIndex: theme.zIndex.snackbar }}>
+        <Alert severity={severity} onClose={onClose}
+          sx={{ p: 3, alignItems: "center", fontSize: "1rem", lineHeight: 1.8 }}>
+          <span id={messageId}>{toast.message}</span>
+        </Alert>
+      </Dialog>
+    );
   }
 
   return (

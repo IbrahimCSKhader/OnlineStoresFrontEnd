@@ -72,3 +72,16 @@ it("does not clear the cart or send WhatsApp if order creation fails", async () 
   await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
   expect(state.replace).not.toHaveBeenCalled(); expect(state.clear).not.toHaveBeenCalled();
 });
+
+
+it("shows a missing delivery address in a dismissible centered dialog", async () => {
+  show(); fill();
+  fireEvent.change(screen.getByRole("textbox", { name: /عنوان التوصيل/ }), { target: { value: "" } });
+  fireEvent.click(screen.getByRole("button", { name: "التالي" }));
+  fireEvent.click(screen.getByRole("button", { name: "إرسال الطلب عبر واتساب" }));
+  const dialog = await screen.findByRole("dialog", { name: "يرجى إدخال عنوان التوصيل قبل إرسال الطلب." });
+  expect(dialog).toBeVisible();
+  expect(state.create).not.toHaveBeenCalled();
+  fireEvent.click(dialog.querySelector("button"));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+});

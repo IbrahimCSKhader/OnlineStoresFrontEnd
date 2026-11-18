@@ -38,6 +38,7 @@ import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
+import AppFeedbackSnackbar from "../../components/common/feedback/AppFeedbackSnackbar.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import LoadingState from "../../components/common/loaders/LoadingState.jsx";
 import AppDataTable from "../../components/common/tables/AppDataTable.jsx";
@@ -357,6 +358,7 @@ function normalizeVariantFormValue(variant, index = 0) {
                 .map((item) => item?.attributeValueId || item?.AttributeValueId)
                 .filter(Boolean)
             : [],
+    isDirty: false,
     isDefault: Boolean(variant?.isDefault ?? variant?.IsDefault),
     isActive: (variant?.isActive ?? variant?.IsActive) !== false,
   };
@@ -1030,6 +1032,8 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
   );
   const [editingProductId, setEditingProductId] = useState("");
   const [productFormError, setProductFormError] = useState("");
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const productSaveInFlight = useRef(false);
   const [productSearchText, setProductSearchText] = useState("");
   const [productLinkFeedback, setProductLinkFeedback] = useState({
     severity: "",
@@ -1381,27 +1385,28 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
     };
   });
 
-  const allErrors = [
-    createProductMutation.error,
-    updateProductMutation.error,
-    deleteProductMutation.error,
-    uploadProductImageMutation.error,
-    deleteProductImageMutation.error,
-    addVariantMutation.error,
-    updateVariantMutation.error,
-    deleteVariantMutation.error,
-    createCategoryMutation.error,
-    updateCategoryMutation.error,
-    createSectionMutation.error,
-    updateSectionMutation.error,
-    createCouponMutation.error,
-    updateCouponMutation.error,
-    deleteCouponMutation.error,
-    updateCustomerStoreMutation.error,
-    deleteCustomerStoreMutation.error,
-    updateOrderStatusMutation.error,
+  const feedbackMutations = [
+    createProductMutation,
+    updateProductMutation,
+    deleteProductMutation,
+    uploadProductImageMutation,
+    deleteProductImageMutation,
+    addVariantMutation,
+    updateVariantMutation,
+    deleteVariantMutation,
+    createCategoryMutation,
+    updateCategoryMutation,
+    createSectionMutation,
+    updateSectionMutation,
+    createCouponMutation,
+    updateCouponMutation,
+    deleteCouponMutation,
+    updateCustomerStoreMutation,
+    deleteCustomerStoreMutation,
+    updateOrderStatusMutation,
   ];
-  const mutationError = allErrors.find(Boolean);
+  const mutationError = feedbackMutations.find(mutation => mutation.error)?.error;
+  const feedbackError = productFormError || (mutationError ? getApiErrorMessage(mutationError) : "");
 
   const resetProductForm = () => {
     setProductFormError("");
@@ -1724,7 +1729,7 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
     setProductForm((previous) => ({
       ...previous,
       variants: previous.variants.map((variant, currentIndex) =>
-        currentIndex === index ? { ...variant, [key]: value } : variant,
+        currentIndex === index ? { ...variant, [key]: value, isDirty: true } : variant,
       ),
     }));
   };
@@ -1824,58 +1829,48 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
     }));
   };
 
-  const handleSaveVariantRow = async (index) => {
+  const handleSaveVariantRow = async (index, { propagateError = false } = {}) => {
     const variant = productForm.variants[index];
+    if (productForm.mode !== "edit" || !productForm.id || !variant) return false;
 
-    if (productForm.mode !== "edit" || !productForm.id || !variant) {
-      return;
-    }
-
-    const payload = buildVariantPayload(variant);
-
-    if (!payload.Name) {
-      setProductFormError("يرجى إدخال اسم النسخة قبل حفظها.");
-      return;
-    }
+    const updateSavedVariant = (savedVariant) => {
+      setProductForm(previous => ({
+        ...previous,
+        variants: previous.variants.map(item =>
+          (variant.id ? item.id === variant.id : item.localId === variant.localId)
+            ? savedVariant : item),
+      }));
+    };
 
     try {
+      const payload = buildVariantPayload(variant);
+      if (!payload.Name) throw new Error("يرجى إدخال اسم النسخة قبل حفظها.");
       setProductFormError("");
       const savedVariant = variant.id
-        ? await updateVariantMutation.mutateAsync({
-            variantId: variant.id,
-            productId: productForm.id,
-            payload,
-          })
-        : await addVariantMutation.mutateAsync({
-            productId: productForm.id,
-            payload,
-            localId: variant.localId,
-          });
-      let normalizedVariant = normalizeVariantFormValue(savedVariant, index);
-      const pendingVariantImages = Array.isArray(variant.imageFiles)
-        ? variant.imageFiles
-        : variant.imageFile
-          ? [variant.imageFile]
-          : [];
-
-      if (pendingVariantImages.length && normalizedVariant.id) {
+        ? await updateVariantMutation.mutateAsync({ variantId: variant.id, productId: productForm.id, payload })
+        : await addVariantMutation.mutateAsync({ productId: productForm.id, payload, localId: variant.localId });
+      const pendingImages = Array.isArray(variant.imageFiles)
+        ? variant.imageFiles : variant.imageFile ? [variant.imageFile] : [];
+      let normalizedVariant = {
+        ...normalizeVariantFormValue(savedVariant, index),
+        localId: variant.localId || "",
+        imageFile: pendingImages[0] || null,
+        imageFiles: pendingImages,
+      };
+      // Keep the persisted ID before uploading so a failed upload can be retried safely.
+      updateSavedVariant(normalizedVariant);
+      if (pendingImages.length && normalizedVariant.id) {
         normalizedVariant = await uploadVariantImages({
-          productId: productForm.id,
-          variant: normalizedVariant,
-          files: pendingVariantImages,
+          productId: productForm.id, variant: normalizedVariant, files: pendingImages,
+          onProgress: updateSavedVariant,
         });
+        updateSavedVariant(normalizedVariant);
       }
-
-      setProductForm((previous) => ({
-        ...previous,
-        variants: previous.variants.map((item, currentIndex) =>
-          currentIndex === index
-            ? normalizedVariant
-            : item,
-        ),
-      }));
-    } catch {
-      // Error is surfaced through the shared error alert.
+      return true;
+    } catch (error) {
+      setProductFormError(getApiErrorMessage(error));
+      if (propagateError) throw error;
+      return false;
     }
   };
 
@@ -1986,18 +1981,24 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
     });
   };
 
-  const uploadVariantImages = async ({ productId, variant, files }) => {
+  const uploadVariantImages = async ({ productId, variant, files, onProgress }) => {
     const selectedFiles = Array.isArray(files) ? files : [];
     let nextVariant = variant;
 
-    for (const file of selectedFiles) {
+    for (const [index, file] of selectedFiles.entries()) {
       const uploadedImage = await uploadVariantImage({
         productId,
         variant: nextVariant,
         file,
       });
 
-      nextVariant = appendImageToVariant(nextVariant, uploadedImage);
+      const remainingImages = selectedFiles.slice(index + 1);
+      nextVariant = {
+        ...appendImageToVariant(nextVariant, uploadedImage),
+        imageFile: remainingImages[0] || null,
+        imageFiles: remainingImages,
+      };
+      onProgress?.(nextVariant);
     }
 
     return {
@@ -2010,7 +2011,7 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
   const handleSubmitProduct = async (event) => {
     event.preventDefault();
 
-    if (!storeId) return;
+    if (!storeId || productSaveInFlight.current) return;
     if (!categoriesRaw.length || !sectionsRaw.length) return;
 
     setProductFormError("");
@@ -2055,11 +2056,8 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
       return;
     }
 
-    if (productForm.mode === "edit" && variantPayloads.length) {
-      setProductFormError("احفظ النسخ الجديدة من زر حفظ النسخة قبل حفظ المنتج.");
-      return;
-    }
-
+    productSaveInFlight.current = true;
+    setIsSavingProduct(true);
     try {
       if (productForm.mode === "edit" && productForm.id) {
         await updateProductMutation.mutateAsync({
@@ -2093,22 +2091,11 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
           });
         }
 
-        for (const variant of productForm.variants) {
-          const pendingVariantImages = Array.isArray(variant.imageFiles)
-            ? variant.imageFiles
-            : variant.imageFile
-              ? [variant.imageFile]
-              : [];
-
-          if (!variant.id || !pendingVariantImages.length) {
-            continue;
+        for (const [index, variant] of productForm.variants.entries()) {
+          const hasPendingImages = variant.imageFiles?.length || variant.imageFile;
+          if ((!variant.id && !isVariantDraftEmpty(variant)) || variant.isDirty || hasPendingImages) {
+            await handleSaveVariantRow(index, { propagateError: true });
           }
-
-          await uploadVariantImages({
-            productId: productForm.id,
-            variant,
-            files: pendingVariantImages,
-          });
         }
 
         resetProductForm();
@@ -2180,8 +2167,11 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
       }
 
       resetProductForm();
-    } catch {
-      // Error is surfaced through the shared error alert.
+    } catch (error) {
+      setProductFormError(getApiErrorMessage(error));
+    } finally {
+      productSaveInFlight.current = false;
+      setIsSavingProduct(false);
     }
   };
 
@@ -2608,9 +2598,11 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
           </Box>
         </Paper>
 
-        {mutationError ? (
-          <Alert severity="error">{t(getApiErrorMessage(mutationError))}</Alert>
-        ) : null}
+        <AppFeedbackSnackbar toast={{ open: Boolean(feedbackError), severity: "error", message: t(feedbackError) }}
+          onClose={() => {
+            setProductFormError("");
+            feedbackMutations.forEach(mutation => { if (mutation.error) mutation.reset(); });
+          }} />
 
         {activeTab === "overview" ? (
           <LanguageSwitchingSetting key={`${store.id}:${store.enableLanguageSwitching}`} store={store} />
@@ -2666,18 +2658,14 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
               isRefreshing={productsQuery.isFetching}
             />
 
-            {productFormError ? (
-              <Alert severity="error">{t(productFormError)}</Alert>
-            ) : null}
-
             <ProductForm
               store={store}
               form={productForm}
               isEdit={productForm.mode === "edit"}
               loading={
+                isSavingProduct || addVariantMutation.isPending || updateVariantMutation.isPending ||
                 createProductMutation.isPending ||
                 updateProductMutation.isPending ||
-                updateVariantMutation.isPending ||
                 uploadProductImageMutation.isPending
               }
               categories={categoryOptions}

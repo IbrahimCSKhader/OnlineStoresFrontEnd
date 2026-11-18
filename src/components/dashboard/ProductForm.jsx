@@ -244,6 +244,7 @@ export default function ProductForm({
               variant="outlined"
               startIcon={<AddRoundedIcon fontSize="small" />}
               onClick={onAddVariant}
+              disabled={loading}
             >{t("إضافة نسخة")}</AppButton>
           </Stack>
 
@@ -387,7 +388,8 @@ export default function ProductForm({
                           size="small"
                           variant="contained"
                           startIcon={<SaveRoundedIcon fontSize="small" />}
-                          loading={variantActionLoading === (variant.id || variant.localId)}
+                          loading={variantActionLoading === (variant.id || variant.localId) || isVariantImageUploading}
+                          disabled={loading}
                           onClick={() => onSaveVariant(index)}
                         >
                           {t(isExistingVariant ? "حفظ تعديل الصنف" : "حفظ الصنف")}
@@ -399,7 +401,8 @@ export default function ProductForm({
                         variant="text"
                         color="error"
                         startIcon={<DeleteOutlineRoundedIcon fontSize="small" />}
-                        loading={variantActionLoading === (variant.id || variant.localId)}
+                        loading={variantActionLoading === (variant.id || variant.localId) || isVariantImageUploading}
+                        disabled={loading}
                         onClick={() => onRemoveVariant(index)}
                       >
                         {t(isExistingVariant ? "تعطيل" : "إزالة")}

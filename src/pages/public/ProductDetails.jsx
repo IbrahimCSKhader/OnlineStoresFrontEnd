@@ -18,6 +18,7 @@ import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import AppFeedbackSnackbar from "../../components/common/feedback/AppFeedbackSnackbar.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
+import extractApiError from "../../utils/extractApiError.js";
 import QuantityStepper from "../../components/common/inputs/QuantityStepper.jsx";
 import ProductGallery from "../../components/product/ProductGallery.jsx";
 import { getProductImagesForVariant } from "../../utils/productGallery.js";
@@ -472,7 +473,9 @@ export default function ProductDetails() {
 
   return (
     <Box className="storefront-page page-product-details">
-      <AppFeedbackSnackbar toast={toast} onClose={handleToastClose} />
+      <AppFeedbackSnackbar toast={addToCartMutation.isError
+        ? { open: true, severity: "error", message: extractApiError(addToCartMutation.error, t("تعذر إضافة المنتج إلى السلة. حاول مرة أخرى.")) }
+        : toast} onClose={() => { addToCartMutation.reset?.(); handleToastClose(); }} />
 
       {addToCartMutation.isError ? (
         <Alert severity="error">{t("تعذر إضافة المنتج إلى السلة. حاول مرة أخرى.")}</Alert>

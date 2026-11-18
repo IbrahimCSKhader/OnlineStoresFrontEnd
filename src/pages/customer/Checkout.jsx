@@ -8,6 +8,7 @@ import Typography from "@mui/material/Typography";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
+import AppFeedbackSnackbar from "../../components/common/feedback/AppFeedbackSnackbar.jsx";
 import CartItem from "../../components/cart/CartItem.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
 import CheckoutForm from "../../components/order/CheckoutForm.jsx";
@@ -640,7 +641,8 @@ function CheckoutPage() {
 
   return (
     <Box className="storefront-page page-checkout">
-      {submitError ? <Alert severity="error">{submitError}</Alert> : null}
+      <AppFeedbackSnackbar toast={{ open: Boolean(submitError), severity: "error", message: submitError }}
+        onClose={() => setSubmitError("")} />
       {submitSuccess ? <Alert severity="success">{submitSuccess}</Alert> : null}
 
       <SurfaceCard className="page-checkout__hero">

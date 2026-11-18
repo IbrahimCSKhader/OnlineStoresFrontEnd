@@ -10,6 +10,8 @@ import Typography from "@mui/material/Typography";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
+import AppFeedbackSnackbar from "../../components/common/feedback/AppFeedbackSnackbar.jsx";
+import extractApiError from "../../utils/extractApiError.js";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
 import { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
 import CategoryProductSections from "../../components/product/CategoryProductSections.jsx";
@@ -217,6 +219,9 @@ export default function StoreDetails() {
 
   return (
     <Box className="storefront-page page-store-details">
+      <AppFeedbackSnackbar toast={{ open: addToCartMutation.isError, severity: "error",
+        message: extractApiError(addToCartMutation.error, t("تعذر إضافة المنتج إلى السلة.")) }}
+        onClose={() => addToCartMutation.reset?.()} />
       {addToCartMutation.isError ? (
         <Alert severity="error">{t("تعذر إضافة المنتج إلى السلة.")}</Alert>
       ) : null}
