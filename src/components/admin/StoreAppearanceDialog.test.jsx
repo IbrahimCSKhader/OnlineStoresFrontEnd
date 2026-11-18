@@ -59,3 +59,15 @@ describe("store appearance editor", () => {
     expect(screen.getByRole("button", { name: "حفظ المظهر" })).toBeEnabled();
   });
 });
+
+
+it("defaults statistics to visible and persists the visibility across both modes", async () => {
+  open();
+  const toggle = await screen.findByRole("switch", { name: "عرض إحصائيات المتجر والتقييم" });
+  expect(toggle).toBeChecked();
+  fireEvent.click(toggle);
+  fireEvent.click(screen.getByRole("button", { name: "حفظ المظهر" }));
+  await waitFor(() => expect(axiosInstance.put).toHaveBeenCalledWith("/api/Store/store-a/appearance", {
+    light: { showStoreStatistics: "false" }, dark: { primary: "#800080", showStoreStatistics: "false" },
+  }));
+});

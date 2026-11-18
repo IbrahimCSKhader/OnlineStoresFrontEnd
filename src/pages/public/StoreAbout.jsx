@@ -17,6 +17,7 @@ import { normalizeEntityResponse } from "../../utils/collections.js";
 import { resolveAssetUrl, resolveStoreLogoUrl } from "../../utils/assetUrl.js";
 import { getProductImage } from "../../utils/products.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
+import { showStoreStatistics } from "../../theme/storeAppearance.js";
 import "./StoreAbout.css";
 
 export default function StoreAbout() {
@@ -81,8 +82,8 @@ export default function StoreAbout() {
         </Box>}
       </SurfaceCard>
 
-      <StoreStatistics key={store.id} storeId={store.id} storeSlug={store.slug || slug}
-        visitCount={store.visitCount} isOwnerPreview={isOwnerPreview} showRatingForm={false} />
+      {showStoreStatistics(store) && <StoreStatistics key={store.id} storeId={store.id} storeSlug={store.slug || slug}
+        visitCount={store.visitCount} isOwnerPreview={isOwnerPreview} showRatingForm={false} />}
 
       <SurfaceCard component="section" className="page-store-about__story-card">
         <Box className="page-store-about__story-heading">

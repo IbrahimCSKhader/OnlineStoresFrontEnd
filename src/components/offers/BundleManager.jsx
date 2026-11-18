@@ -12,8 +12,15 @@ import { resolveAssetUrl } from "../../utils/assetUrl.js";
 import { getProductImage } from "../../utils/products.js";
 import extractApiError from "../../utils/extractApiError.js";
 import formatCurrency from "../../utils/formatCurrency.js";
+import { isPremiumOffer, offerDate, PREMIUM_OFFER_PRIORITY } from "../../utils/offers.js";
 import "./Offers.css";
-const empty = () => ({ name: "", description: "", bundlePrice: "", isActive: true, items: {} });
+const empty = () => ({ name: "", description: "", bundlePrice: "", isActive: true, isPremium: false, endDate: "", items: {} });
+
+function toLocalDateTime(value) {
+  if (!value) return "";
+  const date = offerDate(value);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
 export default function BundleManager({ storeId, products = [] }) {
   const [form, setForm] = useState(empty);
   const [editing, setEditing] = useState(null);
@@ -33,14 +40,21 @@ export default function BundleManager({ storeId, products = [] }) {
     const items = Object.entries(form.items).map(([productId, requiredQuantity]) => ({ productId, requiredQuantity: Number(requiredQuantity) }));
     if (!items.length) { setValidation("اختر منتجاً واحداً على الأقل"); return; }
     if (items.some(i => !Number.isInteger(i.requiredQuantity) || i.requiredQuantity < 1)) { setValidation("كمية كل منتج يجب أن تكون عدداً صحيحاً أكبر من صفر"); return; }
+    if (form.isPremium && (!form.endDate || (form.isActive && new Date(form.endDate).getTime() <= Date.now()))) {
+      setValidation("حدد موعد انتهاء قادم للعرض المميز"); return;
+    }
     setValidation("");
     save.mutate({ id: editing?.id, payload: { storeId, name: form.name.trim(), description: form.description,
       bundlePrice: Number(form.bundlePrice), type: 1, isActive: form.isActive,
+      priority: form.isPremium ? Math.max(PREMIUM_OFFER_PRIORITY, editing?.priority || 0)
+        : isPremiumOffer(editing) ? 0 : editing?.priority || 0,
+      endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
       startDate: editing?.startDate || new Date().toISOString(), items } });
   };
   const edit = offer => {
     setEditing(offer); setForm({ name: offer.name, description: offer.description || "", bundlePrice: offer.bundlePrice,
-      isActive: offer.isActive, items: Object.fromEntries(offer.items.map(i => [i.productId, i.requiredQuantity])) });
+      isActive: offer.isActive, isPremium: isPremiumOffer(offer), endDate: toLocalDateTime(offer.endDate),
+      items: Object.fromEntries(offer.items.map(i => [i.productId, i.requiredQuantity])) });
     document.getElementById("bundle-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
   const bundles = (query.data || []).filter(o => Number(o.type) === 1);
@@ -56,6 +70,9 @@ export default function BundleManager({ storeId, products = [] }) {
       <TextField label="وصف العرض" multiline value={form.description} inputProps={{ maxLength: 1000 }} onChange={e => update("description", e.target.value)} />
       <TextField label="سعر الباكيج كامل" type="number" required value={form.bundlePrice} inputProps={{ min: 0.01, step: 0.01 }} onChange={e => update("bundlePrice", e.target.value)} />
       <FormControlLabel control={<Switch checked={form.isActive} onChange={e => update("isActive", e.target.checked)} />} label="العرض فعال" />
+      <FormControlLabel control={<Switch checked={form.isPremium} onChange={e => update("isPremium", e.target.checked)} />} label="بريميوم أوفير — عرض مميز في واجهة المتجر" />
+      <TextField label="موعد انتهاء العرض" type="datetime-local" required={form.isPremium}
+        value={form.endDate} InputLabelProps={{ shrink: true }} onChange={e => update("endDate", e.target.value)} />
       <TextField label="ابحث عن منتج" value={search} onChange={e => setSearch(e.target.value)} />
       <p>المنتجات المحددة: {Object.keys(form.items).length}</p>
       <div className="bundle-editor__products">{visible.map(product => <div className="bundle-editor__row" key={product.id}>
@@ -72,7 +89,8 @@ export default function BundleManager({ storeId, products = [] }) {
       {editing && <AppButton onClick={() => { setEditing(null); setForm(empty()); }}>إلغاء التعديل</AppButton>}</div>
     </form></SurfaceCard>
     <div className="bundle-manager__list">{bundles.map(offer => <article key={offer.id} className="bundle-manager__item">
-      <h3>{offer.name} <small>({offer.isActive ? "فعال" : "متوقف"})</small></h3><strong>{formatCurrency(offer.bundlePrice)}</strong>
+      <h3>{offer.name} <small>({offer.isActive ? "فعال" : "متوقف"})</small>{isPremiumOffer(offer) && <small> · بريميوم أوفير</small>}</h3><strong>{formatCurrency(offer.bundlePrice)}</strong>
+      {offer.endDate && <p>ينتهي {offerDate(offer.endDate).toLocaleString("ar")}</p>}
       <p>{offer.items.map(i => `${i.productName} × ${i.requiredQuantity}`).join(" + ")}</p>
       <div className="bundle-manager__actions"><AppButton onClick={() => edit(offer)}>تعديل</AppButton><AppButton disabled={toggle.isPending} onClick={() => toggle.mutate(offer)}>{offer.isActive ? "إيقاف" : "تفعيل"}</AppButton>
         {pendingDelete === offer.id ? <><AppButton color="error" disabled={remove.isPending} onClick={() => remove.mutate(offer.id)}>تأكيد حذف الباكيج</AppButton><AppButton onClick={() => setPendingDelete("")}>إلغاء</AppButton></> : <AppButton color="error" onClick={() => setPendingDelete(offer.id)}>حذف</AppButton>}

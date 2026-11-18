@@ -74,3 +74,19 @@ it("previews only four components while preserving the entire package for purcha
   await screen.findByText("تمت إضافة الباكيج للسلة");
   expect(getGuestCart("large-store").items[0].bundleComponents).toHaveLength(6);
 });
+
+
+it("saves a premium offer with the existing priority and expiry fields", async () => {
+  offerApi.managed.mockResolvedValue([]); offerApi.create.mockResolvedValue(offer);
+  show(<BundleManager storeId="premium-store" products={[{ id: "p1", name: "قهوة", price: 24 }]} />);
+  fireEvent.change(screen.getByLabelText(/اسم الباكيج/), { target: { value: "عرض قهوة بريميوم" } });
+  fireEvent.change(screen.getByLabelText(/سعر الباكيج كامل/), { target: { value: "20" } });
+  fireEvent.click(screen.getByLabelText("قهوة"));
+  fireEvent.click(screen.getByRole("switch", { name: /بريميوم أوفير/ }));
+  const expiry = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 16);
+  fireEvent.change(screen.getByLabelText(/موعد انتهاء العرض/), { target: { value: expiry } });
+  fireEvent.click(screen.getByRole("button", { name: "حفظ الباكيج" }));
+  await waitFor(() => expect(offerApi.create).toHaveBeenCalledWith(expect.objectContaining({ name: "عرض قهوة بريميوم", priority: 1000,
+    endDate: new Date(expiry).toISOString(), items: [{ productId: "p1", requiredQuantity: 1 }], bundlePrice: 20,
+  })));
+});

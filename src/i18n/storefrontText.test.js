@@ -8,6 +8,7 @@ describe("storefront copy", () => {
       "../pages/public/*.jsx", "../pages/customer/*.jsx", "../pages/auth/*.jsx",
       "../components/product/*.jsx", "../components/cart/*.jsx",
       "../components/offers/StoreOffers.jsx",
+      "../components/offers/PremiumOffer.jsx",
       "../components/storefront/Navbar.jsx", "../components/storefront/*Favorite*.jsx",
       "../components/store/StoreStatistics.jsx", "../components/layout/StoreFooter.jsx",
       "../components/order/CheckoutForm.jsx", "../layout/StoreLayout.jsx",

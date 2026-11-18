@@ -170,11 +170,14 @@ export default function ProductDetails() {
     }
 
     const selectableDefault = selectableVariants.find(
-      (variant) => String(variant.id) === String(defaultVariantId),
+      (variant) => String(variant.id) === String(defaultVariantId) &&
+        (!product?.trackInventory || Number(variant.stockQuantity ?? 0) > 0),
     );
 
-    return (selectableDefault || selectableVariants[0])?.id || defaultVariantId;
-  }, [defaultVariantId, productHasVariants, selectableVariants]);
+    const firstAvailable = selectableVariants.find(variant =>
+      !product?.trackInventory || Number(variant.stockQuantity ?? 0) > 0);
+    return (selectableDefault || firstAvailable)?.id || "";
+  }, [defaultVariantId, productHasVariants, selectableVariants, product?.trackInventory]);
   const selectedImageIndex =
     uiState.productId === product?.id ? uiState.selectedImageIndex : 0;
   const quantity = uiState.productId === product?.id ? uiState.quantity : 1;

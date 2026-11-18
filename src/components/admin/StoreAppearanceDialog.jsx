@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ThemeProvider } from "@mui/material/styles";
-import { Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Stack, Tab, Tabs, TextField, Typography } from "@mui/material";
+import { Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, MenuItem, Stack, Switch, Tab, Tabs, TextField, Typography } from "@mui/material";
 import axiosInstance from "../../API/axiosInstance.js";
 import { buildThemeProfile, createAppTheme } from "../../theme/themes.js";
 import { resolveStoreThemeConfig } from "../../theme/storeThemeConfig.js";
@@ -79,6 +79,16 @@ function AppearanceEditor({ store, initial, onClose }) {
   return <>
     <DialogContent dividers>
       <Stack spacing={3}>
+        <FormControlLabel label="عرض إحصائيات المتجر والتقييم" control={<Switch
+          checked={draft.light.showStoreStatistics !== "false"}
+          onChange={event => {
+            const value = String(event.target.checked);
+            setDraft(current => ({
+              light: { ...current.light, showStoreStatistics: value },
+              dark: { ...current.dark, showStoreStatistics: value },
+            }));
+            setSaved(false);
+          }} />} />
         <Typography color="text.secondary">كل وضع مستقل. الخصائص الافتراضية تتبع قالب المتجر الحالي؛ إعادة الضبط تحذف التخصيص فقط. المعاينة التالية تعرض عناصر تجريبية قبل الحفظ.</Typography>
         <Tabs value={mode} onChange={(_, value) => setMode(value)} aria-label="وضع المظهر">
           <Tab value="light" label="الوضع الفاتح" /><Tab value="dark" label="الوضع الداكن" />

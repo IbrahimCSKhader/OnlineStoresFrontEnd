@@ -1,0 +1,115 @@
+.variant-picker {
+  display: grid;
+  gap: 20px;
+}
+
+.variant-picker__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.variant-picker__group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.variant-picker__group legend {
+  padding: 0;
+  margin-block-end: 12px;
+  font-weight: 700;
+}
+
+.variant-picker__group legend span {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.variant-picker__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.variant-picker__option {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  min-width: 48px;
+  max-width: 100%;
+  min-height: 46px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.variant-picker__option--image {
+  width: 104px;
+  padding: 8px;
+}
+
+.variant-picker__option img {
+  width: 82px;
+  height: 70px;
+  border-radius: 8px;
+  background: var(--surface-alt);
+  object-fit: contain;
+}
+
+.variant-picker__label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.variant-picker__swatch {
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+  border: 1px solid #8888;
+  border-radius: 50%;
+}
+
+.variant-picker__option small {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.variant-picker__option:enabled:hover,
+.variant-picker__option[aria-pressed="true"] {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface-card));
+}
+
+.variant-picker__option[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.variant-picker__option:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+.variant-picker__option:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.variant-picker__option:disabled .variant-picker__label {
+  text-decoration: line-through;
+}

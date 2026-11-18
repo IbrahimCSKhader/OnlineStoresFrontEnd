@@ -1,5 +1,9 @@
 // This registry is shared by the editor, preview and storefront resolver.
 export const APPEARANCE_FONTS = ["Arial", "Tahoma", "Verdana", "Georgia", "Roboto", "sans-serif", "serif"];
+
+export function showStoreStatistics(store) {
+  return store?.appearance?.light?.showStoreStatistics !== "false";
+}
 export const APPEARANCE_FIELDS = [
   ["primary", "اللون الرئيسي", "color", "عام", "--primary"],
   ["secondary", "اللون الثانوي", "color", "عام", "--secondary"],

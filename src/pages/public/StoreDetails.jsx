@@ -1,4 +1,5 @@
 import useOffers from "../../hooks/offers/useOffers.js";
+import PremiumOffer from "../../components/offers/PremiumOffer.jsx";
 import StoreOffers from "../../components/offers/StoreOffers.jsx";
 import StoreStatistics from "../../components/store/StoreStatistics.jsx";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
@@ -39,6 +40,7 @@ import {
 import useCatalogViewState from "../../hooks/storefront/useCatalogViewState.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
 import { JUBEH_STORE_SLUG } from "../../theme/storeThemeConfig.js";
+import { showStoreStatistics } from "../../theme/storeAppearance.js";
 import "./StoreDetails.css";
 
 const CATALOG_PAGE_SIZE = 12;
@@ -224,7 +226,6 @@ export default function StoreDetails() {
       ) : null}
 
       <SurfaceCard variant="hero" className={logoCover ? "page-store-details__hero page-store-details__hero--logo" : "page-store-details__hero"}>
-        {coverImage && <img className="page-store-details__hero-media" src={coverImage} alt="" decoding="async" />}
         <Box className="page-store-details__brand-row">
           {logoImage ? (
             <img src={logoImage} alt="" className="storefront-logo" decoding="async" />
@@ -235,13 +236,15 @@ export default function StoreDetails() {
           )}
           <Typography variant="h1" className="page-store-details__title">{store.name}</Typography>
         </Box>
+        {coverImage && <img className="page-store-details__hero-media" src={coverImage} alt="" decoding="async" />}
       </SurfaceCard>
 
-      {store.isActive !== false && (
+      {store.isActive !== false && showStoreStatistics(store) && (
         <StoreStatistics key={store.id} storeId={store.id} storeSlug={resolvedStoreSlug}
           visitCount={displayedVisitCount} isOwnerPreview={isOwnerPreview} />
       )}
 
+      <PremiumOffer store={store} disabled={isOwnerPreview} />
       <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />
       <StoreOffers store={store} disabled={isOwnerPreview} />
       <Box className="storefront-section">
