@@ -1,5 +1,13 @@
 export const STORE_THEME_TEMPLATES = [
   {
+    value: "C",
+    label: "العرض بناء على الاصناف",
+    template: "category-grid",
+    lightVariant: "brown",
+    darkVariant: "brown-dark",
+    preview: { light: ["#FBF6EF", "#FFFFFF", "#7A4A28"], dark: ["#1D120B", "#2F2118", "#E6BE91"] },
+  },
+  {
     value: "T",
     label: "قرمزي",
     template: "electropulse",

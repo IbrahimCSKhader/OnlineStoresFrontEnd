@@ -75,3 +75,9 @@ describe("resolveStoreThemeConfig", () => {
     });
   });
 });
+
+it("keeps category-grid colors consistent with the fragrance store palette", () => {
+  expect(normalizeStoreThemeTemplate(" c ")).toBe("C");
+  expect(resolveStoreThemeConfig({ themeTemplate: "C" })).toEqual(resolveStoreThemeConfig({ themeTemplate: "N" }));
+  expect(STORE_THEME_TEMPLATES.find(x => x.value === "C").label).toBe("العرض بناء على الاصناف");
+});

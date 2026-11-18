@@ -89,7 +89,7 @@ function getPriceBounds(products) {
   return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
 }
 
-export default function ProductsPage() {
+export default function ProductsPage({ categoryId = null }) {
   const { slug = "" } = useParams();
   const { isOwnerPreview, previewSearch, buildStorePreviewPath } =
     useOwnerStorePreview();
@@ -134,9 +134,10 @@ export default function ProductsPage() {
     [sectionsQuery.data],
   );
   const products = useMemo(
-    () => normalizeProductList(productsQuery.data),
-    [productsQuery.data],
+    () => normalizeProductList(productsQuery.data).filter((product) => !categoryId || String(product.categoryId) === String(categoryId)),
+    [productsQuery.data, categoryId],
   );
+  const activeCategory = categories.find((category) => String(category.id) === String(categoryId));
   const [minPrice, maxPrice] = useMemo(() => getPriceBounds(products), [products]);
   const activePriceRange = useMemo(
     () => priceRange || [minPrice, maxPrice],
@@ -326,7 +327,8 @@ export default function ProductsPage() {
             <AppTextField
               select
               label={t("الفئة")}
-              value={selectedCategoryId}
+              value={categoryId || selectedCategoryId}
+              disabled={Boolean(categoryId)}
               onChange={(event) => {
                 updateView({ selectedCategoryId: event.target.value, page: 1 });
               }}
@@ -441,7 +443,7 @@ export default function ProductsPage() {
       <SurfaceCard variant="hero" className="page-products__hero">
         <Box className="page-products__hero-copy">
           <span className="storefront-eyebrow">{t("المنتجات")}</span>
-          <Typography variant="h2">{t("كل تشكيلات")} {store.name}</Typography>
+          <Typography variant="h2">{categoryId ? activeCategory?.name || t("التصنيف") : <>{t("كل تشكيلات")} {store.name}</>}</Typography>
           <Typography variant="body1" className="storefront-subtitle">{t("فلترة سريعة حسب السعر، الفئة، القسم، التوفر والعروض.")}</Typography>
         </Box>
 
@@ -504,6 +506,8 @@ export default function ProductsPage() {
               count={PRODUCTS_PAGE_SIZE}
               className="page-products__products-grid"
             />
+          ) : productsQuery.error ? (
+            <EmptyState title={t("تعذر تحميل المنتجات")} description={t("حاول تحديث الصفحة أو افتح المتجر مرة أخرى.")} />
           ) : pagination.items.length ? (
             <>
               <CategoryProductSections

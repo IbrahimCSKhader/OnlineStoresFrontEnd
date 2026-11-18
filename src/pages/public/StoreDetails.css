@@ -420,3 +420,35 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
     width: 100%;
   }
 }
+
+/* Category-first storefront: uses the store palette and the existing Mawja cards. */
+.page-store-details--category-grid .page-store-details__categories-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 12px;
+}
+html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card {
+  aspect-ratio: 1;
+  min-height: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card::before,
+html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card::after { display: none; }
+.page-store-details__category-tile-image { width: 100%; height: 70%; object-fit: contain; border-radius: 10px; }
+html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card h6 { font-size: 1rem; position: relative; }
+html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card p { display: none; }
+@media (max-width: 1100px) { .page-store-details--category-grid .page-store-details__categories-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 600px) {
+  .page-store-details--category-grid .page-store-details__categories-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card { padding: 8px; gap: 6px; }
+  html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card h6 { font-size: .875rem; }
+}

@@ -122,9 +122,10 @@ export default function StoreDetails() {
       (!keyword || [product.name, product.description, product.shortDescription, product.categoryName, product.sku]
         .some(value => String(value || "").toLocaleLowerCase().includes(keyword)));
   }), [products, deferredSearchText, selectedCategoryId]);
+  const categoryGrid = String(store?.themeTemplate ?? store?.ThemeTemplate).toUpperCase() === "C";
   const categorySummary = useMemo(
-    () => categories.slice(0, 8),
-    [categories],
+    () => categoryGrid ? categories : categories.slice(0, 8),
+    [categories, categoryGrid],
   );
   const filteredGroups = useMemo(
     () => groupProductsByCategory(filteredProducts, categories, t("منتجات أخرى")),
@@ -195,7 +196,7 @@ export default function StoreDetails() {
 
   if (storeQuery.isLoading) {
     return (
-      <Box className="storefront-page page-store-details">
+      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}`}>
         <EmptyState title={t("جاري تحميل المتجر...")} />
       </Box>
     );
@@ -203,7 +204,7 @@ export default function StoreDetails() {
 
   if (storeQuery.error || !store) {
     return (
-      <Box className="storefront-page page-store-details">
+      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}`}>
         <EmptyState
           title={t("تعذر العثور على المتجر")}
           description={t("قد يكون الرابط غير صحيح أو أن المتجر لم يعد متاحًا.")}
@@ -218,7 +219,7 @@ export default function StoreDetails() {
   const logoImage = resolveStoreLogoUrl(store, { wordmark: logoCover });
 
   return (
-    <Box className="storefront-page page-store-details">
+    <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}`}>
       <AppFeedbackSnackbar toast={{ open: addToCartMutation.isError, severity: "error",
         message: extractApiError(addToCartMutation.error, t("تعذر إضافة المنتج إلى السلة.")) }}
         onClose={() => addToCartMutation.reset?.()} />
@@ -244,6 +245,7 @@ export default function StoreDetails() {
         {coverImage && <img className="page-store-details__hero-media" src={coverImage} alt="" decoding="async" />}
       </SurfaceCard>
 
+      {!categoryGrid && <>
       {store.isActive !== false && showStoreStatistics(store) && (
         <StoreStatistics key={store.id} storeId={store.id} storeSlug={resolvedStoreSlug}
           visitCount={displayedVisitCount} isOwnerPreview={isOwnerPreview} />
@@ -252,6 +254,7 @@ export default function StoreDetails() {
       <PremiumOffer store={store} disabled={isOwnerPreview} />
       <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />
       <StoreOffers store={store} disabled={isOwnerPreview} />
+      </>}
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
@@ -293,6 +296,7 @@ export default function StoreDetails() {
                       : undefined
                   }
                 >
+                  {categoryGrid && categoryImage ? <img src={categoryImage} alt="" loading="lazy" decoding="async" className="page-store-details__category-tile-image" /> : null}
                   <Typography variant="h6">{category.name}</Typography>
                   <Typography variant="body2" color="text.secondary">
                     {category.description || ""}
@@ -313,6 +317,7 @@ export default function StoreDetails() {
         )}
       </Box>
 
+      {!categoryGrid && <>
       <Box
         className="storefront-section page-store-details__featured"
         id="store-featured-products"
@@ -385,6 +390,7 @@ export default function StoreDetails() {
             </> : <EmptyState title={t("لا توجد نتائج")} description={t("جرّب كلمة بحث أخرى أو ارجع إلى جميع التصنيفات.")} />}
         </Box>
       </Box>
+      </>}
     </Box>
   );
 }

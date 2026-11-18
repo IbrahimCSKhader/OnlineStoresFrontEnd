@@ -107,6 +107,8 @@ export function resolveStoreThemeConfig(store) {
     case "blue":
     case "azure":
       return themeConfigs.blue;
+    case "c":
+    case "category-grid":
     case "n":
     case "brown":
       return themeConfigs.brown;

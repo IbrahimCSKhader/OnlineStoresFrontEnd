@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import ProductsPage from "./ProductsPage.jsx";
+import CategoryPage from "./CategoryPage.jsx";
 
 const state = vi.hoisted(() => ({ compact: true, add: vi.fn(),
   store: { id: "s", slug: "demo", name: "Demo" },
@@ -57,4 +58,28 @@ it("closes the mobile drawer with Escape and with a backdrop click", async () =>
   fireEvent.click(screen.getByRole("button", { name: "البحث والفلاتر" }));
   fireEvent.click(document.querySelector(".MuiBackdrop-root"));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+});
+
+it("opens a category directly with its products and the shared mobile filters", async () => {
+  const original = state.products;
+  state.products = [
+    { id: "a", categoryId: "brand-a", name: "Brand A perfume", price: 100, stockQuantity: 30, trackInventory: false },
+    { id: "b", categoryId: "brand-b", name: "Other brand perfume", price: 200, stockQuantity: 30, trackInventory: false },
+  ];
+  try {
+    render(<MemoryRouter initialEntries={["/market/demo/category/brand-a"]}><Routes>
+      <Route path="/market/:slug/category/:categoryId" element={<CategoryPage />} />
+    </Routes></MemoryRouter>);
+    expect(screen.getByText("Brand A perfume")).toBeVisible();
+    expect(screen.queryByText("Other brand perfume")).toBeNull();
+    expect(screen.queryByText("الخيارات")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "البحث والفلاتر" }));
+    expect(screen.getByLabelText("الفئة")).toBeDisabled();
+    fireEvent.change(screen.getByPlaceholderText("ابحث باسم المنتج أو الوصف"), { target: { value: "Brand" } });
+    fireEvent.click(await screen.findByRole("button", { name: "تصفير" }));
+    fireEvent.click(screen.getByRole("button", { name: /عرض النتائج/ }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.getByText("Brand A perfume")).toBeVisible();
+    expect(screen.queryByText("Other brand perfume")).toBeNull();
+  } finally { state.products = original; }
 });
