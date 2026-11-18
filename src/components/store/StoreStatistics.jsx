@@ -12,6 +12,7 @@ import VisibilityRounded from "@mui/icons-material/VisibilityRounded";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import storeApi from "../../API/store.api.js";
+import "./StoreStatistics.css";
 
 function useCounterProgress(section, ready) {
   const [progress, setProgress] = useState(0);
@@ -63,7 +64,7 @@ function getGuestRatingId(storeId) {
   return guestId;
 }
 
-export default function StoreStatistics({ storeId, storeSlug, visitCount, isOwnerPreview }) {
+export default function StoreStatistics({ storeId, storeSlug, visitCount, isOwnerPreview, showRatingForm = true }) {
   const { t, locale, dir } = useStorefrontLanguage();
   const theme = useTheme();
   const ratingTheme = useMemo(() => ({ ...theme, direction: dir || "rtl" }), [theme, dir]);
@@ -118,7 +119,7 @@ export default function StoreStatistics({ storeId, storeSlug, visitCount, isOwne
       {statistics.isError && <Alert severity="error" action={<Button onClick={() => statistics.refetch()}>{t("إعادة المحاولة")}</Button>}>
         {t("تعذر تحميل إحصائيات المتجر.")}
       </Alert>}
-      {!isOwnerPreview && (
+      {showRatingForm && !isOwnerPreview && (
         <Box component="form" className="store-statistics__rating" onSubmit={event => {
           event.preventDefault();
           if (score && !submit.isPending) submit.mutate();

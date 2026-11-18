@@ -20,3 +20,10 @@ export function resolveStoreCoverUrl(store) {
 
   return resolveAssetUrl(coverPath);
 }
+
+export function resolveStoreLogoUrl(store, { wordmark = false } = {}) {
+  if (String(store?.slug || "").toLowerCase() === "jubeh-office-furniture") {
+    return `/store-branding/jubeh/${wordmark ? "wordmark" : "logo"}.png`;
+  }
+  return resolveAssetUrl(store?.logoUrl);
+}

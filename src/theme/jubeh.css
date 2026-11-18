@@ -2,11 +2,13 @@ html[data-theme-template="jubeh"] .page-store-details__hero--logo.app-surface-ca
   min-height: clamp(154px, 20vw, 238px);
   padding: clamp(18px, 4vw, 40px);
   border: 1px solid #583a30;
-  border-block-end: 3px solid #f47d43;
+  border-block-end: 3px solid #e85b2d;
   background: #231f20;
 }
 
 .page-store-details__hero--logo .page-store-details__brand-row {
+  flex-wrap: wrap;
+  justify-content: center;
   gap: clamp(14px, 4vw, 34px);
   padding: 0;
   background: transparent;
@@ -15,8 +17,9 @@ html[data-theme-template="jubeh"] .page-store-details__hero--logo.app-surface-ca
 }
 
 .page-store-details__hero--logo .page-store-details__brand-row .storefront-logo {
-  width: clamp(74px, 11vw, 136px);
-  height: clamp(74px, 11vw, 136px);
+  width: clamp(210px, 30vw, 360px);
+  height: auto;
+  aspect-ratio: 722 / 333;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -29,6 +32,56 @@ html[data-theme-template="jubeh"] .page-store-details__hero--logo.app-surface-ca
   color: inherit;
   font-weight: 800;
   text-wrap: balance;
+  font-size: clamp(1.9rem, 4.3vw, 3.5rem);
+  text-align: center;
+}
+
+html[data-theme-template="jubeh"] .store-layout {
+  position: relative;
+  isolation: isolate;
+}
+
+html[data-theme-template="jubeh"] .store-layout::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(126deg, transparent 49.7%, color-mix(in srgb, var(--primary) 11%, transparent) 50%, transparent 50.3%),
+    linear-gradient(38deg, transparent 49.7%, color-mix(in srgb, var(--primary) 9%, transparent) 50%, transparent 50.3%),
+    linear-gradient(152deg, transparent 49.7%, color-mix(in srgb, var(--primary) 10%, transparent) 50%, transparent 50.3%),
+    linear-gradient(63deg, transparent 49.7%, color-mix(in srgb, var(--primary) 8%, transparent) 50%, transparent 50.3%),
+    radial-gradient(ellipse at 100% 0%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 65%);
+  background-size: 280px 420px, 460px 290px, 360px 480px, 300px 350px, 800px 700px;
+  background-position: 4% 140px, 98% 740px, 1% 48%, 96% 81%, top right;
+  background-repeat: no-repeat;
+}
+
+html[data-theme-template="jubeh"] :is(.store-local-footer, .page-store-about__contact) .MuiLink-root {
+  background: var(--surface-alt);
+  border-color: var(--border-subtle);
+}
+
+html[data-theme-template="jubeh"] :is(.store-local-footer, .page-store-about__contact) .MuiLink-root .MuiTypography-root {
+  color: var(--text-primary);
+}
+
+html[data-theme-template="jubeh"] :is(.store-local-footer, .page-store-about__contact) .MuiLink-root .MuiBox-root[aria-hidden="true"] {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+html[data-theme-template="jubeh"] .store-navbar__brand-logo {
+  object-fit: contain;
+  background: #231f20;
+}
+
+@media (max-width: 600px) {
+  .page-store-details__hero--logo .page-store-details__brand-row {
+    flex-direction: column;
+    gap: 12px;
+  }
 }
 
 html[data-theme-template="jubeh"] :is(.product-card, .storefront-metric, .store-local-footer,

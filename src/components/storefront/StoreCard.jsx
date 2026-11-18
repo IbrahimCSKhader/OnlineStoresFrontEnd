@@ -5,13 +5,13 @@ import Typography from "@mui/material/Typography";
 import ArrowOutwardRoundedIcon from "@mui/icons-material/ArrowOutwardRounded";
 import StorefrontRoundedIcon from "@mui/icons-material/StorefrontRounded";
 import SurfaceCard from "../common/cards/SurfaceCard.jsx";
-import { resolveAssetUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
+import { resolveStoreLogoUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
 import "./StoreCard.css";
 
 export default function StoreCard({ store }) {
   const isActive = store.isActive !== false;
   const coverImage = resolveStoreCoverUrl(store);
-  const logoImage = resolveAssetUrl(store.logoUrl);
+  const logoImage = resolveStoreLogoUrl(store);
 
   return (
     <SurfaceCard

@@ -50,7 +50,7 @@ import {
   SITE_BRAND_NAME,
 } from "../../constants/siteBranding.js";
 import { normalizeEntityResponse } from "../../utils/collections.js";
-import { resolveAssetUrl } from "../../utils/assetUrl.js";
+import { resolveStoreLogoUrl } from "../../utils/assetUrl.js";
 import {
   getLandingPath,
   isOwnerRole,
@@ -299,7 +299,7 @@ export default function Navbar({ appNavbar = false }) {
     isPlatformAuthenticated &&
     (isSuperAdminRole(platformRole) || isViewingOwnedStore);
   const currentBrandStore = isScopedOwnerDashboard ? ownerStore : activeStore;
-  const storeBrandLogo = resolveAssetUrl(currentBrandStore?.logoUrl);
+  const storeBrandLogo = resolveStoreLogoUrl(currentBrandStore);
   const activeStoreLogo =
     storeBrandLogo ||
     (!activeStoreSlug && !isScopedOwnerDashboard ? SITE_BRAND_ASSET_PATH : "");

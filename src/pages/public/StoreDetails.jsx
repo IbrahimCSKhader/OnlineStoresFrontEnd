@@ -24,7 +24,7 @@ import useStoreBySlug from "../../hooks/stores/useStoreBySlug.js";
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useTransientBusyState from "../../hooks/useTransientBusyState.js";
-import { resolveAssetUrl, resolveStoreCoverUrl } from "../../utils/assetUrl.js";
+import { resolveAssetUrl, resolveStoreCoverUrl, resolveStoreLogoUrl } from "../../utils/assetUrl.js";
 import {
   normalizeEntityResponse,
   normalizeListResponse,
@@ -211,7 +211,7 @@ export default function StoreDetails() {
   const resolvedStoreSlug = store.slug || slug;
   const logoCover = resolvedStoreSlug.toLowerCase() === JUBEH_STORE_SLUG;
   const coverImage = logoCover ? "" : resolveStoreCoverUrl(store);
-  const logoImage = resolveAssetUrl(store.logoUrl);
+  const logoImage = resolveStoreLogoUrl(store, { wordmark: logoCover });
 
   return (
     <Box className="storefront-page page-store-details">

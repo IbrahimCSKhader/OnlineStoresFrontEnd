@@ -120,7 +120,7 @@ export const themeCatalog = {
     template: "jubeh",
     mode: "dark",
     palette: {
-      primary: "#FF8547", primaryContainer: "#FF713B", secondary: "#423026", accent: "#FFA776",
+      primary: "#E85B2D", primaryContainer: "#E85B2D", secondary: "#423026", accent: "#FF9A76",
       buttonText: "#201611", accentText: "#201611",
       background: "#141313", surface: "#1C1918", surfaceLow: "#191716",
       surfaceCard: "#221F1E", surfaceBright: "#332A25", surfaceAlt: "#2A2421",
@@ -132,7 +132,7 @@ export const themeCatalog = {
     gradients: {
       page: "linear-gradient(180deg, #191615, #141313 44%)",
       hero: "linear-gradient(135deg, #30251F, #1C1918)",
-      accent: "linear-gradient(140deg, #FF8547, #FF713B)",
+      accent: "linear-gradient(140deg, #E85B2D, #E85B2D)",
     },
     shadows: {
       soft: "0 8px 28px #00000036",

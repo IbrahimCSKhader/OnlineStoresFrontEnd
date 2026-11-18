@@ -1,5 +1,9 @@
 // Storefront copy only. Content authored by merchants is translated by the API.
 export const storefrontTextRows = [
+  ["من متجرنا", "From our store", "מהחנות שלנו"],
+  ["وراء كل اختيار حكاية. اكتشفوا متجرنا، وتعرّفوا على ما نقدّمه لكم.", "Every choice has a story. Discover our store and explore what we have for you.", "מאחורי כל בחירה יש סיפור. הכירו את החנות שלנו וגלו מה אנחנו מציעים לכם."],
+  ["هنا تبدأ رحلتكم لاكتشاف ما يناسبكم. تصفّحوا منتجاتنا، قارنوا التفاصيل، وتواصلوا معنا لنساعدكم في الاختيار.", "Your search for the right choice starts here. Explore our products, compare the details, and contact us for help choosing.", "כאן מתחיל החיפוש אחר מה שמתאים לכם. עיינו במוצרים שלנו, השוו פרטים וצרו איתנו קשר לעזרה בבחירה."],
+  ["اختياركم يهمّنا، وأسئلتكم مرحّب بها. يسعدنا أن نكون جزءًا من تجربتكم القادمة.", "Your choice matters to us, and your questions are always welcome. We look forward to being part of your next shopping experience.", "הבחירה שלכם חשובה לנו, והשאלות שלכם תמיד מתקבלות בברכה. נשמח להיות חלק מחוויית הקנייה הבאה שלכם."],
   ["المزيد", "More", "עוד"],
   ["السعر عند الاستفسار", "Price on request", "מחיר לפי פנייה"],
   ["استفسر عبر واتساب", "Ask on WhatsApp", "בירור בוואטסאפ"],
