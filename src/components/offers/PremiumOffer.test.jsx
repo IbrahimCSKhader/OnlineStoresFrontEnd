@@ -33,3 +33,16 @@ it("keeps regular, expired, future and sold-out offers out of the premium sectio
   const { container } = show();
   expect(container).toBeEmptyDOMElement();
 });
+
+it("uses configured translations and switches between uploaded images", () => {
+ vi.useFakeTimers(); vi.setSystemTime(new Date("2026-11-18T00:00:00Z")); state.offers=[offer];
+ render(<MemoryRouter><PremiumOffer store={{id:"s",slug:"shop",appearance:{sections:{premiumOfferId:"premium",offers:{premium:{title:{A:"مكتب فاخر"},images:["/one.png","/two.png"]}}}}}}/></MemoryRouter>);
+ expect(screen.getByRole("heading",{name:"مكتب فاخر"})).toBeInTheDocument();
+ fireEvent.click(screen.getByRole("button",{name:"مكتب فاخر — 2"}));
+ expect(screen.getByAltText("مكتب فاخر").getAttribute("src")).toContain("two.png");
+});
+it("honors the premium visibility setting", () => {
+ vi.useFakeTimers(); vi.setSystemTime(new Date("2026-11-18T00:00:00Z")); state.offers=[offer];
+ const {container}=render(<MemoryRouter><PremiumOffer store={{id:"s",appearance:{sections:{premiumEnabled:false}}}}/></MemoryRouter>);
+ expect(container).toBeEmptyDOMElement();
+});

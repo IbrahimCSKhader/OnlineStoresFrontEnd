@@ -1,3 +1,5 @@
+import OfferGallery from "./OfferGallery.jsx";
+import { exclusive, localized, availabilityText } from "../../utils/offerPresentation.js";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Alert from "@mui/material/Alert";
@@ -7,23 +9,23 @@ import useAddBundle from "../../hooks/offers/useAddBundle.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
 import useStorefrontLanguage from "../../hooks/storefront/useStorefrontLanguage.js";
 import { buildStorefrontPath } from "../../utils/customDomain.js";
-import { resolveAssetUrl } from "../../utils/assetUrl.js";
-import { isPremiumOffer, offerDate, offerSavingsPercent } from "../../utils/offers.js";
+import { isPremiumOffer, offerDate } from "../../utils/offers.js";
 import formatCurrency from "../../utils/formatCurrency.js";
 import extractApiError from "../../utils/extractApiError.js";
 import "./PremiumOffer.css";
 
 export default function PremiumOffer({ store, disabled = false }) {
-  const { t, locale } = useStorefrontLanguage();
+  const { t, locale, language } = useStorefrontLanguage();
   const offers = useOffers(store?.id);
   const add = useAddBundle(store);
   const { buildStorePreviewPath } = useOwnerStorePreview();
   const [now, setNow] = useState(() => Date.now());
-  const candidates = (offers.data || []).filter(offer => isPremiumOffer(offer) &&
+  const settings = store?.appearance?.sections;
+  const candidates = (offers.data || []).filter(offer => Number(offer.type) === 1 && (settings?.premiumOfferId ? offer.id === settings.premiumOfferId : isPremiumOffer(offer)) &&
     offer.isActive !== false && offerDate(offer.startDate).getTime() <= now &&
     offerDate(offer.endDate).getTime() > now && offer.items?.length && offer.availableBundles > 0);
   const offer = candidates.sort((a, b) => b.priority - a.priority || offerDate(b.createdAt) - offerDate(a.createdAt))[0];
-  const hasTimedOffers = (offers.data || []).some(item => isPremiumOffer(item) && item.endDate);
+  const hasTimedOffers = (offers.data || []).some(item => item.endDate);
 
   useEffect(() => {
     if (!hasTimedOffers) return;
@@ -31,7 +33,10 @@ export default function PremiumOffer({ store, disabled = false }) {
     return () => clearInterval(timer);
   }, [hasTimedOffers]);
 
-  if (!offer) return null;
+  if (!offer || settings?.premiumEnabled === false) return null;
+  const presentation = settings?.offers?.[offer.id];
+  const title = localized(presentation?.title, language, offer.name);
+  const duration = (offerDate(offer.endDate) - offerDate(offer.startDate)) / 3600000;
   const remaining = Math.max(0, Math.ceil((offerDate(offer.endDate).getTime() - now) / 1000));
   const units = [
     [Math.floor(remaining / 86400), t("يوم")],
@@ -39,16 +44,12 @@ export default function PremiumOffer({ store, disabled = false }) {
     [Math.floor(remaining / 60) % 60, t("دقيقة")],
     [remaining % 60, t("ثانية")],
   ];
-  const image = resolveAssetUrl(offer.items[0].productImageUrl);
-  const saving = offerSavingsPercent(offer);
   return <section className="premium-offer" aria-label={t("بريميوم أوفير")}>
-    <Link className="premium-offer__image" to={buildStorePreviewPath(buildStorefrontPath(store.slug, `/offers/${offer.id}`))}>
-      {image && <img src={image} alt={offer.items[0].productName} loading="lazy" decoding="async" />}
-      {saving > 0 && <span className="premium-offer__saving">{t("وفر {0}%", saving)}</span>}
-    </Link>
+    <OfferGallery key={offer.id} images={presentation?.images?.length ? presentation.images : offer.items.map(i => i.productImageUrl)} title={title} />
     <div className="premium-offer__content">
-      <span className="premium-offer__eyebrow">{t("بريميوم أوفير")}</span>
-      <h2>{offer.name}</h2>
+      <span className="premium-offer__eyebrow">{localized(presentation?.badge, language, exclusive[language] || exclusive.A)}</span>
+      <h2 style={{ color: /^#[0-9a-f]{6}$/i.test(presentation?.titleColor || "") ? presentation.titleColor : undefined }}>{title}</h2>
+      {duration > 0 && <div className="premium-offer__availability"><strong>{availabilityText(language,duration)}</strong><p>{offerDate(offer.startDate).toLocaleString(locale)} — {offerDate(offer.endDate).toLocaleString(locale)}</p></div>}
       {offer.description && <p className="premium-offer__description">{offer.description}</p>}
       <div className="premium-offer__price"><strong>{formatCurrency(offer.bundlePrice, { locale })}</strong>
         {offer.regularPrice > offer.bundlePrice && <del>{formatCurrency(offer.regularPrice, { locale })}</del>}

@@ -1,3 +1,5 @@
+import OfferGallery from "./OfferGallery.jsx";
+import { exclusive, localized } from "../../utils/offerPresentation.js";
 import { Link } from "react-router-dom";
 import useAddBundle from "../../hooks/offers/useAddBundle.js";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
@@ -13,14 +15,14 @@ import OfferBadge from "./OfferBadge.jsx";
 import "./Offers.css";
 
 export default function StoreOffers({ store, disabled = false, showAll = false }) {
-  const { t, locale } = useStorefrontLanguage();
+  const { t, locale, language } = useStorefrontLanguage();
   const offers = useOffers(store?.id);
   const add = useAddBundle(store);
   const { buildStorePreviewPath } = useOwnerStorePreview();
   const bundles = (offers.data || []).filter(o => Number(o.type) === 1);
   const visibleBundles = showAll ? bundles : bundles.slice(0, 4);
   return <section className="storefront-section store-offers" id="store-offers" aria-label={t("عروضات المتجر")}>
-    <header className="store-offers__head"><div><span className="storefront-eyebrow">{t("سعر واحد، منتجات أكثر")}</span><h2>{t("عروضات المتجر")}</h2></div></header>
+    <header className="store-offers__head"><div><span className="storefront-eyebrow">{localized(store?.appearance?.sections?.offersHeading, language, exclusive[language] || exclusive.A)}</span><h2>{t("عروضات المتجر")}</h2></div></header>
     {offers.isLoading && <p role="status">{t("جارٍ تحميل العروض...")}</p>}
     {offers.isError && <Alert severity="error" action={<button onClick={() => offers.refetch()}>{t("إعادة المحاولة")}</button>}>{t("تعذر تحميل العروض")}</Alert>}
     {add.isError && <Alert severity="error">{extractApiError(add.error, t("تعذر إضافة الباكيج"))}</Alert>}
@@ -28,13 +30,13 @@ export default function StoreOffers({ store, disabled = false, showAll = false }
     {!offers.isLoading && !offers.isError && !bundles.length && <p className="store-offers__empty">{t("ترقبوا عروضات المتجر قريباً")}</p>}
     <div className="store-offers__grid">{visibleBundles.map(offer => <article className="bundle-card" key={offer.id}>
       <div className="bundle-card__media">
-        <div className="bundle-card__images">{offer.items.slice(0, 4).map(item => <figure key={item.id || item.productId}>
+        {store?.appearance?.sections?.offers?.[offer.id]?.images?.length ? <OfferGallery images={store.appearance.sections.offers[offer.id].images} title={localized(store.appearance.sections.offers[offer.id].title,language,offer.name)} /> : <div className="bundle-card__images">{offer.items.slice(0, 4).map(item => <figure key={item.id || item.productId}>
           {item.productImageUrl ? <img src={resolveAssetUrl(item.productImageUrl)} alt={item.productName} loading="lazy" /> : <span className="bundle-card__placeholder">{item.productName}</span>}
           <figcaption>{item.productName}<b> × {item.requiredQuantity}</b></figcaption>
-        </figure>)}</div>
+        </figure>)}</div>}
         <OfferBadge>{`${t("وفر")} ${offerSavingsPercent(offer)}%`}</OfferBadge>
       </div>
-      <div className="bundle-card__body"><span className="bundle-card__eyebrow">{t("باكيج المتجر")}</span><h3>{offer.name}</h3>{offer.description && <p>{offer.description}</p>}
+      <div className="bundle-card__body"><span className="bundle-card__eyebrow">{t("باكيج المتجر")}</span><h3>{localized(store?.appearance?.sections?.offers?.[offer.id]?.title,language,offer.name)}</h3>{offer.description && <p>{offer.description}</p>}
         <div className="bundle-card__price"><strong>{formatCurrency(offer.bundlePrice, { locale })}</strong>{offer.regularPrice > offer.bundlePrice && <del>{formatCurrency(offer.regularPrice, { locale })}</del>}</div>
         {offer.items.length > 4 && <p className="bundle-card__more">{t("ومنتجات إضافية: {0}", offer.items.length - 4)}</p>}
         <Link className="bundle-card__details" to={buildStorePreviewPath(buildStorefrontPath(store.slug, `/offers/${offer.id}`))}>{t("عرض تفاصيل الباكيج")}</Link>

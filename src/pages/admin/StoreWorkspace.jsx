@@ -18,6 +18,7 @@ const tabs = [
   ["categories", "التصنيفات"],
   ["sections", "الأقسام"],
   ["offers", "العروض"],
+  ["premium", "أقسام الواجهة والبريميوم"],
   ["orders", "الطلبات"],
   ["customers", "العملاء"],
   ["coupons", "الكوبونات"],

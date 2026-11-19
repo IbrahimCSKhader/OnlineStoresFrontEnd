@@ -368,6 +368,7 @@ const router = createBrowserRouter([
           { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
           { path: "owner/products", element: withRouteSuspense(<OwnerProducts />) },
           { path: "owner/products/:productId/edit", element: withRouteSuspense(<OwnerEditProduct />) },
+          { path: "owner/premium", element: withRouteSuspense(<OwnerDashboard initialTab="premium" />) },
           { path: "owner/offers", element: withRouteSuspense(<OwnerDashboard initialTab="offers" />) },
           {
             path: "owner/subscription",

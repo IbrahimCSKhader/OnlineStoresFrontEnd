@@ -1,3 +1,4 @@
+import StoreSectionsManager from "../../components/dashboard/StoreSectionsManager.jsx";
 import BundleOrderSummary from "../../components/offers/BundleOrderSummary.jsx";
 import OrderReceivedAmount from "../../components/order/OrderReceivedAmount.jsx";
 import { CustomerDirectory } from "../../components/dashboard/CustomerAccounts.jsx";
@@ -107,6 +108,7 @@ import { isOwnerRole, isSuperAdminRole } from "../../utils/roles.js";
 import "./OwnerDashboard.css";
 
 const TAB_CONFIG = [
+  { key: "premium", label: "أقسام الواجهة والبريميوم", route: "/owner/premium", description: "الصور والعناوين وإظهار الأقسام", icon: <StorefrontRoundedIcon fontSize="small" /> },
   { key: "offers", label: "عروضات المتجر", route: "/owner/offers", description: "إدارة العروض والباكيجات", icon: <Inventory2RoundedIcon fontSize="small" /> },
   {
     key: "overview",
@@ -2661,7 +2663,8 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
           </>
         ) : null}
 
-        {activeTab === "offers" && <BundleManager storeId={storeId} products={productsRaw} />}
+        {activeTab === "premium" && <StoreSectionsManager storeId={storeId} />}
+        {activeTab === "offers" && <><AppButton component={RouterLink} to={`${managementBasePath}/premium`}>إدارة صور العروض وقسم البريميوم</AppButton><BundleManager storeId={storeId} products={productsRaw} /></>}
 
         {activeTab === "products" ? (
           <Paper className="owner-panel owner-products-panel" elevation={0}>

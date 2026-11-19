@@ -215,7 +215,7 @@ export default function StoreDetails() {
 
   const resolvedStoreSlug = store.slug || slug;
   const logoCover = resolvedStoreSlug.toLowerCase() === JUBEH_STORE_SLUG;
-  const coverImage = logoCover ? "" : resolveStoreCoverUrl(store);
+  const coverImage = logoCover || store?.appearance?.sections?.showCover === false ? "" : resolveStoreCoverUrl(store);
   const logoImage = resolveStoreLogoUrl(store, { wordmark: logoCover });
 
   return (
@@ -253,7 +253,7 @@ export default function StoreDetails() {
 
       <PremiumOffer store={store} disabled={isOwnerPreview} />
       </>}
-      <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />
+      {store?.appearance?.sections?.showFeaturedProducts !== false && <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />}
       {!categoryGrid && <StoreOffers store={store} disabled={isOwnerPreview} />}
       <Box className="storefront-section">
         <Box className="storefront-section__head">
@@ -318,7 +318,7 @@ export default function StoreDetails() {
       </Box>
 
       {!categoryGrid && <>
-      <Box
+      {store?.appearance?.sections?.showFeaturedProducts !== false && <Box
         className="storefront-section page-store-details__featured"
         id="store-featured-products"
         data-scroll-section
@@ -345,7 +345,7 @@ export default function StoreDetails() {
         ) : (
           <EmptyState title={t("لا توجد منتجات مختارة")} />
         )}
-      </Box>
+      </Box>}
 
       <Box
         className="storefront-section page-store-details__catalog"

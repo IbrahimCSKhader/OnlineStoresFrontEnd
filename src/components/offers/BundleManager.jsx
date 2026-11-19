@@ -14,7 +14,7 @@ import extractApiError from "../../utils/extractApiError.js";
 import formatCurrency from "../../utils/formatCurrency.js";
 import { isPremiumOffer, offerDate, PREMIUM_OFFER_PRIORITY } from "../../utils/offers.js";
 import "./Offers.css";
-const empty = () => ({ name: "", description: "", bundlePrice: "", isActive: true, isPremium: false, endDate: "", items: {} });
+const empty = () => ({ name: "", description: "", bundlePrice: "", isActive: true, isPremium: false, startDate: "", endDate: "", items: {} });
 
 function toLocalDateTime(value) {
   if (!value) return "";
@@ -43,17 +43,18 @@ export default function BundleManager({ storeId, products = [] }) {
     if (form.isPremium && (!form.endDate || (form.isActive && new Date(form.endDate).getTime() <= Date.now()))) {
       setValidation("حدد موعد انتهاء قادم للعرض المميز"); return;
     }
+    if (form.startDate && form.endDate && new Date(form.endDate) <= new Date(form.startDate)) { setValidation("موعد الانتهاء يجب أن يكون بعد البداية"); return; }
     setValidation("");
     save.mutate({ id: editing?.id, payload: { storeId, name: form.name.trim(), description: form.description,
       bundlePrice: Number(form.bundlePrice), type: 1, isActive: form.isActive,
       priority: form.isPremium ? Math.max(PREMIUM_OFFER_PRIORITY, editing?.priority || 0)
         : isPremiumOffer(editing) ? 0 : editing?.priority || 0,
       endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
-      startDate: editing?.startDate || new Date().toISOString(), items } });
+      startDate: form.startDate ? new Date(form.startDate).toISOString() : editing?.startDate || new Date().toISOString(), items } });
   };
   const edit = offer => {
     setEditing(offer); setForm({ name: offer.name, description: offer.description || "", bundlePrice: offer.bundlePrice,
-      isActive: offer.isActive, isPremium: isPremiumOffer(offer), endDate: toLocalDateTime(offer.endDate),
+      isActive: offer.isActive, isPremium: isPremiumOffer(offer), startDate: toLocalDateTime(offer.startDate), endDate: toLocalDateTime(offer.endDate),
       items: Object.fromEntries(offer.items.map(i => [i.productId, i.requiredQuantity])) });
     document.getElementById("bundle-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -71,6 +72,7 @@ export default function BundleManager({ storeId, products = [] }) {
       <TextField label="سعر الباكيج كامل" type="number" required value={form.bundlePrice} inputProps={{ min: 0.01, step: 0.01 }} onChange={e => update("bundlePrice", e.target.value)} />
       <FormControlLabel control={<Switch checked={form.isActive} onChange={e => update("isActive", e.target.checked)} />} label="العرض فعال" />
       <FormControlLabel control={<Switch checked={form.isPremium} onChange={e => update("isPremium", e.target.checked)} />} label="بريميوم أوفير — عرض مميز في واجهة المتجر" />
+      <TextField label="موعد بداية العرض" type="datetime-local" value={form.startDate} InputLabelProps={{ shrink: true }} onChange={e => update("startDate", e.target.value)} />
       <TextField label="موعد انتهاء العرض" type="datetime-local" required={form.isPremium}
         value={form.endDate} InputLabelProps={{ shrink: true }} onChange={e => update("endDate", e.target.value)} />
       <TextField label="ابحث عن منتج" value={search} onChange={e => setSearch(e.target.value)} />

@@ -139,3 +139,12 @@
     flex: 1;
   }
 }
+
+.premium-offer > .offer-gallery { padding:16px; align-content:center; }
+.premium-offer__content { justify-items:center; text-align:center; }
+.premium-offer__eyebrow { border:1px solid color-mix(in srgb,var(--primary) 45%,var(--border-subtle)); background:var(--primary-container); color:var(--text-primary); border-radius:999px; padding:8px 24px; box-shadow:var(--shadow-soft); }
+.premium-offer__price { justify-content:center; }
+.premium-offer__price strong { padding:8px 24px; background:var(--primary); color:var(--button-text); border-radius:999px; }
+.premium-offer__availability { display:grid; gap:8px; width:100%; box-sizing:border-box; padding:14px; border:1px solid var(--primary); border-radius:18px; }
+.premium-offer__availability p { font-size:.85rem; color:var(--text-secondary); }
+@media(max-width:700px) { .premium-offer__content { padding:20px 14px; gap:14px; } }

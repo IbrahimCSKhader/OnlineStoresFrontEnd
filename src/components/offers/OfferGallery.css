@@ -1,0 +1,8 @@
+.offer-gallery { min-width:0; display:grid; gap:12px; }
+.offer-gallery__main { width:100%; max-height:540px; aspect-ratio:4/3; object-fit:contain; border-radius:20px; background:var(--surface-low); }
+.offer-gallery__thumbs { display:flex; gap:10px; overflow-x:auto; padding:4px; }
+.offer-gallery__thumbs button { flex:0 0 80px; padding:3px; border:2px solid transparent; border-radius:12px; background:var(--surface-card); cursor:pointer; }
+.offer-gallery__thumbs button[aria-pressed="true"] { border-color:var(--primary); }
+.offer-gallery__thumbs img { width:100%; height:66px; object-fit:cover; border-radius:8px; }
+
+.owner-panel .offer-gallery__thumbs > div { flex:0 0 160px; }

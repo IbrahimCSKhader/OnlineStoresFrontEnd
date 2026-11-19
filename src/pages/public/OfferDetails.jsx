@@ -1,3 +1,6 @@
+import OfferGallery from "../../components/offers/OfferGallery.jsx";
+import { localized, exclusive, availabilityText } from "../../utils/offerPresentation.js";
+import { offerDate } from "../../utils/offers.js";
 import { Link, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import useOffers from "../../hooks/offers/useOffers.js";
@@ -35,11 +38,16 @@ export default function OfferDetails() {
   if (!store || !offer) {
     return <main className="storefront-page offer-details"><h1>{t("العرض غير متاح حالياً")}</h1><Link to={home}>{t("العودة للمتجر")}</Link></main>;
   }
+  const presentation = store.appearance?.sections?.offers?.[offer.id];
+  const title = localized(presentation?.title,language,offer.name);
+  const duration = (offerDate(offer.endDate)-offerDate(offer.startDate))/3600000;
   return <main className="storefront-page offer-details">
     <Link className="offer-details__back" to={home}>{t("العودة للمتجر")}</Link>
+    <OfferGallery key={offer.id} images={presentation?.images?.length ? presentation.images : offer.items.map(i=>i.productImageUrl)} title={title} />
     <header className="offer-details__header">
-      <span className="bundle-card__eyebrow">{t("باكيج المتجر")}</span>
-      <h1>{offer.name}</h1>
+      <span className="bundle-card__eyebrow">{localized(presentation?.badge,language,exclusive[language] || exclusive.A)}</span>
+      <h1 style={{color:/^#[0-9a-f]{6}$/i.test(presentation?.titleColor || "") ? presentation.titleColor : undefined}}>{title}</h1>
+      {duration > 0 && <p>{availabilityText(language,duration)}</p>}
       {offer.description && <p>{offer.description}</p>}
       <OfferBadge>{t("وفر")} {offerSavingsPercent(offer)}%</OfferBadge>
       <div className="bundle-card__price"><strong>{formatCurrency(offer.bundlePrice, { locale })}</strong>{offer.regularPrice > offer.bundlePrice && <del>{formatCurrency(offer.regularPrice, { locale })}</del>}</div>
