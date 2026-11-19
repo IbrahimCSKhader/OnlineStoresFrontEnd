@@ -991,3 +991,40 @@ html[data-theme-template="blue"] .owner-sidebar__nav-item--active .owner-sidebar
     max-width: 100%;
   }
 }
+
+/* Keep wide product tables inside the available dashboard space. */
+.owner-shell__content,
+.owner-dashboard,
+.owner-products-panel {
+  min-width: 0;
+}
+
+.owner-products-panel {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.owner-products-panel .app-data-table {
+  width: 100%;
+  min-width: 0;
+}
+
+.owner-products-panel .MuiTable-root {
+  width: 100%;
+  min-width: 1100px;
+}
+
+.owner-products-panel .app-data-table__head-cell,
+.owner-products-panel .app-data-table__cell {
+  padding: 18px 16px;
+  vertical-align: middle;
+}
+
+.owner-products-panel .app-data-table__cell:nth-child(2) {
+  min-width: 240px;
+  overflow-wrap: anywhere;
+}
+
+.owner-products-panel .app-data-table__cell:last-child {
+  min-width: 230px;
+}

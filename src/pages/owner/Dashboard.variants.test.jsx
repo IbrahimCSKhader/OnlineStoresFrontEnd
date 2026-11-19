@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { beforeEach, afterEach, expect, it, vi } from "vitest";
 import Dashboard from "./Dashboard.jsx";
 import api from "../../API/axiosInstance.js";
@@ -33,11 +33,19 @@ afterEach(() => vi.unstubAllGlobals());
 
 async function edit() {
   const view = render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
-    <MemoryRouter><Dashboard initialTab="products" /></MemoryRouter>
+    <MemoryRouter initialEntries={["/owner/products"]}><Routes>
+      <Route path="/owner/products" element={<Dashboard initialTab="products" />} />
+      <Route path="/owner/products/:productId/edit" element={<Dashboard key="editor" initialTab="products" />} />
+    </Routes></MemoryRouter>
   </QueryClientProvider>);
   const row = await screen.findByRole("row", { name: /Variant product/ });
-  fireEvent.click(within(row).getByRole("button", { name: "تعديل", exact: true }));
+  expect(within(row).getAllByRole("cell")[0]).toHaveTextContent("1");
+  expect(screen.queryByRole("columnheader", { name: "الصورة" })).toBeNull();
+  expect(within(row).getByRole("link", { name: "تعديل", exact: true })).toHaveAttribute("href", "/owner/products/p/edit");
+  fireEvent.click(within(row).getByRole("link", { name: "تعديل", exact: true }));
   await screen.findByRole("button", { name: "حفظ المنتج", exact: true });
+  expect(screen.queryByRole("table")).toBeNull();
+  expect(screen.getByRole("link", { name: "الرجوع للمنتجات" })).toHaveAttribute("href", "/owner/products");
   fireEvent.click(screen.getByRole("button", { name: "إضافة نسخة", exact: true }));
   const variant = view.container.querySelectorAll(".owner-variants__item")[1];
   fireEvent.change(within(variant).getByLabelText("اسم النسخة", { exact: true }), { target: { value: "Large" } });
@@ -80,3 +88,28 @@ it("retains a saved variant and completed images when a later upload fails and i
   expect(api.post.mock.calls.filter(([url]) => url.endsWith("/variant"))).toHaveLength(1);
   expect(uploads).toEqual(["first.png", "second.png", "second.png"]);
 }, 15000);
+
+it("loads the edit URL directly and returns to products on cancel", async () => {
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <MemoryRouter initialEntries={["/owner/products/p/edit"]}><Routes>
+      <Route path="/owner/products" element={<p>Product list</p>} />
+      <Route path="/owner/products/:productId/edit" element={<Dashboard initialTab="products" />} />
+    </Routes></MemoryRouter>
+  </QueryClientProvider>);
+  await screen.findByRole("button", { name: "حفظ المنتج", exact: true });
+  expect(screen.getByDisplayValue("Variant product")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "إلغاء", exact: true }));
+  expect(await screen.findByText("Product list")).toBeInTheDocument();
+});
+
+it("shows a load error without an editable blank form when the product cannot load", async () => {
+  api.get.mockRejectedValue(new Error("Product unavailable"));
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <MemoryRouter initialEntries={["/owner/products/missing/edit"]}><Routes>
+      <Route path="/owner/products/:productId/edit" element={<Dashboard initialTab="products" />} />
+    </Routes></MemoryRouter>
+  </QueryClientProvider>);
+  expect(await screen.findByText("Product unavailable")).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "حفظ المنتج", exact: true })).toBeNull();
+  expect(screen.queryByRole("button", { name: "إضافة المنتج", exact: true })).toBeNull();
+});

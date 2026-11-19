@@ -11,7 +11,7 @@ import PrintRoundedIcon from "@mui/icons-material/PrintRounded";
 import OrderPrintCount from "../../components/order/OrderPrintCount.jsx";
 import OrderProductImage from "../../components/order/OrderProductImage.jsx";
 import OrderProductPreviews from "../../components/order/OrderProductPreviews.jsx";
-import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
+import { Link as RouterLink, Navigate, useNavigate, useParams } from "react-router-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
@@ -892,9 +892,63 @@ function OrderDetailsDialog({ open, order, loading, error, onClose }) {
   );
 }
 
+function buildEditProductForm(product, defaultCategoryId, defaultSectionId) {
+  return {
+    mode: "edit",
+    id: product?.id || "",
+    name: product?.baseName ?? product?.name ?? "",
+    translations: product?.translations || [],
+    sku: product?.sku || "",
+    shortDescription: product?.baseShortDescription ?? product?.shortDescription ?? "",
+    description: product?.baseDescription ?? product?.description ?? "",
+    price:
+      product?.originalPrice !== undefined ||
+      product?.OriginalPrice !== undefined ||
+      product?.price !== undefined ||
+      product?.Price !== undefined
+        ? String(getProductOriginalPrice(product))
+        : "",
+    wholesalePrice:
+      product?.wholesalePrice !== undefined && product?.wholesalePrice !== null
+        ? String(product.wholesalePrice)
+        : product?.WholesalePrice !== undefined && product?.WholesalePrice !== null
+          ? String(product.WholesalePrice)
+          : "0",
+    compareAtPrice: getProductComparePrice(product)
+      ? String(getProductComparePrice(product))
+      : "",
+    costPrice:
+      product?.costPrice !== undefined && product?.costPrice !== null
+        ? String(product.costPrice)
+        : "",
+    stockQuantity: String(product?.stockQuantity ?? 0),
+    categoryId: product?.categoryId || defaultCategoryId,
+    sectionId: product?.sectionId || defaultSectionId,
+    trackInventory: Boolean(product?.trackInventory),
+    isFeatured: Boolean(product?.isFeatured),
+    status: String(product?.status ?? 1),
+    publishNow: true,
+    metaTitle: product?.metaTitle || "",
+    metaDescription: product?.metaDescription || "",
+    newImages: [],
+    existingImages: Array.isArray(product?.images) ? product.images : [],
+    variants: Array.isArray(product?.variants)
+      ? product.variants.map((variant, index) =>
+          normalizeVariantFormValue(variant, index),
+        )
+      : [],
+    attributeValues: Array.isArray(product?.attributeValues)
+      ? product.attributeValues
+      : [],
+  };
+}
+
 export default function OwnerDashboard({ initialTab = "overview", managedStore, managementBasePath = "/owner" }) {
   const { t, currency, dateTime, locale } = useOwnerLanguage();
   const navigate = useNavigate();
+  const { productId } = useParams();
+  const isProductEditor = Boolean(productId);
+  const [productLoadError, setProductLoadError] = useState("");
   const isCompactScreen = useMediaQuery("(max-width:1080px)") && !managedStore;
   const mobileSidebarDragRef = useRef({
     pointerId: null,
@@ -1418,73 +1472,32 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
   const resetCustomerStoreForm = () =>
     setCustomerStoreForm(buildCustomerStoreForm());
 
-  const buildEditProductForm = (product) => ({
-    mode: "edit",
-    id: product?.id || "",
-    name: product?.baseName ?? product?.name ?? "",
-    translations: product?.translations || [],
-    sku: product?.sku || "",
-    shortDescription: product?.baseShortDescription ?? product?.shortDescription ?? "",
-    description: product?.baseDescription ?? product?.description ?? "",
-    price:
-      product?.originalPrice !== undefined ||
-      product?.OriginalPrice !== undefined ||
-      product?.price !== undefined ||
-      product?.Price !== undefined
-        ? String(getProductOriginalPrice(product))
-        : "",
-    wholesalePrice:
-      product?.wholesalePrice !== undefined && product?.wholesalePrice !== null
-        ? String(product.wholesalePrice)
-        : product?.WholesalePrice !== undefined && product?.WholesalePrice !== null
-          ? String(product.WholesalePrice)
-          : "0",
-    compareAtPrice: getProductComparePrice(product)
-      ? String(getProductComparePrice(product))
-      : "",
-    costPrice:
-      product?.costPrice !== undefined && product?.costPrice !== null
-        ? String(product.costPrice)
-        : "",
-    stockQuantity: String(product?.stockQuantity ?? 0),
-    categoryId: product?.categoryId || defaultCategoryId,
-    sectionId: product?.sectionId || defaultSectionId,
-    trackInventory: Boolean(product?.trackInventory),
-    isFeatured: Boolean(product?.isFeatured),
-    status: String(product?.status ?? 1),
-    publishNow: true,
-    metaTitle: product?.metaTitle || "",
-    metaDescription: product?.metaDescription || "",
-    newImages: [],
-    existingImages: Array.isArray(product?.images) ? product.images : [],
-    variants: Array.isArray(product?.variants)
-      ? product.variants.map((variant, index) =>
-          normalizeVariantFormValue(variant, index),
-        )
-      : [],
-    attributeValues: Array.isArray(product?.attributeValues)
-      ? product.attributeValues
-      : [],
-  });
 
-  const handleOpenProductEditor = async (row) => {
-    if (!row?.id || editingProductId) return;
-
-    setEditingProductId(row.id);
-    setProductFormError("");
-
-    try {
-      const product = normalizeProductDto(
-        await productApi.getProductById(row.id),
-      );
-
-      setProductForm(buildEditProductForm(product || row));
-    } catch {
-      setProductForm(buildEditProductForm(row));
-    } finally {
+  useEffect(() => {
+    if (!productId) {
+      setProductForm(buildProductForm(defaultCategoryId, defaultSectionId));
+      setProductLoadError("");
       setEditingProductId("");
+      return;
     }
-  };
+    if (!storeId) return;
+    let cancelled = false;
+    setEditingProductId(productId);
+    setProductLoadError("");
+    setProductFormError("");
+    productApi.getProductById(productId).then((data) => {
+      const product = normalizeProductDto(data);
+      if (!product?.id || (product.storeId && String(product.storeId) !== String(storeId))) {
+        throw new Error("تعذر تحميل المنتج");
+      }
+      if (!cancelled) setProductForm(buildEditProductForm(product, defaultCategoryId, defaultSectionId));
+    }).catch((error) => {
+      if (!cancelled) setProductLoadError(getApiErrorMessage(error));
+    }).finally(() => {
+      if (!cancelled) setEditingProductId("");
+    });
+    return () => { cancelled = true; };
+  }, [productId, storeId, defaultCategoryId, defaultSectionId]);
 
   useEffect(() => {
     if (!isCompactScreen) {
@@ -2099,6 +2112,7 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
         }
 
         resetProductForm();
+        navigate(`${managementBasePath}/products`);
         return;
       }
 
@@ -2650,15 +2664,16 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
         {activeTab === "offers" && <BundleManager storeId={storeId} products={productsRaw} />}
 
         {activeTab === "products" ? (
-          <Paper className="owner-panel" elevation={0}>
+          <Paper className="owner-panel owner-products-panel" elevation={0}>
             <SectionHeader
-              title={t("إدارة المنتجات")}
+              title={t(isProductEditor ? "تعديل المنتج" : "إدارة المنتجات")}
               description={t("إضافة منتجات أو تعديلها مع دعم صور متعددة ونشر مباشر.")}
               onRefresh={productsQuery.refetch}
               isRefreshing={productsQuery.isFetching}
             />
 
-            <ProductForm
+            {isProductEditor && <AppButton component={RouterLink} to={`${managementBasePath}/products`} variant="outlined" sx={{ justifySelf: "start" }}>{t("الرجوع للمنتجات")}</AppButton>}
+            {isProductEditor && (editingProductId || productForm.id !== productId) && !productLoadError ? <LoadingState /> : productLoadError ? <Alert severity="error">{t(productLoadError)}</Alert> : <ProductForm
               store={store}
               form={productForm}
               isEdit={productForm.mode === "edit"}
@@ -2704,9 +2719,11 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
                       ? deleteVariantMutation.variables?.variantId
                       : null
               }
-              onReset={resetProductForm}
+              onReset={isProductEditor ? () => navigate(`${managementBasePath}/products`) : resetProductForm}
               onSubmit={handleSubmitProduct}
-            />
+            />}
+
+            {!isProductEditor && <>
 
             <Box className="owner-panel__tools">
               <SearchInput
@@ -2732,30 +2749,9 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
                 rows={products}
                 columns={[
                   {
-                    key: "imageUrl",
-                    title: "الصورة",
-                    render: (row) => {
-                      const imageUrl = resolveAssetUrl(row.imageUrl);
-
-                      return imageUrl ? (
-                        <Box
-                          component="img"
-                          src={imageUrl}
-                          alt={t(row.name)}
-                          sx={{
-                            width: 48,
-                            height: 48,
-                            objectFit: "cover",
-                            borderRadius: 1,
-                            display: "block",
-                          }}
-                        />
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">
-                          -
-                        </Typography>
-                      );
-                    },
+                    key: "rowNumber",
+                    title: "الرقم",
+                    render: (_row, index) => formatUiNumber(index + 1),
                   },
                   {
                     key: "name",
@@ -2856,8 +2852,8 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
                         <AppButton
                           size="small"
                           variant="outlined"
-                          loading={editingProductId === row.id}
-                          onClick={() => handleOpenProductEditor(row)}
+                          component={RouterLink}
+                          to={`${managementBasePath}/products/${row.id}/edit`}
                         >{t("تعديل")}</AppButton>
                         <AppButton
                           size="small"
@@ -2897,6 +2893,7 @@ export default function OwnerDashboard({ initialTab = "overview", managedStore, 
                 }
               />
             )}
+            </>}
           </Paper>
         ) : null}
 

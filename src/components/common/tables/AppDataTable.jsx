@@ -42,7 +42,7 @@ export default function AppDataTable({
           </TableHead>
 
           <TableBody>
-            {rows.map((row) => {
+            {rows.map((row, rowIndex) => {
               const rowId = getRowId ? getRowId(row) : row.id;
 
               return (
@@ -50,7 +50,7 @@ export default function AppDataTable({
                   {columns.map((column) => (
                     <TableCell key={column.key} className="app-data-table__cell">
                       {column.render ? (
-                        column.render(row)
+                        column.render(row, rowIndex)
                       ) : (
                         <Box>
                           <Typography variant="body2">

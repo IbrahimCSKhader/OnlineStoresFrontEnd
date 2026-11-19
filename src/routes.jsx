@@ -119,6 +119,7 @@ const OwnerProducts = lazyWithRetry(
   () => import("./pages/owner/ProductsManagement.jsx"),
   "owner-products",
 );
+const OwnerEditProduct = lazyWithRetry(() => import("./pages/owner/EditProduct.jsx"), "owner-edit-product");
 const OwnerSubscription = lazyWithRetry(
   () => import("./pages/owner/StoreSubscription.jsx"),
   "owner-subscription",
@@ -228,6 +229,7 @@ const router = createBrowserRouter([
             element: withRouteSuspense(<AdminStoreDetails />),
           },
           { path: "stores/:storeId/manage", element: <Navigate to="products" replace /> },
+          { path: "stores/:storeId/manage/products/:productId/edit", element: withRouteSuspense(<AdminStoreWorkspace />) },
           { path: "stores/:storeId/manage/:tab", element: withRouteSuspense(<AdminStoreWorkspace />) },
           { path: "stores/:storeId/manage/orders/:orderId", element: withRouteSuspense(<AdminStoreWorkspace detail="orders" />) },
           { path: "stores/:storeId/manage/customers/:customerId", element: withRouteSuspense(<AdminStoreWorkspace detail="customers" />) },
@@ -365,6 +367,7 @@ const router = createBrowserRouter([
 
           { path: "owner", element: withRouteSuspense(<OwnerDashboard />) },
           { path: "owner/products", element: withRouteSuspense(<OwnerProducts />) },
+          { path: "owner/products/:productId/edit", element: withRouteSuspense(<OwnerEditProduct />) },
           { path: "owner/offers", element: withRouteSuspense(<OwnerDashboard initialTab="offers" />) },
           {
             path: "owner/subscription",
