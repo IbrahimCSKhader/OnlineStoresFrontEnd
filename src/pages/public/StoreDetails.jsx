@@ -252,9 +252,9 @@ export default function StoreDetails() {
       )}
 
       <PremiumOffer store={store} disabled={isOwnerPreview} />
-      <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />
-      <StoreOffers store={store} disabled={isOwnerPreview} />
       </>}
+      <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />
+      {!categoryGrid && <StoreOffers store={store} disabled={isOwnerPreview} />}
       <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">

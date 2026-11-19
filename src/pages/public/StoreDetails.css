@@ -422,7 +422,6 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
 }
 
 /* Category-first storefront: uses the store palette and the existing Mawja cards. */
-.page-store-details--category-grid .page-store-details__hero-media { display: none; }
 .page-store-details--category-grid .page-store-details__brand-row { padding: 16px; }
 .page-store-details--category-grid .page-store-details__brand-row .storefront-logo { width: 56px; height: 56px; }
 .page-store-details--category-grid .page-store-details__brand-row .page-store-details__title { font-size: clamp(1.4rem, 3vw, 2rem); }
