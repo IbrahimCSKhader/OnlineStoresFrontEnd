@@ -44,8 +44,24 @@ it("uses the cover for a missing logo and never accepts script or data image URL
 async function generateWith(stores, fetchImpl = vi.fn(async () => ({ ok: true, json: async () => stores })), extra = {}) {
   temporaryDirectory = await mkdtemp(path.join(os.tmpdir(), "mawja-previews-"));
   await writeFile(path.join(temporaryDirectory, "index.html"), shell);
-  return generateStorePreviews({ ...settings, apiUrl: "https://api.example", distDir: temporaryDirectory, fetchImpl, ...extra });
+  return generateStorePreviews({ ...settings, apiUrl: "https://api.example", distDir: temporaryDirectory, fetchImpl, prepareImage: async () => undefined, ...extra });
 }
+it("publishes image dimensions and puts the encoding before Arabic metadata", async () => {
+  await generateWith([store], undefined, { prepareImage: async () => ({ url: "https://mawja.site/store-preview-images/hash.jpg", width: 600, height: 600, type: "image/jpeg" }) });
+  const html = await readFile(path.join(temporaryDirectory, "store-previews/test-shop.html"), "utf8");
+  const document = new JSDOM(html).window.document;
+  expect(document.querySelector('meta[property="og:image"]').content).toBe("https://mawja.site/store-preview-images/hash.jpg");
+  expect(document.querySelector('meta[property="og:image:width"]').content).toBe("600");
+  expect(document.querySelector('meta[property="og:image:height"]').content).toBe("600");
+  expect(document.querySelector('meta[property="og:image:type"]').content).toBe("image/jpeg");
+  expect(document.head.firstElementChild.getAttribute("charset")).toBe("UTF-8");
+});
+it("keeps the storefront available when a source image cannot be fetched", async () => {
+  await generateWith([store], undefined, { prepareImage: async () => { throw new Error("Unavailable"); } });
+  const html = await readFile(path.join(temporaryDirectory, "store-previews/test-shop.html"), "utf8");
+  expect(html).toContain("https://api.example/uploads/logo.jpeg");
+  expect(html).toContain('/assets/app.js');
+});
 it("generates isolated previews for all active stores and leaves the platform homepage intact", async () => {
   expect(await generateWith([store, { ...store, slug: "other", name: "متجر ثاني", logoUrl: "/second.png", language: "A" }, { ...store, slug: "inactive", isActive: false }])).toBe(2);
   const first = await readFile(path.join(temporaryDirectory, "store-previews/test-shop.html"), "utf8");

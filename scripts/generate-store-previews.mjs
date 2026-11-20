@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { loadEnv } from "vite";
 import { normalizeListResponse } from "../src/utils/collections.js";
 import { absoluteHttpUrl, renderStorePreview } from "./store-preview-html.mjs";
+import { prepareStorePreviewImage } from "./store-preview-image.mjs";
 
 export function normalizeStorefrontDomain(value) {
   const url = new URL(String(value).includes("://") ? value : `https://${value}`);
@@ -14,7 +15,7 @@ export function normalizeStorefrontDomain(value) {
   return url.hostname.toLowerCase().replace(/^www\./, "");
 }
 
-export async function generateStorePreviews({ distDir, apiUrl, frontendUrl, assetUrl = apiUrl, storefrontDomain, fetchImpl = fetch }) {
+export async function generateStorePreviews({ distDir, apiUrl, frontendUrl, assetUrl = apiUrl, storefrontDomain, fetchImpl = fetch, prepareImage = prepareStorePreviewImage }) {
   if (!absoluteHttpUrl(apiUrl) || !absoluteHttpUrl(frontendUrl) || !absoluteHttpUrl(assetUrl)) {
     throw new Error("Store previews require absolute HTTP(S) API, frontend, and asset URLs.");
   }
@@ -45,13 +46,22 @@ export async function generateStorePreviews({ distDir, apiUrl, frontendUrl, asse
     domainStore = matches[0];
   }
   const slugs = new Set();
+  const previewImages = new Map();
   for (const store of stores) {
     const slug = String(store.slug || "");
     if (!/^[\p{L}\p{N}_-]+$/u.test(slug) || slugs.has(slug.toLowerCase())) {
       throw new Error(`Invalid or duplicate store slug: ${slug}`);
     }
     slugs.add(slug.toLowerCase());
-    const html = renderStorePreview(template, store, { frontendUrl, assetUrl });
+    let previewImage;
+    try {
+      previewImage = await prepareImage(store, { distDir, assetUrl, frontendUrl, fetchImpl });
+    } catch (error) {
+      // An unavailable third-party logo must not take the storefront offline.
+      console.warn(`Preview image for ${slug}: ${error.message}; retaining original image URL.`);
+    }
+    previewImages.set(slug, previewImage);
+    const html = renderStorePreview(template, store, { frontendUrl, assetUrl, previewImage });
     const storeDirectory = path.join(distDir, "market", slug);
     await mkdir(storeDirectory, { recursive: true });
     await writeFile(path.join(storeDirectory, "index.html"), html);
@@ -62,6 +72,10 @@ export async function generateStorePreviews({ distDir, apiUrl, frontendUrl, asse
   if (domainStore) {
     await writeFile(path.join(distDir, "index.html"), renderStorePreview(template, domainStore, {
       frontendUrl, assetUrl, canonicalUrl: `https://${domain}/`,
+      previewImage: previewImages.get(domainStore.slug) && {
+        ...previewImages.get(domainStore.slug),
+        url: new URL(new URL(previewImages.get(domainStore.slug).url).pathname, `https://${domain}`).href,
+      },
     }));
   }
   return stores.length;

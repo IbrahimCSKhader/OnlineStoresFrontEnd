@@ -40,9 +40,16 @@ If the API cannot be reached after two attempts, or returns no active stores,
 the build fails instead of deploying generic or missing previews. Render keeps
 the last successful deployment.
 
-Logo URLs are absolute and public. If a store has no usable logo, its cover is
-used; if both are missing, no share image is declared. Store content is escaped
-before insertion in HTML. Store names and logos are never hardcoded.
+At build time, logos are copied into `dist/store-preview-images/` as 600×600
+JPEGs with the complete logo contained on a white background. Open Graph uses
+an absolute URL on the frontend domain and declares the actual MIME type and
+dimensions. Filenames include a content hash so a changed logo gets a fresh
+image URL. SVG and WebP source logos also become JPEGs for sharing clients.
+Downloads have a 15-second timeout and an 8 MB limit; an unavailable or invalid
+image logs a warning and retains the original URL without failing the site build.
+If a store has no usable logo URL, its cover is used; if both are missing, no
+share image is declared. Store content is escaped before insertion in HTML.
+Store names and logos are never hardcoded.
 
 ## Dedicated custom-domain Static Site
 

@@ -14,10 +14,10 @@ export function absoluteHttpUrl(value, baseUrl) {
   }
 }
 
-export function renderStorePreview(template, store, { frontendUrl, assetUrl, canonicalUrl }) {
+export function renderStorePreview(template, store, { frontendUrl, assetUrl, canonicalUrl, previewImage }) {
   const name = String(store.name || store.slug);
   const description = String(store.description || name).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240);
-  const image = absoluteHttpUrl(store.logoUrl, assetUrl) || absoluteHttpUrl(store.coverImageUrl, assetUrl);
+  const image = previewImage?.url || absoluteHttpUrl(store.logoUrl, assetUrl) || absoluteHttpUrl(store.coverImageUrl, assetUrl);
   const canonical = canonicalUrl || new URL(`/market/${encodeURIComponent(store.slug)}`, frontendUrl).href;
   const languages = { A: ["ar", "ar_AR", "rtl"], E: ["en", "en_US", "ltr"], H: ["he", "he_IL", "rtl"] };
   const [language, locale, direction] = languages[store.language] || languages.A;
@@ -32,7 +32,10 @@ export function renderStorePreview(template, store, { frontendUrl, assetUrl, can
     `<link rel="canonical" href="${escapeHtml(canonical)}" />`,
   ];
   if (image) tags.push(
-    meta("og:image", image), meta("og:image:alt", name),
+    meta("og:image", image),
+    ...(image.startsWith("https:") ? [meta("og:image:secure_url", image)] : []),
+    ...(previewImage ? [meta("og:image:type", previewImage.type), meta("og:image:width", previewImage.width), meta("og:image:height", previewImage.height)] : []),
+    meta("og:image:alt", name),
     meta("twitter:image", image, "name"),
     `<link rel="icon" href="${escapeHtml(image)}" />`,
     `<link rel="apple-touch-icon" href="${escapeHtml(image)}" />`,
@@ -43,5 +46,6 @@ export function renderStorePreview(template, store, { frontendUrl, assetUrl, can
     .replace(/<meta\b[^>]*(?:name|property)\s*=\s*["'](?:og:[^"']*|twitter:[^"']*|description)["'][^>]*>/gi, "")
     .replace(/<link\b[^>]*rel\s*=\s*["'](?:icon|shortcut icon|apple-touch-icon|canonical)["'][^>]*>/gi, "")
     .replace(/<html\b[^>]*>/i, `<html lang="${language}" dir="${direction}">`)
-    .replace(/<head\b[^>]*>/i, match => `${match}\n${tags.join("\n")}\n`);
+    .replace(/<meta\b[^>]*charset\s*=[^>]*>/gi, "")
+    .replace(/<head\b[^>]*>/i, match => `${match}\n<meta charset="UTF-8" />\n${tags.join("\n")}\n`);
 }
