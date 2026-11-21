@@ -11,6 +11,7 @@ import {
   normalizeStorefrontPath,
 } from "./utils/customDomain.js";
 import lazyWithRetry from "./utils/lazyWithRetry.js";
+const StoreLocations = lazyWithRetry(() => import("./pages/public/StoreLocations.jsx"));
 const Home = lazyWithRetry(() => import("./pages/Home/Home.jsx"), "home");
 const About = lazyWithRetry(() => import("./pages/About/About.jsx"), "about");
 const Market = lazyWithRetry(
@@ -259,6 +260,7 @@ const router = createBrowserRouter([
               />
             ),
           },
+          { path: "locations", element: <DomainAwareElement platform={withRouteSuspense(<Market />)} storefront={withRouteSuspense(<StoreLocations />)} /> },
           { path: "market", element: withRouteSuspense(<Market />) },
           {
             path: "contact",
@@ -405,6 +407,7 @@ const router = createBrowserRouter([
           { index: true, element: withRouteSuspense(<StoreDetails />) },
           { path: "products", element: withRouteSuspense(<ProductsPage />) },
           { path: "about", element: withRouteSuspense(<StoreAbout />) },
+          { path: "locations", element: withRouteSuspense(<StoreLocations />) },
           { path: "contact", element: withRouteSuspense(<StoreContact />) },
           {
             path: "category/:categoryId",

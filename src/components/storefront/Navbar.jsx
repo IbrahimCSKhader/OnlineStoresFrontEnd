@@ -66,12 +66,13 @@ import {
 import "./Navbar.css";
 import "./AppNavbar.css";
 
-function buildNavItems(activeStoreSlug, copy, offersLabel) {
+function buildNavItems(activeStoreSlug, copy, offersLabel, locationsLabel) {
   if (activeStoreSlug) {
     return [
       { to: buildStorefrontPath(activeStoreSlug), label: copy.home, exact: true },
       { to: buildStorefrontPath(activeStoreSlug, "/products"), label: copy.products },
       ...(offersLabel ? [{ to: buildStorefrontPath(activeStoreSlug, "/offers"), label: offersLabel }] : []),
+      ...(locationsLabel ? [{ to: buildStorefrontPath(activeStoreSlug, "/locations"), label: locationsLabel }] : []),
       { to: buildStorefrontPath(activeStoreSlug, "/about"), label: copy.about },
       { to: buildStorefrontPath(activeStoreSlug, "/contact"), label: copy.contact },
     ];
@@ -317,8 +318,8 @@ export default function Navbar({ appNavbar = false }) {
     currentBrandStore?.name ||
     (isScopedOwnerDashboard ? resolvedBrandName : fallbackBrandName);
   const navItems = useMemo(
-    () => (isScopedOwnerDashboard ? [] : buildNavItems(activeStoreSlug, copy, hasStoreOffers ? t("العروض") : null)),
-    [activeStoreSlug, copy, isScopedOwnerDashboard, hasStoreOffers, t],
+    () => (isScopedOwnerDashboard ? [] : buildNavItems(activeStoreSlug, copy, hasStoreOffers ? t("العروض") : null, activeStore?.appearance?.sections?.showLocations === true ? ({A:"المواقع",E:"Locations",I:"סניפים"}[language] || "المواقع") : null)),
+    [activeStoreSlug, copy, isScopedOwnerDashboard, hasStoreOffers, t, activeStore, language],
   );
   const shouldHideThemeToggle = false;
   const themeOptions = useMemo(

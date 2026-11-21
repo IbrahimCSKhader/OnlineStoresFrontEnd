@@ -124,8 +124,8 @@ export default function StoreDetails() {
   }), [products, deferredSearchText, selectedCategoryId]);
   const categoryGrid = String(store?.themeTemplate ?? store?.ThemeTemplate).toUpperCase() === "C";
   const categorySummary = useMemo(
-    () => categoryGrid ? categories : categories.slice(0, 8),
-    [categories, categoryGrid],
+    () => categories,
+    [categories],
   );
   const filteredGroups = useMemo(
     () => groupProductsByCategory(filteredProducts, categories, t("منتجات أخرى")),
@@ -266,7 +266,7 @@ export default function StoreDetails() {
         {categoriesQuery.isLoading && !categorySummary.length ? (
           <EmptyState title={t("جاري تحميل التصنيفات...")} />
         ) : categorySummary.length ? (
-          <Box className="page-store-details__categories-grid">
+          <Box className="page-store-details__categories-grid" tabIndex={0} role="region" aria-label={t("التصنيفات الرئيسية")}>
             {categorySummary.map((category) => {
               const configuredCategoryImage = resolveAssetUrl(category.imageUrl);
               const categoryProductImage = resolveAssetUrl(

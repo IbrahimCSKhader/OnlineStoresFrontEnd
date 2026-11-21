@@ -94,7 +94,7 @@ export default function StoreAbout() {
           {paragraphs.length ? paragraphs.map((paragraph, index) => (
             /^\+?\d{8,15}$/.test(paragraph)
               ? <Typography component="a" key={index} href={`tel:${paragraph}`} color="primary" dir="ltr">{paragraph}</Typography>
-              : <Typography key={index} color="text.secondary">{paragraph}</Typography>
+              : <Typography key={index} component={/^(من نحن \||ماذا نقدم لكم؟|رؤيتنا|لماذا الجعبة للأثاث المكتبي؟)/.test(paragraph) ? "h3" : "p"} variant={/^(من نحن \||ماذا نقدم لكم؟|رؤيتنا|لماذا الجعبة للأثاث المكتبي؟)/.test(paragraph) ? "h5" : "body1"} color="text.secondary">{paragraph}</Typography>
           )) : <Typography color="text.secondary">{t("هنا تبدأ رحلتكم لاكتشاف ما يناسبكم. تصفّحوا منتجاتنا، قارنوا التفاصيل، وتواصلوا معنا لنساعدكم في الاختيار.")}</Typography>}
           <Typography color="text.secondary">{t("اختياركم يهمّنا، وأسئلتكم مرحّب بها. يسعدنا أن نكون جزءًا من تجربتكم القادمة.")}</Typography>
         </Box>

@@ -4,6 +4,7 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 import useStorefrontCatalogProducts from "../../hooks/products/useStorefrontCatalogProducts.js";
 import storeApi from "../../API/store.api.js";
+import useCategories from "../../hooks/categories/useCategories.js";
 import StoreDetails from "./StoreDetails.jsx";
 import StoreAbout from "./StoreAbout.jsx";
 import StoreContact from "./StoreContact.jsx";
@@ -17,7 +18,7 @@ vi.mock("../../hooks/stores/useOwnerStorePreview.js", () => ({ default: () => ({
 vi.mock("../../theme/useStoreBranding.js", () => ({ default: () => {} }));
 vi.mock("../../utils/customDomain.js", () => ({ getCurrentCustomDomainHost: () => null }));
 vi.mock("../../hooks/cart/useAddToCart.js", () => ({ default: () => ({ mutate: vi.fn() }) }));
-vi.mock("../../hooks/categories/useCategories.js", () => ({ default: () => ({ data: [], isLoading: false }) }));
+vi.mock("../../hooks/categories/useCategories.js", () => ({ default: vi.fn(() => ({ data: [], isLoading: false })) }));
 vi.mock("../../hooks/products/useFeaturedProducts.js", () => ({ default: () => ({ data: [], isLoading: false }) }));
 vi.mock("../../hooks/products/useHighlightProducts.js", () => ({ default: () => ({ data: [], isLoading: false }) }));
 vi.mock("../../hooks/products/useStorefrontCatalogProducts.js", () => ({ default: vi.fn(() => ({ data: [], isLoading: false, pagination: {} })) }));
@@ -63,4 +64,14 @@ it("shows the full product count below the cover independently of product stock"
   expect(cover.querySelector(".storefront-logo")).toBeInTheDocument();
   expect(cover).not.toHaveTextContent("פריטים יפים לבית");
   expect(storeApi.getStoreStatistics).toHaveBeenCalledWith("shoman");
+});
+
+it("renders categories beyond the first eight in the scrollable category region", async () => {
+ vi.mocked(useCategories).mockReturnValueOnce({data:Array.from({length:12},(_,i)=>({id:`cat-${i}`,name:`Category ${i}`})),isLoading:false});
+ const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+ vi.mocked(useCategories).mockReturnValue({data:Array.from({length:12},(_,i)=>({id:`cat-${i}`,name:`Category ${i}`})),isLoading:false});
+ const view=render(<QueryClientProvider client={client}><MemoryRouter initialEntries={["/market/shomanhome"]}><Routes><Route path="/market/:slug" element={<StoreDetails/>}/></Routes></MemoryRouter></QueryClientProvider>);
+ await waitFor(()=>expect(view.container.querySelectorAll(".page-store-details__categories-grid a")).toHaveLength(12));
+ expect(view.container.querySelector(".page-store-details__categories-grid")).toHaveAttribute("tabindex","0");
+ vi.mocked(useCategories).mockReturnValue({data:[],isLoading:false});
 });

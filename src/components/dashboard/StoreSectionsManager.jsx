@@ -29,6 +29,13 @@ function Editor({ storeId, initial, offers }) {
  return <Stack spacing={3} className="owner-panel">
   <h2>أقسام الواجهة والبريميوم</h2>
   {[["showCover","إظهار صورة الكوفر"],["showFeaturedProducts","إظهار مختارات المتجر"],["premiumEnabled","إظهار قسم البريميوم"]].map(([key,label])=><FormControlLabel key={key} label={label} control={<Switch checked={draft[key] !== false} onChange={e=>change(key,e.target.checked)}/>}/>)}
+  <FormControlLabel label="إظهار صفحة المواقع في الهيدر" control={<Switch checked={draft.showLocations === true} onChange={e=>change("showLocations",e.target.checked)}/>} />
+  <h3>مواقع الفروع</h3>
+  {(draft.locations || []).map((branch,index)=><Stack key={index} spacing={2}>
+   {[["name","اسم الفرع",180],["address","العنوان",500],["phone","الهاتف",30],["whatsApp","واتساب مع رمز الدولة (مثال: 972528601833)",15]].map(([key,label,maxLength])=><TextField key={key} label={label} value={branch[key] || ""} inputProps={{maxLength}} onChange={e=>change("locations",draft.locations.map((item,i)=>i===index ? {...item,[key]:e.target.value} : item))}/>)}
+   <Button color="error" onClick={()=>change("locations",draft.locations.filter((_,i)=>i!==index))}>إزالة الفرع</Button>
+  </Stack>)}
+  <Button disabled={(draft.locations || []).length >= 20} onClick={()=>change("locations",[...(draft.locations || []),{name:"",address:"",phone:"",whatsApp:""}])}>إضافة فرع</Button>
   <h3>عنوان العروضات</h3>
   {languages.map(([code,label])=><TextField key={code} label={`عنوان العروضات — ${label}`} value={draft.offersHeading?.[code] ?? exclusive[code]} inputProps={{maxLength:180}} onChange={e=>change("offersHeading",{...exclusive,...draft.offersHeading,[code]:e.target.value})}/>)}
   <TextField select label="العرض الخاص بقسم البريميوم" value={draft.premiumOfferId || ""} onChange={e=>change("premiumOfferId",e.target.value || null)}><MenuItem value="">اختيار تلقائي من العروض المميزة</MenuItem>{offers.map(o=><MenuItem key={o.id} value={o.id}>{o.name}</MenuItem>)}</TextField>

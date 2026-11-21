@@ -45,6 +45,10 @@
 }
 
 .page-store-details__categories-grid {
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 3px;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;

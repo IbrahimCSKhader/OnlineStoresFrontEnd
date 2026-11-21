@@ -8,10 +8,12 @@ vi.mock("../../hooks/offers/useOffers.js",()=>({default:()=>({data:[{id:"o",type
 it("uploads images and saves store-specific visibility and translations",async()=>{
  const view=render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}><StoreSectionsManager storeId="s"/></QueryClientProvider>);
  fireEvent.click(await screen.findByLabelText("إظهار مختارات المتجر"));
+ expect(screen.getByLabelText("إظهار صفحة المواقع في الهيدر")).not.toBeChecked();
+ fireEvent.click(screen.getByLabelText("إظهار صفحة المواقع في الهيدر"));
  fireEvent.change(screen.getByLabelText("عنوان العرض — الإنجليزية"),{target:{value:"Premium Office"}});
  fireEvent.change(view.container.querySelector('input[type="file"]'),{target:{files:[new File(["photo"],"one.png",{type:"image/png"})]}});
  await waitFor(()=>expect(api.post).toHaveBeenCalled());
  await screen.findByRole("button",{name:"الرئيسية"});
  fireEvent.click(screen.getByRole("button",{name:"حفظ إعدادات الأقسام"}));
- await waitFor(()=>expect(api.put).toHaveBeenCalledWith("/api/Store/s/sections-settings",expect.objectContaining({showFeaturedProducts:false,offers:{o:expect.objectContaining({title:{E:"Premium Office"},images:["/wwwroot/uploads/stores/s/categories/one.png"]})}})));
+ await waitFor(()=>expect(api.put).toHaveBeenCalledWith("/api/Store/s/sections-settings",expect.objectContaining({showLocations:true,showFeaturedProducts:false,offers:{o:expect.objectContaining({title:{E:"Premium Office"},images:["/wwwroot/uploads/stores/s/categories/one.png"]})}})));
 });
