@@ -32,7 +32,7 @@ function Editor({ storeId, initial, offers }) {
   <FormControlLabel label="إظهار صفحة المواقع في الهيدر" control={<Switch checked={draft.showLocations === true} onChange={e=>change("showLocations",e.target.checked)}/>} />
   <h3>مواقع الفروع</h3>
   {(draft.locations || []).map((branch,index)=><Stack key={index} spacing={2}>
-   {[["name","اسم الفرع",180],["address","العنوان",500],["phone","الهاتف",30],["whatsApp","واتساب مع رمز الدولة (مثال: 972528601833)",15]].map(([key,label,maxLength])=><TextField key={key} label={label} value={branch[key] || ""} inputProps={{maxLength}} onChange={e=>change("locations",draft.locations.map((item,i)=>i===index ? {...item,[key]:e.target.value} : item))}/>)}
+   {[["name","اسم الفرع",180],["address","العنوان",500],["mapUrl","رابط الموقع على Google Maps",2000],["phone","الهاتف",30],["whatsApp","واتساب مع رمز الدولة (مثال: 972528601833)",15]].map(([key,label,maxLength])=><TextField key={key} label={label} value={branch[key] || ""} inputProps={{maxLength}} onChange={e=>change("locations",draft.locations.map((item,i)=>i===index ? {...item,[key]:e.target.value} : item))}/>)}
    <Button color="error" onClick={()=>change("locations",draft.locations.filter((_,i)=>i!==index))}>إزالة الفرع</Button>
   </Stack>)}
   <Button disabled={(draft.locations || []).length >= 20} onClick={()=>change("locations",[...(draft.locations || []),{name:"",address:"",phone:"",whatsApp:""}])}>إضافة فرع</Button>
