@@ -1,5 +1,13 @@
 export const STORE_THEME_TEMPLATES = [
   {
+    value: "K",
+    label: "مكتبة",
+    template: "library",
+    lightVariant: "brown",
+    darkVariant: "brown-dark",
+    preview: { light: ["#F8F2E9", "#FFFDF9", "#7A1725"], dark: ["#211719", "#302126", "#E8C69C"] },
+  },
+  {
     value: "C",
     label: "العرض بناء على الاصناف",
     template: "category-grid",

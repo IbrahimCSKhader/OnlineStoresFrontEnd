@@ -473,3 +473,48 @@ html[data-theme-template] .page-store-details--category-grid .page-store-details
   html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card { padding: 8px; gap: 6px; }
   html[data-theme-template] .page-store-details--category-grid .page-store-details__category-card h6 { font-size: .875rem; }
 }
+
+/* Library layout follows the persisted K template and works with API products. */
+.page-store-details--library .page-store-details__hero {
+  background: linear-gradient(115deg, #3b1721, #711c32);
+  color: #fff8eb;
+  border-radius: 24px;
+}
+.page-store-details--library .page-store-details__brand-row {
+  justify-content: flex-start;
+  gap: 28px;
+  padding: clamp(28px, 6vw, 72px);
+  color: inherit;
+}
+.page-store-details--library .page-store-details__brand-row .storefront-logo {
+  width: clamp(100px, 16vw, 180px);
+  height: clamp(100px, 16vw, 180px);
+  object-fit: contain;
+  background: #fff8f0;
+  border-radius: 50%;
+}
+.page-store-details__library-kicker { color: #e7c99d; letter-spacing: .13em; }
+.page-store-details--library .page-store-details__title { color: #fff8eb; }
+.page-store-details__library-description { max-width: 60ch; line-height: 1.9; color: #f3e2d8; }
+.page-store-details__library-story {
+  padding: clamp(26px, 5vw, 52px);
+  border-radius: 22px;
+  background: #fffaf3;
+  color: #39242a;
+  line-height: 2;
+  white-space: pre-line;
+}
+.page-store-details--library .page-store-details__catalog { background: #f8f2e9; padding: clamp(18px, 4vw, 44px); border-radius: 24px; }
+.page-store-details--library .page-store-details__catalog .product-card {
+  --product-card-media-height: none;
+  box-shadow: 0 12px 30px rgba(58, 29, 32, .08);
+}
+.page-store-details--library .page-store-details__catalog .product-card__media {
+  aspect-ratio: 2 / 3;
+  max-height: none;
+  background: #eee4d8;
+}
+.page-store-details--library .page-store-details__catalog .product-card__image { object-fit: contain; }
+@media (max-width: 639px) {
+  .page-store-details--library .page-store-details__brand-row { flex-direction: column; text-align: center; }
+}

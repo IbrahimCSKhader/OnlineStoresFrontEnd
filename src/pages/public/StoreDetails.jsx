@@ -122,7 +122,9 @@ export default function StoreDetails() {
       (!keyword || [product.name, product.description, product.shortDescription, product.categoryName, product.sku]
         .some(value => String(value || "").toLocaleLowerCase().includes(keyword)));
   }), [products, deferredSearchText, selectedCategoryId]);
-  const categoryGrid = String(store?.themeTemplate ?? store?.ThemeTemplate).toUpperCase() === "C";
+  const templateCode = String(store?.themeTemplate ?? store?.ThemeTemplate).toUpperCase();
+  const categoryGrid = templateCode === "C";
+  const library = templateCode === "K";
   const categorySummary = useMemo(
     () => categories,
     [categories],
@@ -196,7 +198,7 @@ export default function StoreDetails() {
 
   if (storeQuery.isLoading) {
     return (
-      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}`}>
+      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${library ? " page-store-details--library" : ""}`}>
         <EmptyState title={t("جاري تحميل المتجر...")} />
       </Box>
     );
@@ -204,7 +206,7 @@ export default function StoreDetails() {
 
   if (storeQuery.error || !store) {
     return (
-      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}`}>
+      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${library ? " page-store-details--library" : ""}`}>
         <EmptyState
           title={t("تعذر العثور على المتجر")}
           description={t("قد يكون الرابط غير صحيح أو أن المتجر لم يعد متاحًا.")}
@@ -219,7 +221,7 @@ export default function StoreDetails() {
   const logoImage = resolveStoreLogoUrl(store, { wordmark: logoCover });
 
   return (
-    <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}`}>
+    <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${library ? " page-store-details--library" : ""}`}>
       <AppFeedbackSnackbar toast={{ open: addToCartMutation.isError, severity: "error",
         message: extractApiError(addToCartMutation.error, t("تعذر إضافة المنتج إلى السلة.")) }}
         onClose={() => addToCartMutation.reset?.()} />
@@ -240,7 +242,11 @@ export default function StoreDetails() {
               {store.name?.[0] || t("م")}
             </Box>
           )}
-          <Typography variant="h1" className="page-store-details__title">{store.name}</Typography>
+          <Box className="page-store-details__brand-copy">
+            {library && <span className="page-store-details__library-kicker">مكتبة المؤلف</span>}
+            <Typography variant="h1" className="page-store-details__title">{store.name}</Typography>
+            {library && store.description && <Typography className="page-store-details__library-description">{store.description}</Typography>}
+          </Box>
         </Box>
         {coverImage && <img className="page-store-details__hero-media" src={coverImage} alt="" decoding="async" />}
       </SurfaceCard>
@@ -255,7 +261,7 @@ export default function StoreDetails() {
       </>}
       {store?.appearance?.sections?.showFeaturedProducts !== false && <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />}
       {!categoryGrid && <StoreOffers store={store} disabled={isOwnerPreview} />}
-      <Box className="storefront-section">
+      {!library && <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">{t("التصنيفات")}</span>
@@ -315,8 +321,9 @@ export default function StoreDetails() {
             description={t("ستظهر التصنيفات هنا بمجرد إضافة أقسام ومنتجات داخل المتجر.")}
           />
         )}
-      </Box>
+      </Box>}
 
+      {library && store.storeStory && <Box className="page-store-details__library-story"><Typography variant="h3">عن المؤلف</Typography><Typography>{store.storeStory}</Typography></Box>}
       {!categoryGrid && <>
       {store?.appearance?.sections?.showFeaturedProducts !== false && <Box
         className="storefront-section page-store-details__featured"
@@ -355,7 +362,7 @@ export default function StoreDetails() {
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">{t("المنتجات")}</span>
-            <Typography variant="h3">{t("جميع المنتجات")}</Typography>
+            <Typography variant="h3">{library ? "رفوف المكتبة" : t("جميع المنتجات")}</Typography>
           </Box>
 
           <Box className="page-store-details__catalog-toolbar">
@@ -363,7 +370,7 @@ export default function StoreDetails() {
               <SearchInput
                 value={searchText}
                 onChange={handleSearchChange}
-                placeholder={t("ابحث داخل هذا المتجر")}
+                placeholder={library ? "ابحث عن كتاب" : t("ابحث داخل هذا المتجر")}
               />
             </Box>
           </Box>
@@ -394,4 +401,3 @@ export default function StoreDetails() {
     </Box>
   );
 }
-

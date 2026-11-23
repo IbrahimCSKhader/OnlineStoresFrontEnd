@@ -3,7 +3,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 import StoreDetails from "./StoreDetails.jsx";
 const state = vi.hoisted(() => ({ template: "C", categories: Array.from({ length: 13 }, (_, i) => ({ id: `brand-${i}`, name: `Brand ${i}`, imageUrl: `/brand-${i}.jpg` })) }));
-vi.mock("../../hooks/stores/useStoreBySlug.js", () => ({ default: () => ({ data: { id: "s", slug: "demo", name: "Demo", themeTemplate: state.template } }) }));
+vi.mock("../../hooks/stores/useStoreBySlug.js", () => ({ default: () => ({ data: { id: "s", slug: "demo", name: "Demo", description: "Author books", storeStory: "Author story", themeTemplate: state.template } }) }));
 vi.mock("../../hooks/stores/useOwnerStorePreview.js", () => ({ default: () => ({ isOwnerPreview: true, previewSearch: "?preview=1", buildStorePreviewPath: x => `${x}?preview=1` }) }));
 vi.mock("../../hooks/storefront/useStorefrontLanguage.js", () => ({ default: () => ({ t: x => x, language: "A" }) }));
 vi.mock("../../hooks/categories/useCategories.js", () => ({ default: () => ({ data: state.categories }) }));
@@ -35,4 +35,13 @@ it("retains the existing storefront for other templates", () => {
   const { container } = show();
   expect(container.querySelectorAll(".page-store-details__category-card")).toHaveLength(13);
   expect(screen.getByText("جميع المنتجات")).toBeVisible();
+});
+
+it("renders the library layout from the saved template while keeping the catalog", () => {
+  state.template = "K";
+  const { container } = show();
+  expect(container.querySelector(".page-store-details--library")).not.toBeNull();
+  expect(screen.getByText("Author story")).toBeVisible();
+  expect(container.querySelector(".page-store-details__categories-grid")).toBeNull();
+  expect(screen.getByText("رفوف المكتبة")).toBeVisible();
 });
