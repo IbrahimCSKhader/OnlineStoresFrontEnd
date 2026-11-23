@@ -125,6 +125,11 @@ export function buildStoreContactUrl(platform, username) {
   }
 }
 
+export function buildInstagramMessageUrl(username) {
+  const handle = normalizeStoreContactUsername("Instagram", username);
+  return handle ? `https://ig.me/m/${encodeURIComponent(handle)}` : "";
+}
+
 export function formatStoreContactValue(platform, username) {
   const normalizedPlatform = normalizePlatform(platform);
   const normalizedUsername = normalizeStoreContactUsername(platform, username);

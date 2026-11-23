@@ -33,7 +33,7 @@ import { normalizeOrderDetails } from "../../utils/orders.js";
 import { getOrderStatusLabel, ORDER_STATUS } from "../../utils/orderStatus.js";
 import { buildStoreCustomerAuthState } from "../../utils/storeCustomerAuth.js";
 import { normalizeCartResponse } from "../../utils/storefront.js";
-import { normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
+import { buildInstagramMessageUrl, getStoreContactEntries, normalizeWhatsAppIdentifier } from "../../utils/storeContacts.js";
 import { buildWhatsAppLink } from "../../utils/whatsapp.js";
 import { buildStorefrontPath } from "../../utils/customDomain.js";
 import useStoreBranding from "../../theme/useStoreBranding.js";
@@ -285,6 +285,7 @@ function CheckoutPage() {
   const [formOverrides, setForm] = useState({});
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState("");
+  const [instagramOrderMessage, setInstagramOrderMessage] = useState("");
   const { t, language } = useStorefrontLanguage();
 
   const storeQuery = useStoreBySlug(slug, { language });
@@ -292,6 +293,9 @@ function CheckoutPage() {
     () => normalizeEntityResponse(storeQuery.data),
     [storeQuery.data],
   );
+  const instagramContact = getStoreContactEntries(store).find((entry) => entry.platform === "Instagram");
+  const instagramUrl = buildInstagramMessageUrl(instagramContact?.username);
+  const sendsViaInstagram = !normalizeWhatsAppIdentifier(findStoreWhatsAppNumber(store)) && Boolean(instagramUrl);
 
   useStoreBranding(store);
 
@@ -471,10 +475,10 @@ function CheckoutPage() {
     const rawWhatsAppNumber = findStoreWhatsAppNumber(store);
     const waNumber = normalizeWhatsAppIdentifier(rawWhatsAppNumber);
 
-    if (!waNumber) {
+    if (!waNumber && !instagramUrl) {
       handleValidationFailure(
-        "missing-store-whatsapp-number",
-        t("لا يوجد رقم واتساب صالح لصاحب المتجر حاليًا. تحقق من بيانات التواصل في المتجر."),
+        "missing-store-contact",
+        t("لا توجد وسيلة لاستقبال الطلبات. تحقق من بيانات التواصل في المتجر."),
         {
           rawWhatsAppNumber,
         },
@@ -482,10 +486,10 @@ function CheckoutPage() {
       return;
     }
 
-    let whatsappUrl = buildWhatsAppLink(
+    let whatsappUrl = waNumber ? buildWhatsAppLink(
       waNumber,
       buildWhatsAppOrderMessage({ store, cart, form, t }),
-    );
+    ) : instagramUrl;
 
     if (!whatsappUrl) {
       handleValidationFailure(
@@ -574,16 +578,13 @@ function CheckoutPage() {
     });
 
     const normalizedOrder = normalizeOrderDetails(orderResponse);
-    whatsappUrl = buildWhatsAppLink(
+    const orderMessage = buildWhatsAppOrderMessage({
+      t, store, order: normalizedOrder, cart, form,
+    });
+    whatsappUrl = waNumber ? buildWhatsAppLink(
       waNumber,
-      buildWhatsAppOrderMessage({
-        t,
-        store,
-        order: normalizedOrder,
-        cart,
-        form,
-      }),
-    );
+      orderMessage,
+    ) : instagramUrl;
 
     if (!whatsappUrl) {
       closePendingWhatsAppWindow(pendingWhatsAppWindow);
@@ -609,11 +610,16 @@ function CheckoutPage() {
       whatsappUrl,
     });
 
+    if (sendsViaInstagram) {
+      setInstagramOrderMessage(orderMessage);
+      try { await navigator.clipboard.writeText(orderMessage); } catch { /* The visible copy button remains available. */ }
+    }
+
     try {
       await clearCartMutation.mutateAsync({
         debugSource: "customer-checkout-after-order",
       });
-      setSubmitSuccess(
+      setSubmitSuccess(sendsViaInstagram ? t("تم إنشاء الطلب. افتح محادثة إنستغرام والصق ملخص الطلب لإرساله إلى المكتبة.") :
         t("تم إنشاء الطلب ومسح السلة بنجاح. حالة الطلب الآن {0} بانتظار تأكيد صاحب المتجر. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر ({1}).", t(getOrderStatusLabel(ORDER_STATUS.PENDING)), waNumber),
       );
     } catch (error) {
@@ -623,7 +629,7 @@ function CheckoutPage() {
         actor,
         error: serializeOrderCartError(error),
       });
-      setSubmitSuccess(
+      setSubmitSuccess(sendsViaInstagram ? t("تم إنشاء الطلب. افتح محادثة إنستغرام والصق ملخص الطلب لإرساله إلى المكتبة.") :
         t("تم إنشاء الطلب بنجاح. حالة الطلب الآن {0} بانتظار تأكيد صاحب المتجر. سيتم الآن فتح واتساب لإرسال الطلب إلى صاحب المتجر ({1}).", t(getOrderStatusLabel(ORDER_STATUS.PENDING)), waNumber),
       );
     }
@@ -644,13 +650,19 @@ function CheckoutPage() {
       <AppFeedbackSnackbar toast={{ open: Boolean(submitError), severity: "error", message: submitError }}
         onClose={() => setSubmitError("")} />
       {submitSuccess ? <Alert severity="success">{submitSuccess}</Alert> : null}
+      {instagramOrderMessage && <SurfaceCard className="page-checkout__instagram-message">
+        <Typography variant="h6">{t("ملخص الطلب لإرساله عبر إنستغرام")}</Typography>
+        <Box component="textarea" readOnly value={instagramOrderMessage} aria-label={t("ملخص الطلب")} sx={{ width: "100%", minHeight: 180, p: 2 }} />
+        <AppButton onClick={() => navigator.clipboard?.writeText(instagramOrderMessage)}>{t("نسخ ملخص الطلب")}</AppButton>
+        <AppButton href={instagramUrl} target="_blank" rel="noopener noreferrer">{t("افتح محادثة إنستغرام")}</AppButton>
+      </SurfaceCard>}
 
       <SurfaceCard className="page-checkout__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">{t("إتمام الطلب")}</span>
-            <Typography variant="h2">{t("إرسال الطلب عبر واتساب -")} {store.name}</Typography>
-            <Typography variant="body1" className="storefront-subtitle">{guestAllowed ? t("يمكنك إتمام الطلب دون حساب. أدخل معلوماتك ثم راجع الطلب وأرسله عبر واتساب.") : t("إتمام الطلب يتطلب تسجيل الدخول لهذا المتجر. بعد التأكيد سيفتح واتساب مع ملخص الطلب.")}</Typography>
+            <Typography variant="h2">{sendsViaInstagram ? t("الطلب عبر إنستغرام -") : t("إرسال الطلب عبر واتساب -")} {store.name}</Typography>
+            <Typography variant="body1" className="storefront-subtitle">{sendsViaInstagram ? t("بعد إنشاء الطلب ستفتح محادثة إنستغرام. الصق ملخص الطلب وأرسله إلى المكتبة.") : guestAllowed ? t("يمكنك إتمام الطلب دون حساب. أدخل معلوماتك ثم راجع الطلب وأرسله عبر واتساب.") : t("إتمام الطلب يتطلب تسجيل الدخول لهذا المتجر. بعد التأكيد سيفتح واتساب مع ملخص الطلب.")}</Typography>
           </Box>
 
           <AppButton
@@ -670,7 +682,7 @@ function CheckoutPage() {
               deliveryLocations={deliveryLocations}
               couponsEnabled={!isGuest && canUseStoreCoupons(store)}
               isSubmitting={createOrderMutation.isPending || clearCartMutation.isPending || Boolean(submitSuccess)}
-              submitLabel={t("إرسال الطلب عبر واتساب")}
+              submitLabel={sendsViaInstagram ? t("إتمام الطلب عبر إنستغرام") : t("إرسال الطلب عبر واتساب")}
               onChange={(key, value) =>
                 setForm((previous) => ({
                   ...previous,

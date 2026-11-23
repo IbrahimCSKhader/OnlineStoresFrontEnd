@@ -1,4 +1,4 @@
-import { getStoreContactEntries } from "../../utils/storeContacts.js";
+import { buildInstagramMessageUrl, getStoreContactEntries } from "../../utils/storeContacts.js";
 import { useEffect, useMemo, useState } from "react";
 import {
   Link as RouterLink,
@@ -243,7 +243,7 @@ export default function ProductDetails() {
   const quoteLink = priceOnRequest || store?.isCatalog
     ? whatsappContact
       ? buildWhatsAppLink(whatsappContact.username, t("مرحبًا، أود الاستفسار عن {0}", product.name))
-      : instagramContact?.url || ""
+      : buildInstagramMessageUrl(instagramContact?.username)
     : "";
   const quoteLabel = whatsappContact ? t("استفسر عبر واتساب") : t("راسلنا عبر إنستغرام");
   const selectableStockQuantity = selectableVariants.reduce(

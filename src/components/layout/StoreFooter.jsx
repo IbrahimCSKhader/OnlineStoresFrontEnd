@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 import AppButton from "../common/buttons/AppButton.jsx";
 import StoreContactAccounts from "../common/StoreContactAccounts.jsx";
 import useOwnerStorePreview from "../../hooks/stores/useOwnerStorePreview.js";
-import { getStoreContactEntries } from "../../utils/storeContacts.js";
+import { buildInstagramMessageUrl, getStoreContactEntries } from "../../utils/storeContacts.js";
 import "./StoreFooter.css";
 
 export default function StoreFooter({ store, slug = "" }) {
@@ -86,7 +86,7 @@ export default function StoreFooter({ store, slug = "" }) {
             {primaryContact?.url ? (
               <AppButton
                 component="a"
-                href={primaryContact.url}
+                href={primaryWhatsApp ? primaryContact.url : buildInstagramMessageUrl(primaryContact.username)}
                 target="_blank"
                 rel="noreferrer"
                 variant="text"

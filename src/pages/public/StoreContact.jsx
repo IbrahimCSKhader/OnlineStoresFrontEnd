@@ -1,4 +1,4 @@
-import { getStoreContactEntries } from "../../utils/storeContacts.js";
+import { buildInstagramMessageUrl, getStoreContactEntries } from "../../utils/storeContacts.js";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -55,7 +55,7 @@ export default function StoreContact() {
           <Typography variant="body1" className="storefront-subtitle">{t("إذا كان لديك أي استفسار حول المنتجات أو الطلبات، يسعدنا مساعدتك.")}</Typography>
 
           <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap">
-            {instagramContact?.url && <AppButton href={instagramContact.url} target="_blank" rel="noopener noreferrer" variant="contained">{t("راسلنا عبر إنستغرام")}</AppButton>}
+            {instagramContact?.url && <AppButton href={buildInstagramMessageUrl(instagramContact.username)} target="_blank" rel="noopener noreferrer" variant="contained">{t("راسلنا عبر إنستغرام")}</AppButton>}
             <AppButton
               component={RouterLink}
               to={buildStorePreviewPath(`/market/${resolvedStoreSlug}`)}

@@ -3,8 +3,8 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, expect, it, vi } from "vitest";
 import Checkout from "./Checkout.jsx";
 
-const state = vi.hoisted(() => ({ required: false, signedIn: false, create: vi.fn(), clear: vi.fn(), replace: vi.fn() }));
-vi.mock("../../hooks/stores/useStoreBySlug.js", () => ({ default: () => ({ data: { id: "store", slug: "demo", name: "Demo", whatsAppNumber: "970591234567", requireCustomerLoginForCheckout: state.required } }) }));
+const state = vi.hoisted(() => ({ required: false, signedIn: false, instagramOnly: false, create: vi.fn(), clear: vi.fn(), replace: vi.fn() }));
+vi.mock("../../hooks/stores/useStoreBySlug.js", () => ({ default: () => ({ data: { id: "store", slug: "demo", name: "Demo", whatsAppNumber: state.instagramOnly ? "" : "970591234567", contactAccounts: state.instagramOnly ? [{ platform: "Instagram", username: "alaa_rob_" }] : [], requireCustomerLoginForCheckout: state.required } }) }));
 vi.mock("../../hooks/storefront/useStorefrontLanguage.js", () => ({ default: () => ({ language: "A", t: (text, ...args) => text.replace(/\{(\d+)\}/g, (_, n) => args[n] ?? "") }) }));
 vi.mock("../../hooks/auth/useAuth.js", () => ({ default: () => ({ storeCustomer: state.signedIn ? { id: "customer" } : null }) }));
 vi.mock("../../hooks/auth/useStorefrontSession.js", () => ({ default: () => ({ hasScopedStorefrontSession: state.signedIn, useLocalGuestCart: !state.signedIn }) }));
@@ -16,7 +16,7 @@ vi.mock("../../theme/useStoreBranding.js", () => ({ default: () => {} }));
 vi.mock("../../components/cart/CartItem.jsx", () => ({ default: () => <span>Product</span> }));
 
 beforeEach(() => {
-  state.required = false; state.signedIn = false;
+  state.required = false; state.signedIn = false; state.instagramOnly = false;
   state.create.mockReset().mockResolvedValue({ id: "order", orderNumber: "ORD-1", isGuest: true, customerName: "Guest", totalAmount: 50, items: [{ productName: "Product", quantity: 2, unitPrice: 25, totalPrice: 50 }] });
   state.clear.mockReset().mockResolvedValue({});
   state.replace.mockReset();
@@ -46,6 +46,15 @@ it("creates a guest order with contact details and opens WhatsApp without login"
   const message = decodeURIComponent(state.replace.mock.calls[0][0]);
   expect(message).toContain("Guest"); expect(message).toContain("0591234567"); expect(message).toContain("غير مسجل");
   expect(state.clear).toHaveBeenCalled();
+});
+
+it("opens Instagram messaging and keeps a copyable order summary when WhatsApp is absent", async () => {
+  state.instagramOnly = true; show(); fill();
+  fireEvent.click(screen.getByRole("button", { name: "التالي" }));
+  fireEvent.click(screen.getByRole("button", { name: "إتمام الطلب عبر إنستغرام" }));
+  await waitFor(() => expect(state.create).toHaveBeenCalled());
+  await waitFor(() => expect(state.replace).toHaveBeenCalledWith("https://ig.me/m/alaa_rob_"));
+  expect(screen.getByRole("textbox", { name: "ملخص الطلب" }).value).toContain("Guest");
 });
 
 it("requires store login when the store requires registration", async () => {
