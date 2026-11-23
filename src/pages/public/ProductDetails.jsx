@@ -1,3 +1,4 @@
+import { getStoreContactEntries } from "../../utils/storeContacts.js";
 import { useEffect, useMemo, useState } from "react";
 import {
   Link as RouterLink,
@@ -236,10 +237,15 @@ export default function ProductDetails() {
   const selectedSku =
     selectedVariant?.sku ? selectedVariant.sku : product?.sku;
   const priceOnRequest = product.isPriceOnRequest;
-  const quoteLink = priceOnRequest ? buildWhatsAppLink(
-    store?.whatsAppNumber,
-    t("مرحبًا، أود الاستفسار عن {0}", product.name),
-  ) : "";
+  const contactEntries = getStoreContactEntries(store);
+  const whatsappContact = contactEntries.find((entry) => entry.platform === "WhatsApp");
+  const instagramContact = contactEntries.find((entry) => entry.platform === "Instagram");
+  const quoteLink = priceOnRequest || store?.isCatalog
+    ? whatsappContact
+      ? buildWhatsAppLink(whatsappContact.username, t("مرحبًا، أود الاستفسار عن {0}", product.name))
+      : instagramContact?.url || ""
+    : "";
+  const quoteLabel = whatsappContact ? t("استفسر عبر واتساب") : t("راسلنا عبر إنستغرام");
   const selectableStockQuantity = selectableVariants.reduce(
     (sum, variant) => sum + Number(variant.stockQuantity || 0),
     0,
@@ -695,7 +701,7 @@ export default function ProductDetails() {
 
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
                   {quoteLink && <AppButton href={quoteLink} target="_blank" rel="noopener noreferrer">
-                    {t("استفسر عبر واتساب")}
+                    {quoteLabel}
                   </AppButton>}
                   {!store?.isCatalog && !priceOnRequest && <>
                   <AppButton

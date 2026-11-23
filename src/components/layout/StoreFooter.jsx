@@ -18,6 +18,8 @@ export default function StoreFooter({ store, slug = "" }) {
   const primaryWhatsApp = contactEntries.find(
     (entry) => entry.platform === "WhatsApp",
   );
+  const primaryContact = primaryWhatsApp || contactEntries.find((entry) => entry.platform === "Instagram");
+  const primaryContactLabel = primaryWhatsApp ? "واتساب" : "إنستغرام";
   const localLinks = [
     { to: buildStorePreviewPath(`/market/${slug}`), label: t("الرئيسية") },
     { to: buildStorePreviewPath(`/market/${slug}/about`), label: t("من نحن") },
@@ -81,14 +83,14 @@ export default function StoreFooter({ store, slug = "" }) {
               to={buildStorePreviewPath(`/market/${slug}/contact`)}
               variant="contained"
             >{t("تواصل")}</AppButton>
-            {primaryWhatsApp?.url ? (
+            {primaryContact?.url ? (
               <AppButton
                 component="a"
-                href={primaryWhatsApp.url}
+                href={primaryContact.url}
                 target="_blank"
                 rel="noreferrer"
                 variant="text"
-              >{t("واتساب")}</AppButton>
+              >{t(primaryContactLabel)}</AppButton>
             ) : null}
           </Stack>
 
