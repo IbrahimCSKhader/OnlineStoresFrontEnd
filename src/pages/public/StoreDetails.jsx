@@ -252,15 +252,15 @@ export default function StoreDetails() {
       </SurfaceCard>
 
       {!categoryGrid && <>
-      {store.isActive !== false && showStoreStatistics(store) && (
+      {!library && store.isActive !== false && showStoreStatistics(store) && (
         <StoreStatistics key={store.id} storeId={store.id} storeSlug={resolvedStoreSlug}
           visitCount={displayedVisitCount} isOwnerPreview={isOwnerPreview} />
       )}
 
-      <PremiumOffer store={store} disabled={isOwnerPreview} />
+      {!library && <PremiumOffer store={store} disabled={isOwnerPreview} />}
       </>}
-      {store?.appearance?.sections?.showFeaturedProducts !== false && <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />}
-      {!categoryGrid && <StoreOffers store={store} disabled={isOwnerPreview} />}
+      {!library && store?.appearance?.sections?.showFeaturedProducts !== false && <ProductCarousel products={highlights} productPath={(id) => buildStorePreviewPath(`/market/${store.slug}/product/${id}`)} bundleProductIds={bundleProductIds} bundleOffers={(offersQuery.data || []).filter(o => Number(o.type) === 1)} />}
+      {!library && !categoryGrid && <StoreOffers store={store} disabled={isOwnerPreview} />}
       {!library && <Box className="storefront-section">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
@@ -325,7 +325,7 @@ export default function StoreDetails() {
 
       {library && store.storeStory && <Box className="page-store-details__library-story"><Typography variant="h3">عن المؤلف</Typography><Typography>{store.storeStory}</Typography></Box>}
       {!categoryGrid && <>
-      {store?.appearance?.sections?.showFeaturedProducts !== false && <Box
+      {!library && store?.appearance?.sections?.showFeaturedProducts !== false && <Box
         className="storefront-section page-store-details__featured"
         id="store-featured-products"
         data-scroll-section

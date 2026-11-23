@@ -44,4 +44,5 @@ it("renders the library layout from the saved template while keeping the catalog
   expect(screen.getByText("Author story")).toBeVisible();
   expect(container.querySelector(".page-store-details__categories-grid")).toBeNull();
   expect(screen.getByText("رفوف المكتبة")).toBeVisible();
+  expect(container.querySelector(".page-store-details__featured")).toBeNull();
 });
