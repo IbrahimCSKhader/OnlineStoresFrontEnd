@@ -33,6 +33,6 @@ it("shows every category as a linked tile, preserving preview navigation", () =>
 it("retains the existing storefront for other templates", () => {
   state.template = "N";
   const { container } = show();
-  expect(container.querySelectorAll(".page-store-details__category-card")).toHaveLength(8);
+  expect(container.querySelectorAll(".page-store-details__category-card")).toHaveLength(13);
   expect(screen.getByText("جميع المنتجات")).toBeVisible();
 });

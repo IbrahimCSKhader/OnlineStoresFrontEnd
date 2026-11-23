@@ -1,20 +1,13 @@
 import { useMemo } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { useQueries } from "@tanstack/react-query";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import AppButton from "../../components/common/buttons/AppButton.jsx";
-import EmptyState from "../../components/common/feedback/EmptyState.jsx";
-import LoadingState from "../../components/common/loaders/LoadingState.jsx";
 import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
-import ProductGrid from "../../components/product/ProductGrid.jsx";
 import StoreGrid from "../../components/storefront/StoreGrid.jsx";
-import productApi from "../../API/product.api.js";
 import { SITE_BRAND_ASSET_PATH } from "../../constants/siteBranding.js";
 import useStores from "../../hooks/stores/useStores.js";
 import { normalizeListResponse } from "../../utils/collections.js";
-import { isProductActive, normalizeProductList } from "../../utils/products.js";
 import "./Home.css";
 
 export default function Home() {
@@ -24,53 +17,9 @@ export default function Home() {
       normalizeListResponse(storesQuery.data).filter((store) => store.isActive !== false),
     [storesQuery.data],
   );
-  const featuredStores = stores.slice(0, 5);
-  const featuredProductStores = stores.slice(0, 10);
-
-  const featuredProductQueries = useQueries({
-    queries: featuredProductStores.map((store) => ({
-      queryKey: ["home", "featured-products", store.id],
-      queryFn: () => productApi.getFeaturedProducts(store.id),
-      enabled: Boolean(store.id),
-      staleTime: 60000,
-    })),
-  });
-
-  const featuredProducts = useMemo(
-    () =>
-      featuredProductQueries
-        .map((query, index) => {
-          const featuredProduct = normalizeProductList(query.data).find((product) =>
-            isProductActive(product),
-          );
-
-          if (!featuredProduct) {
-            return null;
-          }
-
-          return {
-            ...featuredProduct,
-            storeSlug: featuredProductStores[index]?.slug,
-          };
-        })
-        .filter(Boolean)
-        .slice(0, 10),
-    [featuredProductQueries, featuredProductStores],
-  );
-
-  const storeCategories = useMemo(() => {
-    const counts = new Map();
-
-    stores.forEach((store) => {
-      const key = store.businessType || "متجر عام";
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    });
-
-    return [...counts.entries()]
-      .map(([label, count]) => ({ label, count }))
-      .sort((left, right) => right.count - left.count)
-      .slice(0, 6);
-  }, [stores]);
+  const exampleStores = ["jubeh-office-furniture", "eman", "animal-kingdom", "fragrance-secret"]
+    .map((slug) => stores.find((store) => store.slug === slug))
+    .filter(Boolean);
 
   return (
     <Box className="storefront-page page-home">
@@ -118,71 +67,14 @@ export default function Home() {
         </Box>
       </Box>
 
-      <Box
-        className="storefront-section"
-        id="home-featured-products"
-        data-scroll-section
-      >
-        <Box className="storefront-section__head">
-          <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">منتجات</span>
-            <Typography variant="h3">منتجات مختارة</Typography>
-          </Box>
+      <Box component="section" className="storefront-section page-home__examples" aria-labelledby="home-examples-title">
+        <Box className="page-home__pricing-heading">
+          <span className="storefront-eyebrow">mawja</span>
+          <Typography component="h2" variant="h3" id="home-examples-title">متاجر انطلقت مع موجة</Typography>
+          <Typography color="text.secondary">تعرّف على أمثلة من متاجرنا، وتخيّل متجرك القادم.</Typography>
         </Box>
-
-        {storesQuery.isLoading || featuredProductQueries.some((query) => query.isLoading) ? (
-          <LoadingState label="جارٍ تحميل المنتجات..." />
-        ) : storesQuery.error ? (
-          <EmptyState title="تعذر تحميل المنتجات" description="حاول إعادة تحميل المتاجر أدناه." />
-        ) : featuredProducts.length ? (
-          <ProductGrid
-            products={featuredProducts}
-            className="page-home__featured-grid"
-            scrollAnchorScope="home-featured-products"
-          />
-        ) : (
-          <EmptyState
-            title="لا توجد منتجات بارزة بعد"
-            description="ستظهر هنا المنتجات الأبرز من المتاجر المتاحة بمجرد إضافتها."
-          />
-        )}
-      </Box>
-
-      <Box className="storefront-section">
-        <Box className="storefront-section__head">
-          <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">أقسام</span>
-            <Typography variant="h3">حسب النوع</Typography>
-          </Box>
-        </Box>
-
-        <Box className="storefront-cards-grid">
-          {storeCategories.map((category) => (
-            <SurfaceCard key={category.label} className="page-home__category-card">
-              <CategoryRoundedIcon fontSize="small" />
-              <Typography variant="h6">{category.label}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {category.count} متجر في هذا القسم
-              </Typography>
-            </SurfaceCard>
-          ))}
-        </Box>
-      </Box>
-
-      <Box className="storefront-section">
-        <Box className="storefront-section__head">
-          <Box className="storefront-section__copy">
-            <span className="storefront-eyebrow">متاجر</span>
-            <Typography variant="h3">المتاجر</Typography>
-          </Box>
-
-          <AppButton component={RouterLink} to="/market" variant="outlined">
-            عرض جميع المتاجر
-          </AppButton>
-        </Box>
-
         <StoreGrid
-          stores={featuredStores}
+          stores={exampleStores}
           loading={storesQuery.isLoading}
           error={storesQuery.error}
           onRetry={storesQuery.refetch}
