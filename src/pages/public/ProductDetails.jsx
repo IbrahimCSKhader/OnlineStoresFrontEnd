@@ -349,7 +349,7 @@ export default function ProductDetails() {
   };
 
   const handleAddToCart = () => {
-    if (priceOnRequest || store?.isCatalog || isOwnerPreview || !effectiveStoreId || !product?.id) {
+    if (store?.isCatalog || isOwnerPreview || !effectiveStoreId || !product?.id) {
       return;
     }
 
@@ -684,7 +684,7 @@ export default function ProductDetails() {
               ) : null}
 
               <Box className="page-product-details__purchase">
-                {!store?.isCatalog && !priceOnRequest && <>
+                {!store?.isCatalog && <>
                 <Typography variant="subtitle1" className="page-product-details__block-title">{t("الكمية")}</Typography>
 
                 <QuantityStepper
@@ -703,7 +703,7 @@ export default function ProductDetails() {
                   {quoteLink && <AppButton href={quoteLink} target="_blank" rel="noopener noreferrer">
                     {quoteLabel}
                   </AppButton>}
-                  {!store?.isCatalog && !priceOnRequest && <>
+                  {!store?.isCatalog && <>
                   <AppButton
                     variant="contained"
                     loading={addToCartUi.activeKey === "main"}

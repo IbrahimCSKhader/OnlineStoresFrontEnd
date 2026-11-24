@@ -122,6 +122,7 @@ function resolveProductSnapshot(snapshot = {}, fallback = {}) {
       backup.variantImageUrl ||
       "",
     unitPrice,
+    isPriceOnRequest: source.isPriceOnRequest ?? backup.isPriceOnRequest ?? false,
     variantName: source.variantName || source.variant?.name || backup.variantName || "",
     variantSku: source.variantSku || source.variantSKU || source.variant?.sku || backup.variantSku || "",
     variantAttributes:
@@ -282,6 +283,7 @@ export function buildProductSnapshot(product, options = {}) {
       ? getVariantEffectiveImage(variant, product)
       : "",
     unitPrice: toNumber(unitPrice),
+    isPriceOnRequest: Boolean(product?.isPriceOnRequest),
     variantName: variant?.name || "",
     variantSku: variant?.sku || "",
     variantAttributes: getVariantAttributeLabel(variant),

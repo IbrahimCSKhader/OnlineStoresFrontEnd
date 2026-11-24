@@ -15,6 +15,7 @@ export default function CartSummary({
   deliveryCost,
   checkoutPath,
   actionLabel = "متابعة لتأكيد الطلب",
+  hasInquiryItems = false,
 }) {
   const { t } = useStorefrontLanguage();
   return (
@@ -30,7 +31,7 @@ export default function CartSummary({
       <Box className="cart-summary__rows">
         <Box className="cart-summary__row">
           <span>{t("الإجمالي الفرعي")}</span>
-          <strong>{formatCurrency(subtotal)}</strong>
+          <strong>{hasInquiryItems ? t("السعر عند الاستفسار") : formatCurrency(subtotal)}</strong>
         </Box>
         <Box className="cart-summary__row">
           <span>{t("الشحن")}</span>
@@ -38,7 +39,7 @@ export default function CartSummary({
         </Box>
         <Box className="cart-summary__row cart-summary__row--total">
           <span>{t("الإجمالي")}</span>
-          <strong>{formatCurrency(totalAmount)}</strong>
+          <strong>{hasInquiryItems ? t("يُحدد بعد الاستفسار") : formatCurrency(totalAmount)}</strong>
         </Box>
       </Box>
 

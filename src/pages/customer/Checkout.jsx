@@ -11,6 +11,7 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import AppFeedbackSnackbar from "../../components/common/feedback/AppFeedbackSnackbar.jsx";
 import CartItem from "../../components/cart/CartItem.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
+import { hasInquiryCartItems, isInquiryCartItem } from "../../utils/inquiryPricing.js";
 import CheckoutForm from "../../components/order/CheckoutForm.jsx";
 import { canUseStoreCoupons } from "../../utils/storeCoupons.js";
 import useAuth from "../../hooks/auth/useAuth.js";
@@ -163,6 +164,7 @@ function buildWhatsAppOrderMessage({ store, cart, form, order, t }) {
   const couponDiscountLabel = buildCouponDiscountLabel(normalizedOrder, couponCode, t);
 
   const orderItems = normalizedItems.map((item, index) => {
+    const inquiryPrice = isInquiryCartItem(item, store);
     const variantDetails = [
       item.variantName,
       item.variantAttributes,
@@ -173,12 +175,15 @@ function buildWhatsAppOrderMessage({ store, cart, form, order, t }) {
     return [
       `- ${index + 1}. ${item.productName}${variantLabel}`,
       t("الكمية: {0}", item.quantity),
-      t("سعر الوحدة: {0}", formatCurrency(item.unitPrice)),
-      t("الإجمالي: {0}", formatCurrency(item.totalPrice)),
+      inquiryPrice ? t("السعر عند الاستفسار") : t("سعر الوحدة: {0}", formatCurrency(item.unitPrice)),
+      ...(!inquiryPrice ? [t("الإجمالي: {0}", formatCurrency(item.totalPrice))] : []),
     ].join("\n");
   });
 
-  const pricingLines = [
+  const pricingLines = hasInquiryCartItems(normalizedItems, store) ? [
+    t("- السعر النهائي يُحدد بعد الاستفسار."),
+    ...(Number(normalizedOrder.deliveryCost) > 0 ? [t("كلفة التوصيل: {0}", formatCurrency(normalizedOrder.deliveryCost))] : []),
+  ] : [
     t("- السعر قبل الخصم: {0}", formatCurrency(subtotal)),
     t("- إجمالي الخصومات: {0}", formatCurrency(discountAmount)),
     t("كلفة التوصيل: {0}", formatCurrency(normalizedOrder.deliveryCost || 0)),
@@ -358,6 +363,18 @@ function CheckoutPage() {
   }
 
   if (store.isCatalog) return <Navigate to={storeHomePath} replace />;
+
+  if (instagramOrderMessage) return (
+    <Box className="storefront-page page-checkout">
+      <Alert severity="success">{submitSuccess || t("تم إنشاء الطلب. انسخ ملخصه وأرسله إلى المكتبة عبر إنستغرام.")}</Alert>
+      <SurfaceCard className="page-checkout__instagram-message">
+        <Typography variant="h6">{t("ملخص الطلب لإرساله عبر إنستغرام")}</Typography>
+        <Box component="textarea" readOnly value={instagramOrderMessage} aria-label={t("ملخص الطلب")} sx={{ width: "100%", minHeight: 180, p: 2 }} />
+        <AppButton onClick={() => navigator.clipboard?.writeText(instagramOrderMessage)}>{t("نسخ ملخص الطلب")}</AppButton>
+        <AppButton href={instagramUrl} target="_blank" rel="noopener noreferrer">{t("افتح محادثة إنستغرام")}</AppButton>
+      </SurfaceCard>
+    </Box>
+  );
 
   if (!guestAllowed && storefrontSession.hasConflictingStoreCustomerSession) {
     return (
@@ -650,13 +667,6 @@ function CheckoutPage() {
       <AppFeedbackSnackbar toast={{ open: Boolean(submitError), severity: "error", message: submitError }}
         onClose={() => setSubmitError("")} />
       {submitSuccess ? <Alert severity="success">{submitSuccess}</Alert> : null}
-      {instagramOrderMessage && <SurfaceCard className="page-checkout__instagram-message">
-        <Typography variant="h6">{t("ملخص الطلب لإرساله عبر إنستغرام")}</Typography>
-        <Box component="textarea" readOnly value={instagramOrderMessage} aria-label={t("ملخص الطلب")} sx={{ width: "100%", minHeight: 180, p: 2 }} />
-        <AppButton onClick={() => navigator.clipboard?.writeText(instagramOrderMessage)}>{t("نسخ ملخص الطلب")}</AppButton>
-        <AppButton href={instagramUrl} target="_blank" rel="noopener noreferrer">{t("افتح محادثة إنستغرام")}</AppButton>
-      </SurfaceCard>}
-
       <SurfaceCard className="page-checkout__hero">
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
@@ -707,6 +717,7 @@ function CheckoutPage() {
           </SurfaceCard>
 
           <CartSummary
+            hasInquiryItems={hasInquiryCartItems(cart.items, store)}
             subtotal={cart.subtotal}
             totalAmount={cart.totalAmount + deliveryCost}
             deliveryCost={deliveryLocations.length && !selectedDeliveryLocation ? undefined : deliveryCost}

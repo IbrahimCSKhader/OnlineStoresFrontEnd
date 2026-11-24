@@ -44,7 +44,7 @@ function ProductCard({
 }) {
   const { t } = useStorefrontLanguage();
   const location = useLocation();
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [addError, setAddError] = useState(false);
   const inFlight = useRef(false);
@@ -93,7 +93,7 @@ function ProductCard({
     setAddError(false);
     try {
       const result = await onAddToCart(normalizedProduct, selectedQuantity);
-      if (result !== false) setQuantity(0);
+      if (result !== false) setQuantity(1);
     } catch {
       setAddError(true);
     } finally {
@@ -237,7 +237,7 @@ function ProductCard({
         </Stack>
       </Box>
 
-      {onAddToCart && !priceOnRequest ? (
+      {onAddToCart ? (
         <Box className="product-card__quantity" role="group" aria-label={t("الكمية")}>
           <IconButton size="small" aria-label={t("تقليل الكمية")} disabled={cartDisabled || busy || selectedQuantity === 0}
             onClick={() => setQuantity(Math.max(0, selectedQuantity - 1))}><RemoveRoundedIcon fontSize="small" /></IconButton>
@@ -247,7 +247,7 @@ function ProductCard({
         </Box>
       ) : null}
       {addError ? <Typography role="alert" variant="caption" className="product-card__cart-error">{t("تعذر إضافة المنتج للسلة. حاول مرة أخرى.")}</Typography> : null}
-      {onAddToCart && !priceOnRequest ? (
+      {onAddToCart ? (
         <Box className="product-card__actions">
           <AppButton
             variant="contained"

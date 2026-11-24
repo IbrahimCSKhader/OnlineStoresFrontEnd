@@ -181,6 +181,7 @@ export function normalizeCartResponse(data) {
         product.originalPrice,
         product.price,
       ),
+      isPriceOnRequest: Boolean(item.isPriceOnRequest ?? product.isPriceOnRequest),
       totalPrice: firstNumber(
         item.totalPrice,
         item.TotalPrice,

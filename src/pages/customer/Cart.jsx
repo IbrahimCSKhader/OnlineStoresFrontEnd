@@ -14,6 +14,7 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import QuantityStepper from "../../components/common/inputs/QuantityStepper.jsx";
 import CartItem from "../../components/cart/CartItem.jsx";
 import CartSummary from "../../components/cart/CartSummary.jsx";
+import { hasInquiryCartItems, isInquiryCartItem } from "../../utils/inquiryPricing.js";
 import useAuth from "../../hooks/auth/useAuth.js";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
 import useCart from "../../hooks/cart/useCart.js";
@@ -174,11 +175,11 @@ export default function Cart() {
                       <Box className="page-cart__item-meta">
                         <Box className="page-cart__item-stat">
                           <span>{t("السعر")}</span>
-                          <strong>{formatCurrency(row.unitPrice)}</strong>
+                          <strong>{isInquiryCartItem(row, store) ? t("عند الاستفسار") : formatCurrency(row.unitPrice)}</strong>
                         </Box>
                         <Box className="page-cart__item-stat">
                           <span>{t("الإجمالي")}</span>
-                          <strong>{formatCurrency(row.totalPrice)}</strong>
+                          <strong>{isInquiryCartItem(row, store) ? t("عند الاستفسار") : formatCurrency(row.totalPrice)}</strong>
                         </Box>
                       </Box>
 
@@ -227,7 +228,7 @@ export default function Cart() {
                     {
                       key: "price",
                       title: t("السعر"),
-                      render: (row) => formatCurrency(row.unitPrice),
+                      render: (row) => isInquiryCartItem(row, store) ? t("عند الاستفسار") : formatCurrency(row.unitPrice),
                     },
                     {
                       key: "quantity",
@@ -252,7 +253,7 @@ export default function Cart() {
                     {
                       key: "total",
                       title: t("الإجمالي"),
-                      render: (row) => formatCurrency(row.totalPrice),
+                      render: (row) => isInquiryCartItem(row, store) ? t("عند الاستفسار") : formatCurrency(row.totalPrice),
                     },
                     {
                       key: "actions",
@@ -281,6 +282,7 @@ export default function Cart() {
               subtotal={cart.subtotal}
               totalAmount={cart.totalAmount}
               itemCount={cart.itemCount}
+              hasInquiryItems={hasInquiryCartItems(cart.items, store)}
               checkoutPath={storeCheckoutPath}
             />
           </Box>
