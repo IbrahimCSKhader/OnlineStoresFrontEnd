@@ -1,11 +1,13 @@
 import { useEffect, useId, useState } from "react";
-import { matchPath, useLocation } from "react-router-dom";
+import { Link as RouterLink, matchPath, useLocation } from "react-router-dom";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Typography from "@mui/material/Typography";
 import useStorefrontSession from "../../hooks/auth/useStorefrontSession.js";
+import { buildStorefrontPath } from "../../utils/customDomain.js";
 import StoreGoogleAuthButton from "./StoreGoogleAuthButton.jsx";
 
 function RegistrationDialog({ store, slug, redirectTo, dir, lang, t }) {
@@ -30,8 +32,13 @@ function RegistrationDialog({ store, slug, redirectTo, dir, lang, t }) {
 
   return (
     <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="xs" aria-labelledby={titleId} dir={dir} lang={lang}>
-      <DialogTitle id={titleId}>{t("سجل حسابك بضغطة زر للاستفادة من الميزات")}</DialogTitle>
+      <DialogTitle id={titleId}>{t("تسجيل الدخول إلى المتجر")}</DialogTitle>
       <DialogContent>
+        <Typography sx={{ mb: 2 }}>
+          {store.requireCustomerLoginForCheckout === false
+            ? t("يمكنك تسجيل الدخول لحفظ بياناتك، أو المتابعة كضيف وإتمام الطلب دون حساب.")
+            : t("سجّل الدخول للاستفادة من ميزات المتجر وإتمام الطلب.")}
+        </Typography>
         <StoreGoogleAuthButton
           storeId={store.id}
           storeSlug={slug}
@@ -41,7 +48,12 @@ function RegistrationDialog({ store, slug, redirectTo, dir, lang, t }) {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={() => setOpen(false)}>{t("ليس الآن")}</Button>
+        <Button component={RouterLink} to={buildStorefrontPath(slug, "/login")} onClick={() => setOpen(false)}>
+          {t("تسجيل الدخول")}
+        </Button>
+        <Button onClick={() => setOpen(false)}>
+          {store.requireCustomerLoginForCheckout === false ? t("المتابعة كضيف") : t("ليس الآن")}
+        </Button>
       </DialogActions>
     </Dialog>
   );

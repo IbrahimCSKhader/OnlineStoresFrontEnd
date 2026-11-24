@@ -26,9 +26,9 @@ vi.mock("../components/layout/StoreFooter.jsx", () => ({ default: () => null }))
 
 const storefrontTheme = createAppTheme(buildThemeProfile("light"));
 
-function openStore(path = "/market/first", enabled = true, themeTemplate) {
+function openStore(path = "/market/first", enabled = true, themeTemplate, guestAllowed = false) {
   useStoreBySlug.mockImplementation((slug) => ({
-    data: { id: slug, slug, themeTemplate, enableCustomerRegistrationPrompt: enabled },
+    data: { id: slug, slug, themeTemplate, enableCustomerRegistrationPrompt: enabled, requireCustomerLoginForCheckout: !guestAllowed },
   }));
   return render(
     <StrictMode>
@@ -72,7 +72,7 @@ it.each([
 
 it("shows Google signup once per store for a guest", async () => {
   const visit = openStore("/market/first/products");
-  expect(screen.getByRole("dialog", { name: "سجل حسابك بضغطة زر للاستفادة من الميزات" })).toBeVisible();
+  expect(screen.getByRole("dialog", { name: "تسجيل الدخول إلى المتجر" })).toBeVisible();
   expect(screen.getByRole("button", { name: "التسجيل باستخدام Google" })).toBeEnabled();
   fireEvent.click(screen.getByRole("button", { name: "ليس الآن" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
@@ -84,6 +84,14 @@ it("shows Google signup once per store for a guest", async () => {
 
   openStore("/market/second");
   expect(screen.getByRole("dialog")).toBeVisible();
+});
+
+it("offers optional login and guest checkout when the store allows guests", () => {
+  openStore("/market/first", true, "K", true);
+  expect(screen.getByRole("link", { name: "تسجيل الدخول" })).toHaveAttribute("href", "/market/first/login");
+  expect(screen.getByText(/إتمام الطلب دون حساب/)).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "المتابعة كضيف" }));
+  return waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 });
 
 it("skips disabled stores, customers signed into this store, and registration pages", () => {
