@@ -362,7 +362,7 @@ export default function StoreDetails() {
         <Box className="storefront-section__head">
           <Box className="storefront-section__copy">
             <span className="storefront-eyebrow">{library ? "الكتب والإصدارات" : t("المنتجات")}</span>
-            <Typography variant="h3">{library ? "رفوف المكتبة" : t("جميع المنتجات")}</Typography>
+            <Typography variant="h3">{library ? "إصدارات المكتبة" : t("جميع المنتجات")}</Typography>
           </Box>
 
           <Box className="page-store-details__catalog-toolbar">
