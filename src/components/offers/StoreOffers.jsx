@@ -21,6 +21,7 @@ export default function StoreOffers({ store, disabled = false, showAll = false }
   const { buildStorePreviewPath } = useOwnerStorePreview();
   const bundles = (offers.data || []).filter(o => Number(o.type) === 1);
   const visibleBundles = showAll ? bundles : bundles.slice(0, 4);
+  if (store?.isCatalog && !offers.isLoading && !offers.isError && !bundles.length) return null;
   return <section className="storefront-section store-offers" id="store-offers" aria-label={t("عروضات المتجر")}>
     <header className="store-offers__head"><div><span className="storefront-eyebrow">{localized(store?.appearance?.sections?.offersHeading, language, exclusive[language] || exclusive.A)}</span><h2>{t("عروضات المتجر")}</h2></div></header>
     {offers.isLoading && <p role="status">{t("جارٍ تحميل العروض...")}</p>}
