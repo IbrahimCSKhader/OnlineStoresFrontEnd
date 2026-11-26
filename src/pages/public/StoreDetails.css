@@ -390,7 +390,63 @@ html[data-theme-template="blue"] .page-store-details__category-card .MuiTypograp
     gap: 10px;
   }
   .page-store-details .page-store-details__catalog .storefront-products-grid--all > * {
-    flex-basis: calc((100% - 10px) / 2);
+    flex-basis: calc((100% - 20px) / 3);
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card {
+    padding: 4px;
+    border-radius: 12px;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__media {
+    margin: 0;
+    border-radius: 8px;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card .product-card__favorite {
+    inset-block-start: 7px;
+    inset-inline-end: 7px;
+    min-width: 28px;
+    min-height: 28px;
+    width: 28px;
+    height: 28px;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__body {
+    padding: 8px 4px 6px;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__eyebrow,
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__description {
+    display: none;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__title {
+    min-height: 3.6em;
+    max-height: 3.6em;
+    font-size: .72rem !important;
+    line-height: 1.2 !important;
+    -webkit-line-clamp: 3;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__price {
+    font-size: .75rem !important;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__price-row {
+    min-height: 20px;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__quantity {
+    margin: 0 0 6px;
+    gap: 0;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__quantity .MuiIconButton-root {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 3px;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__add-button {
+    min-width: 0;
+    min-height: 32px !important;
+    padding-inline: 3px !important;
+    font-size: .62rem;
+    line-height: 1.2;
+  }
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all .product-card__add-button .MuiButton-startIcon {
+    display: none;
   }
 
   .page-store-details__featured .storefront-products-grid,
@@ -668,6 +724,9 @@ html[data-theme-template] .page-store-details--category-grid .page-store-details
   }
 }
 @media (max-width: 359px) {
+  .page-store-details .page-store-details__catalog .storefront-products-grid--all > * {
+    flex-basis: calc((100% - 10px) / 2);
+  }
   .page-store-details--library .page-store-details__catalog .storefront-products-grid > * {
     flex-basis: calc((100% - 8px) / 2);
   }
