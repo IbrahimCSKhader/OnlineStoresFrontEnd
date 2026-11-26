@@ -43,6 +43,6 @@ it("renders the library layout from the saved template while keeping the catalog
   expect(container.querySelector(".page-store-details--library")).not.toBeNull();
   expect(screen.getByText("Author story")).toBeVisible();
   expect(container.querySelector(".page-store-details__categories-grid")).toBeNull();
-  expect(screen.getByText("رفوف المكتبة")).toBeVisible();
+  expect(screen.getByText("إصدارات المكتبة")).toBeVisible();
   expect(container.querySelector(".page-store-details__featured")).toBeNull();
 });

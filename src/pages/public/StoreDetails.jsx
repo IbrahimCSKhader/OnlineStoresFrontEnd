@@ -13,7 +13,7 @@ import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import AppFeedbackSnackbar from "../../components/common/feedback/AppFeedbackSnackbar.jsx";
 import extractApiError from "../../utils/extractApiError.js";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
-import { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
+import ProductGrid, { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
 import CategoryProductSections from "../../components/product/CategoryProductSections.jsx";
 import { groupProductsByCategory } from "../../utils/categoryProductGroups.js";
 import ProductCarousel from "../../components/product/ProductCarousel.jsx";
@@ -122,6 +122,13 @@ export default function StoreDetails() {
       (!keyword || [product.name, product.description, product.shortDescription, product.categoryName, product.sku]
         .some(value => String(value || "").toLocaleLowerCase().includes(keyword)));
   }), [products, deferredSearchText, selectedCategoryId]);
+  const productsByName = useMemo(() => {
+    const locale = language === "E" ? "en" : language === "I" ? "he" : "ar";
+    const collator = new Intl.Collator(locale, { numeric: true, sensitivity: "base" });
+    return [...filteredProducts].sort((a, b) =>
+      collator.compare(a.name || "", b.name || "") ||
+      String(a.id || "").localeCompare(String(b.id || "")));
+  }, [filteredProducts, language]);
   const templateCode = String(store?.themeTemplate ?? store?.ThemeTemplate).toUpperCase();
   const categoryGrid = templateCode === "C";
   const library = templateCode === "K";
@@ -388,12 +395,17 @@ export default function StoreDetails() {
           </AppButton>)}
         </Box>}
         <Box className="page-store-details__catalog-body">
-          {catalogProductsQuery.isLoading ? <ProductGridSkeleton count={CATALOG_PAGE_SIZE} />
+          {catalogProductsQuery.isLoading ? <ProductGridSkeleton count={CATALOG_PAGE_SIZE}
+            className={selectedCategoryId === "all" ? "storefront-products-grid--all" : ""} />
             : catalogProductsQuery.error ? <EmptyState title={t("تعذر تحميل المنتجات")} description={t("حاول تحديث الصفحة أو افتح المتجر مرة أخرى.")} />
             : filteredProducts.length ? <>
-              <CategoryProductSections groups={filteredGroups} scope="store-catalog"
+              {library || selectedCategoryId === "all" ? <ProductGrid products={productsByName} scrollAnchorScope="store-catalog"
+                className={selectedCategoryId === "all" ? "storefront-products-grid--all" : ""}
                 storeSlug={resolvedStoreSlug} onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
                 addingProductId={addToCartUi.activeKey} disableCartActions={isOwnerPreview} linkSearch={previewSearch} />
+                : <CategoryProductSections groups={filteredGroups} scope="store-catalog"
+                  storeSlug={resolvedStoreSlug} onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
+                  addingProductId={addToCartUi.activeKey} disableCartActions={isOwnerPreview} linkSearch={previewSearch} />}
             </> : <EmptyState title={t("لا توجد نتائج")} description={t("جرّب كلمة بحث أخرى أو ارجع إلى جميع التصنيفات.")} />}
         </Box>
       </Box>
