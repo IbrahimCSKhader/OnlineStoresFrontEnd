@@ -1,3 +1,5 @@
+import { isAlaaStore } from "./alaaTheme.js";
+
 export const JUBEH_STORE_SLUG = "jubeh-office-furniture";
 
 const themeConfigs = {
@@ -82,6 +84,7 @@ function resolveTemplate(store) {
 }
 
 export function resolveStoreThemeConfig(store) {
+  if (isAlaaStore(store)) return { defaultVariant: "deep-green", availableVariants: ["deep-green"] };
   if (normalize(store?.slug ?? store?.Slug) === JUBEH_STORE_SLUG) {
     return themeConfigs.jubeh;
   }

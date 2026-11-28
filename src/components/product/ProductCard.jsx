@@ -61,6 +61,7 @@ function ProductCard({
   const isAvailable = isProductInStock(normalizedProduct);
   const priceOnRequest = normalizedProduct.isPriceOnRequest;
   const resolvedStoreSlug = storeSlug || normalizedProduct.storeSlug;
+  const alaa = resolvedStoreSlug?.toLowerCase() === "alaa-rob";
   const detailPath =
     resolvedStoreSlug && normalizedProduct.id
       ? buildStorefrontPath(resolvedStoreSlug, `/product/${normalizedProduct.id}`)
@@ -165,6 +166,7 @@ function ProductCard({
           )}
 
           <Box className="product-card__badges">
+            {alaa && categoryLabel && <span className="product-card__badge">{categoryLabel}</span>}
             {discountBadgeLabel ? (
               <span className="product-card__badge product-card__badge--sale">
                 {discountBadgeLabel}
@@ -237,7 +239,7 @@ function ProductCard({
         </Stack>
       </Box>
 
-      {onAddToCart ? (
+      {onAddToCart && !alaa ? (
         <Box className="product-card__quantity" role="group" aria-label={t("الكمية")}>
           <IconButton size="small" aria-label={t("تقليل الكمية")} disabled={cartDisabled || busy || selectedQuantity === 0}
             onClick={() => setQuantity(Math.max(0, selectedQuantity - 1))}><RemoveRoundedIcon fontSize="small" /></IconButton>
@@ -257,9 +259,10 @@ function ProductCard({
             loadingLabel="..."
             onClick={handleAdd}
             disabled={cartDisabled || selectedQuantity < 1}
-            startIcon={<LocalMallRoundedIcon fontSize="small" />}
+            aria-label={t("أضف إلى السلة")}
+            startIcon={alaa ? undefined : <LocalMallRoundedIcon fontSize="small" />}
             className="product-card__add-button"
-          >{t("أضف إلى السلة")}</AppButton>
+          >{alaa ? <AddRoundedIcon fontSize="small" /> : t("أضف إلى السلة")}</AppButton>
         </Box>
       ) : null}
     </SurfaceCard>

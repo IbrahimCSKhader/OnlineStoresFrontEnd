@@ -1,6 +1,6 @@
 export function isInquiryCartItem(item, store) {
   return item?.isPriceOnRequest === true ||
-    (String(store?.themeTemplate || "").toUpperCase() === "K" && Number(item?.unitPrice) === 0);
+    (["K", "A"].includes(String(store?.themeTemplate || "").toUpperCase()) && Number(item?.unitPrice) === 0);
 }
 
 export function hasInquiryCartItems(items, store) {

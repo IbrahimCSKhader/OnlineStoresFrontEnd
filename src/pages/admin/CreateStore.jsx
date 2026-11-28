@@ -116,7 +116,7 @@ export default function CreateStore({
             helperText="اختر لون المتجر. كل لون له نهار وليل."
             {...register("themeTemplate")}
           >
-            {STORE_THEME_TEMPLATES.map((template) => (
+            {STORE_THEME_TEMPLATES.filter(template => !template.storeSlug).map((template) => (
               <MenuItem key={template.value} value={template.value}>
                 <ThemeTemplateOption template={template} />
               </MenuItem>

@@ -2,8 +2,8 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 import StoreDetails from "./StoreDetails.jsx";
-const state = vi.hoisted(() => ({ template: "C", categories: Array.from({ length: 13 }, (_, i) => ({ id: `brand-${i}`, name: `Brand ${i}`, imageUrl: `/brand-${i}.jpg` })) }));
-vi.mock("../../hooks/stores/useStoreBySlug.js", () => ({ default: () => ({ data: { id: "s", slug: "demo", name: "Demo", description: "Author books", storeStory: "Author story", themeTemplate: state.template } }) }));
+const state = vi.hoisted(() => ({ template: "C", slug: "demo", categories: Array.from({ length: 13 }, (_, i) => ({ id: `brand-${i}`, name: `Brand ${i}`, imageUrl: `/brand-${i}.jpg` })) }));
+vi.mock("../../hooks/stores/useStoreBySlug.js", () => ({ default: () => ({ data: { id: "s", slug: state.slug, name: "Demo", description: "Author books", storeStory: "Author story", themeTemplate: state.template } }) }));
 vi.mock("../../hooks/stores/useOwnerStorePreview.js", () => ({ default: () => ({ isOwnerPreview: true, previewSearch: "?preview=1", buildStorePreviewPath: x => `${x}?preview=1` }) }));
 vi.mock("../../hooks/storefront/useStorefrontLanguage.js", () => ({ default: () => ({ t: x => x, language: "A" }) }));
 vi.mock("../../hooks/categories/useCategories.js", () => ({ default: () => ({ data: state.categories }) }));
@@ -16,7 +16,7 @@ vi.mock("../../components/store/StoreStatistics.jsx", () => ({ default: () => nu
 vi.mock("../../components/offers/PremiumOffer.jsx", () => ({ default: () => null }));
 vi.mock("../../components/offers/StoreOffers.jsx", () => ({ default: () => null }));
 vi.mock("../../theme/useStoreBranding.js", () => ({ default: () => {} }));
-afterEach(cleanup);
+afterEach(() => { cleanup(); state.slug = "demo"; });
 const show = () => render(<MemoryRouter initialEntries={["/market/demo"]}><Routes>
   <Route path="/market/:slug" element={<StoreDetails />} />
   <Route path="/market/:slug/category/:categoryId" element={<p>Category products</p>} />
@@ -45,4 +45,14 @@ it("renders the library layout from the saved template while keeping the catalog
   expect(container.querySelector(".page-store-details__categories-grid")).toBeNull();
   expect(screen.getByText("إصدارات المكتبة")).toBeVisible();
   expect(container.querySelector(".page-store-details__featured")).toBeNull();
+});
+
+it("limits the custom Alaa hero to her store and keeps other libraries unchanged", () => {
+ state.slug = "alaa-rob";
+ state.template = "A";
+ const { container } = show();
+ expect(container.querySelector(".alaa-hero")).not.toBeNull();
+ expect(container.querySelector(".page-store-details--library")).toBeNull();
+ expect(container.querySelector("#alaa-author")).not.toBeNull();
+ expect(container.querySelector("#store-catalog")).not.toBeNull();
 });

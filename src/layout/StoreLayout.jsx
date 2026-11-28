@@ -16,6 +16,8 @@ import useStoreBranding from "../theme/useStoreBranding.js";
 import useStoreInstallManifest from "../hooks/useStoreInstallManifest.js";
 import { normalizeStoreThemeTemplate } from "../constants/storeThemeTemplates.js";
 import "./StoreLayout.css";
+import { isAlaaStore } from "../theme/alaaTheme.js";
+import "../theme/alaa.css";
 
 export default function StoreLayout() {
   const { slug = "" } = useParams();
@@ -34,7 +36,8 @@ export default function StoreLayout() {
   const useBottomNavigation = useMediaQuery(theme.breakpoints.down(isSallabasket ? "lg" : "sm"));
   const hasAppNavbarTemplate =
     normalizeStoreThemeTemplate(store?.themeTemplate ?? store?.ThemeTemplate) === "O";
-  const appNavbar = Boolean(store?.id) && (useBottomNavigation || (!isSallabasket && hasAppNavbarTemplate));
+  const alaa = isAlaaStore(store);
+  const appNavbar = Boolean(store?.id) && (alaa || useBottomNavigation || (!isSallabasket && hasAppNavbarTemplate));
 
   useStoreInstallManifest(effectiveSlug);
   useStoreBranding(store);
@@ -49,7 +52,7 @@ export default function StoreLayout() {
       storeSlug={effectiveSlug}
       disabled={isOwnerPreview || store?.isActive === false}
     >
-      <Box className={appNavbar ? "store-layout store-layout--app-navbar" : "store-layout"} dir={dir} lang={locale}>
+      <Box className={`store-layout${appNavbar ? " store-layout--app-navbar" : ""}${alaa ? " store-layout--alaa" : ""}`} dir={dir} lang={locale}>
         <Header appNavbar={appNavbar} />
         <Box component="main" className="store-layout__content">
           {isOwnerPreview ? (

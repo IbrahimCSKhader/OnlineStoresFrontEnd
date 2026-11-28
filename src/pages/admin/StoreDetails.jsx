@@ -224,7 +224,7 @@ function StoreEditDialog({ open, store, loading, error, onClose, onSubmit }) {
               }
               helperText="اختر قالب المتجر. كل قالب يملك ثيم صباحي وثيم ليلي داخل الواجهة."
             >
-              {STORE_THEME_TEMPLATES.map((template) => (
+              {STORE_THEME_TEMPLATES.filter(template => !template.storeSlug || template.storeSlug === store?.slug).map((template) => (
                 <MenuItem key={template.value} value={template.value}>
                   {template.label}
                 </MenuItem>

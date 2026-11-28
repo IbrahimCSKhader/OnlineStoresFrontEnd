@@ -1,5 +1,10 @@
 export const STORE_THEME_TEMPLATES = [
   {
+    value: "A", label: "تصميم الاء", template: "alaa", storeSlug: "alaa-rob",
+    lightVariant: "deep-green", darkVariant: "deep-green",
+    preview: { light: ["#F7F6F1", "#FFFFFF", "#084C37"], dark: ["#F7F6F1", "#FFFFFF", "#084C37"] },
+  },
+  {
     value: "K",
     label: "مكتبة",
     template: "library",

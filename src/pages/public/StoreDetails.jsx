@@ -44,6 +44,8 @@ import useStoreBranding from "../../theme/useStoreBranding.js";
 import { JUBEH_STORE_SLUG } from "../../theme/storeThemeConfig.js";
 import { showStoreStatistics } from "../../theme/storeAppearance.js";
 import "./StoreDetails.css";
+import { isAlaaStore } from "../../theme/alaaTheme.js";
+import AlaaHero from "../../components/storefront/AlaaHero.jsx";
 
 const CATALOG_PAGE_SIZE = 12;
 const initialView = { searchText: "", selectedCategoryId: "all" };
@@ -131,7 +133,8 @@ export default function StoreDetails() {
   }, [filteredProducts, language]);
   const templateCode = String(store?.themeTemplate ?? store?.ThemeTemplate).toUpperCase();
   const categoryGrid = templateCode === "C";
-  const library = templateCode === "K";
+  const alaa = isAlaaStore(store);
+  const library = templateCode === "K" || alaa;
   const categorySummary = useMemo(
     () => categories,
     [categories],
@@ -205,7 +208,7 @@ export default function StoreDetails() {
 
   if (storeQuery.isLoading) {
     return (
-      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${library ? " page-store-details--library" : ""}`}>
+      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${alaa ? " page-store-details--alaa" : library ? " page-store-details--library" : ""}`}>
         <EmptyState title={t("جاري تحميل المتجر...")} />
       </Box>
     );
@@ -213,7 +216,7 @@ export default function StoreDetails() {
 
   if (storeQuery.error || !store) {
     return (
-      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${library ? " page-store-details--library" : ""}`}>
+      <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${alaa ? " page-store-details--alaa" : library ? " page-store-details--library" : ""}`}>
         <EmptyState
           title={t("تعذر العثور على المتجر")}
           description={t("قد يكون الرابط غير صحيح أو أن المتجر لم يعد متاحًا.")}
@@ -228,7 +231,7 @@ export default function StoreDetails() {
   const logoImage = resolveStoreLogoUrl(store, { wordmark: logoCover });
 
   return (
-    <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${library ? " page-store-details--library" : ""}`}>
+    <Box className={`storefront-page page-store-details${categoryGrid ? " page-store-details--category-grid" : ""}${alaa ? " page-store-details--alaa" : library ? " page-store-details--library" : ""}`}>
       <AppFeedbackSnackbar toast={{ open: addToCartMutation.isError, severity: "error",
         message: extractApiError(addToCartMutation.error, t("تعذر إضافة المنتج إلى السلة.")) }}
         onClose={() => addToCartMutation.reset?.()} />
@@ -240,7 +243,7 @@ export default function StoreDetails() {
         <Alert severity="success">{t("تمت إضافة المنتج إلى السلة.")}</Alert>
       ) : null}
 
-      <SurfaceCard variant="hero" className={logoCover ? "page-store-details__hero page-store-details__hero--logo" : "page-store-details__hero"}>
+      {alaa ? <AlaaHero store={store} products={products.filter(isProductActive)} buildPath={buildStorePreviewPath} /> : <SurfaceCard variant="hero" className={logoCover ? "page-store-details__hero page-store-details__hero--logo" : "page-store-details__hero"}>
         <Box className="page-store-details__brand-row">
           {logoImage ? (
             <img src={logoImage} alt="" className="storefront-logo" decoding="async" />
@@ -256,7 +259,7 @@ export default function StoreDetails() {
           </Box>
         </Box>
         {coverImage && <img className="page-store-details__hero-media" src={coverImage} alt="" decoding="async" />}
-      </SurfaceCard>
+      </SurfaceCard>}
 
       {!categoryGrid && <>
       {!library && store.isActive !== false && showStoreStatistics(store) && (
@@ -330,7 +333,7 @@ export default function StoreDetails() {
         )}
       </Box>}
 
-      {library && store.storeStory && <Box className="page-store-details__library-story"><Typography variant="h3">عن المؤلف</Typography><Typography>{store.storeStory}</Typography></Box>}
+      {library && !alaa && store.storeStory && <Box className="page-store-details__library-story"><Typography variant="h3">عن المؤلف</Typography><Typography>{store.storeStory}</Typography></Box>}
       {!categoryGrid && <>
       {!library && store?.appearance?.sections?.showFeaturedProducts !== false && <Box
         className="storefront-section page-store-details__featured"
@@ -396,11 +399,11 @@ export default function StoreDetails() {
         </Box>}
         <Box className="page-store-details__catalog-body">
           {catalogProductsQuery.isLoading ? <ProductGridSkeleton count={CATALOG_PAGE_SIZE}
-            className={selectedCategoryId === "all" ? "storefront-products-grid--all" : ""} />
+            className={!alaa && selectedCategoryId === "all" ? "storefront-products-grid--all" : ""} />
             : catalogProductsQuery.error ? <EmptyState title={t("تعذر تحميل المنتجات")} description={t("حاول تحديث الصفحة أو افتح المتجر مرة أخرى.")} />
             : filteredProducts.length ? <>
               {library || selectedCategoryId === "all" ? <ProductGrid products={productsByName} scrollAnchorScope="store-catalog"
-                className={selectedCategoryId === "all" ? "storefront-products-grid--all" : ""}
+                className={!alaa && selectedCategoryId === "all" ? "storefront-products-grid--all" : ""}
                 storeSlug={resolvedStoreSlug} onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
                 addingProductId={addToCartUi.activeKey} disableCartActions={isOwnerPreview} linkSearch={previewSearch} />
                 : <CategoryProductSections groups={filteredGroups} scope="store-catalog"
@@ -410,6 +413,7 @@ export default function StoreDetails() {
         </Box>
       </Box>
       </>}
+      {alaa && <section id="alaa-author" className="alaa-author"><span>أقلام</span><h2>عن الاء روب</h2><p>{store.storeStory || store.description}</p></section>}
     </Box>
   );
 }

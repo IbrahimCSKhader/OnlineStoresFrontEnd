@@ -21,7 +21,8 @@ import SurfaceCard from "../../components/common/cards/SurfaceCard.jsx";
 import EmptyState from "../../components/common/feedback/EmptyState.jsx";
 import AppTextField from "../../components/common/inputs/AppTextField.jsx";
 import SearchInput from "../../components/common/inputs/SearchInput.jsx";
-import { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
+import { isAlaaStore } from "../../theme/alaaTheme.js";
+import ProductGrid, { ProductGridSkeleton } from "../../components/product/ProductGrid.jsx";
 import CategoryProductSections from "../../components/product/CategoryProductSections.jsx";
 import { groupProductsByCategory, paginateCategoryGroups } from "../../utils/categoryProductGroups.js";
 import ProductPagination from "../../components/product/ProductPagination.jsx";
@@ -510,7 +511,11 @@ export default function ProductsPage({ categoryId = null }) {
             <EmptyState title={t("تعذر تحميل المنتجات")} description={t("حاول تحديث الصفحة أو افتح المتجر مرة أخرى.")} />
           ) : pagination.items.length ? (
             <>
-              <CategoryProductSections
+              {isAlaaStore(store) ? <ProductGrid products={pagination.items}
+                scrollAnchorScope="products-results" storeSlug={store.slug}
+                onAddToCart={store?.isCatalog ? undefined : handleAddToCart}
+                addingProductId={addToCartUi.activeKey} disableCartActions={isOwnerPreview}
+                linkSearch={previewSearch} /> : <CategoryProductSections
                 groups={pageGroups}
                 scope="products-results"
                 storeSlug={store.slug}
@@ -519,7 +524,7 @@ export default function ProductsPage({ categoryId = null }) {
                 disableCartActions={isOwnerPreview}
                 linkSearch={previewSearch}
                 className="page-products__products-grid"
-              />
+              />}
               <ProductPagination
                 pagination={pagination}
                 onPageChange={(nextPage) => {

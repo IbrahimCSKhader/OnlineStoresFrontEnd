@@ -268,7 +268,7 @@ function CreateStoreModal({ open, loading, error, onClose, onSubmit }) {
             onChange={(event) => updateForm("themeTemplate", event.target.value)}
             helperText="اختر قالب المتجر. كل قالب يملك ثيم صباحي وثيم ليلي داخل الواجهة."
           >
-            {STORE_THEME_TEMPLATES.map((template) => (
+            {STORE_THEME_TEMPLATES.filter(template => !template.storeSlug).map((template) => (
               <MenuItem key={template.value} value={template.value}>
                 {template.label}
               </MenuItem>

@@ -81,3 +81,10 @@ it("keeps category-grid colors consistent with the fragrance store palette", () 
   expect(resolveStoreThemeConfig({ themeTemplate: "C" })).toEqual(resolveStoreThemeConfig({ themeTemplate: "N" }));
   expect(STORE_THEME_TEMPLATES.find(x => x.value === "C").label).toBe("العرض بناء على الاصناف");
 });
+
+ it("isolates Alaa design from all other library stores", () => {
+  expect(resolveStoreThemeConfig({ slug: "alaa-rob", themeTemplate: "K" })).toEqual({ defaultVariant: "deep-green", availableVariants: ["deep-green"] });
+  expect(resolveStoreThemeConfig({ slug: "another-library", themeTemplate: "K" }).defaultVariant).toBe("brown");
+  expect(normalizeStoreThemeTemplate("A")).toBe("A");
+  expect(STORE_THEME_TEMPLATES.find(x => x.value === "A").label).toBe("تصميم الاء");
+});

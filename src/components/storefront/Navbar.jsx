@@ -1,3 +1,5 @@
+import { isAlaaStore } from "../../theme/alaaTheme.js";
+import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import { useMemo, useState } from "react";
 import { NavLink, matchPath, useLocation, useNavigate } from "react-router-dom";
 import AppBar from "@mui/material/AppBar";
@@ -905,18 +907,25 @@ export default function Navbar({ appNavbar = false }) {
           <HomeRoundedIcon fontSize="small" />
           <span className="app-navbar__label">{copy.home}</span>
         </IconButton>
-        <StoreFavoritesButton storeSlug={activeStoreSlug} appNavbar />
+        {isAlaaStore(activeStore) ? <>
+          <IconButton component={NavLink} to={buildStorePreviewPath(buildStorefrontPath(activeStoreSlug, "/products"))} className="app-navbar__action" aria-label="المتجر">
+            <GridViewRoundedIcon fontSize="small" /><span className="app-navbar__label">المتجر</span>
+          </IconButton>
+          <IconButton component={NavLink} to={`${brandHref}#alaa-author`} className="app-navbar__action" aria-label="أقلام">
+            <EditOutlinedIcon fontSize="small" /><span className="app-navbar__label">أقلام</span>
+          </IconButton>
+        </> : <StoreFavoritesButton storeSlug={activeStoreSlug} appNavbar />}
         {renderCartButton()}
-        <IconButton component={NavLink} to={buildStorePreviewPath(buildStorefrontPath(activeStoreSlug, "/products"))}
+        {!isAlaaStore(activeStore) && <IconButton component={NavLink} to={buildStorePreviewPath(buildStorefrontPath(activeStoreSlug, "/products"))}
           className="app-navbar__action" aria-label={copy.products}>
           <GridViewRoundedIcon fontSize="small" />
           <span className="app-navbar__label">{copy.products}</span>
-        </IconButton>
-        <IconButton className="app-navbar__action" aria-label={t("فتح القائمة")}
+        </IconButton>}
+        <IconButton className="app-navbar__action" aria-label={isAlaaStore(activeStore) ? "حسابي" : t("فتح القائمة")}
           aria-expanded={drawerOpen} aria-controls={drawerOpen ? "store-navigation-drawer" : undefined}
           onClick={() => setDrawerOpen(true)}>
-          <MenuRoundedIcon fontSize="small" />
-          <span className="app-navbar__label">{t("المزيد")}</span>
+          {isAlaaStore(activeStore) ? <PersonRoundedIcon fontSize="small" /> : <MenuRoundedIcon fontSize="small" />}
+          <span className="app-navbar__label">{isAlaaStore(activeStore) ? "حسابي" : t("المزيد")}</span>
         </IconButton>
       </Box>
     ) : (
